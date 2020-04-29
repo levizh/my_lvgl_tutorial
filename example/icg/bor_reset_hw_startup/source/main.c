@@ -115,7 +115,7 @@ int32_t main(void)
     /* Configure BSP */
     BSP_LED_Init();
     /* Configure UART */
-    DDL_UartInit();
+    DDL_PrintfInit();
 
     /* Get RMU information */
     RMU_GetStatus(&stRstCause);

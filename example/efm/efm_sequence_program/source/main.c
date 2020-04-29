@@ -80,11 +80,15 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void SystemClockConfig(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-
+static uint8_t u8TestBuf[] = {1,2,3,4,5,6,7,8,9,10,\
+                              11,12,13,14,15,16,17,\
+                              18,19,20,21,22,23,24,\
+                              25,26,27,28,29,30,31,32};
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
@@ -97,33 +101,40 @@
 int32_t main(void)
 {
     stc_efm_cfg_t stcEfmCfg;
-    uint8_t u8TestBuf[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
     uint32_t flag1, flag2;
+    /* Configures the PLLHP(240MHz) as the system clock. */
+    SystemClockConfig();
     /* Unlock EFM. */
     EFM_Unlock();
     /* EFM default config. */
     EFM_StrucInit(&stcEfmCfg);
     /* EFM config */
-    stcEfmCfg.u32BusState = EFM_BUS_RELEASE;  /* Bus release while programming or erasing */
+    stcEfmCfg.u32BusState  = EFM_BUS_RELEASE;  /* Bus release while programming or erasing */
+    /*
+     * Clock <= 40MHZ             EFM_WAIT_CYCLE_0
+     * 40MHZ < Clock <= 80MHZ     EFM_WAIT_CYCLE_1
+     * 80MHZ < Clock <= 120MHZ    EFM_WAIT_CYCLE_2
+     * 120MHZ < Clock <= 160MHZ   EFM_WAIT_CYCLE_3
+     * 160MHZ < Clock <= 200MHZ   EFM_WAIT_CYCLE_4
+     * 200MHZ < Clock <= 240MHZ   EFM_WAIT_CYCLE_5
+     */
+    stcEfmCfg.u32WaitCycle = EFM_WAIT_CYCLE_5; /* 5-wait @ 240MHz */
     EFM_Init(&stcEfmCfg);
-
     /* Wait flash0, flash1 ready. */
     do{
         flag1 = EFM_GetFlagStatus(EFM_FLAG_RDY0);
         flag2 = EFM_GetFlagStatus(EFM_FLAG_RDY1);
     }while((Set != flag1) || (Set != flag2));
-
-    /* Sector 128 disables write protection */
-    EFM_SectorUnlock(EFM_SECTOR128_ADDR, 0xFFFFFUL, Enable);
-
-    /* Erase sector 128. */
-    EFM_SectorErase(EFM_SECTOR128_ADDR);
-
+    /* FLASH disables write protection */
+    EFM_SectorUnlock(EFM_SECTOR0_ADDR, 0x1FFFFFUL, Enable);
+    /* Chip Erase: flash All erased */
+    EFM_ChipErase(EFM_MODE_ERASECHIP2, EFM_SECTOR0_ADDR);
+    /* Sequence program. */
+    EFM_SequenceProgram(EFM_SECTOR0_ADDR, sizeof(u8TestBuf), u8TestBuf);
     /* Sequence program. */
     EFM_SequenceProgram(EFM_SECTOR128_ADDR, sizeof(u8TestBuf), u8TestBuf);
-
-    /* Chip Erase: flash1 All erased */
-    EFM_ChipErase(EFM_MODE_ERASECHIP1, EFM_SECTOR128_ADDR);
+    /* Chip Erase: flash All erased */
+    EFM_ChipErase(EFM_MODE_ERASECHIP2, EFM_SECTOR0_ADDR);
 
     /* Lock EFM. */
     EFM_Lock();
@@ -132,6 +143,63 @@ int32_t main(void)
     {
         ;
     }
+}
+
+/**
+ * @brief  Configures the PLLHP(240MHz) as the system clock.
+ *         The input source of PLLH is XTAL(8MHz).
+ * @param  None
+ * @retval None
+ */
+static void SystemClockConfig(void)
+{
+    stc_clk_pllh_init_t stcPLLHInit;
+    stc_clk_xtal_init_t stcXtalInit;
+
+    /* Configures XTAL. PLLH input source is XTAL. */
+    CLK_XtalStrucInit(&stcXtalInit);
+    stcXtalInit.u8XtalState = CLK_XTAL_ON;
+    stcXtalInit.u8XtalDrv   = CLK_XTALDRV_LOW;
+    stcXtalInit.u8XtalMode  = CLK_XTALMODE_OSC;
+    stcXtalInit.u8XtalStb   = CLK_XTALSTB_499US;
+    CLK_XtalInit(&stcXtalInit);
+
+    /* PCLK0, HCLK  Max 240MHz */
+    /* PCLK1, PCLK4 Max 120MHz */
+    /* PCLK2, PCLK3 Max 60MHz  */
+    /* EX BUS Max 120MHz */
+    CLK_ClkDiv(CLK_CATE_ALL,                                       \
+               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV8 | CLK_PCLK2_DIV8 | \
+                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV8 | CLK_EXCLK_DIV2 | \
+                CLK_HCLK_DIV1));
+
+    CLK_PLLHStrucInit(&stcPLLHInit);
+    /*
+     * PLLP_freq = ((PLL_source / PLLM) * PLLN) / PLLP
+     *           = (8 / 1) * 120 / 4
+     *           = 240
+     */
+    stcPLLHInit.u8PLLState = CLK_PLLH_ON;
+    stcPLLHInit.PLLCFGR = 0UL;
+    stcPLLHInit.PLLCFGR_f.PLLM = (1UL   - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLN = (120UL - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLP = (4UL   - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLQ = (16UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLR = (16UL  - 1UL);
+
+    /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
+    CLK_PLLHInit(&stcPLLHInit);
+
+    /* Highspeed SRAM set to 1 Read/Write wait cycle */
+    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+
+    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
+    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    EFM_Unlock();
+    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
+    EFM_Unlock();
+
+    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
 
 /**

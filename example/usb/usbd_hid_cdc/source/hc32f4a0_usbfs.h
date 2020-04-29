@@ -48,15 +48,15 @@
  **   - 2018-11-11  1.0  Wangmin  First version for Device Driver Library of USBF
  **
  ******************************************************************************/
-#ifndef __HC32F46x_USBFS_H__
-#define __HC32F46x_USBFS_H__
+#ifndef __HC32F4A0_USBFS_H__
+#define __HC32F4A0_USBFS_H__
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "hc32_common.h"
 #include "ddl_config.h"
-#include "hc32f46x_interrupts.h"
+//#include "hc32f46x_interrupts.h"
 
 
 #if (DDL_USBFS_ENABLE == DDL_ON)

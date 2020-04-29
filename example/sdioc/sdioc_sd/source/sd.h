@@ -197,7 +197,10 @@ typedef struct
     M4_SDIOC_TypeDef    *SDIOCx;        /*!< Pointer to SDIOC registers base address            */
     stc_sdioc_init_t    stcSdiocInit;   /*!< SDIOC Initialize structure @ref stc_sdioc_init_t   */
     M4_DMA_TypeDef      *DMAx;          /*!< Pointer to DMA registers base address              */
-    uint8_t             u8DmaCh;        /*!< Specifies the DMA channel used to send and receive */
+    uint8_t             u8DmaTxCh;      /*!< Specifies the DMA channel used to send             */
+    uint8_t             u8DmaRxCh;      /*!< Specifies the DMA channel used to receive          */
+    uint8_t             *pu8Buffer;     /*!< Pointer to SD Tx/Rx transfer Buffer                */
+    uint32_t            u32Length;      /*!< SD Tx/Rx Transfer length                           */
     uint32_t            u32Context;     /*!< SD transfer context                                */
     uint32_t            u32ErrorCode;   /*!< SD Card Error codes                                */
     stc_sd_card_info_t  stcSdCardInfo;  /*!< SD Card information                                */
@@ -227,7 +230,8 @@ typedef struct
 #define SD_CONTEXT_READ_MULTIPLE_BLOCK        (0x02UL)  /*!< Read multiple blocks operation   */
 #define SD_CONTEXT_WRITE_SINGLE_BLOCK         (0x10UL)  /*!< Write single block operation     */
 #define SD_CONTEXT_WRITE_MULTIPLE_BLOCK       (0x20UL)  /*!< Write multiple blocks operation  */
-#define SD_CONTEXT_DMA                        (0x40UL)  /*!< Process in DMA mode              */
+#define SD_CONTEXT_INT                        (0x40UL)  /*!< Process in Interrupt mode        */
+#define SD_CONTEXT_DMA                        (0x80UL)  /*!< Process in DMA mode              */
 /**
  * @}
  */
@@ -277,13 +281,24 @@ en_result_t SD_GetCardStatus(stc_sd_handle_t *handle, stc_sd_card_status_t *pstc
 en_result_t SD_GetCardInfo(stc_sd_handle_t *handle, stc_sd_card_info_t *pstcCardInfo);
 en_result_t SD_GetErrorCode(const stc_sd_handle_t *handle, uint32_t *u32ErrCode);
 
+/* Callback in non blocking modes */
+void SD_IRQHandler(stc_sd_handle_t *handle);
+void SD_TxCpltCallback(stc_sd_handle_t *handle);
+void SD_RxCpltCallback(stc_sd_handle_t *handle);
+void SD_ErrorCallback(stc_sd_handle_t *handle);
+
 /* Polling Mode */
 en_result_t SD_Erase(stc_sd_handle_t *handle, uint32_t u32BlkStartAddr, uint32_t u32BlkEndAddr);
 en_result_t SD_ReadBlocks(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data, uint32_t u32Timeout);
 en_result_t SD_WriteBlocks(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data, uint32_t u32Timeout);
+/* Interrupt Mode */
+en_result_t SD_ReadBlocks_INT(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data);
+en_result_t SD_WriteBlocks_INT(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data);
 /* DMA Mode */
 en_result_t SD_ReadBlocks_DMA(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data);
 en_result_t SD_WriteBlocks_DMA(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data);
+/* Abort */
+en_result_t SD_Abort(stc_sd_handle_t *handle);
 
 /**
  * @}

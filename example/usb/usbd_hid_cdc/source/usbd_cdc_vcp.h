@@ -84,7 +84,7 @@ typedef struct
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define CDC_COMM                        (M4_USART4)
+#define CDC_COMM                        (M4_USART1)
 #define DEFAULT_CONFIG                  0u
 #define OTHER_CONFIG                    1u
 

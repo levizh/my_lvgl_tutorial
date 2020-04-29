@@ -74,21 +74,6 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 
-#define LED_R_PORT      (GPIO_PORT_A)
-#define LED_G_PORT      (GPIO_PORT_B)
-
-#define LED_R_PIN       (GPIO_PIN_00)
-#define LED_G_PIN       (GPIO_PIN_00)
-
-#define LED_R_ON()      (GPIO_ResetPins(LED_R_PORT, LED_R_PIN))
-#define LED_G_ON()      (GPIO_ResetPins(LED_G_PORT, LED_G_PIN))
-
-#define LED_R_OFF()     (GPIO_SetPins(LED_R_PORT, LED_R_PIN))
-#define LED_G_OFF()     (GPIO_SetPins(LED_G_PORT, LED_G_PIN))
-
-#define LED_RG_ON()     {LED_R_ON();LED_G_ON();}
-#define LED_RG_OFF()    {LED_R_OFF();LED_G_OFF();}
-
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -104,27 +89,6 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  LED Init
- * @param  None
- * @retval None
- */
-static void LED_Init(void)
-{
-    stc_gpio_init_t stcGpioInit;
-
-    /* LED initialize */
-    GPIO_StructInit(&stcGpioInit);
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-
-    /* "Turn off" LED before set to output */
-    LED_RG_OFF();
-
-    /* Output enable */
-    GPIO_OE(LED_R_PORT, LED_R_PIN, Enable);
-    GPIO_OE(LED_G_PORT, LED_G_PIN, Enable);
-}
 
 /**
  * @brief  Main function of EFM project
@@ -135,11 +99,14 @@ int32_t main(void)
 {
     stc_efm_cfg_t stcEfmCfg;
     uint32_t flag1, flag2;
-    uint32_t u32Addr = 0x0300183CU;
     uint32_t u32Data = 0x5A5A5A5AU;
 
-    LED_Init();
-    LED_G_ON();
+    /* LED & KEY Init */
+    BSP_IO_Init();
+    BSP_LED_Init();
+    BSP_KEY_Init();
+    /* Turn on LED_B */
+    BSP_LED_On(LED_BLUE);
 
     /* Unlock EFM. */
     EFM_Unlock();
@@ -153,32 +120,33 @@ int32_t main(void)
         flag1 = EFM_GetFlagStatus(EFM_FLAG_RDY0);
         flag2 = EFM_GetFlagStatus(EFM_FLAG_RDY1);
     }while((Set != flag1) || (Set != flag2));
-
     /* Sector 15 disables write protection */
     EFM_SectorUnlock(EFM_SECTOR15_ADDR, sizeof(u32Data), Enable);
-
-    /* Erase sector 15. sector 15: 0x0001E000~0x0001FFFF */
+    /* Erase sector 15.  sector 15: 0x0001E000~0x0001FFFF */
     EFM_SectorErase(EFM_SECTOR15_ADDR);
+    /* Write data to sector 15 */
+    EFM_SingleProgram(EFM_OTP_BLOCK15, 0xEEEEEEEEUL);
     /* SW1 */
-    while(Pin_Reset != GPIO_ReadInputPortPin(GPIO_PORT_A, GPIO_PIN_00))
+    while(Reset == BSP_KEY_GetStatus(BSP_KEY_1))
     {
         ;
     }
     /* SW2 */
-    while(Pin_Reset != GPIO_ReadInputPortPin(GPIO_PORT_B, GPIO_PIN_00))
+    while(Reset == BSP_KEY_GetStatus(BSP_KEY_2))
     {
         ;
     }
-    /*  Flash sector 15(OTP sector 15) is latched */
-    EFM_OTPLock(u32Addr);
-
+    /*  Flash sector 15(OTP block 15) is latched 
+        Please fill in the lock address correctly */
+    EFM_OTPLock(0x03001AD0);  /* 0x03001AD0 is the latch address of the OTP block 15 */
     /* Single program */
-    if(Ok != EFM_SingleProgram(EFM_SECTOR15_ADDR, u32Data))
+    if(Ok != EFM_SingleProgram(EFM_OTP_BLOCK15, u32Data))
     {
-        LED_R_ON();
-        LED_G_OFF();
+        /* Turn off LED_B */
+        BSP_LED_Off(LED_BLUE);
+        /* Turn on LED_R */
+        BSP_LED_On(LED_RED);
     }
-
     /* Lock EFM. */
     EFM_Lock();
 

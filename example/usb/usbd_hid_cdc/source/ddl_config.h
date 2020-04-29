@@ -98,7 +98,7 @@ extern "C"
 #define DDL_DMA_ENABLE                              (DDL_OFF)
 #define DDL_DMC_ENABLE                              (DDL_OFF)
 #define DDL_DVP_ENABLE                              (DDL_OFF)
-#define DDL_EFM_ENABLE                              (DDL_OFF)
+#define DDL_EFM_ENABLE                              (DDL_ON)
 #define DDL_EMB_ENABLE                              (DDL_OFF)
 #define DDL_ETH_ENABLE                              (DDL_OFF)
 #define DDL_EVENT_PORT_ENABLE                       (DDL_OFF)
@@ -122,7 +122,7 @@ extern "C"
 #define DDL_SDIOC_ENABLE                            (DDL_OFF)
 #define DDL_SMC_ENABLE                              (DDL_OFF)
 #define DDL_SPI_ENABLE                              (DDL_OFF)
-#define DDL_SRAM_ENABLE                             (DDL_OFF)
+#define DDL_SRAM_ENABLE                             (DDL_ON)
 #define DDL_SWDT_ENABLE                             (DDL_OFF)
 #define DDL_TMR0_ENABLE                             (DDL_OFF)
 #define DDL_TMR2_ENABLE                             (DDL_OFF)
@@ -130,7 +130,7 @@ extern "C"
 #define DDL_TMR6_ENABLE                             (DDL_OFF)
 #define DDL_TMRA_ENABLE                             (DDL_OFF)
 #define DDL_TRNG_ENABLE                             (DDL_OFF)
-#define DDL_USART_ENABLE                            (DDL_OFF)
+#define DDL_USART_ENABLE                            (DDL_ON)
 #define DDL_USBFS_ENABLE                            (DDL_ON)
 #define DDL_USBHS_ENABLE                            (DDL_OFF)
 #define DDL_VBAT_ENABLE                             (DDL_OFF)
@@ -153,7 +153,7 @@ extern "C"
  * @brief This is the list of BSP board to be used.
  * Select the board you need to use to BSP_ON.
  */
-#define BSP_EV_HC32F4A0_LQFP176                     (BSP_ON)
+#define BSP_EV_HC32F4A0_LQFP176                     (1U)
 
 #define BSP_EV_HC32F4A0                             (BSP_EV_HC32F4A0_LQFP176)
 

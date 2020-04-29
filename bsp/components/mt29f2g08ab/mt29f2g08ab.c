@@ -276,7 +276,7 @@ en_result_t MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
  * @brief  Write page.
  * @param  [in] u32Page                 The specified page
  * @param  [in] pu8Buf                  The buffer for writing
- * @param  [in] u32NumBytes             The buffer size for bytes
+ * @param  [in] u32EccValueSize         The ECC calculating result size
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       Errors occurred.
@@ -311,6 +311,7 @@ en_result_t MT29F2G08AB_WritePageMeta(uint32_t u32Page,
  * @param  [in] u32Page                 The specified page
  * @param  [out] pu8Buf                 The buffer for reading
  * @param  [in] u32NumBytes             The buffer size for bytes
+ * @param  [in] u32EccValueSize         The ECC calculating result size
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       Errors occurred.
@@ -319,18 +320,18 @@ en_result_t MT29F2G08AB_WritePageMeta(uint32_t u32Page,
  */
 en_result_t MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
                                             uint8_t *pu8Buf,
-                                            uint32_t u32NumBytes)
+                                            uint32_t u32NumBytes,
+                                            uint32_t u32EccValueSize)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    if (NULL != pu8Buf)
+    if ((NULL != pu8Buf) && \
+        (u32NumBytes == (MT29F2G08AB_PAGE_SIZE_WITH_SPARE - u32EccValueSize)))
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
-        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE));
 
         enRet = EV_NFC_MT29F2G08AB_ReadPageHwEcc(u32Page, pu8Buf, u32NumBytes);
-        EXMC_NFC_DeselectChip();
         if (Ok == enRet)
         {
             enRet = MT29F2G08AB_GetStatus(MT29F2G08AB_READ_TIMEOUT);
@@ -345,6 +346,7 @@ en_result_t MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
  * @param  [in] u32Page                 The specified page
  * @param  [in] pu8Buf                  The buffer for writing
  * @param  [in] u32NumBytes             The buffer size for bytes
+ * @param  [in] u32EccValueSize         The ECC calculating result size
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       Errors occurred.
@@ -353,18 +355,18 @@ en_result_t MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
  */
 en_result_t MT29F2G08AB_WritePageHwEcc(uint32_t u32Page,
                                             const uint8_t *pu8Buf,
-                                            uint32_t u32NumBytes)
+                                            uint32_t u32NumBytes,
+                                            uint32_t u32EccValueSize)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    if (NULL != pu8Buf)
+    if ((NULL != pu8Buf) && \
+        (u32NumBytes == (MT29F2G08AB_PAGE_SIZE_WITH_SPARE - u32EccValueSize)))
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
-        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE));
 
         enRet = EV_NFC_MT29F2G08AB_WritePageHwEcc(u32Page, pu8Buf, u32NumBytes);
-        EXMC_NFC_DeselectChip();
         if (Ok == enRet)
         {
             enRet = MT29F2G08AB_GetStatus(MT29F2G08AB_WRITE_TIMEOUT);

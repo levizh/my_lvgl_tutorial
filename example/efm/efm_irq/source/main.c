@@ -126,7 +126,9 @@ int32_t main(void)
     BSP_LED_On(LED_BLUE);
     /* Configures the PLLHP(200MHz) as the system clock. */
     SystemClockConfig();
-    /*Configure EXINT and IRQ handler && NVIC*/
+    /* Configure GPIO read wait cycle */
+    GPIO_PortReadWait(GPIO_READ_WAIT_5);
+    /*Configure IRQ handler && NVIC*/
     IRQ_Config();
     /* Unlock EFM. */
     EFM_Unlock();
@@ -161,7 +163,7 @@ int32_t main(void)
     /* Program within the allowed address. Program in sector 130*/
     EFM_SingleProgram(u32Addr, u32TestData);
 
-    /*SW10 */
+    /*SW1 */
     while(Reset == BSP_KEY_GetStatus(BSP_KEY_1))
     {
         ;
@@ -230,7 +232,7 @@ static void SystemClockConfig(void)
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
+    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 4-wait @ 200MHz */
     EFM_Unlock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);

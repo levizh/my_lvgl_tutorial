@@ -104,6 +104,10 @@ extern "C"
 #define MT29F2G08AB_DEVICE_PAGES            (MT29F2G08AB_PLANE_PER_DEVICE * \
                                              MT29F2G08AB_BLOCKS_PER_PLANE * \
                                              MT29F2G08AB_PAGES_PER_BLOCK)
+
+#define MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE                                   \
+((MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE / EXMC_NFC_ECC_CALCULATE_BLOCK_BYTES) * EXMC_NFC_1BIT_ECC_VALUE_BYTES)
+
 /**
  * @}
  */
@@ -138,10 +142,12 @@ en_result_t MT29F2G08AB_WritePageMeta(uint32_t u32Page,
                                             uint32_t u32NumBytes);
 en_result_t MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
                                             uint8_t *pu8Buf,
-                                            uint32_t u32NumBytes);
+                                            uint32_t u32NumBytes,
+                                            uint32_t u32EccValueSize);
 en_result_t MT29F2G08AB_WritePageHwEcc(uint32_t u32Page,
                                             const uint8_t *pu8Buf,
-                                            uint32_t u32NumBytes);
+                                            uint32_t u32NumBytes,
+                                            uint32_t u32EccValueSize);
 
 /* Implement the intialization function on evb board source */
 en_result_t EV_NFC_MT29F2G08AB_Init(void);

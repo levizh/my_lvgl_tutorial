@@ -199,7 +199,7 @@ int32_t main(void)
     BSP_LED_Init();
     BSP_KEY_Init();
     /* Configure UART */
-    DDL_UartInit();
+    DDL_PrintfInit();
     /* Configure RTC */
     RTC_Config();
 

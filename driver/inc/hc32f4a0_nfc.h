@@ -418,6 +418,61 @@ typedef struct
 #define EXMC_NFC_FLAG_RB_BANK5                  (NFC_ISTR_RBST_5)
 #define EXMC_NFC_FLAG_RB_BANK6                  (NFC_ISTR_RBST_6)
 #define EXMC_NFC_FLAG_RB_BANK7                  (NFC_ISTR_RBST_7)
+#define EXMC_NFC_FLAG_ECC_CALCULATING           (NFC_ISTR_RESV)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup EXMC_NFC_ECC_Calculate_Bytes EXMC NFC ECC Calculate Bytes
+ * @{
+ */
+#define EXMC_NFC_ECC_CALCULATE_BLOCK_BYTES      ((uint32_t)512UL)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup EXMC_NFC_ECC_Value_Bytes EXMC NFC ECC Value Bytes
+ * @{
+ */
+#define EXMC_NFC_1BIT_ECC_VALUE_BYTES           ((uint32_t)0x03UL)
+#define EXMC_NFC_4BIT_ECC_VALUE_3BYTES          ((uint32_t)0x03UL)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup EXMC_NFC_1Bit_ECC_Register_Index EXMC NFC 1Bit ECC Register Index
+ * @{
+ */
+#define EXMC_NFC_ECCR0                          ((uint32_t)0UL)
+#define EXMC_NFC_ECCR1                          ((uint32_t)1UL)
+#define EXMC_NFC_ECCR2                          ((uint32_t)2UL)
+#define EXMC_NFC_ECCR3                          ((uint32_t)3UL)
+#define EXMC_NFC_ECCR4                          ((uint32_t)4UL)
+#define EXMC_NFC_ECCR5                          ((uint32_t)5UL)
+#define EXMC_NFC_ECCR6                          ((uint32_t)6UL)
+#define EXMC_NFC_ECCR7                          ((uint32_t)7UL)
+#define EXMC_NFC_ECCR8                          ((uint32_t)8UL)
+#define EXMC_NFC_ECCR9                          ((uint32_t)9UL)
+#define EXMC_NFC_ECCR10                         ((uint32_t)10UL)
+#define EXMC_NFC_ECCR11                         ((uint32_t)11UL)
+#define EXMC_NFC_ECCR12                         ((uint32_t)12UL)
+#define EXMC_NFC_ECCR13                         ((uint32_t)13UL)
+#define EXMC_NFC_ECCR14                         ((uint32_t)14UL)
+#define EXMC_NFC_ECCR15                         ((uint32_t)15UL)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup EXMC_NFC_1Bit_ECC_Result EXMC NFC 1Bit ECC Result
+ * @{
+ */
+#define EXMC_NFC_1BIT_ECC_SINGLE_BIT_ERR        (NFC_ECCR0_SE)
+#define EXMC_NFC_1BIT_ECC_MULTIPLE_BITS_ERR     (NFC_ECCR0_ME)
+#define EXMC_NFC_1BIT_ECC_ERRLOC                (NFC_ECCR0_ERRLOC)
 /**
  * @}
  */
@@ -510,6 +565,18 @@ __STATIC_INLINE void EXMC_NFC_DeselectChip(void)
 }
 
 /**
+ * @brief  Set NFC ECC mode.
+ * @param  [in] u32EccMode              ECC mode
+ *   @arg EXMC_NFC_ECC_1BIT: ECC 1 bit
+ *   @arg EXMC_NFC_ECC_4BITS: ECC 4 bits
+ * @retval None
+ */
+__STATIC_INLINE void EXMC_NFC_SetEccMode(uint32_t u32EccMode)
+{
+    MODIFY_REG32(M4_NFC ->BACR, NFC_BACR_ECCM, u32EccMode);
+}
+
+/**
  * @brief  Enable NFC ECC function.
  * @param  None
  * @retval None
@@ -530,7 +597,7 @@ __STATIC_INLINE void EXMC_NFC_DisableEcc(void)
 }
 
 /**
- * @brief  Enable NFC ECC function.
+ * @brief  Enable NFC write protection function.
  * @param  None
  * @retval None
  */
@@ -540,7 +607,7 @@ __STATIC_INLINE void EXMC_NFC_EnableWriteProtect(void)
 }
 
 /**
- * @brief  Disable NFC ECC function.
+ * @brief  Disable NFC write protection function.
  * @param  None
  * @retval None
  */
@@ -588,30 +655,6 @@ __STATIC_INLINE en_flag_status_t EXMC_NFC_GetIntResultFlag(uint32_t u32Flag)
  *   @arg EXMC_NFC_FLAG_RB_BANK5: NFC bank 5 device ready flag
  *   @arg EXMC_NFC_FLAG_RB_BANK6: NFC bank 6 device ready flag
  *   @arg EXMC_NFC_FLAG_RB_BANK7: NFC bank 7 device ready flag
- * @retval An en_flag_status_t enumeration value:
- *           - Set: Flag is set
- *           - Reset: Flag is reset
- */
-__STATIC_INLINE en_flag_status_t EXMC_NFC_GetFlag(uint32_t u32Flag)
-{
-    return (READ_REG32_BIT(M4_NFC->ISTR, u32Flag) ? Set : Reset);
-}
-
-/**
- * @brief  Get the flag.
- * @param  [in] u32Flag                 The specified flag
- *   @arg EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR: ECC uncorrectable error
- *   @arg EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR: ECC correctable error
- *   @arg EXMC_NFC_FLAG_ECC_CALC_COMPLETION: Calculating ECC completely
- *   @arg EXMC_NFC_FLAG_ECC_ERROR: ECC error
- *   @arg EXMC_NFC_FLAG_RB_BANK0: NFC bank 0 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK1: NFC bank 1 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK2: NFC bank 2 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK3: NFC bank 3 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK4: NFC bank 4 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK5: NFC bank 5 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK6: NFC bank 6 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK7: NFC bank 7 device ready flag
  * @retval None
  */
 __STATIC_INLINE void EXMC_NFC_ClearFlag(uint32_t u32Flag)
@@ -619,11 +662,38 @@ __STATIC_INLINE void EXMC_NFC_ClearFlag(uint32_t u32Flag)
     CLEAR_REG32_BIT(M4_NFC->ISTR, u32Flag);
 }
 
+/**
+ * @brief  Get the 1BIT ECC register valule.
+ * @param  [in] u32Flag                 The specified flag
+ *   @arg EXMC_NFC_ECCR0: ECC register 0
+ *   @arg EXMC_NFC_ECCR1: ECC register 1
+ *   @arg EXMC_NFC_ECCR2: ECC register 2
+ *   @arg EXMC_NFC_ECCR3: ECC register 3
+ *   @arg EXMC_NFC_ECCR4: ECC register 4
+ *   @arg EXMC_NFC_ECCR5: ECC register 5
+ *   @arg EXMC_NFC_ECCR6: ECC register 6
+ *   @arg EXMC_NFC_ECCR7: ECC register 7
+ *   @arg EXMC_NFC_ECCR8: ECC register 8
+ *   @arg EXMC_NFC_ECCR9: ECC register 9
+ *   @arg EXMC_NFC_ECCR10: ECC register 10
+ *   @arg EXMC_NFC_ECCR11: ECC register 11
+ *   @arg EXMC_NFC_ECCR12: ECC register 12
+ *   @arg EXMC_NFC_ECCR13: ECC register 13
+ *   @arg EXMC_NFC_ECCR14: ECC register 14
+ *   @arg EXMC_NFC_ECCR15: ECC register 15
+ * @retval The register value
+ */
+__STATIC_INLINE uint32_t EXMC_NFC_GetEccReg(uint32_t u32EccReg)
+{
+    return READ_REG32(*(__IO uint32_t *)((uint32_t)(&M4_NFC->ECCR0) + u32EccReg * 4UL));
+}
+
 /* Initialization and configuration EXMC NFC functions */
 en_result_t EXMC_NFC_Init(const stc_exmc_nfc_init_t *pstcInit);
 en_result_t EXMC_NFC_DeInit(void);
 en_result_t EXMC_NFC_StructInit(stc_exmc_nfc_init_t *pstcInit);
 void EXMC_NFC_IntCmd(uint16_t u16IntSource, en_functional_state_t enNewState);
+en_flag_status_t EXMC_NFC_GetFlag(uint32_t u32Flag);
 
 /* EXMC NFC command functions */
 

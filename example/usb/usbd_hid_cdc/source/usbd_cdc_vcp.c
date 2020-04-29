@@ -71,6 +71,24 @@ LINE_CODING linecoding =
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/* UART RX/TX Port/Pin definition */
+#define USART_RX_PORT                   (GPIO_PORT_H)   /* PH13: USART1_RX */
+#define USART_RX_PIN                    (GPIO_PIN_13)
+#define USART_RX_GPIO_FUNC              (GPIO_FUNC_33_USART1_RX)
+
+#define USART_TX_PORT                   (GPIO_PORT_H)   /* PH15: USART1_TX */
+#define USART_TX_PIN                    (GPIO_PIN_15)
+#define USART_TX_GPIO_FUNC              (GPIO_FUNC_32_USART1_TX)
+
+/* UART unit definition */
+#define USART_FUNCTION_CLK_GATE         (PWC_FCG3_USART1)
+
+/* UART unit interrupt definition */
+#define USART_UNIT_ERR_INT              (INT_USART1_EI)
+#define USART_UNIT_ERR_IRQn             (Int000_IRQn)
+
+#define USART_UNIT_RX_INT               (INT_USART1_RI)
+#define USART_UNIT_RX_IRQn              (Int001_IRQn)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -97,6 +115,9 @@ static uint16_t VCP_COMConfig(void);  /* MISRAC 2004*/
 static void UsartErrIrqCallback(void);
 static void UsartRxIrqCallback(void);
 
+static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
+                                    uint32_t u32Priority);
+
 CDC_IF_Prop_TypeDef VCP_fops =
 {
     &VCP_Init,
@@ -113,6 +134,7 @@ CDC_IF_Prop_TypeDef VCP_fops =
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
 /**
   * @brief  VCP_Init
   *         Initializes the Media
@@ -121,53 +143,50 @@ CDC_IF_Prop_TypeDef VCP_fops =
   */
 static uint16_t VCP_Init(void)
 {
-    stc_usart_uart_init_t stcInitCfg;
-    stc_irq_regi_conf_t stcIrqRegiCfg;
+    stc_irq_signin_config_t stcIrqSigninCfg;
+    const stc_usart_uart_init_t stcUartInit = {
+        .u32Baudrate = 500000UL,
+        .u32BitDirection = USART_LSB,
+        .u32StopBit = USART_STOP_BITS_1,
+        .u32Parity = USART_PARITY_NONE,
+        .u32DataWidth = USART_DATA_WIDTH_BITS_8,
+        .u32ClkMode = USART_INTCLK_NONE_OUTPUT,
+        .u32OversamplingBits = USART_OVERSAMPLING_BITS_8,
+        .u32NoiseFilterState = USART_NOISE_FILTER_DISABLE,
+        .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
+    };
 
-    MEM_ZERO_STRUCT(stcInitCfg);
-    MEM_ZERO_STRUCT(stcIrqRegiCfg);
+    /* Configure USART RX/TX pin. */
+    GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USART_TX_PORT, USART_TX_PIN, USART_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
 
-    /* PC13 --> RX, PH02 --> TX for full-duplex */
-    PORT_SetFunc(PortC, Pin13, Func_Usart4_Rx, Disable); //RX
-    PORT_SetFunc(PortH, Pin02, Func_Usart4_Tx, Disable); //TX
-    PWC_Fcg1PeriphClockCmd(PWC_FCG1_PERIPH_USART4, Enable);
-    stcInitCfg.enClkMode        = UsartIntClkCkNoOutput;
-    stcInitCfg.enClkDiv         = UsartClkDiv_1;
-    stcInitCfg.enDataLength     = UsartDataBits8;
-    stcInitCfg.enDirection      = UsartDataLsbFirst;
-    stcInitCfg.enStopBit        = UsartOneStopBit;
-    stcInitCfg.enParity         = UsartParityNone;
-    stcInitCfg.enSampleMode     = UsartSamleBit16;
-    stcInitCfg.enDetectMode     = UsartStartBitFallEdge;
-    stcInitCfg.enHwFlow         = UsartRtsEnable;
-    USART_UART_Init(CDC_COMM, &stcInitCfg);
-    if(Ok == USART_SetBaudrate(CDC_COMM, 500000ul))
+    /* Enable peripheral clock */
+    PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);
+
+    /* Initialize UART function. */
+    if (Ok != USART_UartInit(CDC_COMM, &stcUartInit))
     {
-        /* Set USART RX IRQ */
-        stcIrqRegiCfg.enIRQn = Int000_IRQn;
-        stcIrqRegiCfg.pfnCallback = &UsartRxIrqCallback;
-        stcIrqRegiCfg.enIntSrc = INT_USART4_RI;
-        enIrqRegistration(&stcIrqRegiCfg);
-        NVIC_SetPriority(stcIrqRegiCfg.enIRQn, DDL_IRQ_PRIORITY_01);
-        NVIC_ClearPendingIRQ(stcIrqRegiCfg.enIRQn);
-        NVIC_EnableIRQ(stcIrqRegiCfg.enIRQn);
-        /* Set USART RX error IRQ */
-        stcIrqRegiCfg.enIRQn = Int001_IRQn;
-        stcIrqRegiCfg.pfnCallback = &UsartErrIrqCallback;
-        stcIrqRegiCfg.enIntSrc = INT_USART4_EI;
-        enIrqRegistration(&stcIrqRegiCfg);
-        NVIC_SetPriority(stcIrqRegiCfg.enIRQn, DDL_IRQ_PRIORITY_01);
-        NVIC_ClearPendingIRQ(stcIrqRegiCfg.enIRQn);
-        NVIC_EnableIRQ(stcIrqRegiCfg.enIRQn);
+        /* Register error IRQ handler && configure NVIC. */
+        stcIrqSigninCfg.enIRQn = USART_UNIT_ERR_IRQn;
+        stcIrqSigninCfg.enIntSrc = USART_UNIT_ERR_INT;
+        stcIrqSigninCfg.pfnCallback = &UsartErrIrqCallback;
+        InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_01);
 
-        USART_FuncCmd(CDC_COMM, UsartTx, Enable);
-        USART_FuncCmd(CDC_COMM, UsartRx, Enable);
-        USART_FuncCmd(CDC_COMM, UsartRxInt, Enable);
+        /* Register RX IRQ handler && configure NVIC. */
+        stcIrqSigninCfg.enIRQn = USART_UNIT_RX_IRQn;
+        stcIrqSigninCfg.enIntSrc = USART_UNIT_RX_INT;
+        stcIrqSigninCfg.pfnCallback = &UsartRxIrqCallback;
+        InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_01);
+
+        USART_FuncCmd(CDC_COMM, (USART_RX | USART_TX), Enable);
+        USART_FuncCmd(CDC_COMM, USART_INT_RX, Enable);
+
     }
     else
     {
         return USBD_FAIL;
     }
+
     return USBD_OK;
 }
 
@@ -298,7 +317,7 @@ static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
 
     for (i = 0ul; i < Len; i++)
     {
-        while(Set != USART_GetStatus(CDC_COMM, UsartTxEmpty))
+        while(Set != USART_GetFlag(CDC_COMM, USART_FLAG_TXE))
         {
             ;
         }
@@ -309,33 +328,40 @@ static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
 
 uint16_t VCP_COMConfigDefault(void)
 {
-    stc_usart_uart_init_t stcInitCfg;
+
     uint16_t u16Res = USBD_OK;
     uint8_t u8Cnt;
-    MEM_ZERO_STRUCT(stcInitCfg);
+    float32_t fErr;
+#if 0
+    const stc_usart_uart_init_t stcUartInit = {
+        .u32Baudrate = 500000UL,
+        .u32BitDirection = USART_LSB,
+        .u32StopBit = USART_STOP_BITS_1,
+        .u32Parity = USART_PARITY_NONE,
+        .u32DataWidth = USART_DATA_WIDTH_BITS_8,
+        .u32ClkMode = USART_INTCLK_NONE_OUTPUT,
+        .u32OversamplingBits = USART_OVERSAMPLING_BITS_8,
+        .u32NoiseFilterState = USART_NOISE_FILTER_DISABLE,
+        .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
+    };
 
-    stcInitCfg.enClkMode        = UsartIntClkCkNoOutput;
-    stcInitCfg.enClkDiv         = UsartClkDiv_1;
-    stcInitCfg.enDataLength     = UsartDataBits8;
-    stcInitCfg.enDirection      = UsartDataLsbFirst;
-    stcInitCfg.enStopBit        = UsartOneStopBit;
-    stcInitCfg.enParity         = UsartParityNone;
-    stcInitCfg.enSampleMode     = UsartSamleBit16;
-    stcInitCfg.enDetectMode     = UsartStartBitFallEdge;
-    stcInitCfg.enHwFlow         = UsartRtsEnable;
-    USART_UART_Init(CDC_COMM, &stcInitCfg);
+    /* Initialize UART function. */
+    if (Ok == USART_UartInit(CDC_COMM, &stcUartInit))
+    {
+
+    }
+#endif
     for (u8Cnt=0u; u8Cnt < 4u; u8Cnt++)
     {
-        if(Ok == USART_SetBaudrate(CDC_COMM, 500000ul))
+        if(Ok == USART_SetBaudrate(CDC_COMM, 500000UL, &fErr))
         {
-            USART_FuncCmd(CDC_COMM, UsartTx, Enable);
-            USART_FuncCmd(CDC_COMM, UsartRx, Enable);
-            USART_FuncCmd(CDC_COMM, UsartRxInt, Enable);
+            USART_FuncCmd(CDC_COMM, (USART_RX | USART_TX), Enable);
+            USART_FuncCmd(CDC_COMM, USART_INT_RX, Enable);
             break;
         }
         else
         {
-            USART_SetClockDiv(CDC_COMM, (en_usart_clk_div_t)u8Cnt);
+            USART_SetClkPrescaler(CDC_COMM, u8Cnt);
         }
     }
     if (u8Cnt == 4u)
@@ -353,23 +379,35 @@ uint16_t VCP_COMConfigDefault(void)
   */
 static uint16_t VCP_COMConfig(void)
 {
-    stc_usart_uart_init_t stcInitCfg;
+
     uint8_t u8Cnt;
-    MEM_ZERO_STRUCT(stcInitCfg);
     uint16_t u16Res = USBD_OK;
     uint8_t u8ReturnFlag = 0u;
+    float fErr;
+
+    stc_usart_uart_init_t stcUartInit = {
+        .u32Baudrate = 500000UL,
+        .u32BitDirection = USART_LSB,
+        .u32StopBit = USART_STOP_BITS_1,
+        .u32Parity = USART_PARITY_NONE,
+        .u32DataWidth = USART_DATA_WIDTH_BITS_8,
+        .u32ClkMode = USART_INTCLK_NONE_OUTPUT,
+        .u32OversamplingBits = USART_OVERSAMPLING_BITS_8,
+        .u32NoiseFilterState = USART_NOISE_FILTER_DISABLE,
+        .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
+    };
 
     /* set the Stop bit*/
     switch (linecoding.format)
     {
         case 0u:
-            stcInitCfg.enStopBit = UsartOneStopBit;
+            stcUartInit.u32StopBit = USART_STOP_BITS_1;
             break;
         case 1u:
-            stcInitCfg.enStopBit = UsartOneStopBit;
+            stcUartInit.u32StopBit = USART_STOP_BITS_1;
             break;
         case 2u:
-            stcInitCfg.enStopBit = UsartTwoStopBit;
+            stcUartInit.u32StopBit = USART_STOP_BITS_2;
             break;
         default :
             VCP_COMConfigDefault();
@@ -384,13 +422,13 @@ static uint16_t VCP_COMConfig(void)
         switch (linecoding.paritytype)
         {
             case 0u:
-                stcInitCfg.enParity = UsartParityNone;
+                stcUartInit.u32Parity = USART_PARITY_NONE;
                 break;
             case 1u:
-                stcInitCfg.enParity = UsartParityEven;
+                stcUartInit.u32Parity = USART_PARITY_EVEN;
                 break;
             case 2u:
-                stcInitCfg.enParity = UsartParityOdd;
+                stcUartInit.u32Parity = USART_PARITY_ODD;
                 break;
             default :
                 VCP_COMConfigDefault();
@@ -406,16 +444,16 @@ static uint16_t VCP_COMConfig(void)
             {
                 case 0x07u:
                     /* With this configuration a parity (Even or Odd) should be set */
-                    stcInitCfg.enDataLength = UsartDataBits8;
+                    stcUartInit.u32DataWidth = USART_DATA_WIDTH_BITS_8;
                     break;
                 case 0x08u:
-                    if (stcInitCfg.enParity == UsartParityNone)
+                    if (stcUartInit.u32Parity == USART_PARITY_NONE)
                     {
-                        stcInitCfg.enDataLength = UsartDataBits8;
+                        stcUartInit.u32DataWidth = USART_DATA_WIDTH_BITS_8;
                     }
                     else
                     {
-                        stcInitCfg.enDataLength = UsartDataBits9;
+                        stcUartInit.u32DataWidth = USART_DATA_WIDTH_BITS_9;
                     }
                     break;
                 default :
@@ -427,22 +465,21 @@ static uint16_t VCP_COMConfig(void)
 
             if(1u != u8ReturnFlag)
             {
+                stcUartInit.u32Baudrate = linecoding.bitrate;
                 /* Configure and enable the USART */
-                stcInitCfg.enHwFlow = UsartRtsEnable;
-                USART_UART_Init(CDC_COMM, &stcInitCfg);
+                USART_UartInit(CDC_COMM, &stcUartInit);
 
                 for (u8Cnt=0u; u8Cnt < 4u; u8Cnt++)
                 {
-                    if(Ok == USART_SetBaudrate(CDC_COMM, 500000ul))
+                    if(Ok == USART_SetBaudrate(CDC_COMM, stcUartInit.u32Baudrate, &fErr))
                     {
-                        USART_FuncCmd(CDC_COMM, UsartTx, Enable);
-                        USART_FuncCmd(CDC_COMM, UsartRx, Enable);
-                        USART_FuncCmd(CDC_COMM, UsartRxInt, Enable);
+                        USART_FuncCmd(CDC_COMM, (USART_RX | USART_TX), Enable);
+                        USART_FuncCmd(CDC_COMM, USART_INT_RX, Enable);
                         break;
                     }
                     else
                     {
-                        USART_SetClockDiv(CDC_COMM, (en_usart_clk_div_t)u8Cnt);
+                        USART_SetClkPrescaler(CDC_COMM, u8Cnt);
                     }
                 }
                 if (u8Cnt == 4u)
@@ -466,7 +503,7 @@ static uint16_t VCP_COMConfig(void)
  ******************************************************************************/
 static void UsartRxIrqCallback(void)
 {
-    if (Set == USART_GetStatus(CDC_COMM, UsartRxNoEmpty))
+    if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_RXNE))
     {
         /* Send the received data to the PC Host*/
         VCP_DataTx (0u);
@@ -484,30 +521,49 @@ static void UsartRxIrqCallback(void)
  ******************************************************************************/
 static void UsartErrIrqCallback(void)
 {
-    if (Set == USART_GetStatus(CDC_COMM, UsartFrameErr))
+    if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_FE))
     {
-        USART_ClearStatus(CDC_COMM, UsartFrameErr);
+        USART_ClearFlag(CDC_COMM, USART_CLEAR_FLAG_FE);
     }
     else
     {
     }
 
-    if (Set == USART_GetStatus(CDC_COMM, UsartParityErr))
+    if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_PE))
     {
-        USART_ClearStatus(CDC_COMM, UsartParityErr);
+        USART_ClearFlag(CDC_COMM, USART_CLEAR_FLAG_PE);
     }
     else
     {
     }
 
-    if (Set == USART_GetStatus(CDC_COMM, UsartOverrunErr))
+    if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_ORE))
     {
-        USART_ClearStatus(CDC_COMM, UsartOverrunErr);
+        USART_ClearFlag(CDC_COMM, USART_CLEAR_FLAG_ORE);
     }
     else
     {
     }
 }
+
+/**
+ * @brief  Instal IRQ handler.
+ * @param  [in] pstcConfig      Pointer to struct @ref stc_irq_signin_config_t
+ * @param  [in] Priority        Interrupt priority
+ * @retval None
+ */
+static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
+                                    uint32_t u32Priority)
+{
+    if (NULL != pstcConfig)
+    {
+        INTC_IrqSignIn(pstcConfig);
+        NVIC_ClearPendingIRQ(pstcConfig->enIRQn);
+        NVIC_SetPriority(pstcConfig->enIRQn, u32Priority);
+        NVIC_EnableIRQ(pstcConfig->enIRQn);
+    }
+}
+
 
 /*******************************************************************************
  * EOF (not truncated)

@@ -696,11 +696,12 @@ en_result_t           SDIOC_StructInit(stc_sdioc_init_t *pstcSdiocInit);
 en_result_t           SDIOC_SoftwareReset(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8ResetType);
 void                  SDIOC_PowerCmd(M4_SDIOC_TypeDef *SDIOCx, en_functional_state_t enNewSta);
 en_functional_state_t SDIOC_GetPowerState(const M4_SDIOC_TypeDef *SDIOCx);
+uint32_t              SDIOC_GetMode(const M4_SDIOC_TypeDef *SDIOCx);
 void                  SDIOC_ClockCmd(M4_SDIOC_TypeDef *SDIOCx, en_functional_state_t enNewSta);
 void                  SDIOC_SetClockDiv(M4_SDIOC_TypeDef *SDIOCx, uint16_t u16ClkDiv);
 en_result_t           SDIOC_GetOptimumClockDiv(uint32_t u32ClkFreq, uint16_t *pu16ClkDiv);
-en_result_t           SDIOC_GetValidClockDiv(uint32_t u32Mode, uint8_t u8SpeedMode, uint16_t u16ClkDiv);
-en_functional_state_t SDIOC_GetDeviceInsertState(M4_SDIOC_TypeDef *SDIOCx);
+en_result_t           SDIOC_VerifyClockDiv(uint32_t u32Mode, uint8_t u8SpeedMode, uint16_t u16ClkDiv);
+en_functional_state_t SDIOC_GetDeviceInsertState(const M4_SDIOC_TypeDef *SDIOCx);
 void                  SDIOC_SetSpeedMode(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8SpeedMode);
 void                  SDIOC_SetBusWidth(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8BusWidth);
 void                  SDIOC_SetCardDetectSource(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8Src);
@@ -719,14 +720,15 @@ void        SDIOC_RestartTransfer(M4_SDIOC_TypeDef *SDIOCx);
 void        SDIOC_ReadWaitCmd(M4_SDIOC_TypeDef *SDIOCx, en_functional_state_t enNewSta);
 void        SDIOC_BlockGapInterruptCmd(M4_SDIOC_TypeDef *SDIOCx, en_functional_state_t enNewSta);
 
-void             SDIOC_IntCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc, en_functional_state_t enNewSta);
-en_flag_status_t SDIOC_GetIntStatus(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag);
-void             SDIOC_ClearIntStatus(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag);
-void             SDIOC_IntStatusCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc, en_functional_state_t enNewSta);
-en_flag_status_t SDIOC_GetHostStatus(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag);
-en_flag_status_t SDIOC_GetAutoCmdErrorStatus(const M4_SDIOC_TypeDef *SDIOCx, uint16_t u16Flag);
-void             SDIOC_ForceAutoCmdErrorEvent(M4_SDIOC_TypeDef *SDIOCx, uint16_t u16CmdFlag);
-void             SDIOC_ForceErrorInterruptEvent(M4_SDIOC_TypeDef *SDIOCx, uint16_t u16IntFlag);
+void                  SDIOC_IntCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc, en_functional_state_t enNewSta);
+en_functional_state_t SDIOC_GetIntEnableState(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc);
+en_flag_status_t      SDIOC_GetIntStatus(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag);
+void                  SDIOC_ClearIntStatus(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag);
+void                  SDIOC_IntStatusCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc, en_functional_state_t enNewSta);
+en_flag_status_t      SDIOC_GetHostStatus(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag);
+en_flag_status_t      SDIOC_GetAutoCmdErrorStatus(const M4_SDIOC_TypeDef *SDIOCx, uint16_t u16Flag);
+void                  SDIOC_ForceAutoCmdErrorEvent(M4_SDIOC_TypeDef *SDIOCx, uint16_t u16CmdFlag);
+void                  SDIOC_ForceErrorInterruptEvent(M4_SDIOC_TypeDef *SDIOCx, uint16_t u16IntFlag);
 
 /* SDMMC Commands management functions */
 en_result_t SDMMC_CMD0_GoIdleState(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta);

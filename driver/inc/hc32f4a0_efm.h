@@ -139,7 +139,7 @@ typedef struct
  * @defgroup EFM_Global_Macros EFM Global Macros
  * @{
  */
-#define EFM_TIMEOUT                 ((uint32_t)0x1000U)
+#define EFM_TIMEOUT                 ((uint32_t)0x10000U)
 
 /**
  * @defgroup EFM_Address EFM address area
@@ -416,6 +416,201 @@ typedef struct
  */
 
 /**
+ * @defgroup EFM_OTP_Address EFM otp address
+ * @{
+ */
+#define EFM_OTP_BLOCK0              ((uint32_t)0x00000000U)   /*!< OTP block0   8K Bytes */
+#define EFM_OTP_BLOCK1              ((uint32_t)0x00002000U)   /*!< OTP block1   8K Bytes */
+#define EFM_OTP_BLOCK2              ((uint32_t)0x00004000U)   /*!< OTP block2   8K Bytes */
+#define EFM_OTP_BLOCK3              ((uint32_t)0x00006000U)   /*!< OTP block3   8K Bytes */
+#define EFM_OTP_BLOCK4              ((uint32_t)0x00008000U)   /*!< OTP block4   8K Bytes */
+#define EFM_OTP_BLOCK5              ((uint32_t)0x0000A000U)   /*!< OTP block5   8K Bytes */
+#define EFM_OTP_BLOCK6              ((uint32_t)0x0000C000U)   /*!< OTP block6   8K Bytes */
+#define EFM_OTP_BLOCK7              ((uint32_t)0x0000E000U)   /*!< OTP block7   8K Bytes */
+#define EFM_OTP_BLOCK8              ((uint32_t)0x00010000U)   /*!< OTP block8   8K Bytes */
+#define EFM_OTP_BLOCK9              ((uint32_t)0x00012000U)   /*!< OTP block9   8K Bytes */
+#define EFM_OTP_BLOCK10             ((uint32_t)0x00014000U)   /*!< OTP block10  8K Bytes */
+#define EFM_OTP_BLOCK11             ((uint32_t)0x00016000U)   /*!< OTP block11  8K Bytes */
+#define EFM_OTP_BLOCK12             ((uint32_t)0x00018000U)   /*!< OTP block12  8K Bytes */
+#define EFM_OTP_BLOCK13             ((uint32_t)0x0001A000U)   /*!< OTP block13  8K Bytes */
+#define EFM_OTP_BLOCK14             ((uint32_t)0x0001C000U)   /*!< OTP block14  8K Bytes */
+#define EFM_OTP_BLOCK15             ((uint32_t)0x0001E000U)   /*!< OTP block15  8K Bytes */
+
+#define EFM_OTP_BLOCK16             ((uint32_t)0x03000000U)   /*!< OTP block16  2K Bytes */
+#define EFM_OTP_BLOCK17             ((uint32_t)0x03000800U)   /*!< OTP block17  2K Bytes */
+
+#define EFM_OTP_BLOCK18             ((uint32_t)0x03001000U)   /*!< OTP block18  256 Bytes */
+#define EFM_OTP_BLOCK19             ((uint32_t)0x03001100U)   /*!< OTP block19  256 Bytes */
+#define EFM_OTP_BLOCK20             ((uint32_t)0x03001200U)   /*!< OTP block20  256 Bytes */
+#define EFM_OTP_BLOCK21             ((uint32_t)0x03001300U)   /*!< OTP block21  256 Bytes */
+
+#define EFM_OTP_BLOCK22             ((uint32_t)0x03001400U)   /*!< OTP block22  16 Bytes */
+#define EFM_OTP_BLOCK23             ((uint32_t)0x03001410U)   /*!< OTP block23  16 Bytes */
+#define EFM_OTP_BLOCK24             ((uint32_t)0x03001420U)   /*!< OTP block24  16 Bytes */
+#define EFM_OTP_BLOCK25             ((uint32_t)0x03001430U)   /*!< OTP block25  16 Bytes */
+#define EFM_OTP_BLOCK26             ((uint32_t)0x03001440U)   /*!< OTP block26  16 Bytes */
+#define EFM_OTP_BLOCK27             ((uint32_t)0x03001450U)   /*!< OTP block27  16 Bytes */
+#define EFM_OTP_BLOCK28             ((uint32_t)0x03001460U)   /*!< OTP block28  16 Bytes */
+#define EFM_OTP_BLOCK29             ((uint32_t)0x03001470U)   /*!< OTP block29  16 Bytes */
+#define EFM_OTP_BLOCK30             ((uint32_t)0x03001480U)   /*!< OTP block30  16 Bytes */
+#define EFM_OTP_BLOCK31             ((uint32_t)0x03001490U)   /*!< OTP block31  16 Bytes */
+#define EFM_OTP_BLOCK32             ((uint32_t)0x030014A0U)   /*!< OTP block32  16 Bytes */
+#define EFM_OTP_BLOCK33             ((uint32_t)0x030014B0U)   /*!< OTP block33  16 Bytes */
+#define EFM_OTP_BLOCK34             ((uint32_t)0x030014C0U)   /*!< OTP block34  16 Bytes */
+#define EFM_OTP_BLOCK35             ((uint32_t)0x030014D0U)   /*!< OTP block35  16 Bytes */
+#define EFM_OTP_BLOCK36             ((uint32_t)0x030014E0U)   /*!< OTP block36  16 Bytes */
+#define EFM_OTP_BLOCK37             ((uint32_t)0x030014F0U)   /*!< OTP block37  16 Bytes */
+#define EFM_OTP_BLOCK38             ((uint32_t)0x03001500U)   /*!< OTP block38  16 Bytes */
+#define EFM_OTP_BLOCK39             ((uint32_t)0x03001510U)   /*!< OTP block39  16 Bytes */
+#define EFM_OTP_BLOCK40             ((uint32_t)0x03001520U)   /*!< OTP block40  16 Bytes */
+#define EFM_OTP_BLOCK41             ((uint32_t)0x03001530U)   /*!< OTP block41  16 Bytes */
+#define EFM_OTP_BLOCK42             ((uint32_t)0x03001540U)   /*!< OTP block42  16 Bytes */
+#define EFM_OTP_BLOCK43             ((uint32_t)0x03001550U)   /*!< OTP block43  16 Bytes */
+#define EFM_OTP_BLOCK44             ((uint32_t)0x03001560U)   /*!< OTP block44  16 Bytes */
+#define EFM_OTP_BLOCK45             ((uint32_t)0x03001570U)   /*!< OTP block45  16 Bytes */
+#define EFM_OTP_BLOCK46             ((uint32_t)0x03001580U)   /*!< OTP block46  16 Bytes */
+#define EFM_OTP_BLOCK47             ((uint32_t)0x03001590U)   /*!< OTP block47  16 Bytes */
+#define EFM_OTP_BLOCK48             ((uint32_t)0x030015A0U)   /*!< OTP block48  16 Bytes */
+#define EFM_OTP_BLOCK49             ((uint32_t)0x030015B0U)   /*!< OTP block49  16 Bytes */
+#define EFM_OTP_BLOCK50             ((uint32_t)0x030015C0U)   /*!< OTP block50  16 Bytes */
+#define EFM_OTP_BLOCK51             ((uint32_t)0x030015D0U)   /*!< OTP block51  16 Bytes */
+#define EFM_OTP_BLOCK52             ((uint32_t)0x03001EC0U)   /*!< OTP block52  16 Bytes */
+#define EFM_OTP_BLOCK53             ((uint32_t)0x030015F0U)   /*!< OTP block53  16 Bytes */
+
+#define EFM_OTP_BLOCK54             ((uint32_t)0x03001600U)   /*!< OTP block54  4 Bytes */
+#define EFM_OTP_BLOCK55             ((uint32_t)0x03001604U)   /*!< OTP block55  4 Bytes */
+#define EFM_OTP_BLOCK56             ((uint32_t)0x03001608U)   /*!< OTP block56  4 Bytes */
+#define EFM_OTP_BLOCK57             ((uint32_t)0x0300160CU)   /*!< OTP block57  4 Bytes */
+#define EFM_OTP_BLOCK58             ((uint32_t)0x03001610U)   /*!< OTP block58  4 Bytes */
+#define EFM_OTP_BLOCK59             ((uint32_t)0x03001614U)   /*!< OTP block59  4 Bytes */
+#define EFM_OTP_BLOCK60             ((uint32_t)0x03001618U)   /*!< OTP block60  4 Bytes */
+#define EFM_OTP_BLOCK61             ((uint32_t)0x0300161CU)   /*!< OTP block61  4 Bytes */
+#define EFM_OTP_BLOCK62             ((uint32_t)0x03001620U)   /*!< OTP block62  4 Bytes */
+#define EFM_OTP_BLOCK63             ((uint32_t)0x03001624U)   /*!< OTP block63  4 Bytes */
+#define EFM_OTP_BLOCK64             ((uint32_t)0x03001628U)   /*!< OTP block64  4 Bytes */
+#define EFM_OTP_BLOCK65             ((uint32_t)0x0300162CU)   /*!< OTP block65  4 Bytes */
+#define EFM_OTP_BLOCK66             ((uint32_t)0x03001630U)   /*!< OTP block66  4 Bytes */
+#define EFM_OTP_BLOCK67             ((uint32_t)0x03001634U)   /*!< OTP block67  4 Bytes */
+#define EFM_OTP_BLOCK68             ((uint32_t)0x03001638U)   /*!< OTP block68  4 Bytes */
+#define EFM_OTP_BLOCK69             ((uint32_t)0x0300163CU)   /*!< OTP block69  4 Bytes */
+#define EFM_OTP_BLOCK70             ((uint32_t)0x03001640U)   /*!< OTP block70  4 Bytes */
+#define EFM_OTP_BLOCK71             ((uint32_t)0x03001644U)   /*!< OTP block71  4 Bytes */
+#define EFM_OTP_BLOCK72             ((uint32_t)0x03001648U)   /*!< OTP block72  4 Bytes */
+#define EFM_OTP_BLOCK73             ((uint32_t)0x0300164CU)   /*!< OTP block73  4 Bytes */
+#define EFM_OTP_BLOCK74             ((uint32_t)0x03001650U)   /*!< OTP block74  4 Bytes */
+#define EFM_OTP_BLOCK75             ((uint32_t)0x03001654U)   /*!< OTP block75  4 Bytes */
+#define EFM_OTP_BLOCK76             ((uint32_t)0x03001658U)   /*!< OTP block76  4 Bytes */
+#define EFM_OTP_BLOCK77             ((uint32_t)0x0300165CU)   /*!< OTP block77  4 Bytes */
+#define EFM_OTP_BLOCK78             ((uint32_t)0x03001660U)   /*!< OTP block78  4 Bytes */
+#define EFM_OTP_BLOCK79             ((uint32_t)0x03001664U)   /*!< OTP block79  4 Bytes */
+#define EFM_OTP_BLOCK80             ((uint32_t)0x03001668U)   /*!< OTP block80  4 Bytes */
+#define EFM_OTP_BLOCK81             ((uint32_t)0x0300166CU)   /*!< OTP block81  4 Bytes */
+#define EFM_OTP_BLOCK82             ((uint32_t)0x03001670U)   /*!< OTP block82  4 Bytes */
+#define EFM_OTP_BLOCK83             ((uint32_t)0x03001674U)   /*!< OTP block83  4 Bytes */
+#define EFM_OTP_BLOCK84             ((uint32_t)0x03001678U)   /*!< OTP block84  4 Bytes */
+#define EFM_OTP_BLOCK85             ((uint32_t)0x0300167CU)   /*!< OTP block85  4 Bytes */
+#define EFM_OTP_BLOCK86             ((uint32_t)0x03001680U)   /*!< OTP block86  4 Bytes */
+#define EFM_OTP_BLOCK87             ((uint32_t)0x03001684U)   /*!< OTP block87  4 Bytes */
+#define EFM_OTP_BLOCK88             ((uint32_t)0x03001688U)   /*!< OTP block88  4 Bytes */
+#define EFM_OTP_BLOCK89             ((uint32_t)0x0300168CU)   /*!< OTP block89  4 Bytes */
+#define EFM_OTP_BLOCK90             ((uint32_t)0x03001690U)   /*!< OTP block90  4 Bytes */
+#define EFM_OTP_BLOCK91             ((uint32_t)0x03001694U)   /*!< OTP block91  4 Bytes */
+#define EFM_OTP_BLOCK92             ((uint32_t)0x03001698U)   /*!< OTP block92  4 Bytes */
+#define EFM_OTP_BLOCK93             ((uint32_t)0x0300169CU)   /*!< OTP block93  4 Bytes */
+#define EFM_OTP_BLOCK94             ((uint32_t)0x030016A0U)   /*!< OTP block94  4 Bytes */
+#define EFM_OTP_BLOCK95             ((uint32_t)0x030016A4U)   /*!< OTP block95  4 Bytes */
+#define EFM_OTP_BLOCK96             ((uint32_t)0x030016A8U)   /*!< OTP block96  4 Bytes */
+#define EFM_OTP_BLOCK97             ((uint32_t)0x030016ACU)   /*!< OTP block97  4 Bytes */
+#define EFM_OTP_BLOCK98             ((uint32_t)0x030016B0U)   /*!< OTP block98  4 Bytes */
+#define EFM_OTP_BLOCK99             ((uint32_t)0x030016B4U)   /*!< OTP block99  4 Bytes */
+#define EFM_OTP_BLOCK100            ((uint32_t)0x030016B8U)   /*!< OTP block100 4 Bytes */
+#define EFM_OTP_BLOCK101            ((uint32_t)0x030016BCU)   /*!< OTP block101 4 Bytes */
+#define EFM_OTP_BLOCK102            ((uint32_t)0x030016C0U)   /*!< OTP block102 4 Bytes */
+#define EFM_OTP_BLOCK103            ((uint32_t)0x030016C4U)   /*!< OTP block103 4 Bytes */
+#define EFM_OTP_BLOCK104            ((uint32_t)0x030016C8U)   /*!< OTP block104 4 Bytes */
+#define EFM_OTP_BLOCK105            ((uint32_t)0x030016CCU)   /*!< OTP block105 4 Bytes */
+#define EFM_OTP_BLOCK106            ((uint32_t)0x030016D0U)   /*!< OTP block106 4 Bytes */
+#define EFM_OTP_BLOCK107            ((uint32_t)0x030016D4U)   /*!< OTP block107 4 Bytes */
+#define EFM_OTP_BLOCK108            ((uint32_t)0x030016D8U)   /*!< OTP block108 4 Bytes */
+#define EFM_OTP_BLOCK109            ((uint32_t)0x030016DCU)   /*!< OTP block109 4 Bytes */
+#define EFM_OTP_BLOCK110            ((uint32_t)0x030016E0U)   /*!< OTP block110 4 Bytes */
+#define EFM_OTP_BLOCK111            ((uint32_t)0x030016E4U)   /*!< OTP block111 4 Bytes */
+#define EFM_OTP_BLOCK112            ((uint32_t)0x030016E8U)   /*!< OTP block112 4 Bytes */
+#define EFM_OTP_BLOCK113            ((uint32_t)0x030016ECU)   /*!< OTP block113 4 Bytes */
+#define EFM_OTP_BLOCK114            ((uint32_t)0x030016F0U)   /*!< OTP block114 4 Bytes */
+#define EFM_OTP_BLOCK115            ((uint32_t)0x030016F4U)   /*!< OTP block115 4 Bytes */
+#define EFM_OTP_BLOCK116            ((uint32_t)0x030016F8U)   /*!< OTP block116 4 Bytes */
+#define EFM_OTP_BLOCK117            ((uint32_t)0x030016FCU)   /*!< OTP block117 4 Bytes */
+#define EFM_OTP_BLOCK118            ((uint32_t)0x03001700U)   /*!< OTP block118 4 Bytes */
+#define EFM_OTP_BLOCK119            ((uint32_t)0x03001704U)   /*!< OTP block119 4 Bytes */
+#define EFM_OTP_BLOCK120            ((uint32_t)0x03001708U)   /*!< OTP block120 4 Bytes */
+#define EFM_OTP_BLOCK121            ((uint32_t)0x0300170CU)   /*!< OTP block121 4 Bytes */
+#define EFM_OTP_BLOCK122            ((uint32_t)0x03001710U)   /*!< OTP block122 4 Bytes */
+#define EFM_OTP_BLOCK123            ((uint32_t)0x03001714U)   /*!< OTP block123 4 Bytes */
+#define EFM_OTP_BLOCK124            ((uint32_t)0x03001718U)   /*!< OTP block124 4 Bytes */
+#define EFM_OTP_BLOCK125            ((uint32_t)0x0300171CU)   /*!< OTP block125 4 Bytes */
+#define EFM_OTP_BLOCK126            ((uint32_t)0x03001720U)   /*!< OTP block126 4 Bytes */
+#define EFM_OTP_BLOCK127            ((uint32_t)0x03001724U)   /*!< OTP block127 4 Bytes */
+#define EFM_OTP_BLOCK128            ((uint32_t)0x03001728U)   /*!< OTP block128 4 Bytes */
+#define EFM_OTP_BLOCK129            ((uint32_t)0x0300172CU)   /*!< OTP block129 4 Bytes */
+#define EFM_OTP_BLOCK130            ((uint32_t)0x03001730U)   /*!< OTP block130 4 Bytes */
+#define EFM_OTP_BLOCK131            ((uint32_t)0x03001734U)   /*!< OTP block131 4 Bytes */
+#define EFM_OTP_BLOCK132            ((uint32_t)0x03001738U)   /*!< OTP block132 4 Bytes */
+#define EFM_OTP_BLOCK133            ((uint32_t)0x0300173CU)   /*!< OTP block133 4 Bytes */
+#define EFM_OTP_BLOCK134            ((uint32_t)0x03001740U)   /*!< OTP block134 4 Bytes */
+#define EFM_OTP_BLOCK135            ((uint32_t)0x03001744U)   /*!< OTP block135 4 Bytes */
+#define EFM_OTP_BLOCK136            ((uint32_t)0x03001748U)   /*!< OTP block136 4 Bytes */
+#define EFM_OTP_BLOCK137            ((uint32_t)0x0300174CU)   /*!< OTP block137 4 Bytes */
+#define EFM_OTP_BLOCK138            ((uint32_t)0x03001750U)   /*!< OTP block138 4 Bytes */
+#define EFM_OTP_BLOCK139            ((uint32_t)0x03001754U)   /*!< OTP block139 4 Bytes */
+#define EFM_OTP_BLOCK140            ((uint32_t)0x03001758U)   /*!< OTP block140 4 Bytes */
+#define EFM_OTP_BLOCK141            ((uint32_t)0x0300175CU)   /*!< OTP block141 4 Bytes */
+#define EFM_OTP_BLOCK142            ((uint32_t)0x03001760U)   /*!< OTP block142 4 Bytes */
+#define EFM_OTP_BLOCK143            ((uint32_t)0x03001764U)   /*!< OTP block143 4 Bytes */
+#define EFM_OTP_BLOCK144            ((uint32_t)0x03001768U)   /*!< OTP block144 4 Bytes */
+#define EFM_OTP_BLOCK145            ((uint32_t)0x0300176CU)   /*!< OTP block145 4 Bytes */
+#define EFM_OTP_BLOCK146            ((uint32_t)0x03001770U)   /*!< OTP block146 4 Bytes */
+#define EFM_OTP_BLOCK147            ((uint32_t)0x03001774U)   /*!< OTP block147 4 Bytes */
+#define EFM_OTP_BLOCK148            ((uint32_t)0x03001778U)   /*!< OTP block148 4 Bytes */
+#define EFM_OTP_BLOCK149            ((uint32_t)0x0300177CU)   /*!< OTP block149 4 Bytes */
+#define EFM_OTP_BLOCK150            ((uint32_t)0x03001780U)   /*!< OTP block150 4 Bytes */
+#define EFM_OTP_BLOCK151            ((uint32_t)0x03001784U)   /*!< OTP block151 4 Bytes */
+#define EFM_OTP_BLOCK152            ((uint32_t)0x03001788U)   /*!< OTP block152 4 Bytes */
+#define EFM_OTP_BLOCK153            ((uint32_t)0x0300178CU)   /*!< OTP block153 4 Bytes */
+#define EFM_OTP_BLOCK154            ((uint32_t)0x03001790U)   /*!< OTP block154 4 Bytes */
+#define EFM_OTP_BLOCK155            ((uint32_t)0x03001794U)   /*!< OTP block155 4 Bytes */
+#define EFM_OTP_BLOCK156            ((uint32_t)0x03001798U)   /*!< OTP block156 4 Bytes */
+#define EFM_OTP_BLOCK157            ((uint32_t)0x0300179CU)   /*!< OTP block157 4 Bytes */
+#define EFM_OTP_BLOCK158            ((uint32_t)0x030017A0U)   /*!< OTP block158 4 Bytes */
+#define EFM_OTP_BLOCK159            ((uint32_t)0x030017A4U)   /*!< OTP block159 4 Bytes */
+#define EFM_OTP_BLOCK160            ((uint32_t)0x030017A8U)   /*!< OTP block160 4 Bytes */
+#define EFM_OTP_BLOCK161            ((uint32_t)0x030017ACU)   /*!< OTP block161 4 Bytes */
+#define EFM_OTP_BLOCK162            ((uint32_t)0x030017B0U)   /*!< OTP block162 4 Bytes */
+#define EFM_OTP_BLOCK163            ((uint32_t)0x030017B4U)   /*!< OTP block163 4 Bytes */
+#define EFM_OTP_BLOCK164            ((uint32_t)0x030017B8U)   /*!< OTP block164 4 Bytes */
+#define EFM_OTP_BLOCK165            ((uint32_t)0x030017BCU)   /*!< OTP block165 4 Bytes */
+#define EFM_OTP_BLOCK166            ((uint32_t)0x030017C0U)   /*!< OTP block166 4 Bytes */
+#define EFM_OTP_BLOCK167            ((uint32_t)0x030017C4U)   /*!< OTP block167 4 Bytes */
+#define EFM_OTP_BLOCK168            ((uint32_t)0x030017C8U)   /*!< OTP block168 4 Bytes */
+#define EFM_OTP_BLOCK169            ((uint32_t)0x030017CCU)   /*!< OTP block169 4 Bytes */
+#define EFM_OTP_BLOCK170            ((uint32_t)0x030017D0U)   /*!< OTP block170 4 Bytes */
+#define EFM_OTP_BLOCK171            ((uint32_t)0x030017D4U)   /*!< OTP block171 4 Bytes */
+#define EFM_OTP_BLOCK172            ((uint32_t)0x030017D8U)   /*!< OTP block172 4 Bytes */
+#define EFM_OTP_BLOCK173            ((uint32_t)0x030017DCU)   /*!< OTP block173 4 Bytes */
+#define EFM_OTP_BLOCK174            ((uint32_t)0x030017E0U)   /*!< OTP block174 4 Bytes */
+#define EFM_OTP_BLOCK175            ((uint32_t)0x030017E4U)   /*!< OTP block175 4 Bytes */
+#define EFM_OTP_BLOCK176            ((uint32_t)0x030017E8U)   /*!< OTP block176 4 Bytes */
+#define EFM_OTP_BLOCK177            ((uint32_t)0x030017ECU)   /*!< OTP block177 4 Bytes */
+#define EFM_OTP_BLOCK178            ((uint32_t)0x030017F0U)   /*!< OTP block178 4 Bytes */
+#define EFM_OTP_BLOCK179            ((uint32_t)0x030017F4U)   /*!< OTP block179 4 Bytes */
+#define EFM_OTP_BLOCK180            ((uint32_t)0x030017F8U)   /*!< OTP block180 4 Bytes */
+#define EFM_OTP_BLOCK181            ((uint32_t)0x030017FCU)   /*!< OTP block181 4 Bytes */
+
+/**
+ * @}
+ */
+
+/**
  * @defgroup EFM_Wait_Cycle EFM Wait Cycle 
  * @{
  */
@@ -523,14 +718,14 @@ typedef struct
  * @defgroup EFM_Mode_definition EFM program or erase mode definition
  * @{
  */
-#define EFM_MODE_PROGRAMSINGLE      ((uint32_t)0x00000001UL)         /*!< Program single mode          */
-#define EFM_MODE_PROGRAMREADBACK    ((uint32_t)0x00000002UL)         /*!< Program and read back mode   */
-#define EFM_MODE_PROGRAMSEQUENCE    ((uint32_t)0x00000003UL)         /*!< Program sequence mode        */
-#define EFM_MODE_ERASESECTOR        ((uint32_t)0x00000004UL)         /*!< Sector erase mode            */
-#define EFM_MODE_ERASECHIP1         ((uint32_t)0x00000005UL)         /*!< A flash Chip erase mode      */
-#define EFM_MODE_ERASECHIP2         ((uint32_t)0x00000006UL)         /*!< Two flash Chip erase mode    */
-#define EFM_MODE_READONLY           ((uint32_t)0x00000000UL)         /*!< Read only mode               */
-#define EFM_MODE_READONLY1          ((uint32_t)0x00000007UL)         /*!< Read only mode               */    
+#define EFM_MODE_PROGRAMSINGLE      ((uint32_t)0x00000001UL) /*!< Program single mode          */
+#define EFM_MODE_PROGRAMREADBACK    ((uint32_t)0x00000002UL) /*!< Program and read back mode   */
+#define EFM_MODE_PROGRAMSEQUENCE    ((uint32_t)0x00000003UL) /*!< Program sequence mode        */
+#define EFM_MODE_ERASESECTOR        ((uint32_t)0x00000004UL) /*!< Sector erase mode            */
+#define EFM_MODE_ERASECHIP1         ((uint32_t)0x00000005UL) /*!< A flash Chip erase mode      */
+#define EFM_MODE_ERASECHIP2         ((uint32_t)0x00000006UL) /*!< Two flash Chip erase mode    */
+#define EFM_MODE_READONLY           ((uint32_t)0x00000000UL) /*!< Read only mode               */
+#define EFM_MODE_READONLY1          ((uint32_t)0x00000007UL) /*!< Read only mode               */    
 /**
  * @}
  */

@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  efm/efm_switch/source/main.c
+ * @file  efm/efm_switch/source/main_block1.c
  * @brief Main program of EFM for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-25       Heqb          First version
+   2020-04-22       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -72,23 +72,7 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define EFM_SWITCH_ADDR     ((uint32_t)0x03002000U)
-#define EFM_SWITCH_DATA     ((uint32_t)0x005A5A5AU)
-
-#define LED_R_PORT          (GPIO_PORT_A)
-#define LED_G_PORT          (GPIO_PORT_B)
-
-#define LED_R_PIN           (GPIO_PIN_00)
-#define LED_G_PIN           (GPIO_PIN_00)
-
-#define LED_R_ON()          (GPIO_ResetPins(LED_R_PORT, LED_R_PIN))
-#define LED_G_ON()          (GPIO_ResetPins(LED_G_PORT, LED_G_PIN))
-
-#define LED_R_OFF()         (GPIO_SetPins(LED_R_PORT, LED_R_PIN))
-#define LED_G_OFF()         (GPIO_SetPins(LED_G_PORT, LED_G_PIN))
-
-#define LED_RG_ON()         {LED_R_ON();LED_G_ON();}
-#define LED_RG_OFF()        {LED_R_OFF();LED_G_OFF();}
+#define EFM_SWITCH_ADDR     ((uint32_t)0x03002000UL)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -105,27 +89,6 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  LED Init
- * @param  None
- * @retval None
- */
-static void LED_Init(void)
-{
-    stc_gpio_init_t stcGpioInit;
-
-    /* LED initialize */
-    GPIO_StructInit(&stcGpioInit);
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-
-    /* "Turn off" LED before set to output */
-    LED_RG_OFF();
-
-    /* Output enable */
-    GPIO_OE(LED_R_PORT, LED_R_PIN, Enable);
-    GPIO_OE(LED_G_PORT, LED_G_PIN, Enable);
-}
 
 /**
  * @brief  Main function of EFM project
@@ -134,12 +97,31 @@ static void LED_Init(void)
  */
 int32_t main(void)
 {
-    LED_Init();
-    LED_G_ON();
+    stc_efm_cfg_t stcEfmCfg;
+    uint32_t flag1, flag2;
+    /* LED Init */
+    BSP_IO_Init();
+    BSP_LED_Init();
+    BSP_LED_On(LED_RED);
 
-    /* Enable the boot switch function */
-    *(uint32_t *)EFM_SWITCH_ADDR = EFM_SWITCH_DATA;
+    /* Unlock EFM. */
+    EFM_Unlock();
+    /* EFM default config. */
+    EFM_StrucInit(&stcEfmCfg);
+    /* EFM config */
+    EFM_Init(&stcEfmCfg);
+    /* Set Sector erase mode. */
+    EFM_SetOperateMode(EFM_MODE_ERASESECTOR);
 
+    /* Wait flash0, flash1 ready. */
+    do{
+        flag1 = EFM_GetFlagStatus(EFM_FLAG_RDY0);
+        flag2 = EFM_GetFlagStatus(EFM_FLAG_RDY1);
+    }while((Set != flag1) || (Set != flag2));
+    /* Disable flash switch function */
+    *(uint32_t *)EFM_SWITCH_ADDR = (uint32_t)0x0UL;
+    /* Unlock EFM. */
+    EFM_Lock();
     while(1)
     {
         ;

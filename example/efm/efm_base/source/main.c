@@ -104,7 +104,9 @@ int32_t main(void)
     uint32_t u32Addr;
 
     /* LED Init */
+    BSP_IO_Init();
     BSP_LED_Init();
+
     /* Turn on LED_B */
     BSP_LED_On(LED_BLUE);
     /* Configures the PLLHP(240MHz) as the system clock. */
@@ -211,7 +213,7 @@ static void SystemClockConfig(void)
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
+    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
     EFM_Unlock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);

@@ -94,13 +94,14 @@
 
 /* Command send and response timeout */
 #define SDMMC_CMD_TIMEOUT                       (5000UL)
-
 /* Max erase Timeout 60s */
-#define SDIO_MAX_ERASE_TIMEOUT                  (60000UL)
+#define SDMMC_MAX_ERASE_TIMEOUT                 (60000UL)
+
+/* SDIOC software reset timeout */
+#define SDIOC_SW_RESET_TIMEOUT                  (100UL)
 
 /* SDIOC NORINTSGEN register Mask */
 #define SDIOC_NORINTSGEN_CLEAR_MASK             (0x01F7U)
-
 /* SDIOC ERRINTSGEN register Mask */
 #define SDIOC_ERRINTSGEN_CLEAR_MASK             (0x017FU)
 
@@ -476,7 +477,7 @@ en_result_t SDIOC_SoftwareReset(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8ResetType)
 
     WRITE_REG8(SDIOCx->SFTRST, u8ResetType);
     /* Wait for reset finish */
-    u32Timeout = SystemCoreClock >> 8U;
+    u32Timeout = SDIOC_SW_RESET_TIMEOUT * (SystemCoreClock / 8U / 1000U);
     do
     {
         u8RegSta = READ_REG8_BIT(SDIOCx->SFTRST, u8ResetType);
@@ -540,6 +541,33 @@ en_functional_state_t SDIOC_GetPowerState(const M4_SDIOC_TypeDef *SDIOCx)
     }
 
     return enPowerSta;
+}
+
+/**
+ * @brief  Get SDIOC work mode.
+ * @param  [in] SDIOCx                  Pointer to SDIOC instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_SDIOC1:            SDIOC unit 1 instance register base
+ *           @arg M4_SDIOC2:            SDIOC unit 2 instance register base
+ * @retval uint32_t value:
+ *           - SDIOC_MODE_SD:   SDIOCx selects SD mode
+ *           - SDIOC_MODE_MMC:  SDIOCx selects MMC mode
+ */
+uint32_t SDIOC_GetMode(const M4_SDIOC_TypeDef *SDIOCx)
+{
+    uint32_t u32SdMode = SDIOC_MODE_SD;
+
+    /* Check parameters */
+    DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
+
+    u32SdMode = READ_REG32_BIT(M4_PERIC->SDIOC_SYCTLREG, ((M4_SDIOC1 == SDIOCx) ?
+                                                          PERIC_SDIOC_SYCTLREG_SELMMC1 : PERIC_SDIOC_SYCTLREG_SELMMC2));
+    if (0UL != u32SdMode)   /* MMC mode */
+    {
+        u32SdMode = SDIOC_MODE_MMC;
+    }
+
+    return u32SdMode;
 }
 
 /**
@@ -661,7 +689,7 @@ en_result_t SDIOC_GetOptimumClockDiv(uint32_t u32ClkFreq, uint16_t *pu16ClkDiv)
 }
 
 /**
- * @brief  Get the validity of the clock division.
+ * @brief  Verify the validity of the clock division.
  * @param  [in] u32Mode                 SDIOC work mode
  *         This parameter can be one of the following values:
  *           @arg SDIOC_MODE_SD:        SDIOCx selects SD mode
@@ -685,7 +713,7 @@ en_result_t SDIOC_GetOptimumClockDiv(uint32_t u32ClkFreq, uint16_t *pu16ClkDiv)
  *           - Ok: The clock division is valid
  *           - Error: The Bus clock frequency is too high
  */
-en_result_t SDIOC_GetValidClockDiv(uint32_t u32Mode, uint8_t u8SpeedMode, uint16_t u16ClkDiv)
+en_result_t SDIOC_VerifyClockDiv(uint32_t u32Mode, uint8_t u8SpeedMode, uint16_t u16ClkDiv)
 {
     en_result_t enRet = Ok;
     uint32_t u32BusClk = 0UL, u32ClkFreq = 0UL;
@@ -740,7 +768,7 @@ en_result_t SDIOC_GetValidClockDiv(uint32_t u32Mode, uint8_t u8SpeedMode, uint16
  *           - Disable: No device inserted
  *           - Enable:  The device inserted
  */
-en_functional_state_t SDIOC_GetDeviceInsertState(M4_SDIOC_TypeDef *SDIOCx)
+en_functional_state_t SDIOC_GetDeviceInsertState(const M4_SDIOC_TypeDef *SDIOCx)
 {
     en_functional_state_t enInsertSta = Disable;
 
@@ -1290,6 +1318,64 @@ void SDIOC_IntCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc, en_functional_st
 }
 
 /**
+ * @brief  Get interrupt enable state.
+ * @param  [in] SDIOCx                  Pointer to SDIOC instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_SDIOC1:            SDIOC unit 1 instance register base
+ *           @arg M4_SDIOC2:            SDIOC unit 2 instance register base
+ * @param  [in] u32IntSrc               Normal and error interrupts source
+ *         This parameter can be one or any combination of the following values:
+ *           @arg SDIOC_NORMAL_INT_CINTSEN:     Card Interrupt
+ *           @arg SDIOC_NORMAL_INT_CRMSEN:      Card Removal Interrupt
+ *           @arg SDIOC_NORMAL_INT_CISTSEN:     Card Insertion Interrupt
+ *           @arg SDIOC_NORMAL_INT_BRRSEN:      Buffer Read Ready Interrupt
+ *           @arg SDIOC_NORMAL_INT_BWRSEN:      Buffer Write Ready Interrupt
+ *           @arg SDIOC_NORMAL_INT_BGESEN:      Block Gap Event Interrupt
+ *           @arg SDIOC_NORMAL_INT_TCSEN:       Transfer Complete Interrupt
+ *           @arg SDIOC_NORMAL_INT_CCSEN:       Command Complete Interrupt
+ *           @arg SDIOC_ERROR_INT_ACESEN:       Auto CMD12 Error Interrupt
+ *           @arg SDIOC_ERROR_INT_DEBESEN:      Data End Bit Error Interrupt
+ *           @arg SDIOC_ERROR_INT_DCESEN:       Data CRC Error Interrupt
+ *           @arg SDIOC_ERROR_INT_DTOESEN:      Data Timeout Error Interrupt
+ *           @arg SDIOC_ERROR_INT_CIESEN:       Command Index Error Interrupt
+ *           @arg SDIOC_ERROR_INT_CEBESEN:      Command End Bit Error Interrupt
+ *           @arg SDIOC_ERROR_INT_CCESEN:       Command CRC Error Interrupt
+ *           @arg SDIOC_ERROR_INT_CTOESEN:      Command Timeout Error Interrupt
+ * @retval An en_functional_state_t enumeration value:
+ *           - Enable: The interrupt is enable
+ *           - Disable: The interrupt is disable
+ */
+en_functional_state_t SDIOC_GetIntEnableState(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc)
+{
+    uint16_t u16NormalInt = 0U, u16ErrorInt = 0U;
+    en_functional_state_t enIntSta = Disable;
+
+    /* Check parameters */
+    DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
+    DDL_ASSERT(IS_SDIOC_NORMAL_ERROR_INT(u32IntSrc));
+
+    u16NormalInt = (uint16_t)(u32IntSrc & 0xFFFFU);
+    u16ErrorInt  = (uint16_t)((u32IntSrc >> 16U) & 0xFFFFU);
+
+    if (0U != u16NormalInt)
+    {
+        if (0U != (READ_REG16_BIT(SDIOCx->NORINTSGEN, u16NormalInt)))
+        {
+            enIntSta = Enable;
+        }
+    }
+    if (0U != u16ErrorInt)
+    {
+        if (0U != (READ_REG16_BIT(SDIOCx->ERRINTSGEN, u16ErrorInt)))
+        {
+            enIntSta = Enable;
+        }
+    }
+
+    return enIntSta;
+}
+
+/**
  * @brief  Get interrupt flag status.
  * @param  [in] SDIOCx                  Pointer to SDIOC instance register base
  *         This parameter can be one of the following values:
@@ -1375,7 +1461,8 @@ en_flag_status_t SDIOC_GetIntStatus(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32
  */
 void SDIOC_ClearIntStatus(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag)
 {
-    uint16_t u16NormalFlag = 0U, u16ErrorFlag = 0U;
+    volatile uint16_t u16NormalFlag = 0U;
+    volatile uint16_t u16ErrorFlag = 0U;
 
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
@@ -1739,9 +1826,8 @@ en_result_t SDMMC_CMD6_SwitchFunc(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Argument
         stcCmdInit.u32Argument = u32Argument;
         stcCmdInit.u16CmdIndex = SDIOC_CMD6_SWITCH_FUNC;
         stcCmdInit.u16CmdType  = SDIOC_CMD_TYPE_NORMAL;
-        u32SdMode              = READ_REG32_BIT(M4_PERIC->SDIOC_SYCTLREG, ((M4_SDIOC1 == SDIOCx) ?
-                                                                           PERIC_SDIOC_SYCTLREG_SELMMC1 : PERIC_SDIOC_SYCTLREG_SELMMC2));
-        if (0UL != u32SdMode)   /* MMC mode */
+        u32SdMode              = SDIOC_GetMode(SDIOCx);
+        if (SDIOC_MODE_SD != u32SdMode)   /* MMC mode */
         {
             stcCmdInit.u16DataLineEn = SDIOC_DATA_LINE_DISABLE;
             stcCmdInit.u16RespType   = SDIOC_RESOPNE_TYPE_R1B_R5B;
@@ -1755,7 +1841,7 @@ en_result_t SDMMC_CMD6_SwitchFunc(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Argument
         /* Check for error conditions */
         if (Ok == enRet)
         {
-            if (0UL != u32SdMode)   /* MMC mode */
+            if (SDIOC_MODE_SD != u32SdMode)   /* MMC mode */
             {
                 enRet = SDMMC_GetCmdResp1Busy(SDIOCx, SDMMC_CMD_TIMEOUT, pu32ErrSta);
             }
@@ -1842,9 +1928,8 @@ en_result_t SDMMC_CMD8_SendInterfaceCond(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu3
         stcCmdInit.u16CmdIndex = SDIOC_CMD8_SEND_IF_COND;
         stcCmdInit.u16CmdType  = SDIOC_CMD_TYPE_NORMAL;
         stcCmdInit.u16RespType = SDIOC_RESOPNE_TYPE_R1_R5_R6_R7;
-        u32SdMode              = READ_REG32_BIT(M4_PERIC->SDIOC_SYCTLREG, ((M4_SDIOC1 == SDIOCx) ?
-                                                                           PERIC_SDIOC_SYCTLREG_SELMMC1 : PERIC_SDIOC_SYCTLREG_SELMMC2));
-        if (0UL != u32SdMode)   /* MMC mode */
+        u32SdMode              = SDIOC_GetMode(SDIOCx);
+        if (SDIOC_MODE_SD != u32SdMode)   /* MMC mode */
         {
             stcCmdInit.u16DataLineEn = SDIOC_DATA_LINE_ENABLE;
         }
@@ -1856,7 +1941,7 @@ en_result_t SDMMC_CMD8_SendInterfaceCond(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu3
         /* Check for error conditions */
         if (Ok == enRet)
         {
-            if (0UL != u32SdMode)   /* MMC mode */
+            if (SDIOC_MODE_SD != u32SdMode)   /* MMC mode */
             {
                 enRet = SDMMC_GetCmdResp1(SDIOCx, SDMMC_CMD_TIMEOUT, pu32ErrSta);
             }
@@ -2312,7 +2397,7 @@ en_result_t SDMMC_CMD38_Erase(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
         /* Check for error conditions */
         if (Ok == enRet)
         {
-            enRet = SDMMC_GetCmdResp1Busy(SDIOCx, SDIO_MAX_ERASE_TIMEOUT, pu32ErrSta);
+            enRet = SDMMC_GetCmdResp1Busy(SDIOCx, SDMMC_MAX_ERASE_TIMEOUT, pu32ErrSta);
         }
     }
 

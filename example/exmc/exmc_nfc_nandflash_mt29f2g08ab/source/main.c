@@ -56,6 +56,7 @@
 #include <string.h>
 
 #include "hc32_ddl.h"
+#include "1bit_per_512byte_ecc.h"
 
 /**
  * @addtogroup HC32F4A0_DDL_Examples
@@ -76,7 +77,7 @@
  ******************************************************************************/
 #define DATA_META_WITHOUT_SPARE_LEN         (MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE)
 #define DATA_META_WITH_SPARE_LEN            (MT29F2G08AB_PAGE_SIZE_WITH_SPARE)
-#define DATA_HWECC_LEN                      (MT29F2G08AB_PAGE_SIZE_WITH_SPARE)
+#define DATA_HWECC_WITH_SPARE_LEN           (MT29F2G08AB_PAGE_SIZE_WITH_SPARE)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -87,19 +88,12 @@
  ******************************************************************************/
 static en_result_t MT29F2G08AB_ProgramMetaWithoutSpare(uint32_t u32Page);
 static en_result_t MT29F2G08AB_ProgramMetaWithSpare(uint32_t u32Page);
-static en_result_t MT29F2G08AB_ProgramHwEcc(uint32_t u32Page);
+static en_result_t MT29F2G08AB_ProgramHwEcc1Bit(uint32_t u32Page);
+static en_result_t MT29F2G08AB_ProgramHwEcc4Bits(uint32_t u32Page);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-__ALIGN_BEGIN static uint8_t m_au8ReadDataMeta[DATA_META_WITHOUT_SPARE_LEN];
-__ALIGN_BEGIN static uint8_t m_au8WriteDataMeta[DATA_META_WITHOUT_SPARE_LEN];
-
-__ALIGN_BEGIN static uint8_t m_au8ReadDataMetaWithSpare[DATA_META_WITH_SPARE_LEN];
-__ALIGN_BEGIN static uint8_t m_au8WriteDataMetaWithSpare[DATA_META_WITH_SPARE_LEN];
-
-__ALIGN_BEGIN static uint8_t m_au8ReadDataHwEcc[DATA_HWECC_LEN];
-__ALIGN_BEGIN static uint8_t m_au8WriteDataHwEcc[DATA_HWECC_LEN];
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -115,6 +109,9 @@ __ALIGN_BEGIN static uint8_t m_au8WriteDataHwEcc[DATA_HWECC_LEN];
 static en_result_t MT29F2G08AB_ProgramMetaWithoutSpare(uint32_t u32Page)
 {
     en_result_t enRet = Ok;
+
+    __ALIGN_BEGIN static uint8_t m_au8ReadDataMeta[DATA_META_WITHOUT_SPARE_LEN];
+    __ALIGN_BEGIN static uint8_t m_au8WriteDataMeta[DATA_META_WITHOUT_SPARE_LEN];
 
     /* Initialize data. */
     for (uint16_t i = 0U; i < DATA_META_WITHOUT_SPARE_LEN; i++)
@@ -155,6 +152,9 @@ static en_result_t MT29F2G08AB_ProgramMetaWithSpare(uint32_t u32Page)
 {
     en_result_t enRet = Ok;
 
+    __ALIGN_BEGIN static uint8_t m_au8ReadDataMetaWithSpare[DATA_META_WITH_SPARE_LEN];
+    __ALIGN_BEGIN static uint8_t m_au8WriteDataMetaWithSpare[DATA_META_WITH_SPARE_LEN];
+
     /* Initialize data. */
     for (uint16_t i = 0U; i < DATA_META_WITH_SPARE_LEN; i++)
     {
@@ -184,24 +184,103 @@ static en_result_t MT29F2G08AB_ProgramMetaWithSpare(uint32_t u32Page)
 }
 
 /**
- * @brief  nandflash program test with hardware ECC
+ * @brief  nandflash program test with hardware ECC 1 bit
  * @param  [in] u32Page                 Program page
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       Errors occurred.
  */
-static en_result_t MT29F2G08AB_ProgramHwEcc(uint32_t u32Page)
+static en_result_t MT29F2G08AB_ProgramHwEcc1Bit(uint32_t u32Page)
 {
-    en_result_t enRet = Ok;
+    uint32_t i = 0UL;
+    uint32_t u32EccTestResult = 0UL;
+    uint32_t u32EccExpectedResult = 0UL;
+    en_result_t enRet = Error;
 
-    if (Ok == MT29F2G08AB_WritePageHwEcc(u32Page, m_au8WriteDataHwEcc, DATA_HWECC_LEN))
+    __ALIGN_BEGIN static uint8_t m_au8ReadDataHwEcc[DATA_HWECC_WITH_SPARE_LEN];
+    __ALIGN_BEGIN static uint8_t m_au8WriteDataHwEcc[DATA_HWECC_WITH_SPARE_LEN];
+    __ALIGN_BEGIN static uint8_t m_au8SwEcc1Bit[MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE];
+
+    /* Initialize data. */
+    for (i = 0U; i < DATA_HWECC_WITH_SPARE_LEN; i++)
     {
-        MT29F2G08AB_WritePageHwEcc(u32Page, m_au8ReadDataHwEcc, DATA_HWECC_LEN);
+        m_au8WriteDataHwEcc[i] = (uint8_t)(i);
+    }
+
+    EXMC_NFC_SetEccMode(EXMC_NFC_ECC_1BIT);
+
+    if (Ok == MT29F2G08AB_WritePageHwEcc(u32Page, \
+                                        m_au8WriteDataHwEcc, \
+                                        (DATA_HWECC_WITH_SPARE_LEN - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE), \
+                                        MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE))
+    {
+        MT29F2G08AB_ReadPageMeta(u32Page, m_au8ReadDataHwEcc, DATA_META_WITH_SPARE_LEN);
+        sw_calculate_nand_ecc(&m_au8WriteDataHwEcc[0], &m_au8SwEcc1Bit[0], 512U);
+        sw_calculate_nand_ecc(&m_au8WriteDataHwEcc[512], &m_au8SwEcc1Bit[3], 512U);
+        sw_calculate_nand_ecc(&m_au8WriteDataHwEcc[1024], &m_au8SwEcc1Bit[6], 512U);
+        sw_calculate_nand_ecc(&m_au8WriteDataHwEcc[1536], &m_au8SwEcc1Bit[9], 512U);
+
+        if (0 == memcmp (m_au8SwEcc1Bit, \
+                    &m_au8ReadDataHwEcc[DATA_HWECC_WITH_SPARE_LEN - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE], \
+                    MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE))
+        {
+            m_au8ReadDataHwEcc[1] = 0x00U;  /* Modify the second byte value from 0x01 to 0x00 */
+            u32EccExpectedResult = (EXMC_NFC_1BIT_ECC_SINGLE_BIT_ERR | (1UL << 3UL)); /* Single bit error & the second byte: bit 0 */
+
+            MT29F2G08AB_WritePageMeta(u32Page, m_au8ReadDataHwEcc, DATA_META_WITH_SPARE_LEN);
+            MT29F2G08AB_ReadPageHwEcc(u32Page, \
+                                      m_au8ReadDataHwEcc, \
+                                      (DATA_HWECC_WITH_SPARE_LEN - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE), \
+                                      MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE);
+
+            u32EccTestResult = EXMC_NFC_GetEccReg(EXMC_NFC_ECCR0);
+            if (u32EccExpectedResult == u32EccTestResult)
+            {
+                enRet = Ok; /* The result meets the expected */
+            }
+        }
+    }
+
+    return enRet;
+}
+
+/**
+ * @brief  nandflash program test with hardware ECC 4bits
+ * @param  [in] u32Page                 Program page
+ * @retval An en_result_t enumeration value:
+ *   @arg  Ok:                          No errors occurred.
+ *   @arg  Error:                       Errors occurred.
+ */
+static en_result_t MT29F2G08AB_ProgramHwEcc4Bits(uint32_t u32Page)
+{
+    uint32_t i = 0UL;
+    en_result_t enRet = Ok;
+#if 0
+    /* Initialize data. */
+    for (i = 0U; i < DATA_HWECC_WITH_SPARE_LEN; i++)
+    {
+        m_au8WriteDataHwEcc[i] = (uint8_t)i;
+    }
+
+    EXMC_NFC_SetEccMode(EXMC_NFC_ECC_4BITS);
+
+    if (Ok == MT29F2G08AB_WritePageHwEcc(u32Page, \
+                                        m_au8WriteDataHwEcc, \
+                                        (DATA_HWECC_WITH_SPARE_LEN - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE), \
+                                        MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE))
+    {
+        MT29F2G08AB_ReadPageHwEcc(u32Page, \
+                                  m_au8ReadDataHwEcc, \
+                                  (DATA_HWECC_WITH_SPARE_LEN - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE), \
+                                  MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE);
+
+        MT29F2G08AB_ReadPageMeta(u32Page, m_au8ReadDataMetaWithSpare, DATA_META_WITH_SPARE_LEN);
 
         /* Verify write/read data. */
-        for (uint32_t i = 0UL; i < DATA_HWECC_LEN; i++)
+        for (i = 0UL; i < MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE; i++)
         {
-            if (m_au8WriteDataHwEcc[i] != m_au8ReadDataHwEcc[i])
+            if ((m_au8WriteDataHwEcc[i] != m_au8ReadDataHwEcc[i]) || \
+                (m_au8ReadDataMetaWithSpare[i] != m_au8ReadDataHwEcc[i]))
             {
                 enRet = Error;
             }
@@ -211,10 +290,11 @@ static en_result_t MT29F2G08AB_ProgramHwEcc(uint32_t u32Page)
     {
         enRet = Error;
     }
-
+#endif
     return enRet;
 }
 
+__IO uint8_t protect = 0UL;
 /**
  * @brief  Main function of EXMC NFC project
  * @param  None
@@ -240,6 +320,9 @@ int32_t main(void)
     BSP_IO_Init();
     BSP_LED_Init();
 
+    while (!protect)
+    {}
+
     /* Configure nandflash */
     MT29F2G08AB_Init();
 
@@ -259,6 +342,11 @@ int32_t main(void)
             }
 
             if (Ok != MT29F2G08AB_ProgramMetaWithSpare(1UL))
+            {
+                u8TestErrCnt++;
+            }
+
+            if (Ok != MT29F2G08AB_ProgramHwEcc1Bit(2UL))
             {
                 u8TestErrCnt++;
             }

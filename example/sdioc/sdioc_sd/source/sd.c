@@ -100,6 +100,8 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+static void SD_DmaTransferConfig(const stc_sd_handle_t *handle, uint8_t u8Ch, uint32_t u32SrcAddr,
+                                 uint32_t u32DestAddr, uint16_t u16BlkSize, uint16_t u16TransCnt);
 static en_result_t SD_GetSCR(stc_sd_handle_t *handle, uint32_t pu32SCR[]);
 static en_result_t SD_SetSpeedMode(stc_sd_handle_t *handle);
 static en_result_t SD_SetBusWidth(stc_sd_handle_t *handle);
@@ -167,7 +169,7 @@ en_result_t SD_Init(stc_sd_handle_t *handle)
     else
     {
         /* Check the SDIOC clock is over 25Mhz or 50Mhz */
-        enRet = SDIOC_GetValidClockDiv(SDIOC_MODE_SD, handle->stcSdiocInit.u8SpeedMode, handle->stcSdiocInit.u16ClockDiv);
+        enRet = SDIOC_VerifyClockDiv(SDIOC_MODE_SD, handle->stcSdiocInit.u8SpeedMode, handle->stcSdiocInit.u16ClockDiv);
         if (Ok != enRet)
         {
             return ErrorInvalidMode;
@@ -221,10 +223,6 @@ en_result_t SD_Init(stc_sd_handle_t *handle)
 
         /* Configure SD High speed mode */
         enRet = SD_SetSpeedMode(handle);
-        if (Ok != enRet)
-        {
-            return enRet;
-        }
 
         /* Initialize the error code */
         handle->u32ErrorCode = SDMMC_ERROR_NONE;
@@ -508,6 +506,160 @@ en_result_t SD_GetErrorCode(const stc_sd_handle_t *handle, uint32_t *u32ErrCode)
 }
 
 /**
+ * @brief  This function handles SD card interrupt request.
+ * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
+ * @retval None
+ */
+void SD_IRQHandler(stc_sd_handle_t *handle)
+{
+    en_result_t enCmdRet = Ok;
+    en_sd_card_state_t enCardState = SDCardStateIdle;
+
+    /* Check for SDIO interrupt flags */
+    if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_NORMAL_INT_FLAG_TC))
+    {
+        SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_NORMAL_INT_FLAG_TC);
+        SDIOC_IntCmd(handle->SDIOCx, (SDIOC_ERROR_INT_DEBESEN | SDIOC_ERROR_INT_DCESEN  | SDIOC_ERROR_INT_DTOESEN |
+                                       SDIOC_NORMAL_INT_TCSEN | SDIOC_NORMAL_INT_BRRSEN | SDIOC_NORMAL_INT_BWRSEN), Disable);
+
+        if ((0UL != (handle->u32Context & SD_CONTEXT_INT)) || (0UL != (handle->u32Context & SD_CONTEXT_DMA)))
+        {
+            if ((0UL != (handle->u32Context & SD_CONTEXT_WRITE_MULTIPLE_BLOCK)) || (0UL != (handle->u32Context & SD_CONTEXT_READ_MULTIPLE_BLOCK)))
+            {
+                /* Send stop transmission command */
+                enCmdRet = SDMMC_CMD12_StopTransmission(handle->SDIOCx, &handle->u32ErrorCode);
+                if (Ok != enCmdRet)
+                {
+                    SD_ErrorCallback(handle);
+                }
+            }
+
+            SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
+            if ((0UL != (handle->u32Context & SD_CONTEXT_WRITE_SINGLE_BLOCK)) || (0UL != (handle->u32Context & SD_CONTEXT_WRITE_MULTIPLE_BLOCK)))
+            {
+                SD_TxCpltCallback(handle);
+            }
+            else
+            {
+                SD_RxCpltCallback(handle);
+            }
+        }
+    }
+    else if ((Disable != SDIOC_GetIntEnableState(handle->SDIOCx, SDIOC_NORMAL_INT_BWRSEN)) &&
+             (Reset != SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FALG_BWE)))
+    {
+        SDIOC_WriteBuffer(handle->SDIOCx, handle->pu8Buffer, 4UL);
+        handle->pu8Buffer += 4U;
+        handle->u32Length -= 4U;
+        if (0UL == handle->u32Length)
+        {
+            SDIOC_IntCmd(handle->SDIOCx, SDIOC_NORMAL_INT_BWRSEN, Disable);
+        }
+    }
+    else if ((Disable != SDIOC_GetIntEnableState(handle->SDIOCx, SDIOC_NORMAL_INT_BRRSEN)) &&
+             (Reset != SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FALG_BRE)))
+    {
+        SDIOC_ReadBuffer(handle->SDIOCx, handle->pu8Buffer, 4UL);
+        handle->pu8Buffer += 4U;
+        handle->u32Length -= 4U;
+        if (0UL == handle->u32Length)
+        {
+            SDIOC_IntCmd(handle->SDIOCx, SDIOC_NORMAL_INT_BRRSEN, Disable);
+        }
+    }
+    else if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, (SDIOC_ERROR_INT_DEBESEN | SDIOC_ERROR_INT_DCESEN | SDIOC_ERROR_INT_DTOESEN)))
+    {
+        /* Set Error code */
+        if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_DEBESEN))
+        {
+            handle->u32ErrorCode |= SDMMC_ERROR_DATA_STOP_BIT; 
+        }
+        if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_DCESEN))
+        {
+            handle->u32ErrorCode |= SDMMC_ERROR_DATA_CRC_FAIL; 
+        }
+        if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_DTOESEN))
+        {
+            handle->u32ErrorCode |= SDMMC_ERROR_DATA_TIMEOUT; 
+        }
+
+        /* Clear All flags */
+        SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
+        /* Disable all interrupts */
+        SDIOC_IntCmd(handle->SDIOCx, (SDIOC_ERROR_INT_DEBESEN | SDIOC_ERROR_INT_DCESEN  | SDIOC_ERROR_INT_DTOESEN |
+                                       SDIOC_NORMAL_INT_TCSEN | SDIOC_NORMAL_INT_BRRSEN | SDIOC_NORMAL_INT_BWRSEN), Disable);
+
+        if (0UL != (handle->u32Context & SD_CONTEXT_INT))
+        {
+            SD_ErrorCallback(handle);
+        }
+        else if (0UL != (handle->u32Context & SD_CONTEXT_DMA))
+        {
+            if (NULL != handle->DMAx)
+            {
+                /* Disable the DMA Channel */
+                if ((0UL != (handle->u32Context & SD_CONTEXT_WRITE_SINGLE_BLOCK)) || (0UL != (handle->u32Context & SD_CONTEXT_WRITE_MULTIPLE_BLOCK)))
+                {
+                    DMA_ChannelCmd(handle->DMAx, handle->u8DmaTxCh, Disable);
+                }
+                else
+                {
+                    DMA_ChannelCmd(handle->DMAx, handle->u8DmaRxCh, Disable);
+                }
+                /* Stop SD transfer */
+                SD_GetCardState(handle, &enCardState);
+                handle->u32ErrorCode = SDMMC_ERROR_NONE;
+                if ((SDCardStateSendingData == enCardState) || (SDCardStateReceiveData == enCardState))
+                {
+                    /* Send stop transmission command */
+                    SDMMC_CMD12_StopTransmission(handle->SDIOCx, &handle->u32ErrorCode);
+                }
+                SD_ErrorCallback(handle);
+            }
+        }
+        else
+        {
+        }
+    }
+    else
+    {
+    }
+}
+
+/**
+ * @brief  SD Tx completed callbacks
+ * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
+ * @retval None
+ */
+__WEAKDEF void SD_TxCpltCallback(stc_sd_handle_t *handle)
+{
+    (void)handle;
+    /* NOTE: This function SD_TxCpltCallback can be implemented in the user file */
+}
+
+/**
+ * @brief  SD Rx completed callbacks
+ * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
+ * @retval None
+ */
+__WEAKDEF void SD_RxCpltCallback(stc_sd_handle_t *handle)
+{
+    (void)handle;
+    /* NOTE: This function SD_TxCpltCallback can be implemented in the user file */
+}
+
+/**
+ * @brief  SD error callbacks
+ * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
+ * @retval None
+ */
+__WEAKDEF void SD_ErrorCallback(stc_sd_handle_t *handle)
+{
+    (void)handle;
+    /* NOTE: This function SD_TxCpltCallback can be implemented in the user file */
+}
+
+/**
  * @brief  Erases the specified memory area of the given SD card.
  * @note   This API should be followed by a check on the card state through SD_GetCardState().
  * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
@@ -770,7 +922,7 @@ en_result_t SD_WriteBlocks(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint1
 
 /**
  * @brief  Reads block(s) from a specified address in a card.
- * @note   The Data transfer is managed by DMA mode.
+ * @note   The Data transfer is managed by interrupt mode.
  * @note   This API should be followed by a check on the card state through SD_GetCardState().
  * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
  * @param  [in] u32BlockAddr            Block Address
@@ -783,7 +935,7 @@ en_result_t SD_WriteBlocks(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint1
  *                                    An invalid parameter was write to the send command
  *           - ErrorTimeout: Send command timeout
  */
-en_result_t SD_ReadBlocks_DMA(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data)
+en_result_t SD_ReadBlocks_INT(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data)
 {
     en_result_t enRet = Ok;
     stc_sdioc_data_init_t stcDataCfg;
@@ -814,7 +966,186 @@ en_result_t SD_ReadBlocks_DMA(stc_sd_handle_t *handle, uint32_t u32BlockAddr, ui
             return enRet;
         }
 
-        /* Enable the DMA transfer */
+        /* Configure interrupt transfer parameters */
+        handle->pu8Buffer = pu8Data;
+        handle->u32Length = (uint32_t)u16BlockCnt * SD_CARD_BLOCK_SIZE;
+        SDIOC_ClearIntStatus(handle->SDIOCx, (SDIOC_NORMAL_INT_FLAG_BWR | SDIOC_NORMAL_INT_FLAG_BRR));
+        /* Enable SDIOC interrupt */
+        SDIOC_IntCmd(handle->SDIOCx, (SDIOC_ERROR_INT_DEBESEN | SDIOC_ERROR_INT_DCESEN  | SDIOC_ERROR_INT_DTOESEN |
+                                      SDIOC_NORMAL_INT_TCSEN  | SDIOC_NORMAL_INT_BRRSEN), Enable);
+
+        /* Configure the SD data transfer */
+        stcDataCfg.u16BlockSize    = SD_CARD_BLOCK_SIZE;
+        stcDataCfg.u16BlockCount   = u16BlockCnt;
+        stcDataCfg.u16TransferDir  = SDIOC_TRANSFER_DIR_TO_HOST;
+        stcDataCfg.u16AutoCMD12En  = SDIOC_AUTO_SEND_CMD12_DISABLE;
+        stcDataCfg.u16TransferMode = (u16BlockCnt > 1U) ? (uint16_t)SDIOC_TRANSFER_MODE_MULTIPLE : (uint16_t)SDIOC_TRANSFER_MODE_SINGLE;
+        stcDataCfg.u16DataTimeout  = SDIOC_DATA_TIMEOUT_CLK_2_27;
+        SDIOC_ConfigData(handle->SDIOCx, &stcDataCfg);
+
+        /* Read block(s) in interrupt mode */
+        if (u16BlockCnt > 1U)
+        {
+            handle->u32Context = SD_CONTEXT_READ_MULTIPLE_BLOCK | SD_CONTEXT_INT;
+            /* Read Multi Block command */
+            enRet = SDMMC_CMD18_ReadMultipleBlock(handle->SDIOCx, u32BlockAddr, &handle->u32ErrorCode);
+        }
+        else
+        {
+            handle->u32Context = SD_CONTEXT_READ_SINGLE_BLOCK | SD_CONTEXT_INT;
+            /* Read Single Block command */
+            enRet = SDMMC_CMD17_ReadSingleBlock(handle->SDIOCx, u32BlockAddr, &handle->u32ErrorCode);
+        }
+
+        if (Ok != enRet)
+        {
+            SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
+            return enRet;
+        }
+    }
+
+    return enRet;
+}
+
+/**
+ * @brief  Write block(s) to a specified address in a card.
+ * @note   The Data transfer is managed by interrupt mode.
+ * @note   This API should be followed by a check on the card state through SD_GetCardState().
+ * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
+ * @param  [in] u32BlockAddr            Block Address
+ * @param  [in] u16BlockCnt             Block Count
+ * @param  [in] pu8Data                 Pointer to the buffer that will contain the data to transmit
+ * @retval An en_result_t enumeration value:
+ *           - Ok: Write block(s) success
+ *           - Error: Refer to u32ErrorCode for the reason of error
+ *           - ErrorInvalidParameter: handle == NULL or pu8Data == NULL or
+ *                                    An invalid parameter was write to the send command
+ *           - ErrorTimeout: Send command timeout
+ */
+en_result_t SD_WriteBlocks_INT(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data)
+{
+    en_result_t enRet = Ok;
+    stc_sdioc_data_init_t stcDataCfg;
+
+    if ((NULL == pu8Data) || (NULL == handle))
+    {
+        enRet = ErrorInvalidParameter;
+    }
+    else
+    {
+        handle->u32ErrorCode = SDMMC_ERROR_NONE;
+        if ((u32BlockAddr + u16BlockCnt) > (handle->stcSdCardInfo.u32LogBlockNbr))
+        {
+            handle->u32ErrorCode |= SDMMC_ERROR_ADDR_OUT_OF_RANGE;
+            return Error;
+        }
+
+        if (SD_CARD_SDHC_SDXC != handle->stcSdCardInfo.u32CardType)
+        {
+            u32BlockAddr *= 512U;
+        }
+
+        /* Set Block Size for Card */
+        enRet = SDMMC_CMD16_SetBlockLength(handle->SDIOCx, SD_CARD_BLOCK_SIZE, &handle->u32ErrorCode);
+        if (Ok != enRet)
+        {
+            SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
+            return enRet;
+        }
+
+        /* Configure interrupt transfer parameters */
+        handle->pu8Buffer = pu8Data;
+        handle->u32Length = (uint32_t)u16BlockCnt * SD_CARD_BLOCK_SIZE;
+        SDIOC_ClearIntStatus(handle->SDIOCx, (SDIOC_NORMAL_INT_FLAG_BWR | SDIOC_NORMAL_INT_FLAG_BRR));
+        /* Enable SDIOC interrupt */
+        SDIOC_IntCmd(handle->SDIOCx, (SDIOC_ERROR_INT_DEBESEN | SDIOC_ERROR_INT_DCESEN  | SDIOC_ERROR_INT_DTOESEN |
+                                      SDIOC_NORMAL_INT_TCSEN  | SDIOC_NORMAL_INT_BWRSEN), Enable);
+
+        /* Configure the SD data transfer */
+        stcDataCfg.u16BlockSize    = SD_CARD_BLOCK_SIZE;
+        stcDataCfg.u16BlockCount   = u16BlockCnt;
+        stcDataCfg.u16TransferDir  = SDIOC_TRANSFER_DIR_TO_CARD;
+        stcDataCfg.u16AutoCMD12En  = SDIOC_AUTO_SEND_CMD12_DISABLE;
+        stcDataCfg.u16TransferMode = (u16BlockCnt > 1U) ? (uint16_t)SDIOC_TRANSFER_MODE_MULTIPLE : (uint16_t)SDIOC_TRANSFER_MODE_SINGLE;
+        stcDataCfg.u16DataTimeout  = SDIOC_DATA_TIMEOUT_CLK_2_27;
+        SDIOC_ConfigData(handle->SDIOCx, &stcDataCfg);
+
+        /* Write block(s) in interrupt mode */
+        if (u16BlockCnt > 1U)
+        {
+            handle->u32Context = SD_CONTEXT_WRITE_MULTIPLE_BLOCK | SD_CONTEXT_INT;
+            /* Write Multi Block command */
+            enRet = SDMMC_CMD25_WriteMultipleBlock(handle->SDIOCx, u32BlockAddr, &handle->u32ErrorCode);
+        }
+        else
+        {
+            handle->u32Context = SD_CONTEXT_WRITE_SINGLE_BLOCK | SD_CONTEXT_INT;
+            /* Write Single Block command */
+            enRet = SDMMC_CMD24_WriteSingleBlock(handle->SDIOCx, u32BlockAddr, &handle->u32ErrorCode);
+        }
+
+        if (Ok != enRet)
+        {
+            SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
+            return enRet;
+        }
+    }
+
+    return enRet;
+}
+
+/**
+ * @brief  Reads block(s) from a specified address in a card.
+ * @note   The Data transfer is managed by DMA mode.
+ * @note   This API should be followed by a check on the card state through SD_GetCardState().
+ * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
+ * @param  [in] u32BlockAddr            Block Address
+ * @param  [in] u16BlockCnt             Block Count
+ * @param  [out] pu8Data                Pointer to the buffer that will contain the received data
+ * @retval An en_result_t enumeration value:
+ *           - Ok: Read block(s) success
+ *           - Error: Refer to u32ErrorCode for the reason of error
+ *           - ErrorInvalidParameter: handle == NULL or pu8Data == NULL or NULL == handle->DMAx or
+ *                                    An invalid parameter was write to the send command
+ *           - ErrorTimeout: Send command timeout
+ */
+en_result_t SD_ReadBlocks_DMA(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data)
+{
+    en_result_t enRet = Ok;
+    stc_sdioc_data_init_t stcDataCfg;
+
+    if ((NULL == pu8Data) || (NULL == handle) || (NULL == handle->DMAx) || (0U != ((uint32_t)pu8Data % 4U)))
+    {
+        enRet = ErrorInvalidParameter;
+    }
+    else
+    {
+        handle->u32ErrorCode = SDMMC_ERROR_NONE;
+        if ((u32BlockAddr + u16BlockCnt) > (handle->stcSdCardInfo.u32LogBlockNbr))
+        {
+            handle->u32ErrorCode |= SDMMC_ERROR_ADDR_OUT_OF_RANGE;
+            return Error;
+        }
+
+        if (SD_CARD_SDHC_SDXC != handle->stcSdCardInfo.u32CardType)
+        {
+            u32BlockAddr *= 512U;
+        }
+
+        /* Set Block Size for Card */
+        enRet = SDMMC_CMD16_SetBlockLength(handle->SDIOCx, SD_CARD_BLOCK_SIZE, &handle->u32ErrorCode);
+        if (Ok != enRet)
+        {
+            SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
+            return enRet;
+        }
+
+        /* Enable SDIOC transfer complete and errors interrupt */
+        SDIOC_IntCmd(handle->SDIOCx, (SDIOC_NORMAL_INT_TCSEN | SDIOC_ERROR_INT_DEBESEN | SDIOC_ERROR_INT_DCESEN | SDIOC_ERROR_INT_DTOESEN), Enable);
+        /* Configure DMA parameters */
+        SD_DmaTransferConfig(handle, handle->u8DmaRxCh, (uint32_t)(&handle->SDIOCx->BUF0), (uint32_t)pu8Data, (SD_CARD_BLOCK_SIZE / 4U), u16BlockCnt);
+        /* Enable the DMA Channel */
+        DMA_ChannelCmd(handle->DMAx, handle->u8DmaRxCh, Enable);
 
         /* Configure the SD data transfer */
         stcDataCfg.u16BlockSize    = SD_CARD_BLOCK_SIZE;
@@ -860,7 +1191,7 @@ en_result_t SD_ReadBlocks_DMA(stc_sd_handle_t *handle, uint32_t u32BlockAddr, ui
  * @retval An en_result_t enumeration value:
  *           - Ok: Write block(s) success
  *           - Error: Refer to u32ErrorCode for the reason of error
- *           - ErrorInvalidParameter: handle == NULL or pu8Data == NULL or
+ *           - ErrorInvalidParameter: handle == NULL or pu8Data == NULL or NULL == handle->DMAx or
  *                                    An invalid parameter was write to the send command
  *           - ErrorTimeout: Send command timeout
  */
@@ -869,7 +1200,7 @@ en_result_t SD_WriteBlocks_DMA(stc_sd_handle_t *handle, uint32_t u32BlockAddr, u
     en_result_t enRet = Ok;
     stc_sdioc_data_init_t stcDataCfg;
 
-    if ((NULL == pu8Data) || (NULL == handle))
+    if ((NULL == pu8Data) || (NULL == handle) || (NULL == handle->DMAx) || (0U != ((uint32_t)pu8Data % 4U)))
     {
         enRet = ErrorInvalidParameter;
     }
@@ -895,7 +1226,12 @@ en_result_t SD_WriteBlocks_DMA(stc_sd_handle_t *handle, uint32_t u32BlockAddr, u
             return enRet;
         }
 
-        /* Enable SDIO DMA transfer */
+        /* Enable SDIOC transfer complete and errors interrupt */
+        SDIOC_IntCmd(handle->SDIOCx, (SDIOC_NORMAL_INT_TCSEN | SDIOC_ERROR_INT_DEBESEN | SDIOC_ERROR_INT_DCESEN | SDIOC_ERROR_INT_DTOESEN), Enable);
+        /* Configure DMA parameters */
+        SD_DmaTransferConfig(handle, handle->u8DmaTxCh, (uint32_t)pu8Data, (uint32_t)(&handle->SDIOCx->BUF0), (SD_CARD_BLOCK_SIZE / 4U), u16BlockCnt);
+        /* Enable the DMA Channel */
+        DMA_ChannelCmd(handle->DMAx, handle->u8DmaTxCh, Enable);
 
         /* Configure the SD data transfer */
         stcDataCfg.u16BlockSize    = SD_CARD_BLOCK_SIZE;
@@ -928,6 +1264,86 @@ en_result_t SD_WriteBlocks_DMA(stc_sd_handle_t *handle, uint32_t u32BlockAddr, u
     }
 
     return enRet;
+}
+
+/**
+ * @brief  Abort the current transfer and disable the SD.
+ * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
+ * @retval An en_result_t enumeration value:
+ *           - Ok: Abort transfer success
+ *           - Error: Refer to u32ErrorCode for the reason of error
+ *           - ErrorInvalidParameter: handle == NULL or
+ *                                    An invalid parameter was write to the send command
+ *           - ErrorTimeout: Send command timeout
+ */
+en_result_t SD_Abort(stc_sd_handle_t *handle)
+{
+    en_result_t enRet = Ok;
+    en_sd_card_state_t enCardState = SDCardStateIdle;
+
+    if (NULL == handle)
+    {
+        enRet = ErrorInvalidParameter;
+    }
+    else
+    {
+        /* Disable All interrupts */
+        SDIOC_IntCmd(handle->SDIOCx, (SDIOC_ERROR_INT_DEBESEN | SDIOC_ERROR_INT_DCESEN  | SDIOC_ERROR_INT_DTOESEN |
+                                       SDIOC_NORMAL_INT_TCSEN | SDIOC_NORMAL_INT_BRRSEN | SDIOC_NORMAL_INT_BWRSEN), Disable);
+        /* Clear All flags */
+        SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
+
+        if (0UL != (handle->u32Context & SD_CONTEXT_DMA))
+        {
+            if (NULL != handle->DMAx)
+            {
+                /* Disable the DMA Channel */
+                if ((0UL != (handle->u32Context & SD_CONTEXT_WRITE_SINGLE_BLOCK)) || (0UL != (handle->u32Context & SD_CONTEXT_WRITE_MULTIPLE_BLOCK)))
+                {
+                    DMA_ChannelCmd(handle->DMAx, handle->u8DmaTxCh, Disable);
+                }
+                else
+                {
+                    DMA_ChannelCmd(handle->DMAx, handle->u8DmaRxCh, Disable);
+                }
+            }
+        }
+
+        /* Stop SD transfer */
+        SD_GetCardState(handle, &enCardState);
+        handle->u32ErrorCode = SDMMC_ERROR_NONE;
+        if ((SDCardStateSendingData == enCardState) || (SDCardStateReceiveData == enCardState))
+        {
+            /* Send stop transmission command */
+            SDMMC_CMD12_StopTransmission(handle->SDIOCx, &handle->u32ErrorCode);
+        }
+    }
+
+    return enRet;
+}
+
+/**
+ * @brief  Configure the Dma transfer parameters.
+ * @param  [in] handle                  Pointer to a @ref stc_sd_handle_t structure
+ * @param  [in] u8Ch                    DMA transfer channel
+ * @param  [in] u32SrcAddr              Source Address
+ * @param  [in] u32DestAddr             Destination Address
+ * @param  [in] u16BlkSize              Block Size
+ * @param  [in] u16TransCnt             Transfer Count
+ * @retval None
+ */
+static void SD_DmaTransferConfig(const stc_sd_handle_t *handle, uint8_t u8Ch, uint32_t u32SrcAddr, uint32_t u32DestAddr, uint16_t u16BlkSize, uint16_t u16TransCnt)
+{
+    /* Stop Configure channel */
+    DMA_ChannelCmd(handle->DMAx, u8Ch, Disable);
+    DMA_ClearTransIntStatus(handle->DMAx, (uint32_t)(0x1UL << u8Ch));
+
+    /* Config DMA source and destination address */
+    DMA_SetSrcAddr(handle->DMAx, u8Ch, u32SrcAddr);
+    DMA_SetDestAddr(handle->DMAx, u8Ch, u32DestAddr);
+    /* Config DMA block size and transfer count */
+    DMA_SetBlockSize(handle->DMAx, u8Ch, u16BlkSize);
+    DMA_SetTransCnt(handle->DMAx, u8Ch, u16TransCnt);
 }
 
 /**

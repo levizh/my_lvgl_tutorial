@@ -110,7 +110,7 @@ int32_t main(void)
     /* Configure BSP */
     BSP_LED_Init();
     /* Configure UART */
-    DDL_UartInit();
+    DDL_PrintfInit();
     /* SysTick configuration */
     SysTick_Init(1000U);
 

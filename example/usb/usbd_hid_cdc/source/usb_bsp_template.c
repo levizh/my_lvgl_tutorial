@@ -55,6 +55,8 @@
 #include "usb_bsp.h"
 #include "hc32_ddl.h"
 
+//#define M020_EVB_BD  1UL
+
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
@@ -62,7 +64,105 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/* KEY0 */
+#define  KEY1_PORT       (GPIO_PORT_A)
+#define  KEY1_PIN        (GPIO_PIN_00)
+#define  KEY1_EXINT_CH   (EXINT_CH00)
+#define  KEY1_INT_SRC    (INT_PORT_EIRQ0)
+#define  KEY1_IRQn       (Int003_IRQn)
 
+#ifdef USB_OTG_FS_CORE
+
+/* USBF Core*/
+#define USB_DP_PORT     (GPIO_PORT_A)
+#define USB_DP_PIN      (GPIO_PIN_12)
+#define USB_DM_PORT     (GPIO_PORT_A)
+#define USB_DM_PIN      (GPIO_PIN_11)
+#define USB_VBUS_PORT   (GPIO_PORT_A)
+#define USB_VBUS_PIN    (GPIO_PIN_09)
+#define USB_SOF_PORT    (GPIO_PORT_A)
+#define USB_SOF_PIN     (GPIO_PIN_08)
+
+#else
+
+#ifdef USE_EMBEDDED_PHY
+/* USBF Core, embedded PHY */
+#define USB_DP_PORT     (GPIO_PORT_B)
+#define USB_DP_PIN      (GPIO_PIN_15)
+#define USB_DM_PORT     (GPIO_PORT_B)
+#define USB_DM_PIN      (GPIO_PIN_14)
+#define USB_VBUS_PORT   (GPIO_PORT_B)
+#define USB_VBUS_PIN    (GPIO_PIN_13)
+#define USB_SOF_PORT    (GPIO_PORT_A)
+#define USB_SOF_PIN     (GPIO_PIN_04)
+
+#else
+
+#ifndef M020_EVB_BD
+/* ULPI */
+#define USBH_ULPI_CLK_PORT      (GPIO_PORT_E)
+#define USBH_ULPI_CLK_PIN       (GPIO_PIN_12)
+#define USBH_ULPI_DIR_PORT      (GPIO_PORT_C)
+#define USBH_ULPI_DIR_PIN       (GPIO_PIN_02)
+#define USBH_ULPI_NXT_PORT      (GPIO_PORT_C)
+#define USBH_ULPI_NXT_PIN       (GPIO_PIN_03)
+#define USBH_ULPI_STP_PORT      (GPIO_PORT_C)
+#define USBH_ULPI_STP_PIN       (GPIO_PIN_00)
+#define USBH_ULPI_D0_PORT       (GPIO_PORT_E)
+#define USBH_ULPI_D0_PIN        (GPIO_PIN_13)
+#define USBH_ULPI_D1_PORT       (GPIO_PORT_E)
+#define USBH_ULPI_D1_PIN        (GPIO_PIN_14)
+#define USBH_ULPI_D2_PORT       (GPIO_PORT_E)
+#define USBH_ULPI_D2_PIN        (GPIO_PIN_15)
+#define USBH_ULPI_D3_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D3_PIN        (GPIO_PIN_10)
+#define USBH_ULPI_D4_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D4_PIN        (GPIO_PIN_11)
+#define USBH_ULPI_D5_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D5_PIN        (GPIO_PIN_12)
+#define USBH_ULPI_D6_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D6_PIN        (GPIO_PIN_13)
+#define USBH_ULPI_D7_PORT       (GPIO_PORT_E)
+#define USBH_ULPI_D7_PIN        (GPIO_PIN_11)
+/* 3300 reset */
+#define USB_3300_RESET_PORT     (EIO_PORT1)
+#define USB_3300_RESET_PIN      (EIO_USB3300_RST)
+#else
+
+/* Define for M020 EVB board */
+#define USBH_ULPI_CLK_PORT      (GPIO_PORT_A)
+#define USBH_ULPI_CLK_PIN       (GPIO_PIN_05)
+#define USBH_ULPI_DIR_PORT      (GPIO_PORT_C)
+#define USBH_ULPI_DIR_PIN       (GPIO_PIN_02)
+#define USBH_ULPI_NXT_PORT      (GPIO_PORT_C)
+#define USBH_ULPI_NXT_PIN       (GPIO_PIN_03)
+#define USBH_ULPI_STP_PORT      (GPIO_PORT_C)
+#define USBH_ULPI_STP_PIN       (GPIO_PIN_00)
+#define USBH_ULPI_D0_PORT       (GPIO_PORT_A)
+#define USBH_ULPI_D0_PIN        (GPIO_PIN_03)
+#define USBH_ULPI_D1_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D1_PIN        (GPIO_PIN_00)
+#define USBH_ULPI_D2_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D2_PIN        (GPIO_PIN_01)
+#define USBH_ULPI_D3_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D3_PIN        (GPIO_PIN_10)
+#define USBH_ULPI_D4_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D4_PIN        (GPIO_PIN_11)
+#define USBH_ULPI_D5_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D5_PIN        (GPIO_PIN_12)
+#define USBH_ULPI_D6_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D6_PIN        (GPIO_PIN_13)
+#define USBH_ULPI_D7_PORT       (GPIO_PORT_B)
+#define USBH_ULPI_D7_PIN        (GPIO_PIN_05)
+/* 3300 reset */
+#define USB_3300_RESET_PORT     (GPIO_PORT_A)
+#define USB_3300_RESET_PIN      (GPIO_PIN_00)
+#endif
+
+
+#endif
+
+#endif
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -97,22 +197,22 @@ void USB_IRQ_Handler(void)
 
 /**
  *******************************************************************************
- ** \brief ExtInt03 callback function
+ ** \brief KEY1_IrqCallback callback function
  **
  ** \param  None
  **
  ** \retval None
  **
  ******************************************************************************/
-void ExtInt03_Callback(void)
+void KEY1_IrqCallback(void)
 {
-    if (Set == EXINT_IrqFlgGet(ExtiCh03))
+    if (Set == EXINT_GetExIntSrc(KEY1_EXINT_CH))
     {
         if ((PrevXferDone) && (USB_OTG_dev.dev.device_status == USB_OTG_CONFIGURED))
         {
             Send_Buf[0] = KEY_REPORT_ID;
 
-            if(PORT_GetBit(SW2_PORT, SW2_PIN) == Reset)
+            if(Pin_Reset == GPIO_ReadInputPortPin(KEY1_PORT, KEY1_PIN))
             {
                 Send_Buf[1] = 0x01u;
             }
@@ -127,148 +227,34 @@ void ExtInt03_Callback(void)
     }
 }
 
-
-/**
- ******************************************************************************
- ** \brief  Initialize the system clock for the sample
- **
- ** \param  None
- **
- ** \return None
- ******************************************************************************/
-static void SysClkIni(void)
-{
-    en_clk_sys_source_t     enSysClkSrc;
-    stc_clk_sysclk_cfg_t    stcSysClkCfg;
-    stc_clk_xtal_cfg_t      stcXtalCfg;
-    stc_clk_mpll_cfg_t      stcMpllCfg;
-    stc_clk_upll_cfg_t      stcUpllCfg;
-
-    MEM_ZERO_STRUCT(enSysClkSrc);
-    MEM_ZERO_STRUCT(stcSysClkCfg);
-    MEM_ZERO_STRUCT(stcXtalCfg);
-    MEM_ZERO_STRUCT(stcMpllCfg);
-
-    /* Set bus clk div. */
-    stcSysClkCfg.enHclkDiv = ClkSysclkDiv1;   // Max 168MHz
-    stcSysClkCfg.enExclkDiv = ClkSysclkDiv2;  // Max 84MHz
-    stcSysClkCfg.enPclk0Div = ClkSysclkDiv1;  // Max 168MHz
-    stcSysClkCfg.enPclk1Div = ClkSysclkDiv2;  // Max 84MHz
-    stcSysClkCfg.enPclk2Div = ClkSysclkDiv4;  // Max 60MHz
-    stcSysClkCfg.enPclk3Div = ClkSysclkDiv4;  // Max 42MHz
-    stcSysClkCfg.enPclk4Div = ClkSysclkDiv2;  // Max 84MHz
-    CLK_SysClkConfig(&stcSysClkCfg);
-
-    /* Switch system clock source to MPLL. */
-    /* Use Xtal32 as MPLL source. */
-    stcXtalCfg.enMode = ClkXtalModeOsc;
-    stcXtalCfg.enDrv = ClkXtalLowDrv;
-    stcXtalCfg.enFastStartup = Enable;
-    CLK_XtalConfig(&stcXtalCfg);
-    CLK_XtalCmd(Enable);
-
-    /* MPLL config. */
-    stcMpllCfg.pllmDiv = 1u;
-    stcMpllCfg.plln =42u;
-    stcMpllCfg.PllpDiv = 4u;     //MPLLP = 84
-    stcMpllCfg.PllqDiv = 2u;
-    stcMpllCfg.PllrDiv = 7u;    //MPLLR 168/4 = 48
-    CLK_SetPllSource(ClkPllSrcXTAL);
-    CLK_MpllConfig(&stcMpllCfg);
-
-    /* flash read wait cycle setting */
-    EFM_Unlock();
-    EFM_SetLatency(EFM_LATENCY_5);
-    EFM_Lock();
-
-    /* Enable MPLL. */
-    CLK_MpllCmd(Enable);
-    /* Wait MPLL ready. */
-    while(Set != CLK_GetFlagStatus(ClkFlagMPLLRdy))
-    {
-        ;
-    }
-
-    /* Switch system clock source to MPLL. */
-    CLK_SetSysClkSource(CLKSysSrcMPLL);
-
-    stcUpllCfg.pllmDiv = 2u;
-    stcUpllCfg.plln = 84u;
-    stcUpllCfg.PllpDiv = 7u;//48M
-    stcUpllCfg.PllqDiv = 7u;
-    stcUpllCfg.PllrDiv = 7u;
-    CLK_UpllConfig(&stcUpllCfg);
-    CLK_UpllCmd(Enable);
-    /* Wait UPLL ready. */
-    while(Set != CLK_GetFlagStatus(ClkFlagUPLLRdy))
-    {
-        ;
-    }
-
-    /* Set USB clock source */
-    CLK_SetUsbClkSource(ClkUsbSrcUpllp);
-}
-
-static void LedPortIni(void)
-{
-    stc_port_init_t stcPortInit;
-
-    /* configuration structure initialization */
-    MEM_ZERO_STRUCT(stcPortInit);
-
-    stcPortInit.enPinMode = Pin_Mode_Out;
-    stcPortInit.enExInt = Enable;
-    stcPortInit.enPullUp = Enable;
-
-    /* LED0 Port/Pin initialization */
-    PORT_Init(LED0_PORT, LED0_PIN, &stcPortInit);
-
-    /* LED1 Port/Pin initialization */
-    PORT_Init(LED1_PORT, LED1_PIN, &stcPortInit);
-
-    /* LED2 Port/Pin initialization */
-    PORT_Init(LED2_PORT, LED2_PIN, &stcPortInit);
-
-    /* LED3 Port/Pin initialization */
-    PORT_Init(LED3_PORT, LED3_PIN, &stcPortInit);
-}
-
 static void SW2_ExitIntIni(void)
 {
-    stc_exint_config_t stcExtiConfig;
-    stc_irq_regi_conf_t stcIrqRegiConf;
-    stc_port_init_t stcPortInit;
+    stc_exint_init_t stcExintInit;
+    stc_irq_signin_config_t stcIrqSignConfig;
+    stc_gpio_init_t stcGpioInit;
 
-    /* configuration structure initialization */
-    MEM_ZERO_STRUCT(stcExtiConfig);
-    MEM_ZERO_STRUCT(stcIrqRegiConf);
-    MEM_ZERO_STRUCT(stcPortInit);
+    /* GPIO config */
+    GPIO_StructInit(&stcGpioInit);
+    stcGpioInit.u16ExInt = PIN_EXINT_ON;
+    stcGpioInit.u16PullUp = PIN_PU_ON;
+    GPIO_Init(KEY1_PORT, KEY1_PIN, &stcGpioInit);
 
-    stcExtiConfig.enExitCh = ExtiCh03;
-    /* Filter setting */
-    stcExtiConfig.enFilterEn = Enable;
-    stcExtiConfig.enFltClk = Pclk3Div8;
-    /* Falling edge */
-    stcExtiConfig.enExtiLvl = ExIntFallingEdge;
-    EXINT_Init(&stcExtiConfig);
-    /* Set PD03 as External Int Ch.3 input */
-    MEM_ZERO_STRUCT(stcPortInit);
-    stcPortInit.enExInt = Enable;
-    PORT_Init(SW2_PORT, SW2_PIN, &stcPortInit);
-    /* Select External Int Ch.3 */
-    stcIrqRegiConf.enIntSrc = INT_PORT_EIRQ3;
-    /* Register External Int to Vect.No.000 */
-    stcIrqRegiConf.enIRQn = Int002_IRQn;
-    /* Callback function */
-    stcIrqRegiConf.pfnCallback = &ExtInt03_Callback;
-    /* Registration IRQ */
-    enIrqRegistration(&stcIrqRegiConf);
-    /* Clear pending */
-    NVIC_ClearPendingIRQ(stcIrqRegiConf.enIRQn);
-    /* Set priority */
-    NVIC_SetPriority(stcIrqRegiConf.enIRQn, DDL_IRQ_PRIORITY_15);
-    /* Enable NVIC */
-    NVIC_EnableIRQ(stcIrqRegiConf.enIRQn);
+    /* Exint config */
+    EXINT_StructInit(&stcExintInit);
+    stcExintInit.u32ExIntCh = KEY1_EXINT_CH;
+    stcExintInit.u32ExIntLvl= EXINT_TRIGGER_FALLING;
+    EXINT_Init(&stcExintInit);
+
+    /* IRQ sign-in */
+    stcIrqSignConfig.enIntSrc = KEY1_INT_SRC;
+    stcIrqSignConfig.enIRQn   = KEY1_IRQn;
+    stcIrqSignConfig.pfnCallback = &KEY1_IrqCallback;
+    INTC_IrqSignIn(&stcIrqSignConfig);
+
+    /* NVIC config */
+    NVIC_ClearPendingIRQ(KEY1_IRQn);
+    NVIC_SetPriority(KEY1_IRQn,DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(KEY1_IRQn);
 }
 
 /**
@@ -280,30 +266,83 @@ static void SW2_ExitIntIni(void)
  ******************************************************************************/
 void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
 {
-    stc_port_init_t stcPortInit;
-    /* clock config */
-    SysClkIni();
+    stc_gpio_init_t stcGpioCfg;
 
-    /* LED port initialize */
-    LedPortIni();
+    /* System clock configurate */
+    BSP_CLK_Init();
+#ifndef M020_EVB_BD
+    BSP_IO_Init();
+#endif
+    /* USB clock source configurate */
+    CLK_USB_ClkConfig(CLK_USB_CLK_MCLK_DIV5);
+
     /* KEY SW2 interrupt function initialize */
     SW2_ExitIntIni();
 
-    Ddl_UartInit();
+    //Ddl_UartInit();
     printf("USBFS start !!\n");
 
-    /* port config */
-    /* Disable digital function for DM DP */
-    MEM_ZERO_STRUCT(stcPortInit);
-    stcPortInit.enPinMode = Pin_Mode_Ana;
-    PORT_Init(PortA, Pin11, &stcPortInit);
-    PORT_Init(PortA, Pin12, &stcPortInit);
-    //PORT_SetFunc(PortA, Pin08, Func_UsbF, Disable); //SOF
-    PORT_SetFunc(PortA, Pin09, Func_UsbF, Disable); //VBUS
-    PORT_SetFunc(PortA, Pin11, Func_UsbF, Disable); //DM
-    PORT_SetFunc(PortA, Pin12, Func_UsbF, Disable); //DP
+    GPIO_StructInit(&stcGpioCfg);
 
-    PWC_Fcg1PeriphClockCmd(PWC_FCG1_PERIPH_USBFS, Enable);
+#ifdef USE_EMBEDDED_PHY
+    /* Disable digital function for DM DP */
+    stcGpioCfg.u16PinAttr = PIN_ATTR_ANALOG;
+    GPIO_Init(USB_DM_PORT, USB_DM_PIN, &stcGpioCfg);
+    GPIO_Init(USB_DP_PORT, USB_DP_PIN, &stcGpioCfg);
+
+    /* GPIO function configurate */
+    //GPIO_SetFunc(USB_SOF_PORT, USB_SOF_PIN, Func_UsbF, Disable); //SOF
+
+#ifdef USB_OTG_FS_CORE
+    GPIO_SetFunc(USB_VBUS_PORT, USB_VBUS_PIN, GPIO_FUNC_10_USBF_VBUS, PIN_SUBFUNC_DISABLE); //VBUS
+#else
+    GPIO_SetFunc(USB_VBUS_PORT, USB_VBUS_PIN, GPIO_FUNC_12_USBH_VBUS, PIN_SUBFUNC_DISABLE);
+#endif
+#else
+    GPIO_StructInit(&stcGpioCfg);
+    /* High drive capability */
+    stcGpioCfg.u16PinDrv = PIN_HIGH_DRV;
+    GPIO_Init(USBH_ULPI_D0_PORT, USBH_ULPI_D0_PIN, &stcGpioCfg);
+    GPIO_Init(USBH_ULPI_D1_PORT, USBH_ULPI_D1_PIN, &stcGpioCfg);
+    GPIO_Init(USBH_ULPI_D2_PORT, USBH_ULPI_D2_PIN, &stcGpioCfg);
+    GPIO_Init(USBH_ULPI_D3_PORT, USBH_ULPI_D3_PIN, &stcGpioCfg);
+    GPIO_Init(USBH_ULPI_D4_PORT, USBH_ULPI_D4_PIN, &stcGpioCfg);
+    GPIO_Init(USBH_ULPI_D5_PORT, USBH_ULPI_D5_PIN, &stcGpioCfg);
+    GPIO_Init(USBH_ULPI_D6_PORT, USBH_ULPI_D6_PIN, &stcGpioCfg);
+    GPIO_Init(USBH_ULPI_D7_PORT, USBH_ULPI_D7_PIN, &stcGpioCfg);
+    GPIO_Init(USBH_ULPI_STP_PORT, USBH_ULPI_STP_PIN, &stcGpioCfg);
+
+    GPIO_SetFunc(USBH_ULPI_CLK_PORT, USBH_ULPI_CLK_PIN, GPIO_FUNC_10_USBH_ULPI_CK, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_DIR_PORT, USBH_ULPI_DIR_PIN, GPIO_FUNC_10_USBH_ULPI_DIR, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_NXT_PORT, USBH_ULPI_NXT_PIN, GPIO_FUNC_10_USBH_ULPI_NXT, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_STP_PORT, USBH_ULPI_STP_PIN, GPIO_FUNC_10_USBH_ULPI_STP, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_D0_PORT, USBH_ULPI_D0_PIN, GPIO_FUNC_10_USBH_ULPI_DATA, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_D1_PORT, USBH_ULPI_D1_PIN, GPIO_FUNC_10_USBH_ULPI_DATA, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_D2_PORT, USBH_ULPI_D2_PIN, GPIO_FUNC_10_USBH_ULPI_DATA, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_D3_PORT, USBH_ULPI_D3_PIN, GPIO_FUNC_10_USBH_ULPI_DATA, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_D4_PORT, USBH_ULPI_D4_PIN, GPIO_FUNC_10_USBH_ULPI_DATA, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_D5_PORT, USBH_ULPI_D5_PIN, GPIO_FUNC_10_USBH_ULPI_DATA, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_D6_PORT, USBH_ULPI_D6_PIN, GPIO_FUNC_10_USBH_ULPI_DATA, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(USBH_ULPI_D7_PORT, USBH_ULPI_D7_PIN, GPIO_FUNC_10_USBH_ULPI_DATA, PIN_SUBFUNC_DISABLE);
+#ifndef M020_EVB_BD
+    /* Reset 3300 */
+    BSP_IO_WritePortPin(USB_3300_RESET_PORT, USB_3300_RESET_PIN, EIO_PIN_SET);
+    BSP_IO_ConfigPortPin(USB_3300_RESET_PORT, USB_3300_RESET_PIN, EIO_DIR_OUT);
+    BSP_IO_WritePortPin(USB_3300_RESET_PORT, USB_3300_RESET_PIN, EIO_PIN_RESET);
+#else
+    GPIO_SetPins(USB_3300_RESET_PORT, USB_3300_RESET_PIN);
+    stcGpioCfg.u16PinDir = PIN_DIR_OUT;
+    GPIO_Init(USB_3300_RESET_PORT, USB_3300_RESET_PIN, &stcGpioCfg);
+    GPIO_ResetPins(USB_3300_RESET_PORT, USB_3300_RESET_PIN);
+#endif
+
+#endif
+
+#ifdef USB_OTG_FS_CORE
+    PWC_Fcg1PeriphClockCmd(PWC_FCG1_USBFS, Enable);
+#else
+    PWC_Fcg1PeriphClockCmd(PWC_FCG1_USBHS, Enable);
+#endif
 }
 
 /**
@@ -314,15 +353,19 @@ void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
  ******************************************************************************/
 void USB_OTG_BSP_EnableInterrupt(void)
 {
-    stc_irq_regi_conf_t stcIrqRegiConf;
+    stc_irq_signin_config_t stcIrqRegiConf;
     /* Register INT_USBFS_GLB Int to Vect.No.030 */
     stcIrqRegiConf.enIRQn = Int030_IRQn;
-    /* Select INT_USBFS_GLB interrupt function */
+    /* Select interrupt function */
+#ifdef USB_OTG_FS_CORE
     stcIrqRegiConf.enIntSrc = INT_USBFS_GLB;
+#else
+    stcIrqRegiConf.enIntSrc = INT_USBHS_GLB;
+#endif
     /* Callback function */
     stcIrqRegiConf.pfnCallback = &USB_IRQ_Handler;
     /* Registration IRQ */
-    enIrqRegistration(&stcIrqRegiConf);
+    INTC_IrqSignIn(&stcIrqRegiConf);
     /* Clear Pending */
     NVIC_ClearPendingIRQ(stcIrqRegiConf.enIRQn);
     /* Set priority */

@@ -133,7 +133,7 @@
  */
 #define EV_NFC_ERASE_TIMEOUT                    ((uint32_t)2000000UL)
 #define EV_NFC_READ_TIMEOUT                     ((uint32_t)2000000UL)
-#define EV_NFC_READ_HWECC_TIMEOUT               ((uint32_t)2000000UL)
+#define EV_NFC_READ_HWECC_TIMEOUT               ((uint32_t)9000000UL)
 #define EV_NFC_WRITE_TIMEOUT                    ((uint32_t)2000000UL)
 #define EV_NFC_WRITE_HWECC_TIMEOUT              ((uint32_t)2000000UL)
 #define EV_NFC_RESET_TIMEOUT                    ((uint32_t)2000000UL)
@@ -195,14 +195,14 @@ en_result_t EV_NFC_MT29F2G08AB_Init(void)
 
     /* Configure NFC width && refresh period & chip & timing. */
     stcInit.u32OpenPage = EXMC_NFC_OPEN_PAGE_DISABLE;
-    stcInit.stcBaseCfg.u32CapacitySize = EXMC_NFC_BANK_CAPACITY_512MBIT;
+    stcInit.stcBaseCfg.u32CapacitySize = EXMC_NFC_BANK_CAPACITY_2GBIT;
     stcInit.stcBaseCfg.u32MemWidth = EXMC_NFC_MEM_WIDTH_8;
     stcInit.stcBaseCfg.u32BankNum = EXMC_NFC_1_BANK;
     stcInit.stcBaseCfg.u32PageSize = EXMC_NFC_PAGE_SIZE_2KBYTES;
     stcInit.stcBaseCfg.u32WrProtect = EXMC_NFC_WR_PROTECT_DISABLE;
     stcInit.stcBaseCfg.u32EccMode = EXMC_NFC_ECC_1BIT;
     stcInit.stcBaseCfg.u32RowAddrCycle = EXMC_NFC_3_ROW_ADDRESS_CYCLES;
-    stcInit.stcBaseCfg.u32SpareColSize = 64UL;
+    stcInit.stcBaseCfg.u32SpareColSize = (64UL/4UL); /* Unit: word */
 
     stcInit.stcTimingReg0.u32TS = 4UL;         /* CLOCK frequency @60MHz: 3.3V */
     stcInit.stcTimingReg0.u32TWP = 3UL;

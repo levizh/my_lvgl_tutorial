@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  sdioc/sdioc_mmc/source/main.c
- * @brief Main program of SDIOC SD MMC for the Device Driver Library.
+ * @brief Main program of SDIOC MMC Card for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-09       Yangjp          First version
+   2020-04-20       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,7 +62,7 @@
  */
 
 /**
- * @addtogroup SDIOC_SD_Mmc
+ * @addtogroup SDIOC_Mmc_Card
  * @{
  */
 
@@ -73,13 +73,25 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* SD DMA transfer mode, Use polling mode to comment the following macro */
-#define SDIOC_DMA_TRANS_MODE
+/* MMC transfer mode */
+#define MMC_TRANS_MODE_POLLING                  (0U)
+#define MMC_TRANS_MODE_INT                      (1U)
+#define MMC_TRANS_MODE_DMA                      (2U)
 
-#ifdef SDIOC_DMA_TRANS_MODE
+/* Populate the following macro with an value, reference "MMC transfer mode" */
+#define MMC_TRANS_MODE                          (MMC_TRANS_MODE_POLLING)
+
 #define SDIOC_DMA_UNIT                          (M4_DMA1)
-#define SDIOC_DMA_DATA_CH                       (DMA_CH0)
-#endif
+#define SDIOC_DMA_CLK                           (PWC_FCG0_DMA1)
+#define SDIOC_DMA_TX_CH                         (DMA_CH0)
+#define SDIOC_DMA_RX_CH                         (DMA_CH1)
+#define SDIOC_DMA_TX_TRIG_SRC                   (EVT_SDIOC1_DMAW)
+#define SDIOC_DMA_RX_TRIG_SRC                   (EVT_SDIOC1_DMAR)
+
+#define SDIOC_MMC_UINT                          (M4_SDIOC1)
+#define SDIOC_MMC_CLK                           (PWC_FCG1_SDIOC1)
+#define SIDOC_MMC_INT_SRC                       (INT_SDIOC1_SD)
+#define SIDOC_MMC_IRQ                           (Int104_IRQn)
 
 /* CK = PC12 */
 #define SDIOC_CK_PORT                           (GPIO_PORT_C)
@@ -100,9 +112,9 @@
 #define SDIOC_D3_PORT                           (GPIO_PORT_B)
 #define SDIOC_D3_PIN                            (GPIO_PIN_05)
 
-/* SD MMC read/write/erase */
-#define SD_MMC_BLOCK_SIZE                       (512U)
-#define SD_MMC_BLOCK_NUMBER                     (20U)
+/* MMC card read/write/erase */
+#define MMC_CARD_BLK_SIZE                       (512U)
+#define MMC_CARD_BLK_NUMBER                     (10U)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -116,18 +128,110 @@ stc_mmc_handle_t MmcHandle;
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static uint32_t u32WriteBlocks[SD_MMC_BLOCK_SIZE * SD_MMC_BLOCK_NUMBER];
-static uint32_t u32ReadBlocks[SD_MMC_BLOCK_SIZE * SD_MMC_BLOCK_NUMBER];
+__ALIGN_BEGIN uint8_t u8WriteBlocks[MMC_CARD_BLK_SIZE * MMC_CARD_BLK_NUMBER];
+__ALIGN_BEGIN uint8_t u8ReadBlocks[MMC_CARD_BLK_SIZE * MMC_CARD_BLK_NUMBER];
+
+#if MMC_TRANS_MODE != MMC_TRANS_MODE_POLLING
+static uint8_t u8TxCpltFlag = 0U, u8RxCpltFlag = 0U, u8TxRxErrFlag = 0U;
+#endif
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+#if MMC_TRANS_MODE != MMC_TRANS_MODE_POLLING
 /**
- * @brief  Initializes the SD GPIO.
+ * @brief  SDIOC transfer complete interrupt callback function.
  * @param  None
  * @retval None
  */
-static void SD_GpioInit(void)
+static void SDIOC_TransferComplete_IrqHandler(void)
+{
+    MMC_IRQHandler(&MmcHandle);
+}
+
+/**
+ * @brief  SDIOC tx complete callback function.
+ * @param  None
+ * @retval None
+ */
+void MMC_TxCpltCallback(stc_mmc_handle_t *handle)
+{
+    u8TxCpltFlag = 1U;
+}
+
+/**
+ * @brief  SDIOC rx complete callback function.
+ * @param  None
+ * @retval None
+ */
+void MMC_RxCpltCallback(stc_mmc_handle_t *handle)
+{
+    u8RxCpltFlag = 1U;
+}
+
+/**
+ * @brief  SDIOC error callback function.
+ * @param  None
+ * @retval None
+ */
+void MMC_ErrorCallback(stc_mmc_handle_t *handle)
+{
+    u8TxRxErrFlag = 1U;
+}
+#endif
+
+#if MMC_TRANS_MODE == MMC_TRANS_MODE_DMA
+/**
+ * @brief  Initializes the MMC DMA.
+ * @param  None
+ * @retval None
+ */
+static void MMC_DMAInit(void)
+{
+    stc_dma_init_t stcDmaInit;
+
+    /* Enable DMA and PTDIS(AOS) clock. */
+    PWC_Fcg0PeriphClockCmd((SDIOC_DMA_CLK | PWC_FCG0_PTDIS), Enable);
+
+    DMA_StructInit(&stcDmaInit);
+    /* Configure MMC DMA Transfer */
+    stcDmaInit.u32IntEn     = DMA_INT_DISABLE;
+    stcDmaInit.u32DataWidth = DMA_DATAWIDTH_32BIT;
+    /* Set source & destination address mode. */
+    stcDmaInit.u32SrcInc    = DMA_SRC_ADDR_INC;
+    stcDmaInit.u32DestInc   = DMA_DEST_ADDR_FIX;
+    if (Ok != DMA_Init(SDIOC_DMA_UNIT, SDIOC_DMA_TX_CH, &stcDmaInit))
+    {
+        while (1)
+        {}
+    }
+
+    DMA_StructInit(&stcDmaInit);
+    /* Configure MMC DMA Receive */
+    stcDmaInit.u32IntEn     = DMA_INT_DISABLE;
+    stcDmaInit.u32DataWidth = DMA_DATAWIDTH_32BIT;
+    /* Set source & destination address mode. */
+    stcDmaInit.u32SrcInc    = DMA_SRC_ADDR_FIX;
+    stcDmaInit.u32DestInc   = DMA_DEST_ADDR_INC;
+    if (Ok != DMA_Init(SDIOC_DMA_UNIT, SDIOC_DMA_RX_CH, &stcDmaInit))
+    {
+        while (1)
+        {}
+    }
+
+    DMA_SetTrigSrc(SDIOC_DMA_UNIT, SDIOC_DMA_TX_CH, SDIOC_DMA_TX_TRIG_SRC);
+    DMA_SetTrigSrc(SDIOC_DMA_UNIT, SDIOC_DMA_RX_CH, SDIOC_DMA_RX_TRIG_SRC);
+    /* Enable DMA. */
+    DMA_Cmd(SDIOC_DMA_UNIT, Enable);
+}
+#endif
+
+/**
+ * @brief  Initializes the MMC GPIO.
+ * @param  None
+ * @retval None
+ */
+static void MMC_GpioInit(void)
 {
     /* SDIO1_CD */
     BSP_IO_ConfigPortPin(EIO_PORT0, EIO_SDIC1_CD, EIO_DIR_IN);
@@ -142,17 +246,17 @@ static void SD_GpioInit(void)
 }
 
 /**
- * @brief  Get SD MMC insert status.
+ * @brief  Get MMC card insert status.
  * @param  None
  * @retval An en_flag_status_t enumeration value:
- *           - Set: SD MMC inserted
- *           - Reset: No SD MMC insert
+ *           - Set: MMC card inserted
+ *           - Reset: No MMC card insert
  */
-static en_flag_status_t SDMmc_GetInsertStatus(void)
+static en_flag_status_t MMCCard_GetInsertStatus(void)
 {
     en_flag_status_t enFlagSta = Set;
 
-    /* Check SD MMC detect pin */
+    /* Check MMC card detect pin */
     if (0U != BSP_IO_ReadPortPin(EIO_PORT0, EIO_SDIC1_CD))
     {
         enFlagSta = Reset;
@@ -162,29 +266,46 @@ static en_flag_status_t SDMmc_GetInsertStatus(void)
 }
 
 /**
- * @brief  SD MMC configuration.
+ * @brief  MMC card configuration.
  * @param  None
  * @retval None
  */
-static void SDMmc_Config(void)
+static void MMCCard_Config(void)
 {
-    __IO en_result_t enRet = Error;
+#if MMC_TRANS_MODE != MMC_TRANS_MODE_POLLING
+    stc_irq_signin_config_t stcIrqSignConfig;
 
-    /* Init SD GPIO */
-    SD_GpioInit();
-    /* Enable ETH clock */
-    PWC_Fcg1PeriphClockCmd(PWC_FCG1_SDIOC1, Enable);
+    stcIrqSignConfig.enIntSrc    = SIDOC_MMC_INT_SRC;
+    stcIrqSignConfig.enIRQn      = SIDOC_MMC_IRQ;
+    stcIrqSignConfig.pfnCallback = &SDIOC_TransferComplete_IrqHandler;
+    INTC_IrqSignOut(stcIrqSignConfig.enIRQn);
+    INTC_IrqSignIn(&stcIrqSignConfig);
+
+    /* NVIC setting */
+    NVIC_ClearPendingIRQ(stcIrqSignConfig.enIRQn);
+    NVIC_SetPriority(stcIrqSignConfig.enIRQn, DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(stcIrqSignConfig.enIRQn);
+#endif
+
+    /* Init MMC GPIO */
+    MMC_GpioInit();
+    /* Enable SDIOC clock */
+    PWC_Fcg1PeriphClockCmd(SDIOC_MMC_CLK, Enable);
 
     /* Configure structure initialization */
-    MmcHandle.SDIOCx = M4_SDIOC1;
+    MmcHandle.SDIOCx                          = SDIOC_MMC_UINT;
     MmcHandle.stcSdiocInit.u32Mode            = SDIOC_MODE_MMC;
     MmcHandle.stcSdiocInit.u8CardDetectSelect = SDIOC_CARD_DETECT_CD_PIN_LEVEL;
-    MmcHandle.stcSdiocInit.u8SpeedMode        = SDIOC_SPEED_MODE_NORMAL;
+    MmcHandle.stcSdiocInit.u8SpeedMode        = SDIOC_SPEED_MODE_HIGH;
     MmcHandle.stcSdiocInit.u8BusWidth         = SDIOC_BUS_WIDTH_4BIT;
-    MmcHandle.stcSdiocInit.u16ClockDiv        = SDIOC_CLOCK_DIV_8;
-#ifdef SDIOC_DMA_TRANS_MODE
-    MmcHandle.DMAx    = SDIOC_DMA_UNIT;
-    MmcHandle.u8DmaCh = SDIOC_DMA_DATA_CH;
+    MmcHandle.stcSdiocInit.u16ClockDiv        = SDIOC_CLOCK_DIV_4;
+#if MMC_TRANS_MODE == MMC_TRANS_MODE_DMA
+    MMC_DMAInit();
+    MmcHandle.DMAx      = SDIOC_DMA_UNIT;
+    MmcHandle.u8DmaTxCh = SDIOC_DMA_TX_CH;
+    MmcHandle.u8DmaRxCh = SDIOC_DMA_RX_CH;
+#else
+    MmcHandle.DMAx    = NULL;
 #endif
 
     /* Reset SDIOC */
@@ -194,107 +315,181 @@ static void SDMmc_Config(void)
     }
     else
     {
-        if (Set != SDMmc_GetInsertStatus())
+        if (Set != MMCCard_GetInsertStatus())
         {
-            printf("No SD MMC insertion!\r\n");
+            printf("No MMC card insertion!\r\n");
         }
 
         if (Ok != MMC_Init(&MmcHandle))
         {
-            printf("SD MMC initialize failed!\r\n");
+            printf("MMC card initialize failed!\r\n");
         }
-        else
-        {
-            enRet = Ok;
-        }
-    }
-
-    /* stop read/write test */
-    if (Ok != enRet)
-    {
-        while (1)
-        {
-            ;
-        }
-        
     }
 }
 
 /**
- * @brief  SD MMC erase.
+ * @brief  MMC card erase.
  * @param  None
  * @retval An en_result_t enumeration value:
- *           - Ok: SD MMC erase success
- *           - Error: SD MMC erase error
+ *           - Ok: MMC card erase success
+ *           - Error: MMC card erase error
  */
-static en_result_t SDMmc_Erase(void)
+static en_result_t MMCCard_Erase(void)
 {
     __IO uint32_t i;
     en_result_t enRet = Ok;
 
     /* Initialize read/write blocks */
-    memset(u32ReadBlocks, 0x12345678UL, (SD_MMC_BLOCK_SIZE * SD_MMC_BLOCK_NUMBER));
-    /* Erase SD MMC */
-    if (Ok != MMC_Erase(&MmcHandle, 0UL, SD_MMC_BLOCK_NUMBER))
+    memset(u8ReadBlocks, 0x20, (MMC_CARD_BLK_SIZE * MMC_CARD_BLK_NUMBER));
+    /* Erase MMC card */
+    if (Ok != MMC_Erase(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER))
     {
         enRet = Error;
     }
-    /* Read SD MMC */
-    if (Ok != MMC_ReadBlocks(&MmcHandle, 0UL, SD_MMC_BLOCK_NUMBER, (uint8_t *)u32ReadBlocks, 2000UL))
+
+    /* Read MMC card */
+#if MMC_TRANS_MODE == MMC_TRANS_MODE_POLLING
+    if (Ok != MMC_ReadBlocks(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks, 2000UL))
     {
         enRet = Error;
     }
-    /* Check whether data value is OxFFFFFFFF or 0x00000000 after erase SD MMC */
-    for (i = 0UL; i < (SD_MMC_BLOCK_SIZE * SD_MMC_BLOCK_NUMBER); i++)
+#elif MMC_TRANS_MODE == MMC_TRANS_MODE_INT
+    u8RxCpltFlag = 0U;
+    if (Ok != MMC_ReadBlocks_INT(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks))
     {
-        if ((0xFFFFFFFFUL != u32ReadBlocks[i]) && (0x00000000UL != u32ReadBlocks[i]))
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8RxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#else
+    u8RxCpltFlag = 0U;
+    if (Ok != MMC_ReadBlocks_DMA(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks))
+    {
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8RxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#endif
+
+    /* Check whether data value is OxFF or 0x00 after erase MMC card */
+    for (i = 0UL; i < (MMC_CARD_BLK_SIZE * MMC_CARD_BLK_NUMBER); i++)
+    {
+        if (0x00U != u8ReadBlocks[i])
         {
-            enRet = Error;
-            break;
+            if (0xFFU != u8ReadBlocks[i])
+            {
+                enRet = Error;
+                break;
+            }
         }
     }
 
+#if MMC_TRANS_MODE != MMC_TRANS_MODE_POLLING
+    if (0U != u8TxRxErrFlag)
+    {
+        enRet = Error;
+    }
+#endif
+
     if (Ok != enRet)
     {
-        printf("SD MMC erase failed!\r\n");
+        printf("MMC card erase failed!\r\n");
     }
 
     return enRet;
 }
 
 /**
- * @brief  SD MMC multi-block read/write.
+ * @brief  MMC card multi-block read/write.
  * @param  None
  * @retval An en_result_t enumeration value:
- *           - Ok: SD MMC multi-block read/write success
- *           - Error: SD MMC multi-block read/write error
+ *           - Ok: MMC card multi-block read/write success
+ *           - Error: MMC card multi-block read/write error
  */
-static en_result_t SDMmc_RWMultiBlock(void)
+static en_result_t MMCCard_RWMultiBlock(void)
 {
     en_result_t enRet = Ok;
 
     /* Initialize read/write blocks */
-    memset(u32WriteBlocks, 0x12345678UL, (SD_MMC_BLOCK_SIZE * SD_MMC_BLOCK_NUMBER));
-    memset(u32ReadBlocks,  0UL, (SD_MMC_BLOCK_SIZE * SD_MMC_BLOCK_NUMBER));
-    /* Erase SD MMC */
-    if (Ok != MMC_WriteBlocks(&MmcHandle, 0UL, SD_MMC_BLOCK_NUMBER, (uint8_t *)u32WriteBlocks, 2000U))
+    memset(u8WriteBlocks, 0x20, (MMC_CARD_BLK_SIZE * MMC_CARD_BLK_NUMBER));
+    memset(u8ReadBlocks,  0, (MMC_CARD_BLK_SIZE * MMC_CARD_BLK_NUMBER));
+
+    /* Write MMC card */
+#if MMC_TRANS_MODE == MMC_TRANS_MODE_POLLING
+    if (Ok != MMC_WriteBlocks(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER, (uint8_t *)u8WriteBlocks, 2000U))
     {
         enRet = Error;
     }
-    /* Read SD MMC */
-    if (Ok != MMC_ReadBlocks(&MmcHandle, 0UL, SD_MMC_BLOCK_NUMBER, (uint8_t *)u32ReadBlocks, 2000UL))
+#elif MMC_TRANS_MODE == MMC_TRANS_MODE_INT
+    u8TxCpltFlag = 0U;
+    if (Ok != MMC_WriteBlocks_INT(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER, (uint8_t *)u8WriteBlocks))
     {
         enRet = Error;
     }
+    /* Wait for transfer completed */
+    while ((0U == u8TxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#else
+    u8TxCpltFlag = 0U;
+    if (Ok != MMC_WriteBlocks_DMA(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER, (uint8_t *)u8WriteBlocks))
+    {
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8TxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#endif
+
+    /* Read MMC card */
+#if MMC_TRANS_MODE == MMC_TRANS_MODE_POLLING
+    if (Ok != MMC_ReadBlocks(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks, 2000UL))
+    {
+        enRet = Error;
+    }
+#elif MMC_TRANS_MODE == MMC_TRANS_MODE_INT
+    u8RxCpltFlag = 0U;
+    if (Ok != MMC_ReadBlocks_INT(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks))
+    {
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8RxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#else
+    u8RxCpltFlag = 0U;
+    if (Ok != MMC_ReadBlocks_DMA(&MmcHandle, 0UL, MMC_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks))
+    {
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8RxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#endif
+
     /* Check data value */
-    if (0U != memcmp(u32WriteBlocks, u32ReadBlocks, (SD_MMC_BLOCK_SIZE * SD_MMC_BLOCK_NUMBER)))
+    if (0 != memcmp(u8WriteBlocks, u8ReadBlocks, (MMC_CARD_BLK_SIZE * MMC_CARD_BLK_NUMBER)))
     {
         enRet = Error;
     }
 
+#if MMC_TRANS_MODE != MMC_TRANS_MODE_POLLING
+    if (0U != u8TxRxErrFlag)
+    {
+        enRet = Error;
+    }
+#endif
+
     if (Ok != enRet)
     {
-        printf("SD MMC multi-block read/write failed!\r\n");
+        printf("MMC card multi-block read/write failed!\r\n");
     }
 
     return enRet;
@@ -339,7 +534,7 @@ void SYS_CLK_Init(void)
 }
 
 /**
- * @brief  Main function of SDIOC SD MMC.
+ * @brief  Main function of SDIOC MMC card.
  * @param  None
  * @retval int32_t return value, if needed
  */
@@ -354,12 +549,12 @@ int32_t main(void)
     BSP_LED_Init();
     /* Configure UART */
     DDL_PrintfInit();
-    /* Configure SD MMC */
-    SDMmc_Config();
+    /* Configure MMC Card */
+    MMCCard_Config();
 
     /* Erase/single-block/multi-block test */
-    enEraseRet  = SDMmc_Erase();
-    enMulBlkRet = SDMmc_RWMultiBlock();
+    enEraseRet  = MMCCard_Erase();
+    enMulBlkRet = MMCCard_RWMultiBlock();
     if ((Ok != enEraseRet) || (Ok != enMulBlkRet))
     {
         /* Test failed */
@@ -374,7 +569,7 @@ int32_t main(void)
     }
 
     while (1)
-    {        
+    {
     }
 }
 

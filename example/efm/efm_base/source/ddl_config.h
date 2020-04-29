@@ -155,6 +155,7 @@ extern "C"
  * @brief The following is a list of currently supported BSP boards.
  */
 #define BSP_EV_HC32F4A0_LQFP176                     (1U)
+#define BSP_MS_HC32F4A0_LQFP176_050_MEM             (2U)
 
 /**
  * @brief The macro BSP_EV_HC32F4A0 is used to specify the BSP board currently
@@ -169,9 +170,11 @@ extern "C"
  * @brief This is the list of BSP components to be used.
  * Select the components you need to use to BSP_ON.
  */
+#define BSP_CY62167EV30LL_ENABLE                    (BSP_OFF)
 #define BSP_IS42S16400J7TLI_ENABLE                  (BSP_OFF)
 #define BSP_IS62WV51216_ENABLE                      (BSP_OFF)
 #define BSP_MT29F2G08AB_ENABLE                      (BSP_OFF)
+#define BSP_S29GL064N90TFI03_ENABLE                 (BSP_OFF)
 #define BSP_TCA9539_ENABLE                          (BSP_ON)
 #define BSP_W25QXX_ENABLE                           (BSP_OFF)
 #define BSP_WM8731_ENABLE                           (BSP_OFF)

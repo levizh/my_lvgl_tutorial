@@ -182,7 +182,10 @@ typedef struct
     M4_SDIOC_TypeDef    *SDIOCx;            /*!< Pointer to SDIOC registers base address            */
     stc_sdioc_init_t    stcSdiocInit;       /*!< SDIOC Initialize structure @ref stc_sdioc_init_t   */
     M4_DMA_TypeDef      *DMAx;              /*!< Pointer to DMA registers base address              */
-    uint8_t             u8DmaCh;            /*!< Specifies the DMA channel used to send and receive */
+    uint8_t             u8DmaTxCh;          /*!< Specifies the DMA channel used to send             */
+    uint8_t             u8DmaRxCh;          /*!< Specifies the DMA channel used to receive          */
+    uint8_t             *pu8Buffer;         /*!< Pointer to SD Tx/Rx transfer Buffer                */
+    uint32_t            u32Length;          /*!< SD Tx/Rx Transfer length                           */
     uint32_t            u32Context;         /*!< MMC transfer context                               */
     uint32_t            u32ErrorCode;       /*!< MMC Card Error codes                               */
     stc_mmc_card_info_t stcMmcCardInfo;     /*!< MMC Card information                               */
@@ -211,7 +214,8 @@ typedef struct
 #define MMC_CONTEXT_READ_MULTIPLE_BLOCK         (0x02UL)  /*!< Read multiple blocks operation  */
 #define MMC_CONTEXT_WRITE_SINGLE_BLOCK          (0x10UL)  /*!< Write single block operation    */
 #define MMC_CONTEXT_WRITE_MULTIPLE_BLOCK        (0x20UL)  /*!< Write multiple blocks operation */
-#define MMC_CONTEXT_DMA                         (0x40UL)  /*!< Process in DMA mode             */
+#define MMC_CONTEXT_INT                         (0x40UL)  /*!< Process in Interrupt mode       */
+#define MMC_CONTEXT_DMA                         (0x80UL)  /*!< Process in DMA mode             */
 /**
  * @}
  */
@@ -262,13 +266,24 @@ en_result_t MMC_GetCardCSD(stc_mmc_handle_t *handle, stc_mmc_card_csd_t *pstcCSD
 en_result_t MMC_GetCardInfo(stc_mmc_handle_t *handle, stc_mmc_card_info_t *pstcCardInfo);
 en_result_t MMC_GetErrorCode(const stc_mmc_handle_t *handle, uint32_t *u32ErrCode);
 
+/* Callback in non blocking modes */
+void MMC_IRQHandler(stc_mmc_handle_t *handle);
+void MMC_TxCpltCallback(stc_mmc_handle_t *handle);
+void MMC_RxCpltCallback(stc_mmc_handle_t *handle);
+void MMC_ErrorCallback(stc_mmc_handle_t *handle);
+
 /* Polling Mode */
 en_result_t MMC_Erase(stc_mmc_handle_t *handle, uint32_t u32BlkStartAddr, uint32_t u32BlkEndAddr);
 en_result_t MMC_ReadBlocks(stc_mmc_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data, uint32_t u32Timeout);
 en_result_t MMC_WriteBlocks(stc_mmc_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data, uint32_t u32Timeout);
+/* Interrupt Mode */
+en_result_t MMC_ReadBlocks_INT(stc_mmc_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data);
+en_result_t MMC_WriteBlocks_INT(stc_mmc_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data);
 /* DMA Mode */
 en_result_t MMC_ReadBlocks_DMA(stc_mmc_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data);
 en_result_t MMC_WriteBlocks_DMA(stc_mmc_handle_t *handle, uint32_t u32BlockAddr, uint16_t u16BlockCnt, uint8_t *pu8Data);
+/* Abort */
+en_result_t MMC_Abort(stc_mmc_handle_t *handle);
 
 /**
  * @}

@@ -186,7 +186,7 @@ static void BSP_Config(void)
     BSP_IO_Init();
     BSP_LED_Init();
     /* Configure UART */
-    DDL_UartInit();
+    DDL_PrintfInit();
     /* SysTick configuration */
     SysTick_Init(1000U);
     /* Set Systick Interrupt to the highest priority */

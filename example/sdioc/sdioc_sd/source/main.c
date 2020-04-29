@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  sdioc/sdioc_cd/source/main.c
+ * @file  sdioc/sdioc_sd/source/main.c
  * @brief Main program of SDIOC SD card for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-09       Yangjp          First version
+   2020-04-20       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -73,13 +73,25 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* SD DMA transfer mode, Use polling mode to comment the following macro */
-#define SDIOC_DMA_TRANS_MODE
+/* SD transfer mode */
+#define SD_TRANS_MODE_POLLING                   (0U)
+#define SD_TRANS_MODE_INT                       (1U)
+#define SD_TRANS_MODE_DMA                       (2U)
 
-#ifdef SDIOC_DMA_TRANS_MODE
+/* Populate the following macro with an value, reference "SD transfer mode" */
+#define SD_TRANS_MODE                           (SD_TRANS_MODE_POLLING)
+
 #define SDIOC_DMA_UNIT                          (M4_DMA1)
-#define SDIOC_DMA_DATA_CH                       (DMA_CH0)
-#endif
+#define SDIOC_DMA_CLK                           (PWC_FCG0_DMA1)
+#define SDIOC_DMA_TX_CH                         (DMA_CH0)
+#define SDIOC_DMA_RX_CH                         (DMA_CH1)
+#define SDIOC_DMA_TX_TRIG_SRC                   (EVT_SDIOC1_DMAW)
+#define SDIOC_DMA_RX_TRIG_SRC                   (EVT_SDIOC1_DMAR)
+
+#define SDIOC_SD_UINT                           (M4_SDIOC1)
+#define SDIOC_SD_CLK                            (PWC_FCG1_SDIOC1)
+#define SIDOC_SD_INT_SRC                        (INT_SDIOC1_SD)
+#define SIDOC_SD_IRQ                            (Int104_IRQn)
 
 /* CK = PC12 */
 #define SDIOC_CK_PORT                           (GPIO_PORT_C)
@@ -101,8 +113,8 @@
 #define SDIOC_D3_PIN                            (GPIO_PIN_05)
 
 /* SD card read/write/erase */
-#define SD_CARD_BLOCK_SIZE                      (512U)
-#define SD_CARD_BLOCK_NUMBER                    (20U)
+#define SD_CARD_BLK_SIZE                        (512U)
+#define SD_CARD_BLK_NUMBER                      (10U)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -116,12 +128,104 @@ stc_sd_handle_t SdHandle;
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static uint32_t u32WriteBlocks[SD_CARD_BLOCK_SIZE * SD_CARD_BLOCK_NUMBER];
-static uint32_t u32ReadBlocks[SD_CARD_BLOCK_SIZE * SD_CARD_BLOCK_NUMBER];
+__ALIGN_BEGIN uint8_t u8WriteBlocks[SD_CARD_BLK_SIZE * SD_CARD_BLK_NUMBER];
+__ALIGN_BEGIN uint8_t u8ReadBlocks[SD_CARD_BLK_SIZE * SD_CARD_BLK_NUMBER];
+
+#if SD_TRANS_MODE != SD_TRANS_MODE_POLLING
+static uint8_t u8TxCpltFlag = 0U, u8RxCpltFlag = 0U, u8TxRxErrFlag = 0U;
+#endif
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+#if SD_TRANS_MODE != SD_TRANS_MODE_POLLING
+/**
+ * @brief  SDIOC transfer complete interrupt callback function.
+ * @param  None
+ * @retval None
+ */
+static void SDIOC_TransferComplete_IrqHandler(void)
+{
+    SD_IRQHandler(&SdHandle);
+}
+
+/**
+ * @brief  SDIOC tx complete callback function.
+ * @param  None
+ * @retval None
+ */
+void SD_TxCpltCallback(stc_sd_handle_t *handle)
+{
+    u8TxCpltFlag = 1U;
+}
+
+/**
+ * @brief  SDIOC rx complete callback function.
+ * @param  None
+ * @retval None
+ */
+void SD_RxCpltCallback(stc_sd_handle_t *handle)
+{
+    u8RxCpltFlag = 1U;
+}
+
+/**
+ * @brief  SDIOC error callback function.
+ * @param  None
+ * @retval None
+ */
+void SD_ErrorCallback(stc_sd_handle_t *handle)
+{
+    u8TxRxErrFlag = 1U;
+}
+#endif
+
+#if SD_TRANS_MODE == SD_TRANS_MODE_DMA
+/**
+ * @brief  Initializes the SD DMA.
+ * @param  None
+ * @retval None
+ */
+static void SD_DMAInit(void)
+{
+    stc_dma_init_t stcDmaInit;
+
+    /* Enable DMA and PTDIS(AOS) clock. */
+    PWC_Fcg0PeriphClockCmd((SDIOC_DMA_CLK | PWC_FCG0_PTDIS), Enable);
+
+    DMA_StructInit(&stcDmaInit);
+    /* Configure SD DMA Transfer */
+    stcDmaInit.u32IntEn     = DMA_INT_DISABLE;
+    stcDmaInit.u32DataWidth = DMA_DATAWIDTH_32BIT;
+    /* Set source & destination address mode. */
+    stcDmaInit.u32SrcInc    = DMA_SRC_ADDR_INC;
+    stcDmaInit.u32DestInc   = DMA_DEST_ADDR_FIX;
+    if (Ok != DMA_Init(SDIOC_DMA_UNIT, SDIOC_DMA_TX_CH, &stcDmaInit))
+    {
+        while (1)
+        {}
+    }
+
+    DMA_StructInit(&stcDmaInit);
+    /* Configure SD DMA Receive */
+    stcDmaInit.u32IntEn     = DMA_INT_DISABLE;
+    stcDmaInit.u32DataWidth = DMA_DATAWIDTH_32BIT;
+    /* Set source & destination address mode. */
+    stcDmaInit.u32SrcInc    = DMA_SRC_ADDR_FIX;
+    stcDmaInit.u32DestInc   = DMA_DEST_ADDR_INC;
+    if (Ok != DMA_Init(SDIOC_DMA_UNIT, SDIOC_DMA_RX_CH, &stcDmaInit))
+    {
+        while (1)
+        {}
+    }
+
+    DMA_SetTrigSrc(SDIOC_DMA_UNIT, SDIOC_DMA_TX_CH, SDIOC_DMA_TX_TRIG_SRC);
+    DMA_SetTrigSrc(SDIOC_DMA_UNIT, SDIOC_DMA_RX_CH, SDIOC_DMA_RX_TRIG_SRC);
+    /* Enable DMA. */
+    DMA_Cmd(SDIOC_DMA_UNIT, Enable);
+}
+#endif
+
 /**
  * @brief  Initializes the SD GPIO.
  * @param  None
@@ -168,23 +272,40 @@ static en_flag_status_t SDCard_GetInsertStatus(void)
  */
 static void SDCard_Config(void)
 {
-    __IO en_result_t enRet = Error;
+#if SD_TRANS_MODE != SD_TRANS_MODE_POLLING
+    stc_irq_signin_config_t stcIrqSignConfig;
+
+    stcIrqSignConfig.enIntSrc    = SIDOC_SD_INT_SRC;
+    stcIrqSignConfig.enIRQn      = SIDOC_SD_IRQ;
+    stcIrqSignConfig.pfnCallback = &SDIOC_TransferComplete_IrqHandler;
+    INTC_IrqSignOut(stcIrqSignConfig.enIRQn);
+    INTC_IrqSignIn(&stcIrqSignConfig);
+
+    /* NVIC setting */
+    NVIC_ClearPendingIRQ(stcIrqSignConfig.enIRQn);
+    NVIC_SetPriority(stcIrqSignConfig.enIRQn, DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(stcIrqSignConfig.enIRQn);
+#endif
 
     /* Init SD GPIO */
     SD_GpioInit();
-    /* Enable ETH clock */
-    PWC_Fcg1PeriphClockCmd(PWC_FCG1_SDIOC1, Enable);
+    /* Enable SDIOC clock */
+    PWC_Fcg1PeriphClockCmd(SDIOC_SD_CLK, Enable);
 
     /* Configure structure initialization */
-    SdHandle.SDIOCx = M4_SDIOC1;
+    SdHandle.SDIOCx                          = SDIOC_SD_UINT;
     SdHandle.stcSdiocInit.u32Mode            = SDIOC_MODE_SD;
     SdHandle.stcSdiocInit.u8CardDetectSelect = SDIOC_CARD_DETECT_CD_PIN_LEVEL;
     SdHandle.stcSdiocInit.u8SpeedMode        = SDIOC_SPEED_MODE_HIGH;
     SdHandle.stcSdiocInit.u8BusWidth         = SDIOC_BUS_WIDTH_4BIT;
     SdHandle.stcSdiocInit.u16ClockDiv        = SDIOC_CLOCK_DIV_4;
-#ifdef SDIOC_DMA_TRANS_MODE
-    SdHandle.DMAx    = SDIOC_DMA_UNIT;
-    SdHandle.u8DmaCh = SDIOC_DMA_DATA_CH;
+#if SD_TRANS_MODE == SD_TRANS_MODE_DMA
+    SD_DMAInit();
+    SdHandle.DMAx      = SDIOC_DMA_UNIT;
+    SdHandle.u8DmaTxCh = SDIOC_DMA_TX_CH;
+    SdHandle.u8DmaRxCh = SDIOC_DMA_RX_CH;
+#else
+    SdHandle.DMAx    = NULL;
 #endif
 
     /* Reset SDIOC */
@@ -203,20 +324,6 @@ static void SDCard_Config(void)
         {
             printf("SD card initialize failed!\r\n");
         }
-        else
-        {
-            enRet = Ok;
-        }
-    }
-
-    /* stop read/write test */
-    if (Ok != enRet)
-    {
-        while (1)
-        {
-            ;
-        }
-        
     }
 }
 
@@ -233,26 +340,60 @@ static en_result_t SDCard_Erase(void)
     en_result_t enRet = Ok;
 
     /* Initialize read/write blocks */
-    memset(u32ReadBlocks, 0x12345678UL, (SD_CARD_BLOCK_SIZE * SD_CARD_BLOCK_NUMBER));
+    memset(u8ReadBlocks, 0x20, (SD_CARD_BLK_SIZE * SD_CARD_BLK_NUMBER));
     /* Erase SD card */
-    if (Ok != SD_Erase(&SdHandle, 0UL, SD_CARD_BLOCK_NUMBER))
+    if (Ok != SD_Erase(&SdHandle, 0UL, SD_CARD_BLK_NUMBER))
     {
         enRet = Error;
     }
+
     /* Read SD card */
-    if (Ok != SD_ReadBlocks(&SdHandle, 0UL, SD_CARD_BLOCK_NUMBER, (uint8_t *)u32ReadBlocks, 2000UL))
+#if SD_TRANS_MODE == SD_TRANS_MODE_POLLING
+    if (Ok != SD_ReadBlocks(&SdHandle, 0UL, SD_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks, 2000UL))
     {
         enRet = Error;
     }
-    /* Check whether data value is OxFFFFFFFF or 0x00000000 after erase SD card */
-    for (i = 0UL; i < (SD_CARD_BLOCK_SIZE * SD_CARD_BLOCK_NUMBER); i++)
+#elif SD_TRANS_MODE == SD_TRANS_MODE_INT
+    u8RxCpltFlag = 0U;
+    if (Ok != SD_ReadBlocks_INT(&SdHandle, 0UL, SD_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks))
     {
-        if ((0xFFFFFFFFUL != u32ReadBlocks[i]) && (0x00000000UL != u32ReadBlocks[i]))
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8RxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#else
+    u8RxCpltFlag = 0U;
+    if (Ok != SD_ReadBlocks_DMA(&SdHandle, 0UL, SD_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks))
+    {
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8RxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#endif
+
+    /* Check whether data value is OxFF or 0x00 after erase SD card */
+    for (i = 0UL; i < (SD_CARD_BLK_SIZE * SD_CARD_BLK_NUMBER); i++)
+    {
+        if (0x00U != u8ReadBlocks[i])
         {
-            enRet = Error;
-            break;
+            if (0xFFU != u8ReadBlocks[i])
+            {
+                enRet = Error;
+                break;
+            }
         }
     }
+
+#if SD_TRANS_MODE != SD_TRANS_MODE_POLLING
+    if (0U != u8TxRxErrFlag)
+    {
+        enRet = Error;
+    }
+#endif
 
     if (Ok != enRet)
     {
@@ -274,23 +415,77 @@ static en_result_t SDCard_RWMultiBlock(void)
     en_result_t enRet = Ok;
 
     /* Initialize read/write blocks */
-    memset(u32WriteBlocks, 0x12345678UL, (SD_CARD_BLOCK_SIZE * SD_CARD_BLOCK_NUMBER));
-    memset(u32ReadBlocks,  0UL, (SD_CARD_BLOCK_SIZE * SD_CARD_BLOCK_NUMBER));
-    /* Erase SD card */
-    if (Ok != SD_WriteBlocks(&SdHandle, 0UL, SD_CARD_BLOCK_NUMBER, (uint8_t *)u32WriteBlocks, 2000U))
+    memset(u8WriteBlocks, 0x20, (SD_CARD_BLK_SIZE * SD_CARD_BLK_NUMBER));
+    memset(u8ReadBlocks,  0, (SD_CARD_BLK_SIZE * SD_CARD_BLK_NUMBER));
+
+    /* Write SD card */
+#if SD_TRANS_MODE == SD_TRANS_MODE_POLLING
+    if (Ok != SD_WriteBlocks(&SdHandle, 0UL, SD_CARD_BLK_NUMBER, (uint8_t *)u8WriteBlocks, 2000U))
     {
         enRet = Error;
     }
+#elif SD_TRANS_MODE == SD_TRANS_MODE_INT
+    u8TxCpltFlag = 0U;
+    if (Ok != SD_WriteBlocks_INT(&SdHandle, 0UL, SD_CARD_BLK_NUMBER, (uint8_t *)u8WriteBlocks))
+    {
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8TxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#else
+    u8TxCpltFlag = 0U;
+    if (Ok != SD_WriteBlocks_DMA(&SdHandle, 0UL, SD_CARD_BLK_NUMBER, (uint8_t *)u8WriteBlocks))
+    {
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8TxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#endif
+
     /* Read SD card */
-    if (Ok != SD_ReadBlocks(&SdHandle, 0UL, SD_CARD_BLOCK_NUMBER, (uint8_t *)u32ReadBlocks, 2000UL))
+#if SD_TRANS_MODE == SD_TRANS_MODE_POLLING
+    if (Ok != SD_ReadBlocks(&SdHandle, 0UL, SD_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks, 2000UL))
     {
         enRet = Error;
     }
+#elif SD_TRANS_MODE == SD_TRANS_MODE_INT
+    u8RxCpltFlag = 0U;
+    if (Ok != SD_ReadBlocks_INT(&SdHandle, 0UL, SD_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks))
+    {
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8RxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#else
+    u8RxCpltFlag = 0U;
+    if (Ok != SD_ReadBlocks_DMA(&SdHandle, 0UL, SD_CARD_BLK_NUMBER, (uint8_t *)u8ReadBlocks))
+    {
+        enRet = Error;
+    }
+    /* Wait for transfer completed */
+    while ((0U == u8RxCpltFlag) && (0U == u8TxRxErrFlag))
+    {
+    }
+#endif
+
     /* Check data value */
-    if (0U != memcmp(u32WriteBlocks, u32ReadBlocks, (SD_CARD_BLOCK_SIZE * SD_CARD_BLOCK_NUMBER)))
+    if (0 != memcmp(u8WriteBlocks, u8ReadBlocks, (SD_CARD_BLK_SIZE * SD_CARD_BLK_NUMBER)))
     {
         enRet = Error;
     }
+
+#if SD_TRANS_MODE != SD_TRANS_MODE_POLLING
+    if (0U != u8TxRxErrFlag)
+    {
+        enRet = Error;
+    }
+#endif
 
     if (Ok != enRet)
     {
@@ -374,7 +569,7 @@ int32_t main(void)
     }
 
     while (1)
-    {        
+    {
     }
 }
 

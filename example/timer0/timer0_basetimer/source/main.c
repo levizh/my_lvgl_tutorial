@@ -88,20 +88,22 @@
 #define TMR0_CLKSRC_LRC                (2U)
 #define TMR0_CLKSRC                    (TMR0_CLKSRC_PCLK)
 
+/* Period = 1 / (Clock / div) * (Compare Value - 1) 
+   Period = 500ms */
 #if (TMR0_CLKSRC == TMR0_CLKSRC_PCLK)
     #define TMR0_CLK_SRC               (TMR0_CLK_SRC_PCLK1)
     #define TMR0_CLK_DIV               (TMR0_CLK_DIV1024)
-    #define TMR0_CMP_VAL               (3906U)
+    #define TMR0_CMP_VAL               (3905U)
 
 #elif (TMR0_CLKSRC == TMR0_CLKSRC_LRC)
     #define TMR0_CLK_SRC               (TMR0_CLK_SRC_LRC)
     #define TMR0_CLK_DIV               (TMR0_CLK_DIV16)
-    #define TMR0_CMP_VAL               (1024U)
+    #define TMR0_CMP_VAL               (1023U)
 
 #elif (TMR0_CLKSRC == TMR0_CLKSRC_XTAL32)
     #define TMR0_CLK_SRC               (TMR0_CLK_SRC_XTAL32)
     #define TMR0_CLK_DIV               (TMR0_CLK_DIV16)
-    #define TMR0_CMP_VAL               (1024U)
+    #define TMR0_CMP_VAL               (1023U)
 #endif
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -129,6 +131,7 @@ static void LED_KEY_Config(void);
 static void TMR0_1_ChACmp_IrqCallback(void)
 {
     BSP_LED_Toggle(LED_BLUE);
+    GPIO_TogglePins(GPIO_PORT_A, GPIO_PIN_10);
     /* Clear the compare matching flag */
     TMR0_ClearStatus(TMR0x, TMR0_CH);
 }
@@ -144,6 +147,7 @@ int32_t main(void)
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
     /* Configure LED & Key */
     LED_KEY_Config();
+    GPIO_OE(GPIO_PORT_A, GPIO_PIN_10, Enable);
     /*Configure EXINT and IRQ handler && NVIC*/
     EXINT_IRQ_Config();
     /*Configure TMR0*/

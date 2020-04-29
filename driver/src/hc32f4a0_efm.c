@@ -205,9 +205,8 @@
 
 /*  Parameter validity check for efm address. */
 #define IS_VALID_EFM_ADDR(x)                                         \
-(   (((x) == EFM_START_ADDR)           ||                            \
-    ((x) >= (EFM_START_ADDR + 1u)))    &&                            \
-    ((x) <= EFM_END_ADDR))
+(   ((x) <= EFM_END_ADDR)              ||                            \
+    (((x) >= EFM_OTP_BLOCK16) && ((x) <= EFM_OTP_BLOCK181)))
 
 /*  Parameter validity check for sector protected register locking. */
 #define IS_VALID_EFM_REG_LOCK(x)                                     \
@@ -778,7 +777,7 @@ void EFM_SetBusState(uint32_t u32State)
 en_result_t EFM_SingleProgram(uint32_t u32Addr, uint32_t u32Data)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint16_t u16Timeout = 0U;
+    uint32_t u32Timeout = 0U;
     uint32_t u32tmp = 0U;
 
     DDL_ASSERT(IS_VALID_EFM_ADDR(u32Addr));
@@ -796,12 +795,12 @@ en_result_t EFM_SingleProgram(uint32_t u32Addr, uint32_t u32Data)
         EFM_SetOperateMode(EFM_MODE_PROGRAMSINGLE);
         /* Program data. */
         *(uint32_t *)u32Addr = (uint32_t)u32Data;
-        if(u32Addr < EFM_SECTOR128_ADDR)
+        if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
             {
-                u16Timeout ++;
-                if(u16Timeout >= EFM_TIMEOUT)
+                u32Timeout ++;
+                if(u32Timeout >= EFM_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
                     break;
@@ -819,8 +818,8 @@ en_result_t EFM_SingleProgram(uint32_t u32Addr, uint32_t u32Data)
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY1))
             {
-                u16Timeout ++;
-                if(u16Timeout >= EFM_TIMEOUT)
+                u32Timeout ++;
+                if(u32Timeout >= EFM_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
                     break;
@@ -856,7 +855,7 @@ en_result_t EFM_SingleProgram(uint32_t u32Addr, uint32_t u32Data)
 en_result_t EFM_ProgramReadBack(uint32_t u32Addr, uint32_t u32Data)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint16_t u16Timeout = 0U;
+    uint32_t u32Timeout = 0U;
     uint32_t u32tmp = 0U;
 
     DDL_ASSERT(IS_VALID_EFM_ADDR(u32Addr));
@@ -875,12 +874,12 @@ en_result_t EFM_ProgramReadBack(uint32_t u32Addr, uint32_t u32Data)
         /* Program data. */
         *(uint32_t*)u32Addr = (uint32_t)u32Data;
 
-        if(u32Addr < EFM_SECTOR128_ADDR)
+        if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
             {
-                u16Timeout ++;
-                if(u16Timeout >= EFM_TIMEOUT)
+                u32Timeout ++;
+                if(u32Timeout >= EFM_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
                     break;
@@ -900,8 +899,8 @@ en_result_t EFM_ProgramReadBack(uint32_t u32Addr, uint32_t u32Data)
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY1))
             {
-                u16Timeout ++;
-                if(u16Timeout >= EFM_TIMEOUT)
+                u32Timeout ++;
+                if(u32Timeout >= EFM_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
                     break;
@@ -940,7 +939,7 @@ en_result_t EFM_ProgramReadBack(uint32_t u32Addr, uint32_t u32Data)
 en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t *u32pBuf)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint16_t u16Timeout = 0U;
+    uint32_t u32Timeout = 0U;
     uint32_t u32tmp = 0U;
     uint32_t u32pSrc = (uint32_t)u32pBuf;
     uint32_t u32pDest = u32Addr;
@@ -968,12 +967,12 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
             u32pDest += 4U;
             u32pSrc += 4U;
             /* wait operate end. */
-            if(u32Addr < EFM_SECTOR128_ADDR)
+            if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
             {
                 while(Set != EFM_GetFlagStatus(EFM_FLAG_OPTEND0))
                 {
-                    u16Timeout++;
-                    if(u16Timeout >= EFM_TIMEOUT)
+                    u32Timeout++;
+                    if(u32Timeout >= EFM_TIMEOUT)
                     {
                         enRet = ErrorTimeout;
                         break;
@@ -983,8 +982,8 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
                 EFM_ClearFlag(EFM_FSCLR_OPTENDCLR0);
                 while(Reset != EFM_GetFlagStatus(EFM_FLAG_OPTEND0))
                 {
-                    u16Timeout++;
-                    if(u16Timeout >= EFM_TIMEOUT)
+                    u32Timeout++;
+                    if(u32Timeout >= EFM_TIMEOUT)
                     {
                         enRet = ErrorTimeout;
                         break;
@@ -995,8 +994,8 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
             {
                 while(Set != EFM_GetFlagStatus(EFM_FLAG_OPTEND1))
                 {
-                    u16Timeout++;
-                    if(u16Timeout >= EFM_TIMEOUT)
+                    u32Timeout++;
+                    if(u32Timeout >= EFM_TIMEOUT)
                     {
                         enRet = ErrorTimeout;
                         break;
@@ -1006,8 +1005,8 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
                 EFM_ClearFlag(EFM_FSCLR_OPTENDCLR1);
                 while(Reset != EFM_GetFlagStatus(EFM_FLAG_OPTEND1))
                 {
-                    u16Timeout++;
-                    if(u16Timeout >= EFM_TIMEOUT)
+                    u32Timeout++;
+                    if(u32Timeout >= EFM_TIMEOUT)
                     {
                         enRet = ErrorTimeout;
                         break;
@@ -1016,15 +1015,15 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
             }
         }
         /* Set read only mode. */
-        EFM_SetOperateMode(EFM_MODE_READONLY);
-        u16Timeout = 0u;
+        EFM_SetOperateMode(EFM_MODE_PROGRAMSINGLE);
+        u32Timeout = 0U;
         /* wait for flash ready . */
-        if(u32Addr < EFM_SECTOR128_ADDR)
+        if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
             {
-                u16Timeout ++;
-                if(u16Timeout >= EFM_TIMEOUT)
+                u32Timeout ++;
+                if(u32Timeout >= EFM_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
                     break;
@@ -1035,8 +1034,8 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY1))
             {
-                u16Timeout ++;
-                if(u16Timeout >= EFM_TIMEOUT)
+                u32Timeout ++;
+                if(u32Timeout >= EFM_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
                     break;
@@ -1061,7 +1060,7 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
 en_result_t EFM_SectorErase(uint32_t u32Addr)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint16_t u16Timeout = 0U;
+    uint32_t u32Timeout = 0U;
     uint32_t u32tmp = 0U;
 
     DDL_ASSERT(IS_VALID_EFM_ADDR(u32Addr));
@@ -1078,12 +1077,12 @@ en_result_t EFM_SectorErase(uint32_t u32Addr)
         EFM_SetOperateMode(EFM_MODE_ERASESECTOR);
 
         *(uint32_t*)u32Addr = (uint32_t)0U;
-        if(u32Addr < EFM_SECTOR128_ADDR)
+        if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
             {
-                u16Timeout ++;
-                if(u16Timeout >= EFM_TIMEOUT)
+                u32Timeout ++;
+                if(u32Timeout >= EFM_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
                     break;
@@ -1096,8 +1095,8 @@ en_result_t EFM_SectorErase(uint32_t u32Addr)
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY1))
             {
-                u16Timeout ++;
-                if(u16Timeout >= EFM_TIMEOUT)
+                u32Timeout ++;
+                if(u32Timeout >= EFM_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
                     break;
@@ -1132,10 +1131,12 @@ en_result_t EFM_OTPLock(uint32_t Addr)
         enRet = Ok;
         /* Disable OTP write protection */
         EFM_KEYRegWriteUnlock(EFM_PROTECT_OTP);
+        /* Set single program mode. */
+        EFM_SetOperateMode(EFM_MODE_PROGRAMSINGLE);
         /* Enable OTP */
-        *(uint32_t *)OTP_ENABLE_ADDR = (uint32_t)0U;
+        *(uint32_t *)OTP_ENABLE_ADDR = (uint32_t)0UL;
         /* OTP latch */
-        *(uint32_t *)Addr = (uint32_t)0U;
+        *(uint32_t *)Addr = (uint32_t)0UL;
         /* Enable OTP write protection */
         EFM_KEYRegWriteLock(EFM_PROTECT_OTP);
     }
@@ -1148,21 +1149,21 @@ en_result_t EFM_OTPLock(uint32_t Addr)
  * @param  [in]  EraseMode      Specifies the FLASH erase mode.
  *   @arg  EFM_MODE_ERASECHIP1  A flash Chip erase mode
  *   @arg  EFM_MODE_ERASECHIP1  Two flash Chip erase mode
- * @param  [in]  Addr           Specifies the FLASH block
+ * @param  [in]  u32Addr        Specifies the FLASH block
  * @retval An en_result_t enumeration value:
  *         - Ok: program success
  *         - ErrorTimeout: program error timeout
  * @note   The address should be word align.
  */
-en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t Addr)
+en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t u32Addr)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint16_t u16Timeout = 0U;
+    uint32_t u32Timeout = 0U;
     uint32_t u32tmp = 0U;
     DDL_ASSERT(IS_VALID_EFM_ERASE_MODE(EraseMode));
-    DDL_ASSERT(IS_VALID_EFM_ADDR(Addr));
+    DDL_ASSERT(IS_VALID_EFM_ADDR(u32Addr));
 
-    if(Addr % 4U == 0U)
+    if(u32Addr % 4U == 0U)
     {
         enRet = Ok;
         /* CLear the error flag. */
@@ -1176,15 +1177,15 @@ en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t Addr)
 
         if(EraseMode == EFM_MODE_ERASECHIP1)
         {
-            if(Addr >= EFM_SECTOR128_ADDR)
+            if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
             {
                 /* Flash1 disables write protection  */
                 EFM_SectorUnlock(EFM_SECTOR128_ADDR, 0x000FFFFFUL, Enable);
-                *(uint32_t*)EFM_SECTOR128_ADDR = (uint32_t)0U;
+                *(uint32_t*)EFM_SECTOR128_ADDR = (uint32_t)0UL;
                 while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY1))
                 {
-                    u16Timeout ++;
-                    if(u16Timeout >= EFM_TIMEOUT)
+                    u32Timeout ++;
+                    if(u32Timeout >= EFM_TIMEOUT)
                     {
                         enRet = ErrorTimeout;
                         break;
@@ -1193,15 +1194,15 @@ en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t Addr)
                 /* CLear the end of operate flag */
                 EFM_ClearFlag(EFM_FLAG_CLR_OPTEND1);
             }
-            if(Addr < EFM_SECTOR128_ADDR)
+            if(u32Addr < EFM_SECTOR128_ADDR)
             {
                 /* Flash0 disables write protection  */
                 EFM_SectorUnlock(EFM_SECTOR0_ADDR, 0x000FFFFFUL, Enable);
-                *(uint32_t*)EFM_SECTOR16_ADDR = (uint32_t)0U;
+                *(uint32_t*)EFM_SECTOR16_ADDR = (uint32_t)0UL;
                 while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
                 {
-                    u16Timeout ++;
-                    if(u16Timeout >= EFM_TIMEOUT)
+                    u32Timeout ++;
+                    if(u32Timeout >= EFM_TIMEOUT)
                     {
                         enRet = ErrorTimeout;
                         break;
@@ -1215,11 +1216,11 @@ en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t Addr)
         {
             /* Flash0 Flash1 disables write protection  */
             EFM_SectorUnlock(EFM_SECTOR0_ADDR, 0x001FFFFFUL, Enable);
-            *(uint32_t*)EFM_SECTOR16_ADDR = (uint32_t)0U;
+            *(uint32_t*)EFM_SECTOR16_ADDR = (uint32_t)0UL;
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
             {
-                u16Timeout ++;
-                if(u16Timeout >= EFM_TIMEOUT)
+                u32Timeout ++;
+                if(u32Timeout >= EFM_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
                     break;

@@ -254,7 +254,7 @@ int32_t main(void)
     /* Configure BSP */
     BSP_LED_Init();
     /* Configure UART */
-    DDL_UartInit();
+    DDL_PrintfInit();
     /* SWDT configuration */
     SWDT_Config();
     /* SW1 configuration */

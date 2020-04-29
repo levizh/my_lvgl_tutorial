@@ -606,7 +606,7 @@ uint16_t TMR0_GetCntVal(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
  *   @arg  M4_TMR0_1               TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2               TMR0 unit 2 instance register base
  * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
- * @param  [in] u16Value         The data to write to the counter register
+ * @param  [in] u16Value           The data to write to the counter register
  * @retval Ok: Success
  *         ErrorInvalidParameter: Parameter error
  * @note   Setting the count requires stop timer0
@@ -670,7 +670,7 @@ uint16_t TMR0_GetCmpVal(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
  *   @arg  M4_TMR0_1               TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2               TMR0 unit 2 instance register base
  * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
- * @param  [in] u16Value         The data to write to the compare register
+ * @param  [in] u16Value           The data to write to the compare register
  * @retval Ok: Success
  *         ErrorInvalidParameter: Parameter error
  */

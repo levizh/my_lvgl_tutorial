@@ -55,6 +55,7 @@
  ******************************************************************************/
 #include "hc32_ddl.h"
 #include "lvgl.h"
+#include "RGB565_480x272.h"
 
 /**
  * @addtogroup HC32F4A0_DDL_Examples
@@ -147,6 +148,23 @@ void SysTick_IrqHandler(void)
 //    GPIO_TogglePins(GPIO_PORT_E, GPIO_PIN_02);
     lv_tick_inc(1);
 }
+
+void draw_bmp(void)
+{
+    //for RGB565_480x272
+          /* Set cursor */
+    NT35510_SetCursor(0, 320);
+
+    /* Prepare to write to LCD RAM */
+    LCD_WriteReg(NT35510_WRITE_RAM);
+
+//    for(uint32_t bmp_cnt = 0; bmp_cnt < 480x272; bmp_cnt++)
+//    {
+//         = RGB565_480x272[bmp_cnt];
+//    }
+    LCD_WriteMultipleData((uint16_t*)&RGB565_480x272[0], 480*272);
+}
+
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
@@ -160,6 +178,7 @@ uint16_t test_buf[800];
 uint8_t reg_val;
 int32_t main(void)
 {
+//    while(1);
     stc_dma_init_t stcDmaInit;
     BSP_CLK_Init();
 
@@ -179,14 +198,14 @@ int32_t main(void)
     DDL_PrintfInit();
 
     //BSP_TS_ReadReg(0x4081, &u8Tmp[0], 4);
-    SysTick_Init(1000);
+    SysTick_Init(2000);
 
     /* HW Reset LCD */
     BSP_LCD_ResetCmd(EIO_PIN_RESET);
-    BSP_CT_ResetCmd(EIO_PIN_RESET);
+//    BSP_CT_ResetCmd(EIO_PIN_RESET);
     DDL_Delay1ms(1000UL);
     BSP_LCD_ResetCmd(EIO_PIN_SET);
-    BSP_CT_ResetCmd(EIO_PIN_SET);
+//    BSP_CT_ResetCmd(EIO_PIN_SET);
 
     /* Turn on backlight */
     BSP_LCD_BKLCmd(EIO_PIN_SET);
@@ -299,6 +318,7 @@ int32_t main(void)
 //        BSP_LCD_FillTriangle(30,60,100,30,200,50,0x555);
         lv_task_handler();
         key_serve();
+        draw_bmp();
 //        if(gt_reg<=0x8100)
         if(gt_reg!=0x00)
         {

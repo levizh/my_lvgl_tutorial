@@ -242,9 +242,13 @@ static void touchpad_get_xy(lv_coord_t * x, lv_coord_t * y)
         BSP_TS_WriteReg(GT9147_REG_GSTID, &u8Tmp[1], 1);
 
         BSP_TS_ReadReg(GT9147_REG_TP1, &u8Tmp[2], 4);
-        yy = u8Tmp[2] | ((uint16_t)u8Tmp[3] << 8);
-        xx = 800 - (u8Tmp[4] | ((uint16_t)u8Tmp[5] << 8));
-//        NT35510_WritePixel(y,480-x,RED);
+        
+//        yy = u8Tmp[2] | ((uint16_t)u8Tmp[3] << 8);
+//        xx = 800 - (u8Tmp[4] | ((uint16_t)u8Tmp[5] << 8));
+
+        xx = u8Tmp[2] | ((uint16_t)u8Tmp[3] << 8);
+        yy = (u8Tmp[4] | ((uint16_t)u8Tmp[5] << 8));
+
     }
 
     (*x) = xx;

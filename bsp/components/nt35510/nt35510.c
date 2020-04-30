@@ -531,7 +531,7 @@ void NT35510_Init(void)
     LCD_Delay(120);
     LCD_WriteReg(0x2900);
 
-    NT35510_SetDirection(1);
+    NT35510_SetDirection(0);
 }
 
 /**
@@ -812,7 +812,7 @@ void NT35510_SetDirection(uint32_t dir)
         lcddev.width=800;
         lcddev.height=480;
     }
-    NT35510_SetScanDir(0);//Ä¬ÈÏÉ¨Ãè·½Ïò
+    NT35510_SetScanDir(DFT_SCAN_DIR);
 }
 
 

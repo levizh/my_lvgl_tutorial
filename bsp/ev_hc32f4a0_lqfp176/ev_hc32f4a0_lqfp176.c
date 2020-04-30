@@ -503,13 +503,13 @@ void BSP_LCD_IO_Init(void)
     INT     ____|
     */
     DDL_Delay1ms(100UL);
-//    BSP_IO_WritePortPin(EIO_PIN0, EIO_TOUCH_INT, EIO_PIN_SET);      /* 0x28/0x29 */
-    BSP_IO_WritePortPin(EIO_PIN0, EIO_TOUCH_INT, EIO_PIN_RESET);    /* 0xBA/0xBB */
-    BSP_IO_ConfigPortPin(EIO_PIN0, EIO_TOUCH_INT, EIO_DIR_OUT);
+//    BSP_IO_WritePortPin(LCD_CTINT_PORT, LCD_CTINT_PIN, EIO_PIN_SET);      /* 0x28/0x29 */
+    BSP_IO_WritePortPin(LCD_CTINT_PORT, LCD_CTINT_PIN, EIO_PIN_RESET);    /* 0xBA/0xBB */
+    BSP_IO_ConfigPortPin(LCD_CTINT_PORT, LCD_CTINT_PIN, EIO_DIR_OUT);
     DDL_Delay1ms(100UL);
     BSP_IO_WritePortPin(LCD_CTRST_PORT, LCD_CTRST_PIN, EIO_PIN_SET);
     DDL_Delay1ms(100UL);
-    BSP_IO_ConfigPortPin(EIO_PIN0, EIO_TOUCH_INT, EIO_DIR_IN);
+    BSP_IO_ConfigPortPin(LCD_CTINT_PORT, LCD_CTINT_PIN, EIO_DIR_IN);
 }
 
 /**

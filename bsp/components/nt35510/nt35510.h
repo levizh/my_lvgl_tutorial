@@ -121,7 +121,7 @@ extern "C"
 #define U2D_R2L  5 //´ÓÉÏµ½ÏÂ,´ÓÓÒµ½×ó
 #define D2U_L2R  6 //´ÓÏÂµ½ÉÏ,´Ó×óµ½ÓÒ
 #define D2U_R2L  7 //´ÓÏÂµ½ÉÏ,´ÓÓÒµ½×ó
-#define DFT_SCAN_DIR  D2U_L2R//R2L_D2U  //Ä¬ÈÏµÄÉ¨Ãè·½Ïò
+#define DFT_SCAN_DIR  L2R_U2D//R2L_D2U//D2U_L2R//R2L_D2U  //Ä¬ÈÏµÄÉ¨Ãè·½Ïò
 
 /*******************************************************************************
  * Global variable definitions ('extern')

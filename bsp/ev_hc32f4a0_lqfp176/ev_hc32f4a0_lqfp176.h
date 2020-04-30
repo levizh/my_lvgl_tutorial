@@ -167,6 +167,9 @@ extern "C"
 #define LCD_RTCS_PIN            (EIO_RTCS_CTRST)
 #define LCD_CTRST_PORT          (EIO_PORT0)
 #define LCD_CTRST_PIN           (EIO_RTCS_CTRST)
+#define LCD_CTINT_PORT          (EIO_PORT0)
+#define LCD_CTINT_PIN           (EIO_TOUCH_INT)
+
 
 /**
  * @}

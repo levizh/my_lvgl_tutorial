@@ -69,38 +69,18 @@
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
-/**
- * @brief Key state definition
- */
-typedef enum
-{
-    KeyIdle,
-    KeyRelease,
-} en_key_state_t;
-
-/**
- * @brief Key instance structure definition
- */
-typedef struct
-{
-    uint8_t u8Port;                     /*!< GPIO_PORT_x: x can be (0~7, 12~14) to select the GPIO peripheral */
-
-    uint8_t u8Pin;                      /*!< GPIO_PIN_x: x can be (0~7) to select the PIN index */
-
-    en_pin_state_t enPressPinState;     /*!< Pin level state when key is pressed */
-} stc_key_t;
 
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/* Key definition */
+#define USER_KEY                        (BSP_KEY_1)
+
 /* EMB unit & fcg & interrupt number definition */
 #define EMB_UNIT                        (M4_EMB4)
 #define EMB_FUNCTION_CLK_GATE           (PWC_FCG2_EMB)
-#define EMB_IRQn                        (INT_EMB_GR4)
-
-/* Key Port/Pin definition */
-#define KEY_PORT                        (GPIO_PORT_A)
-#define KEY_PIN                         (GPIO_PIN_01)
+#define EMB_INT_SRC                     (INT_EMB_GR4)
+#define EMB_INT_IRQn                    (Int000_IRQn)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -109,8 +89,6 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey);
 static uint32_t Tmr4PclkFreq(void);
 static void Timer4PwmConfig(void);
 static void EMB_IrqCallback(void);
@@ -120,56 +98,9 @@ static void EMB_IrqCallback(void);
  ******************************************************************************/
 static __IO uint8_t m_u8EmbFlag = 0U;
 
-static stc_key_t m_stcKeySw = {
-    .u8Port = KEY_PORT,
-    .u8Pin = KEY_PIN,
-    .enPressPinState = Pin_Reset,
-};
-
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  Configure system clock
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    /* Configure the system clock to HRC32MHz. */
-    //CLK_HRCInit(CLK_HRC_ON, CLK_HRCFREQ_32);
-    #warning "todo"
-}
-
-/**
- * @brief  Get key state
- * @param  [in] pstcKey    Pointer to stc_key_t structure
- * @retval An en_result_t enumeration value:
- *           - KeyIdle: Key isn't pressed
- *           - KeyRelease: Released after key is pressed
- */
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey)
-{
-    en_key_state_t enKeyState = KeyIdle;
-
-    DDL_ASSERT(NULL != pstcKey);
-
-    if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-    {
-        DDL_Delay1ms(20ul);
-
-        if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-        {
-            while (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-            {
-                ;
-            }
-            enKeyState = KeyRelease;
-        }
-    }
-
-    return enKeyState;
-}
 
 /**
  * @brief  Get TIMER4 PCLK frequency.
@@ -254,6 +185,7 @@ static void Timer4PwmConfig(void)
 
     /* Initialize Timer4 PWM */
     TMR4_PWM_StructInit(&stcTmr4PwmInit);
+    stcTmr4PwmInit.u16TransformOcoPol = TMR4_PWM_OP_OXH_HOLD_OXL_INVERT;
     stcTmr4PwmInit.u32OxHPortOutMode = TMR4_PWM_PORT_OUTPUT_NORMAL;
     stcTmr4PwmInit.u32EmbOxHPortState = TMR4_PWM_EMB_PORT_OUTPUT_LOW;
     stcTmr4PwmInit.u32OxLPortOutMode = TMR4_PWM_PORT_OUTPUT_NORMAL;
@@ -277,18 +209,13 @@ static void EMB_IrqCallback(void)
     {
         m_u8EmbFlag = 1U;
 
-        while (KeyRelease != KeyGetState(&m_stcKeySw))
-        {
-            ;
-        }
-
-        TMR4_PWM_SetOcoPolarityTranslation(M4_TMR4_1,
-                                           TMR4_PWM_U,
-                                           TMR4_PWM_OP_OXH_HOLD_OXL_INVERT);
-
-        while (Set == EMB_GetStatus(EMB_UNIT, EMB_STATE_PWMS))
+        while (Reset == BSP_KEY_GetStatus(USER_KEY))
         {
         }
+
+        TMR4_PWM_SetOcoPolarityTransform(M4_TMR4_1,
+                                         TMR4_PWM_U,
+                                         TMR4_PWM_OP_OXH_HOLD_OXL_INVERT);
 
         EMB_ClearFlag(EMB_UNIT, EMB_FLAG_PWMS);  /* Clear PWM Brake */
     }
@@ -301,11 +228,17 @@ static void EMB_IrqCallback(void)
  */
 int32_t main(void)
 {
-    stc_irq_signin_config_t stcIrqSigninCfg;
     stc_emb_tmr4_init_t stcEmbInit;
+    stc_irq_signin_config_t stcIrqSigninCfg;
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+
+    /* Initialize IO. */
+    BSP_IO_Init();
+
+    /* Initialize key. */
+    BSP_KEY_Init();
 
     /* Configure Timer4 PWM. */
     Timer4PwmConfig();
@@ -316,12 +249,13 @@ int32_t main(void)
     stcEmbInit.stcTimer4PmwU.u32Timer4PwmSel = EMB_TMR4_PWM_U_ENABLE;
     stcEmbInit.stcTimer4PmwU.u32Timer4PwmLvl = EMB_DETECT_TMR4_PWM_U_BOTH_HIGH;
     EMB_Timer4Init(EMB_UNIT, &stcEmbInit);
+
     EMB_IntCmd(EMB_UNIT, EMB_INT_PWMS, Enable);
     EMB_SetReleasePwmMode(EMB_UNIT, EMB_EVENT_PWMS, EMB_RELEALSE_PWM_SEL_FLAG_ZERO);
 
     /* Register IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = Int000_IRQn;
-    stcIrqSigninCfg.enIntSrc = EMB_IRQn;
+    stcIrqSigninCfg.enIRQn = EMB_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = EMB_INT_SRC;
     stcIrqSigninCfg.pfnCallback = &EMB_IrqCallback;
     INTC_IrqSignIn(&stcIrqSigninCfg);
     NVIC_ClearPendingIRQ(stcIrqSigninCfg.enIRQn);
@@ -331,18 +265,16 @@ int32_t main(void)
     while (1)
     {
         /* Wait key release */
-        while (KeyRelease != KeyGetState(&m_stcKeySw))
+        while (Reset == BSP_KEY_GetStatus(USER_KEY))
         {
-            ;
         }
 
-        TMR4_PWM_SetOcoPolarityTranslation(M4_TMR4_1,
-                                           TMR4_PWM_U,
-                                           TMR4_PWM_OP_OXH_HOLD_OXL_HOLD);
+        TMR4_PWM_SetOcoPolarityTransform(M4_TMR4_1,
+                                         TMR4_PWM_U,
+                                         TMR4_PWM_OP_OXH_HOLD_OXL_HOLD);
 
         while (!m_u8EmbFlag)
         {
-            ;
         }
 
         m_u8EmbFlag = 0U;

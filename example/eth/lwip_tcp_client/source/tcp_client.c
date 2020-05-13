@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-08       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -156,9 +156,9 @@ static err_t TcpClient_Connected(void *arg, struct tcp_pcb *tpcb, err_t err)
 {
     stc_tcp_client_param_t *tcpClient = NULL;
     
-    if (err == ERR_OK)
+    if ((err == ERR_OK) && (NULL != tpcb))
     {
-        /* allocate structure es to maintain tcp connection informations */
+        /* allocate structure stc_tcp_client_param_t to maintain tcp connection informations */
         tcpClient = (stc_tcp_client_param_t *)mem_malloc(sizeof(stc_tcp_client_param_t));
         TcpClient_Param = tcpClient;
         if (NULL != tcpClient)
@@ -166,14 +166,14 @@ static err_t TcpClient_Connected(void *arg, struct tcp_pcb *tpcb, err_t err)
             tcpClient->enTcpState = TCP_CLIENT_CONNECTED;
             tcpClient->pcb = tpcb;
 
-            sprintf((char*)u8TransData, "Sending tcp client message\r\n");
+            sprintf((char*)u8TransData, "TCP client connection successful!\r\n");
             /* allocate pbuf */
             tcpClient->p_tx = pbuf_alloc(PBUF_TRANSPORT, strlen((char*)u8TransData), PBUF_POOL);
             if (tcpClient->p_tx)
-            {       
+            {
                 /* copy data to pbuf */
                 pbuf_take(tcpClient->p_tx, (char*)u8TransData, strlen((char*)u8TransData));
-                /* pass newly allocated es structure as argument to tpcb */
+                /* pass newly allocated stc_tcp_client_param_t structure as argument to tpcb */
                 tcp_arg(tpcb, tcpClient);
                 /* initialize LwIP tcp_recv callback function */ 
                 tcp_recv(tpcb, TcpClient_Recv);
@@ -235,7 +235,7 @@ static err_t TcpClient_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err
         }
         ret_err = ERR_OK;
     }   
-    /* else : a non empty frame was received from echo server but for some reason err != ERR_OK */
+    /* else : a non empty frame was received from server but for some reason err != ERR_OK */
     else if (err != ERR_OK)
     {
         /* free received pbuf*/
@@ -256,9 +256,9 @@ static err_t TcpClient_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err
         }
         else 
         {
-            /* chain pbufs to the end of what we recv'ed previously  */
+            /* chain pbufs to the end of what we received previously  */
             ptr = tcpClient->p_tx;
-            pbuf_cat(ptr, p);
+            pbuf_chain(ptr, p);
         }
         ret_err = ERR_OK;
     }
@@ -268,6 +268,7 @@ static err_t TcpClient_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err
         /* Acknowledge data reception */
         tcp_recved(tpcb, p->tot_len);
         /* free pbuf and do nothing */
+        tcpClient->p_tx = NULL;
         pbuf_free(p);
         ret_err = ERR_OK;
     }
@@ -291,10 +292,10 @@ static void TcpClient_Send(struct tcp_pcb *tpcb, stc_tcp_client_param_t * tcpCli
             (tcpClient->p_tx != NULL) && 
             (tcpClient->p_tx->len <= tcp_sndbuf(tpcb)))
     {
-        /* get pointer on pbuf from es structure */
+        /* get pointer on pbuf from stc_tcp_client_param_t structure */
         ptr = tcpClient->p_tx;
         /* enqueue data for transmission */
-        wr_err = tcp_write(tpcb, ptr->payload, ptr->len, 1);
+        wr_err = tcp_write(tpcb, ptr->payload, ptr->len, 1U);
 
         if (wr_err == ERR_OK)
         { 
@@ -302,10 +303,10 @@ static void TcpClient_Send(struct tcp_pcb *tpcb, stc_tcp_client_param_t * tcpCli
             tcpClient->p_tx = ptr->next;
             if (tcpClient->p_tx != NULL)
             {
-                /* increment reference count for tcpClient->p */
+                /* increment reference count for tcpClient->p_tx */
                 pbuf_ref(tcpClient->p_tx);
             }
-            /* free pbuf: will free pbufs up to tcpClient->p (because tcpClient->p has a reference count > 0) */
+            /* free pbuf: will free pbufs up to tcpClient->p_tx (because tcpClient->p_tx has a reference count > 0) */
             pbuf_free(ptr);
         }
         else if (wr_err == ERR_MEM)
@@ -379,6 +380,14 @@ static err_t TcpClient_Sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
         /* still got pbufs to send */
         TcpClient_Send(tpcb, tcpClient);
     }
+    else
+    {
+        /* no more pbufs to send */
+        if (TCP_CLIENT_CLOSING == tcpClient->enTcpState)
+        {
+            TcpClient_ConnectClose(tpcb, tcpClient);
+        }
+    }
 
     return ERR_OK;
 }
@@ -392,12 +401,18 @@ static err_t TcpClient_Sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
 static void TcpClient_ConnectClose(struct tcp_pcb *tpcb, stc_tcp_client_param_t *tcpClient)
 {
     /* Remove callbacks */
+    tcp_arg(tpcb, NULL);
     tcp_recv(tpcb, NULL);
     tcp_sent(tpcb, NULL);
     tcp_poll(tpcb, NULL, 0U);
 
     if (NULL != tcpClient)
     {
+        if (NULL != tcpClient->p_tx)
+        {
+            /* free the buffer chain if present */
+            pbuf_free(tcpClient->p_tx);
+        }
         mem_free(tcpClient);
     }
 

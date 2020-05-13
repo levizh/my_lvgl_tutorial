@@ -69,26 +69,6 @@
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
-/**
- * @brief Key state definition
- */
-typedef enum
-{
-    KeyIdle,
-    KeyRelease,
-} en_key_state_t;
-
-/**
- * @brief Key instance structure definition
- */
-typedef struct
-{
-    uint8_t u8Port;                     /*!< GPIO_PORT_x: x can be (0~7, 12~14) to select the GPIO peripheral */
-
-    uint8_t u8Pin;                      /*!< GPIO_PIN_x: x can be (0~7) to select the PIN index */
-
-    en_pin_state_t enPressPinState;     /*!< Pin level state when key is pressed */
-} stc_key_t;
 
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
@@ -96,11 +76,8 @@ typedef struct
 /* EMB unit & fcg & interrupt number definition */
 #define EMB_UNIT                        (M4_EMB4)
 #define EMB_FUNCTION_CLK_GATE           (PWC_FCG2_EMB)
-#define EMB_IRQn                        (INT_EMB_GR4)
-
-/* Key Port/Pin definition */
-#define KEY_PORT                        (GPIO_PORT_2)
-#define KEY_PIN                         (GPIO_PIN_1)
+#define EMB_INT_SRC                     (INT_EMB_GR4)
+#define EMB_INT_IRQn                    (Int000_IRQn)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -109,11 +86,10 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey);
 static uint32_t Tmr4PclkFreq(void);
 static void Timer4PwmConfig(void);
 static void CmpConfig(void);
+static void DacConfig(void);
 static void EMB_IrqCallback(void);
 
 /*******************************************************************************
@@ -123,64 +99,6 @@ static void EMB_IrqCallback(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  Configure system clock
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-//    stc_clk_xtal_init_t    stcXtalInit;
-//    stc_clk_xtalstd_init_t stcXtalstdInit;
-//
-//    /* Configure the system clock to HRC32MHz. */
-//    CLK_HRCInit(CLK_HRC_ON, CLK_HRCFREQ_32);
-//
-//    /* Config XTAL and Enable */
-//    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-//    stcXtalInit.u8XtalMode = CLK_XTALMODE_OSC;
-//    stcXtalInit.u8XtalDrv = CLK_XTALDRV_HIGH;
-//    stcXtalInit.u8XtalSupDrv = CLK_XTAL_SUPDRV_OFF;
-//    stcXtalInit.u8XtalStb = CLK_XTALSTB_8;
-//    CLK_XTALInit(&stcXtalInit);
-//
-//    /* Enable xtal fault dectect and occur reset. */
-//    stcXtalstdInit.u8XtalStdState = CLK_XTALSTD_ON;
-//    stcXtalstdInit.u8XtalStdMode = CLK_XTALSTD_MODE_INT;
-//    stcXtalstdInit.u8XtalStdInt = CLK_XTALSTD_INT_ON;
-//    stcXtalstdInit.u8XtalStdRst = CLK_XTALSTD_RST_OFF;
-//    CLK_XTALStdInit(&stcXtalstdInit);
-}
-
-/**
- * @brief  Get key state
- * @param  [in] pstcKey    Pointer to stc_key_t structure
- * @retval An en_result_t enumeration value:
- *           - KeyIdle: Key isn't pressed
- *           - KeyRelease: Released after key is pressed
- */
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey)
-{
-    en_key_state_t enKeyState = KeyIdle;
-
-    DDL_ASSERT(NULL != pstcKey);
-
-    if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-    {
-        DDL_Delay1ms(20UL);
-
-        if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-        {
-            while (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-            {
-                ;
-            }
-            enKeyState = KeyRelease;
-        }
-    }
-
-    return enKeyState;
-}
 
 /**
  * @brief  Get TIMER4 PCLK frequency.
@@ -215,7 +133,7 @@ static void Timer4PwmConfig(void)
     TMR4_CNT_StructInit(&stcTmr4CntInit);
     stcTmr4CntInit.u16ClkDiv = TMR4_CNT_CLK_DIV512;
     stcTmr4CntInit.u16CycleVal = (uint16_t)(Tmr4PclkFreq() / (2UL * (1UL << (uint32_t)(stcTmr4CntInit.u16ClkDiv)))); /* Period_Value(500ms) */
-    TMR4_CNT_Init(&stcTmr4CntInit);
+    TMR4_CNT_Init(M4_TMR4_1, &stcTmr4CntInit);
 
     /* Initialize TIMER4 OCO high&&low channel */
     TMR4_OCO_StructInit(&stcTmr4OcoInit);
@@ -284,37 +202,56 @@ static void Timer4PwmConfig(void)
  */
 static void CmpConfig(void)
 {
-//    stc_cmp_init_t stcCmpCfg;
-//    stc_pwc_pwrmon_init_t stcPwcIni;
-//
-//    /* Port function configuration */
-//    GPIO_SetFunc(GPIO_PORT_7, GPIO_PIN_0, GPIO_FUNC_3_CMP);
-//    GPIO_SetFunc(GPIO_PORT_1, GPIO_PIN_3, GPIO_FUNC_1_IVCMP);
-//
-//    PWC_Fcg3PeriphClockCmd((PWC_FCG3_CMP1), Enable);
-//
-//    /* Enable internal Vref*/
-//    PWC_PwrMonStructInit(&stcPwcIni);
-//    PWC_PwrMonInit(&stcPwcIni);
-//
-//    /* Clear structure */
-//    CMP_StructInit(&stcCmpCfg);
-//    /* De-initialize CMP unit */
-//    CMP_DeInit(CMP_UNIT1);
-//
-//    /* Configuration for normal compare function */
-//    stcCmpCfg.u8CmpVol = CMP1_CVSL_VCMP1_0;
-//    stcCmpCfg.u8RefVol = CMP1_RVSL_VREF;
-//    stcCmpCfg.u8OutDetectEdges = CMP_DETECT_EDGS_RISING;
-//    stcCmpCfg.u8OutFilter = CMP_OUT_FILTER_PCLKDIV8;
-//    stcCmpCfg.u8OutPolarity = CMP_OUT_REVERSE_ON;
-//    CMP_NormalModeInit(CMP_UNIT1, &stcCmpCfg);
-//
-//    /* Enable VCOUT if need */
-//    CMP_VCOUTCmd(CMP_UNIT1, Enable);
-//
-//    /* Enable CMP output */
-//    CMP_OutputCmd(CMP_UNIT1, Enable);
+    stc_cmp_init_t stcCmpInit;
+    stc_gpio_init_t stcGpioInit;
+
+    /* Enable peripheral Clock */
+    PWC_Fcg3PeriphClockCmd(PWC_FCG3_CMP1, Enable);
+
+    /* Port function configuration for CMP*/
+    GPIO_StructInit(&stcGpioInit);
+    stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
+    GPIO_Init(GPIO_PORT_E, GPIO_PIN_10, &stcGpioInit); /* CMP1_INP3 compare voltage */
+
+    /* Configuration for normal compare function */
+    CMP_StructInit(&stcCmpInit);
+    stcCmpInit.u8CmpCh = CMP_CVSL_INP3;
+    stcCmpInit.u16CmpVol = CMP1_INP3_CMP1_INP3;
+    stcCmpInit.u8RefVol = CMP_RVSL_INM1;
+    stcCmpInit.u8OutDetectEdges = CMP_DETECT_EDGS_BOTH;
+    stcCmpInit.u8OutFilter = CMP_OUT_FILTER_PCLKDIV32;
+    stcCmpInit.u8OutPolarity = CMP_OUT_REVERSE_OFF;
+    CMP_NormalModeInit(M4_CMP1, &stcCmpInit);
+
+    /* Enable CMP output */
+    CMP_OutputCmd(M4_CMP1, Enable);
+
+    /* Enable VCOUT */
+    CMP_VCOUTCmd(M4_CMP1, Enable);
+
+}
+
+/**
+ * @brief  Configure DAC.
+ * @param  None
+ * @retval None
+ */
+static void DacConfig(void)
+{
+    /* Enable peripheral Clock */
+    PWC_Fcg3PeriphClockCmd(PWC_FCG3_DAC1, Enable);
+
+    /* Right alignment of data */
+    DAC_DataPatternConfig(M4_DAC1, DAC_Align_12b_R);
+
+    /* Write Data :V = (Conversion Data / 4096) * VREFH */
+    DAC_SetChannel1Data(M4_DAC1, 4096U/2U);
+
+    /* Output Enable */
+    DAC_ChannelAllCmd(M4_DAC1, Enable);
+
+    /* Start Convert */
+    DAC_ChannelCmd(M4_DAC1, DAC_Channel_1, Enable);
 }
 
 /**
@@ -324,23 +261,8 @@ static void CmpConfig(void)
  */
 static void EMB_IrqCallback(void)
 {
-    stc_key_t stcKeySw = {
-        .u8Port = KEY_PORT,
-        .u8Pin = KEY_PIN,
-        .enPressPinState = Pin_Reset,
-    };
-
     if(Set == EMB_GetFlag(EMB_UNIT, EMB_FLAG_CMP))
     {
-        while (KeyRelease != KeyGetState(&stcKeySw))
-        {
-            ;
-        }
-
-        while (Set == EMB_GetStatus(EMB_UNIT, EMB_STATE_CMP))
-        {
-        }
-
         EMB_ClearFlag(EMB_UNIT, EMB_FLAG_CMP);  /* Clear CMP Brake */
     }
 }
@@ -355,8 +277,11 @@ int32_t main(void)
     stc_emb_tmr4_init_t stcEmbInit;
     stc_irq_signin_config_t stcIrqSigninCfg;
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+
+    /* Configure DAC. */
+    DacConfig();
 
     /* Configure CMP. */
     CmpConfig();
@@ -373,8 +298,8 @@ int32_t main(void)
     EMB_SetReleasePwmMode(EMB_UNIT, EMB_EVENT_CMP, EMB_RELEALSE_PWM_SEL_FLAG_ZERO);
 
     /* Register IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = Int000_IRQn;
-    stcIrqSigninCfg.enIntSrc = EMB_IRQn;
+    stcIrqSigninCfg.enIRQn = EMB_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = EMB_INT_SRC;
     stcIrqSigninCfg.pfnCallback = &EMB_IrqCallback;
     INTC_IrqSignIn(&stcIrqSigninCfg);
     NVIC_ClearPendingIRQ(stcIrqSigninCfg.enIRQn);

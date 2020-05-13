@@ -94,7 +94,7 @@
 #define USART_SLAVE_UNIT_TX_INT         (INT_USART6_TI)
 #define USART_SLAVE_UNIT_TX_IRQn        (Int002_IRQn)
 
-#define USART_SLAVE_UNIT_TCI_INT        (INT_USART7_TCI)
+#define USART_SLAVE_UNIT_TCI_INT        (INT_USART6_TCI)
 #define USART_SLAVE_UNIT_TCI_IRQn       (Int003_IRQn)
 
 /*******************************************************************************
@@ -104,11 +104,10 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static void UartSlaveUnitTxIrqCallback(void);
-static void UartSlaveUnitTcIrqCallback(void);
-static void UartSlaveUnitRxIrqCallback(void);
-static void UartSlaveUnitErrIrqCallback(void);
+static void USART_TxEmpty_IrqCallback(void);
+static void USART_TxComplete_IrqCallback(void);
+static void USART_Rx_IrqCallback(void);
+static void USART_RxErr_IrqCallback(void);
 static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
                                     uint32_t u32Priority);
 
@@ -122,29 +121,11 @@ static uint8_t m_u8UartSlaveRxData = 0u;
  ******************************************************************************/
 
 /**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Initialize XTAL clock */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
-}
-
-/**
  * @brief  UART slave unit TX Complete IRQ callback.
  * @param  None.
  * @retval None
  */
-static void UartSlaveUnitTxIrqCallback(void)
+static void USART_TxEmpty_IrqCallback(void)
 {
     en_flag_status_t enFlag = USART_GetFlag(USART_SLAVE_UNIT, USART_FLAG_TXE);
     en_functional_state_t enState = USART_GetFuncState(USART_SLAVE_UNIT, USART_INT_TXE);
@@ -164,7 +145,7 @@ static void UartSlaveUnitTxIrqCallback(void)
  * @param  None.
  * @retval None
  */
-static void UartSlaveUnitTcIrqCallback(void)
+static void USART_TxComplete_IrqCallback(void)
 {
     en_flag_status_t enFlag = USART_GetFlag(USART_SLAVE_UNIT, USART_FLAG_TC);
     en_functional_state_t enState = USART_GetFuncState(USART_SLAVE_UNIT, USART_INT_TC);
@@ -182,7 +163,7 @@ static void UartSlaveUnitTcIrqCallback(void)
  * @param  None
  * @retval None
  */
-static void UartSlaveUnitRxIrqCallback(void)
+static void USART_Rx_IrqCallback(void)
 {
     en_flag_status_t enFlag = USART_GetFlag(USART_SLAVE_UNIT, USART_FLAG_RXNE);
     en_functional_state_t enState = USART_GetFuncState(USART_SLAVE_UNIT, USART_INT_RX);
@@ -202,7 +183,7 @@ static void UartSlaveUnitRxIrqCallback(void)
  * @param  None
  * @retval None
  */
-static void UartSlaveUnitErrIrqCallback(void)
+static void USART_RxErr_IrqCallback(void)
 {
     if (Set == USART_GetFlag(USART_SLAVE_UNIT, (USART_FLAG_PE | USART_FLAG_FE | USART_FLAG_ORE)))
     {
@@ -248,8 +229,11 @@ int32_t main(void)
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
+                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
+                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Configure USART TX pin. */
     GPIO_SetFunc(USART_SLAVE_TX_PORT, USART_SLAVE_TX_PIN, USART_SLAVE_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
@@ -263,25 +247,25 @@ int32_t main(void)
     /* Register RX IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = USART_SLAVE_UNIT_RX_IRQn;
     stcIrqSigninCfg.enIntSrc = USART_SLAVE_UNIT_RX_INT;
-    stcIrqSigninCfg.pfnCallback = &UartSlaveUnitRxIrqCallback;
+    stcIrqSigninCfg.pfnCallback = &USART_Rx_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register RX error IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = USART_SLAVE_UNIT_ERR_IRQn;
     stcIrqSigninCfg.enIntSrc = USART_SLAVE_UNIT_ERR_INT;
-    stcIrqSigninCfg.pfnCallback = &UartSlaveUnitErrIrqCallback;
+    stcIrqSigninCfg.pfnCallback = &USART_RxErr_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register TX IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = USART_SLAVE_UNIT_TX_IRQn;
     stcIrqSigninCfg.enIntSrc = USART_SLAVE_UNIT_TX_INT;
-    stcIrqSigninCfg.pfnCallback = &UartSlaveUnitTxIrqCallback;
+    stcIrqSigninCfg.pfnCallback = &USART_TxEmpty_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register TC IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = USART_SLAVE_UNIT_TCI_IRQn;
     stcIrqSigninCfg.enIntSrc = USART_SLAVE_UNIT_TCI_INT;
-    stcIrqSigninCfg.pfnCallback = &UartSlaveUnitTcIrqCallback;
+    stcIrqSigninCfg.pfnCallback = &USART_TxComplete_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Enable RX function && RX interrupt function */

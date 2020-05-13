@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------/
-/  Low level disk interface modlue include file   (C)ChaN, 2019          /
+/  Low level disk interface module include file   (C)ChaN, 2019          /
 /-----------------------------------------------------------------------*/
 
 #ifndef _DISKIO_DEFINED
@@ -31,6 +31,7 @@ DSTATUS disk_status (BYTE pdrv);
 DRESULT disk_read (BYTE pdrv, BYTE* buff, LBA_t sector, UINT count);
 DRESULT disk_write (BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count);
 DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);
+DWORD get_fattime (void);
 
 
 /* Disk Status Bits (DSTATUS) */

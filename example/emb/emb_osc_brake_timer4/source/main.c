@@ -69,38 +69,18 @@
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
-/**
- * @brief Key state definition
- */
-typedef enum
-{
-    KeyIdle,
-    KeyRelease,
-} en_key_state_t;
-
-/**
- * @brief Key instance structure definition
- */
-typedef struct
-{
-    uint8_t u8Port;                     /*!< GPIO_PORT_x: x can be (0~7, 12~14) to select the GPIO peripheral */
-
-    uint8_t u8Pin;                      /*!< GPIO_PIN_x: x can be (0~7) to select the PIN index */
-
-    en_pin_state_t enPressPinState;     /*!< Pin level state when key is pressed */
-} stc_key_t;
 
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/* Key definition */
+#define USER_KEY                        (BSP_KEY_1)
+
 /* EMB unit & fcg & interrupt number definition */
 #define EMB_UNIT                        (M4_EMB4)
 #define EMB_FUNCTION_CLK_GATE           (PWC_FCG2_EMB)
-#define EMB_IRQn                        (INT_EMB_GR4)
-
-/* Key Port/Pin definition */
-#define KEY_PORT                        (GPIO_PORT_A)
-#define KEY_PIN                         (GPIO_PIN_01)
+#define EMB_INT_SRC                     (INT_EMB_GR4)
+#define EMB_INT_IRQn                    (Int000_IRQn)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -109,8 +89,7 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey);
+static void XTALClockConfig(void);
 static uint32_t Tmr4PclkFreq(void);
 static void Timer4PwmConfig(void);
 static void EMB_IrqCallback(void);
@@ -123,63 +102,29 @@ static void EMB_IrqCallback(void);
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @brief  Configure system clock
+ * @brief  Configure XTAL clock
  * @param  None
  * @retval None
  */
-static void SystemClockConfig(void)
+static void XTALClockConfig(void)
 {
-//    stc_clk_xtal_init_t    stcXtalInit;
-//    stc_clk_xtalstd_init_t stcXtalstdInit;
-//
-//    /* Configure the system clock to HRC32MHz. */
-//    CLK_HRCInit(CLK_HRC_ON, CLK_HRCFREQ_32);
-//
-//    /* Config XTAL and Enable */
-//    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-//    stcXtalInit.u8XtalMode = CLK_XTALMODE_OSC;
-//    stcXtalInit.u8XtalDrv = CLK_XTALDRV_HIGH;
-//    stcXtalInit.u8XtalSupDrv = CLK_XTAL_SUPDRV_OFF;
-//    stcXtalInit.u8XtalStb = CLK_XTALSTB_8;
-//    CLK_XtalInit(&stcXtalInit);
-//
-//    /* Enable xtal fault dectect and occur reset. */
-//    stcXtalstdInit.u8XtalStdState = CLK_XTALSTD_ON;
-//    stcXtalstdInit.u8XtalStdMode = CLK_XTALSTD_MODE_INT;
-//    stcXtalstdInit.u8XtalStdInt = CLK_XTALSTD_INT_ON;
-//    stcXtalstdInit.u8XtalStdRst = CLK_XTALSTD_RST_OFF;
-//    CLK_XTALStdInit(&stcXtalstdInit);
-    #warning "todo"
-}
+    stc_clk_xtal_init_t stcXtalInit;
+    stc_clk_xtalstd_init_t stcXtalstdInit;
 
-/**
- * @brief  Get key state
- * @param  [in] pstcKey    Pointer to stc_key_t structure
- * @retval An en_result_t enumeration value:
- *           - KeyIdle: Key isn't pressed
- *           - KeyRelease: Released after key is pressed
- */
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey)
-{
-    en_key_state_t enKeyState = KeyIdle;
+    /* Config XTAL and Enable */
+    CLK_XtalStrucInit(&stcXtalInit);
+    stcXtalInit.u8XtalState = CLK_XTAL_ON;
+    stcXtalInit.u8XtalMode = CLK_XTALMODE_OSC;
+    stcXtalInit.u8XtalDrv = CLK_XTALDRV_HIGH;
+    stcXtalInit.u8XtalStb = CLK_XTALSTB_499US;
+    CLK_XtalInit(&stcXtalInit);
 
-    DDL_ASSERT(NULL != pstcKey);
-
-    if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-    {
-        DDL_Delay1ms(20UL);
-
-        if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-        {
-            while (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-            {
-                ;
-            }
-            enKeyState = KeyRelease;
-        }
-    }
-
-    return enKeyState;
+    /* Enable XTAL fault dectect and occur reset. */
+    stcXtalstdInit.u8XtalStdState = CLK_XTALSTD_ON;
+    stcXtalstdInit.u8XtalStdMode = CLK_XTALSTD_MODE_INT;
+    stcXtalstdInit.u8XtalStdInt = CLK_XTALSTD_INT_ON;
+    stcXtalstdInit.u8XtalStdRst = CLK_XTALSTD_RST_OFF;
+    CLK_XtalStdInit(&stcXtalstdInit);
 }
 
 /**
@@ -284,26 +229,15 @@ static void Timer4PwmConfig(void)
  */
 static void EMB_IrqCallback(void)
 {
-    stc_key_t stcKeySw = {
-        .u8Port = KEY_PORT,
-        .u8Pin = KEY_PIN,
-        .enPressPinState = Pin_Reset,
-    };
-
     if (Set == EMB_GetFlag(EMB_UNIT, EMB_FLAG_OSC))
     {
-        while (KeyRelease != KeyGetState(&stcKeySw))
+        /* Wait key release */
+        while (Reset == BSP_KEY_GetStatus(USER_KEY))
         {
-            ;
-        }
-
-        while (Set == EMB_GetStatus(EMB_UNIT, EMB_STATE_OSC))
-        {
-            ;
         }
 
         CLK_ClearXtalStdFlag();
-        EMB_ClearFlag(EMB_UNIT, EMB_FLAG_OSC);  /* Clear OSC Brake */
+        EMB_ClearFlag(EMB_UNIT, EMB_FLAG_OSC);  /* Clear OSC Brake flag */
     }
 }
 
@@ -317,8 +251,17 @@ int32_t main(void)
     stc_emb_tmr4_init_t stcEmbInit;
     stc_irq_signin_config_t stcIrqSigninCfg;
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+
+    /* Initialize IO. */
+    BSP_IO_Init();
+
+    /* Initialize key. */
+    BSP_KEY_Init();
+
+    /* Configure XTAL clock. */
+    XTALClockConfig();
 
     /* Configure Timer4 PWM. */
     Timer4PwmConfig();
@@ -328,12 +271,13 @@ int32_t main(void)
     EMB_Timer4StructInit(&stcEmbInit);
     stcEmbInit.u32Osc = EMB_OSC_ENABLE;
     EMB_Timer4Init(EMB_UNIT, &stcEmbInit);
+
     EMB_IntCmd(EMB_UNIT, EMB_INT_OSC, Enable);
     EMB_SetReleasePwmMode(EMB_UNIT, EMB_EVENT_OSC, EMB_RELEALSE_PWM_SEL_FLAG_ZERO);
 
     /* Register IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = Int000_IRQn;
-    stcIrqSigninCfg.enIntSrc = EMB_IRQn;
+    stcIrqSigninCfg.enIRQn = EMB_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = EMB_INT_SRC;
     stcIrqSigninCfg.pfnCallback = &EMB_IrqCallback;
     INTC_IrqSignIn(&stcIrqSigninCfg);
     NVIC_ClearPendingIRQ(stcIrqSigninCfg.enIRQn);

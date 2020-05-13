@@ -436,32 +436,7 @@ typedef struct
  * @defgroup EXMC_NFC_ECC_Value_Bytes EXMC NFC ECC Value Bytes
  * @{
  */
-#define EXMC_NFC_1BIT_ECC_VALUE_BYTES           ((uint32_t)0x03UL)
-#define EXMC_NFC_4BIT_ECC_VALUE_3BYTES          ((uint32_t)0x03UL)
-/**
- * @}
- */
-
-/**
- * @defgroup EXMC_NFC_1Bit_ECC_Register_Index EXMC NFC 1Bit ECC Register Index
- * @{
- */
-#define EXMC_NFC_ECCR0                          ((uint32_t)0UL)
-#define EXMC_NFC_ECCR1                          ((uint32_t)1UL)
-#define EXMC_NFC_ECCR2                          ((uint32_t)2UL)
-#define EXMC_NFC_ECCR3                          ((uint32_t)3UL)
-#define EXMC_NFC_ECCR4                          ((uint32_t)4UL)
-#define EXMC_NFC_ECCR5                          ((uint32_t)5UL)
-#define EXMC_NFC_ECCR6                          ((uint32_t)6UL)
-#define EXMC_NFC_ECCR7                          ((uint32_t)7UL)
-#define EXMC_NFC_ECCR8                          ((uint32_t)8UL)
-#define EXMC_NFC_ECCR9                          ((uint32_t)9UL)
-#define EXMC_NFC_ECCR10                         ((uint32_t)10UL)
-#define EXMC_NFC_ECCR11                         ((uint32_t)11UL)
-#define EXMC_NFC_ECCR12                         ((uint32_t)12UL)
-#define EXMC_NFC_ECCR13                         ((uint32_t)13UL)
-#define EXMC_NFC_ECCR14                         ((uint32_t)14UL)
-#define EXMC_NFC_ECCR15                         ((uint32_t)15UL)
+#define EXMC_NFC_1BIT_ECC_VALUE_BYTES           ((uint32_t)0x04UL)
 /**
  * @}
  */
@@ -472,7 +447,41 @@ typedef struct
  */
 #define EXMC_NFC_1BIT_ECC_SINGLE_BIT_ERR        (NFC_ECCR0_SE)
 #define EXMC_NFC_1BIT_ECC_MULTIPLE_BITS_ERR     (NFC_ECCR0_ME)
-#define EXMC_NFC_1BIT_ECC_ERRLOC                (NFC_ECCR0_ERRLOC)
+#define EXMC_NFC_1BIT_ECC_ERR_LOCATION          (NFC_ECCR0_ERRLOC)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup EXMC_NFC_1Bit_ECC_Error_Location_Position EXMC NFC 1Bit ECC Error Location Position
+ * @{
+ */
+#define EXMC_NFC_1BIT_ECC_ERR_BIT_POS           (NFC_ECCR0_ERRLOC_POS)
+#define EXMC_NFC_1BIT_ECC_ERR_BYTE_POS          (NFC_ECCR0_ERRLOC_POS + 3UL)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup EXMC_NFC_ECC_Section EXMC NFC ECC Section
+ * @{
+ */
+#define EXMC_NFC_ECC_SECTION0                   ((uint32_t)0UL)
+#define EXMC_NFC_ECC_SECTION1                   ((uint32_t)1UL)
+#define EXMC_NFC_ECC_SECTION2                   ((uint32_t)2UL)
+#define EXMC_NFC_ECC_SECTION3                   ((uint32_t)3UL)
+#define EXMC_NFC_ECC_SECTION4                   ((uint32_t)4UL)
+#define EXMC_NFC_ECC_SECTION5                   ((uint32_t)5UL)
+#define EXMC_NFC_ECC_SECTION6                   ((uint32_t)6UL)
+#define EXMC_NFC_ECC_SECTION7                   ((uint32_t)7UL)
+#define EXMC_NFC_ECC_SECTION8                   ((uint32_t)8UL)
+#define EXMC_NFC_ECC_SECTION9                   ((uint32_t)9UL)
+#define EXMC_NFC_ECC_SECTION10                  ((uint32_t)10UL)
+#define EXMC_NFC_ECC_SECTION11                  ((uint32_t)11UL)
+#define EXMC_NFC_ECC_SECTION12                  ((uint32_t)12UL)
+#define EXMC_NFC_ECC_SECTION13                  ((uint32_t)13UL)
+#define EXMC_NFC_ECC_SECTION14                  ((uint32_t)14UL)
+#define EXMC_NFC_ECC_SECTION15                  ((uint32_t)15UL)
 /**
  * @}
  */
@@ -562,6 +571,16 @@ __STATIC_INLINE void EXMC_NFC_WriteIDXR1(uint32_t u32Val)
 __STATIC_INLINE void EXMC_NFC_DeselectChip(void)
 {
     WRITE_REG32(M4_NFC->CMDR, EXMC_NFC_CMD_DESELECT_CHIP);
+}
+
+/**
+ * @brief  Set NFC spare area size.
+ * @param  [in] u32SpareAreaSize              NFC spare area size
+ * @retval None
+ */
+__STATIC_INLINE void EXMC_NFC_SetSpareAreaSize(uint32_t u32SpareAreaSize)
+{
+    MODIFY_REG32(M4_NFC ->BACR, NFC_BACR_SCS, ((u32SpareAreaSize << NFC_BACR_SCS_POS) & NFC_BACR_SCS));
 }
 
 /**
@@ -663,29 +682,13 @@ __STATIC_INLINE void EXMC_NFC_ClearFlag(uint32_t u32Flag)
 }
 
 /**
- * @brief  Get the 1BIT ECC register valule.
- * @param  [in] u32Flag                 The specified flag
- *   @arg EXMC_NFC_ECCR0: ECC register 0
- *   @arg EXMC_NFC_ECCR1: ECC register 1
- *   @arg EXMC_NFC_ECCR2: ECC register 2
- *   @arg EXMC_NFC_ECCR3: ECC register 3
- *   @arg EXMC_NFC_ECCR4: ECC register 4
- *   @arg EXMC_NFC_ECCR5: ECC register 5
- *   @arg EXMC_NFC_ECCR6: ECC register 6
- *   @arg EXMC_NFC_ECCR7: ECC register 7
- *   @arg EXMC_NFC_ECCR8: ECC register 8
- *   @arg EXMC_NFC_ECCR9: ECC register 9
- *   @arg EXMC_NFC_ECCR10: ECC register 10
- *   @arg EXMC_NFC_ECCR11: ECC register 11
- *   @arg EXMC_NFC_ECCR12: ECC register 12
- *   @arg EXMC_NFC_ECCR13: ECC register 13
- *   @arg EXMC_NFC_ECCR14: ECC register 14
- *   @arg EXMC_NFC_ECCR15: ECC register 15
+ * @brief  Get the 4BIT ECC error sectoin.
+ * @param  None
  * @retval The register value
  */
-__STATIC_INLINE uint32_t EXMC_NFC_GetEccReg(uint32_t u32EccReg)
+__STATIC_INLINE uint32_t EXMC_NFC_GetEcc4BitsErrSection(void)
 {
-    return READ_REG32(*(__IO uint32_t *)((uint32_t)(&M4_NFC->ECCR0) + u32EccReg * 4UL));
+    return READ_REG32(M4_NFC->ECC_STAT);
 }
 
 /* Initialization and configuration EXMC NFC functions */
@@ -694,9 +697,10 @@ en_result_t EXMC_NFC_DeInit(void);
 en_result_t EXMC_NFC_StructInit(stc_exmc_nfc_init_t *pstcInit);
 void EXMC_NFC_IntCmd(uint16_t u16IntSource, en_functional_state_t enNewState);
 en_flag_status_t EXMC_NFC_GetFlag(uint32_t u32Flag);
+uint32_t EXMC_NFC_GetEcc1BitResult(uint32_t u32Section);
+en_result_t EXMC_NFC_GetSyndrome(uint32_t u32Section, uint16_t au16Synd[]);
 
 /* EXMC NFC command functions */
-
 uint32_t EXMC_NFC_ReadStatus(uint32_t u32Bank);
 uint32_t EXMC_NFC_ReadStatusEnhanced(uint32_t u32Bank,
                                             uint32_t u32RowAddress);

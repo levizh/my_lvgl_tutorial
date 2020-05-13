@@ -204,7 +204,7 @@
 (   ((x) == CAN_TTC_TRIG_IMMED)                 ||                             \
     ((x) == CAN_TTC_TRIG_TIME)                  ||                             \
     ((x) == CAN_TTC_TRIG_SSHOT_TRANS)           ||                             \
-    ((x) == CAN_TTC_TRIG_TRANS_STRT)            ||                             \
+    ((x) == CAN_TTC_TRIG_TRANS_START)           ||                             \
     ((x) == CAN_TTC_TRIG_TRANS_STOP))
 
 #define IS_TTC_TB_STATE(x)                                                     \
@@ -308,9 +308,9 @@ en_result_t CAN_Init(M4_CAN_TypeDef *CANx, const stc_can_init_t *pstcInit)
 }
 
 /**
- * @brief  Set a default value for the CAN initialization structure. \
+ * @brief  Set a default value for CAN initialization structure. \
  *         Based on 40MHz CAN clock, TQ clock is CAN clock divided by 4. \
- *         Bit rate 500Kbps, 1 bit time is 20TQs, sample point is 75%.
+ *         Bit rate 500Kbps, 1 bit time is 20TQs, sample point is 80%.
  * @param  [in]  pstcInit               Pointer to a stc_can_init_t structure value that
  *                                      contains the configuration information for the CAN unit.
  * @retval An en_result_t enumeration type value.
@@ -333,7 +333,18 @@ en_result_t CAN_StructInit(stc_can_init_t *pstcInit)
         pstcInit->u8RBOvfOp      = CAN_RB_OVF_DISCARD_NEW;
         pstcInit->u8SelfACKCmd   = CAN_SELF_ACK_DISABLE;
 
-        pstcInit->stcSBT.u32SEG1 = 16U;
+        /*
+         * Synchronization Segment(SS): Fixed as 1TQ
+         * Propagation Time Segment(PTS) and Phase Buffer Segment 1(PBS1): 15TQs
+         * Phase Buffer Segment 2(PBS2): 4TQs
+         *
+         * Field 'S_SEG_1' in register CAN_SBT contains SS, PTS and PBS1.
+         * Field 'S_SEG_2' in register CAN_SBT only contains PBS2.
+         * Sample point = (SS + PTS + PBS1) / (SS + PTS + PBS1 + PBS2)
+         *              = (1 + 15) / (1 + 15 + 4)
+         *              = 80%.
+         */
+        pstcInit->stcSBT.u32SEG1 = 1U + 15U;
         pstcInit->stcSBT.u32SEG2 = 4U;
         pstcInit->stcSBT.u32SJW  = 1U;
         pstcInit->stcSBT.u32Prescaler = 4U;
@@ -1997,7 +2008,7 @@ uint8_t CAN_TTC_GetTransTrigTBS(const M4_CAN_TypeDef *CANx)
  *   @arg  CAN_TTC_TRIG_IMMED:          Immediate trigger for immediate transmission.
  *   @arg  CAN_TTC_TRIG_TIME:           Time trigger for receive triggers.
  *   @arg  CAN_TTC_TRIG_SSHOT_TRANS:    Single shot transmit trigger for exclusive time windows.
- *   @arg  CAN_TTC_TRIG_TRANS_STRT:     Transmit start trigger for merged arbitrating time windows.
+ *   @arg  CAN_TTC_TRIG_TRANS_START:    Transmit start trigger for merged arbitrating time windows.
  *   @arg  CAN_TTC_TRIG_TRANS_STOP:     Transmit stop trigger for merged arbitrating time windows.
  * @retval An en_result_t enumeration type value.
  *   @arg Ok:                           No error occurred.
@@ -2028,7 +2039,7 @@ en_result_t CAN_TTC_SetTrigType(M4_CAN_TypeDef *CANx, uint16_t u16TrigType)
  *   @arg  CAN_TTC_TRIG_IMMED:          Immediate trigger for immediate transmission.
  *   @arg  CAN_TTC_TRIG_TIME:           Time trigger for receive triggers.
  *   @arg  CAN_TTC_TRIG_SSHOT_TRANS:    Single shot transmit trigger for exclusive time windows.
- *   @arg  CAN_TTC_TRIG_TRANS_STRT:     Transmit start trigger for merged arbitrating time windows.
+ *   @arg  CAN_TTC_TRIG_TRANS_START:    Transmit start trigger for merged arbitrating time windows.
  *   @arg  CAN_TTC_TRIG_TRANS_STOP:     Transmit stop trigger for merged arbitrating time windows.
  *   @arg  0xFFFF:                      Invalid value if CANx == NULL.
  */
@@ -2303,9 +2314,9 @@ en_result_t CAN_ReceiveData(M4_CAN_TypeDef *CANx, stc_can_rx_t *pstcRx, uint32_t
     }
     else
     {
-        u32RBAddr = (uint32_t)&CANx->RBUF;
         while ((CANx->RCTRL & CAN_RCTRL_RSTAT) != CAN_RB_STAT_EMPTY)
         {
+            u32RBAddr = (uint32_t)&CANx->RBUF;
             pstcRx[u32FrameCnt].u32ID   = RW_MEM32(u32RBAddr);
             pstcRx[u32FrameCnt].u32Ctrl = RW_MEM32(u32RBAddr + 4U);
 

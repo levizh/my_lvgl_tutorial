@@ -71,45 +71,12 @@
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
-/**
- * @brief Key state definition
- */
-typedef enum
-{
-    KeyIdle,
-    KeyRelease,
-} en_key_state_t;
-
-/**
- * @brief Key instance structure definition
- */
-typedef struct
-{
-    uint8_t u8Port;                     /*!< GPIO_PORT_x: x can be (0~7, 12~14) to select the GPIO peripheral */
-
-    uint8_t u8Pin;                      /*!< GPIO_PIN_x: x can be (0~7) to select the PIN index */
-
-    en_pin_state_t enPressPinState;     /*!< Pin level state when key is pressed */
-} stc_key_t;
 
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* Key Port/Pin definition */
-#define KEY_PORT                        (GPIO_PORT_A)
-#define KEY_PIN                         (GPIO_PIN_00)
-
-/* Red LED Port/Pin definition */
-#define LED_R_PORT                      (GPIO_PORT_A)
-#define LED_R_PIN                       (GPIO_PIN_00)
-#define LED_R_ON()                      (GPIO_ResetPins(LED_R_PORT, LED_R_PIN))
-#define LED_R_OFF()                     (GPIO_SetPins(LED_R_PORT, LED_R_PIN))
-
-/* Green LED Port/Pin definition */
-#define LED_G_PORT                      (GPIO_PORT_B)
-#define LED_G_PIN                       (GPIO_PIN_00)
-#define LED_G_OFF()                     (GPIO_SetPins(LED_G_PORT, LED_G_PIN))
-#define LED_G_TOGGLE()                  (GPIO_TogglePins(LED_G_PORT, LED_G_PIN))
+/* Key definition */
+#define USER_KEY                        (BSP_KEY_1)
 
 /* UART TX Port/Pin definition */
 #define USART_MASTER_TX_PORT            (GPIO_PORT_E)   /* PE6: USART6_TX */
@@ -140,13 +107,10 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static void LedConfig(void);
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey);
-static void UartMasterUnitTxIrqCallback(void);
-static void UartMasterUnitTcIrqCallback(void);
-static void UartMasterUnitRxIrqCallback(void);
-static void UartMasterUnitErrIrqCallback(void);
+static void USART_TxEmpty_IrqCallback(void);
+static void USART_TxComplete_IrqCallback(void);
+static void USART_Rx_IrqCallback(void);
+static void USART_RxErr_IrqCallback(void);
 static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
                                     uint32_t u32Priority);
 
@@ -162,76 +126,11 @@ static __IO int32_t m_i32UartMasterRxFlag;
  ******************************************************************************/
 
 /**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Initialize XTAL clock */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
-}
-
-/**
- * @brief  Configure RGB LED.
- * @param  None
- * @retval None
- */
-static void LedConfig(void)
-{
-    stc_gpio_init_t stcGpioInit;
-
-    GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;
-    stcGpioInit.u16PinState = PIN_STATE_SET;
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-}
-
-/**
- * @brief  Get key state.
- * @param  [in] pstcKey    Pointer to stc_key_t structure
- * @retval An en_result_t enumeration value:
- *           - KeyIdle: Key isn't pressed.
- *           - KeyRelease: Released after key is pressed.
- */
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey)
-{
-    en_key_state_t enKeyState = KeyIdle;
-
-    if (NULL != pstcKey)
-    {
-        if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-        {
-            DDL_Delay1ms(20UL);
-
-            if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-            {
-                while (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-                {
-                    ;
-                }
-                enKeyState = KeyRelease;
-            }
-        }
-    }
-
-    return enKeyState;
-}
-
-/**
  * @brief  UART master unit TX IRQ callback.
  * @param  None
  * @retval None
  */
-static void UartMasterUnitTxIrqCallback(void)
+static void USART_TxEmpty_IrqCallback(void)
 {
     en_flag_status_t enFlag = USART_GetFlag(USART_MASTER_UNIT, USART_FLAG_TXE);
     en_functional_state_t enState = USART_GetFuncState(USART_MASTER_UNIT, USART_INT_TXE);
@@ -251,7 +150,7 @@ static void UartMasterUnitTxIrqCallback(void)
  * @param  None
  * @retval None
  */
-static void UartMasterUnitTcIrqCallback(void)
+static void USART_TxComplete_IrqCallback(void)
 {
     en_flag_status_t enFlag = USART_GetFlag(USART_MASTER_UNIT, USART_FLAG_TC);
     en_functional_state_t enState = USART_GetFuncState(USART_MASTER_UNIT, USART_INT_TC);
@@ -269,7 +168,7 @@ static void UartMasterUnitTcIrqCallback(void)
  * @param  None
  * @retval None
  */
-static void UartMasterUnitRxIrqCallback(void)
+static void USART_Rx_IrqCallback(void)
 {
     en_flag_status_t enFlag = USART_GetFlag(USART_MASTER_UNIT, USART_FLAG_RXNE);
     en_functional_state_t enState = USART_GetFuncState(USART_MASTER_UNIT, USART_INT_RX);
@@ -289,7 +188,7 @@ static void UartMasterUnitRxIrqCallback(void)
  * @param  None
  * @retval None
  */
-static void UartMasterUnitErrIrqCallback(void)
+static void USART_RxErr_IrqCallback(void)
 {
     if (Set == USART_GetFlag(USART_MASTER_UNIT, (USART_FLAG_PE | USART_FLAG_FE | USART_FLAG_ORE)))
     {
@@ -323,11 +222,6 @@ static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
 int32_t main(void)
 {
     stc_irq_signin_config_t stcIrqSigninCfg;
-    stc_key_t stcKeySw = {
-        .u8Port = KEY_PORT,
-        .u8Pin = KEY_PIN,
-        .enPressPinState = Pin_Reset,
-    };
     const stc_usart_uart_init_t stcUartInit = {
         .u32Baudrate = 19200UL,
         .u32BitDirection = USART_LSB,
@@ -340,14 +234,23 @@ int32_t main(void)
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
+                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
+                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Initialize UART for debug print function. */
-    DDL_UartInit();
+    DDL_PrintfInit();
 
-    /* Configure LED. */
-    LedConfig();
+    /* Initialize IO. */
+    BSP_IO_Init();
+
+    /* Initialize LED. */
+    BSP_LED_Init();
+
+    /* Initialize key. */
+    BSP_KEY_Init();
 
     /* Configure USART TX pin. */
     GPIO_SetFunc(USART_MASTER_TX_PORT, USART_MASTER_TX_PIN, USART_MASTER_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
@@ -361,33 +264,32 @@ int32_t main(void)
     /* Register RX IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = USART_MASTER_UNIT_RX_IRQn;
     stcIrqSigninCfg.enIntSrc = USART_MASTER_UNIT_RX_INT;
-    stcIrqSigninCfg.pfnCallback = &UartMasterUnitRxIrqCallback;
+    stcIrqSigninCfg.pfnCallback = &USART_Rx_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register RX error IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = USART_MASTER_UNIT_ERR_IRQn;
     stcIrqSigninCfg.enIntSrc = USART_MASTER_UNIT_ERR_INT;
-    stcIrqSigninCfg.pfnCallback = &UartMasterUnitErrIrqCallback;
+    stcIrqSigninCfg.pfnCallback = &USART_RxErr_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register TX IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = USART_MASTER_UNIT_TX_IRQn;
     stcIrqSigninCfg.enIntSrc = USART_MASTER_UNIT_TX_INT;
-    stcIrqSigninCfg.pfnCallback = &UartMasterUnitTxIrqCallback;
+    stcIrqSigninCfg.pfnCallback = &USART_TxEmpty_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register TC IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = USART_MASTER_UNIT_TCI_IRQn;
     stcIrqSigninCfg.enIntSrc = USART_MASTER_UNIT_TCI_INT;
-    stcIrqSigninCfg.pfnCallback = &UartMasterUnitTcIrqCallback;
+    stcIrqSigninCfg.pfnCallback = &USART_TxComplete_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     while (1)
     {
         /* Wait key release */
-        while (KeyRelease !=  KeyGetState(&stcKeySw))
+        while (Reset == BSP_KEY_GetStatus(USER_KEY))
         {
-            ;
         }
 
         /* Master unit send data */
@@ -396,18 +298,17 @@ int32_t main(void)
         /* Master unit receive data */
         while (Reset == m_i32UartMasterRxFlag)    /* Wait Master unit Rx data */
         {
-            ;
         }
 
         if (m_u8UartMasterRxData == m_u8UartMasterTxData)
         {
-            LED_G_TOGGLE();
-            LED_R_OFF();
+            BSP_LED_Off(LED_RED);
+            BSP_LED_Toggle(LED_BLUE);
         }
         else
         {
-            LED_G_OFF();
-            LED_R_ON();
+            BSP_LED_On(LED_RED);
+            BSP_LED_Off(LED_BLUE);
         }
 
         printf("Master send:%d; master receive:%d \r\n", m_u8UartMasterTxData, m_u8UartMasterRxData);

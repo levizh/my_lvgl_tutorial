@@ -73,17 +73,61 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 
-#define APP_CAN_UNIT                    (M4_CAN1)
-#define APP_CAN_PERIP_CLK               (PWC_FCG1_CAN1)
+/* Unit definition of CAN in this example. */
+#define APP_CAN_SEL_U1                      (1U)
+#define APP_CAN_SEL_U2                      (2U)
 
-#define APP_CAN_TX_PORT                 (GPIO_PORT_D)
-#define APP_CAN_TX_PIN                  (GPIO_PIN_05)
-#define APP_CAN_TX_PIN_FUNC             (GPIO_FUNC_60_CAN1_TX)
+/* Select one unit. */
+#define APP_CAN_SEL                         (APP_CAN_SEL_U2)
 
-#define APP_CAN_RX_PORT                 (GPIO_PORT_D)
-#define APP_CAN_RX_PIN                  (GPIO_PIN_04)
-#define APP_CAN_RX_PIN_FUNC             (GPIO_FUNC_61_CAN1_RX)
+/* Definitions according to 'APP_CAN'. */
+#if (APP_CAN_SEL == APP_CAN_SEL_U1)
+    #define APP_CAN_UNIT                    (M4_CAN1)
+    #define APP_CAN_PERIP_CLK               (PWC_FCG1_CAN1)
 
+    #define APP_CAN_TX_PORT                 (GPIO_PORT_D)
+    #define APP_CAN_TX_PIN                  (GPIO_PIN_05)
+    #define APP_CAN_TX_PIN_FUNC             (GPIO_FUNC_60_CAN1_TX)
+
+    #define APP_CAN_RX_PORT                 (GPIO_PORT_D)
+    #define APP_CAN_RX_PIN                  (GPIO_PIN_04)
+    #define APP_CAN_RX_PIN_FUNC             (GPIO_FUNC_61_CAN1_RX)
+
+    #define APP_CAN_CLK_CH                  (CLK_CAN_CH1)
+    #define APP_CAN_CLK_DIV                 (CLK_CAN1_CLK_MCLK_DIV3)
+
+#elif (APP_CAN_SEL == APP_CAN_SEL_U2)
+    #define APP_CAN_UNIT                    (M4_CAN2)
+    #define APP_CAN_PERIP_CLK               (PWC_FCG1_CAN2)
+
+    #define APP_CAN_TX_PORT                 (GPIO_PORT_D)
+    #define APP_CAN_TX_PIN                  (GPIO_PIN_07)
+    #define APP_CAN_TX_PIN_FUNC             (GPIO_FUNC_62_CAN2_TX)
+
+    #define APP_CAN_RX_PORT                 (GPIO_PORT_D)
+    #define APP_CAN_RX_PIN                  (GPIO_PIN_06)
+    #define APP_CAN_RX_PIN_FUNC             (GPIO_FUNC_63_CAN2_RX)
+
+    #define APP_CAN_CLK_CH                  (CLK_CAN_CH2)
+    #define APP_CAN_CLK_DIV                 (CLK_CAN2_CLK_MCLK_DIV3)
+#else
+    #error "The unit is NOT supported!!!"
+#endif
+
+/* Acceptance filter. */
+#define APP_CAN_AF_SEL                      (CAN_AF1 | CAN_AF2 | CAN_AF3)
+
+#define APP_CAN_AF1_ID                      (0xA1)
+#define APP_CAN_AF1_ID_MSK                  (0x00)                  /* Only accept messages with ID '1010 0001'. */
+#define APP_CAN_AF1_MSK_TYPE                (CAN_AF_MSK_STD)        /* Only accept standard ID. */
+
+#define APP_CAN_AF2_ID                      (0xB2)
+#define APP_CAN_AF2_ID_MSK                  (0xB0)                  /* Accept messages with ID 'x0xx 0010'. */
+#define APP_CAN_AF2_MSK_TYPE                (CAN_AF_MSK_EXT)        /* Accept extended ID. */
+
+#define APP_CAN_AF3_ID                      (0xC3)
+#define APP_CAN_AF3_ID_MSK                  (0x03)                  /* Accept messages with ID '1100 00xx'. */
+#define APP_CAN_AF3_MSK_TYPE                (CAN_AF_MSK_STD_EXT)    /* Accept standard ID and extended ID. */
 
 /* Debug printing definition. */
 #if (DDL_PRINT_ENABLE == DDL_ON)
@@ -101,12 +145,20 @@
  ******************************************************************************/
 static void SystemClockConfig(void);
 
-static void CANConfig(void);
-static void CANRegRWTest(void);
+static void CanConfig(void);
+
+static void CanTx(void);
+static void CanRx(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+#if (DDL_PRINT_ENABLE == DDL_ON)
+    const static char *IDTypeStr[] = {
+        "standard",
+        "extended",
+    };
+#endif
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -118,86 +170,100 @@ static void CANRegRWTest(void);
  */
 int32_t main(void)
 {
-    uint32_t i = 0;
-    uint32_t u32RxCnt = 0;
-    stc_can_tx_t stcTxPkg;
-    stc_can_rx_t stcRxPkg;
-    uint8_t au8TxPayload[8U];
-    uint8_t au8RxPayload[8U];
-
-    /* . */
+    /* Configures the system clock as 120MHz. */
     SystemClockConfig();
 
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
-    DDL_UartInit();
-#endif // #if (DDL_PRINT_ENABLE == DDL_ON)
+    DDL_PrintfInit();
+#endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
 
     /* Configures CAN. */
-    CANConfig();
+    CanConfig();
 
-    DBG("CAN test start......\n");
-    DDL_Delay1ms(10);
-    //DBG("\nCAN test start......");
     /***************** Configuration end, application start **************/
 
-    au8TxPayload[0U] = 0x12;
-    au8TxPayload[1U] = 0x34;
-
-    stcTxPkg.u32Ctrl = 0x0U;
-    stcTxPkg.u32ID   = 0xA1U + i;
-    stcTxPkg.DLC     = 2U;
-    stcTxPkg.IDE     = 1U;
-
-    stcTxPkg.pu8Data = (uint8_t *)&au8TxPayload[0U];
-    stcRxPkg.pu8Data = (uint8_t *)&au8RxPayload[0U];
-
-#if 1
     while (1U)
     {
-        //if (CAN_GetStatus(APP_CAN_UNIT, CAN_FLAG_RX) == Set)
-        {
-            //CAN_ClrStatus(APP_CAN_UNIT, CAN_FLAG_RX);
-            CAN_ReceiveData(APP_CAN_UNIT, &stcRxPkg, &u32RxCnt);
-            if (u32RxCnt > 0U)
-            {
-                DBG("CAN received data:");
-                for (i=0; i<stcRxPkg.DLC; i++)
-                {
-                    DBG(" %.2x.", stcRxPkg.pu8Data[i]);
-                }
-                DBG("\n");
-            }
-        }
+        CanTx();
 
-        /*if (CAN_GetStatus(APP_CAN_UNIT, CAN_FLAG_RB_ALMOST_FULL) == Set)
-        {
-            CAN_ClrStatus(APP_CAN_UNIT, CAN_FLAG_RB_ALMOST_FULL);
-            DBG("\nCAN RB almost full: %d.", i);
-        }*/
+        CanRx();
 
-        /*if (CAN_GetStatus(APP_CAN_UNIT, CAN_FLAG_RB_FIFO_FULL) == Set)
-        {
-            CAN_ClrStatus(APP_CAN_UNIT, CAN_FLAG_RB_FIFO_FULL);
-            DBG("\nCAN RB full: %d.", i);
-        }*/
-    }
-#else
-    while (1U)
-    {
-        stcTxPkg.u32ID = 0xA1U + i;
-
-        CAN_TransData(APP_CAN_UNIT, &stcTxPkg,
-                      CAN_STB, CAN_STB_TRANS_ONE, 1000U);
-        //CAN_ReceiveData(APP_CAN_UNIT, &stcRxPkg, &u32RxCnt);
-        i++;
-        if (i >= 10U)
-        {
-            i = 0U;
-        }
+        /* Delay to transmitting to observe the received data. */
         DDL_Delay1ms(200U);
     }
-#endif
+}
+
+/**
+ * @brief  CAN transmits data.
+ * @param  None
+ * @retval None
+ */
+static void CanTx(void)
+{
+    stc_can_tx_t stcTxPkg;
+    uint8_t au8TxPayload[8U];
+
+    au8TxPayload[1U] = 0x12;
+    au8TxPayload[2U] = 0x34;
+    stcTxPkg.u32Ctrl = 0x0U;
+    stcTxPkg.pu8Data = (uint8_t *)&au8TxPayload[0U];
+    stcTxPkg.DLC     = 3U;
+
+    stcTxPkg.u32ID   = APP_CAN_AF1_ID;
+    /* Standard ID. */
+    stcTxPkg.IDE     = 0U;
+    au8TxPayload[0U] = (uint8_t)stcTxPkg.u32ID;
+    CAN_TransData(APP_CAN_UNIT, &stcTxPkg,
+                  CAN_STB, CAN_STB_TRANS_ONE, 1000U);
+    DBG("CAN transmitted data with %s ID: %.8lx\n", IDTypeStr[stcTxPkg.IDE], stcTxPkg.u32ID);
+
+    stcTxPkg.u32ID   = APP_CAN_AF2_ID;
+    /* Extended ID. */
+    stcTxPkg.IDE     = 1U;
+    au8TxPayload[0U] = (uint8_t)stcTxPkg.u32ID;
+    CAN_TransData(APP_CAN_UNIT, &stcTxPkg,
+                  CAN_STB, CAN_STB_TRANS_ONE, 1000U);
+    DBG("CAN transmitted data with %s ID: %.8lx\n", IDTypeStr[stcTxPkg.IDE], stcTxPkg.u32ID);
+
+    stcTxPkg.u32ID   = APP_CAN_AF3_ID;
+    /* Extended ID. */
+    stcTxPkg.IDE     = 1U;
+    au8TxPayload[0U] = (uint8_t)stcTxPkg.u32ID;
+    CAN_TransData(APP_CAN_UNIT, &stcTxPkg,
+                  CAN_STB, CAN_STB_TRANS_ONE, 1000U);
+    DBG("CAN transmitted data with %s ID: %.8lx\n", IDTypeStr[stcTxPkg.IDE], stcTxPkg.u32ID);
+}
+
+/**
+ * @brief  CAN receives data.
+ * @param  None
+ * @retval None
+ */
+static void CanRx(void)
+{
+    uint32_t i = 0;
+    uint32_t u32RxCnt = 0;
+    uint32_t u32RxFrameCnt = 0;
+    stc_can_rx_t stcRxPkg[3U];
+    uint8_t au8RxPayload1[8U] = {0U};
+    uint8_t au8RxPayload2[8U] = {0U};
+    uint8_t au8RxPayload3[8U] = {0U};
+
+    stcRxPkg[0U].pu8Data = (uint8_t *)&au8RxPayload1[0U];
+    stcRxPkg[1U].pu8Data = (uint8_t *)&au8RxPayload2[0U];
+    stcRxPkg[2U].pu8Data = (uint8_t *)&au8RxPayload3[0U];
+
+    CAN_ReceiveData(APP_CAN_UNIT, &stcRxPkg[0U], &u32RxFrameCnt);
+    for (u32RxCnt=0U; u32RxCnt<u32RxFrameCnt; u32RxCnt++)
+    {
+        DBG("CAN received data with %s ID %.8lx:\n", IDTypeStr[stcRxPkg[u32RxCnt].IDE], stcRxPkg[u32RxCnt].u32ID);
+        for (i=0; i<stcRxPkg[u32RxCnt].DLC; i++)
+        {
+            DBG(" %.2x.", stcRxPkg[u32RxCnt].pu8Data[i]);
+        }
+        DBG("\n");
+    }
 }
 
 /**
@@ -254,30 +320,28 @@ static void SystemClockConfig(void)
 }
 
 /**
- * @brief
- * @param  [in]
- * @param  [out]
+ * @brief  CAN configuration.
+ * @param  None
  * @retval None
  */
-static void CANConfig(void)
+static void CanConfig(void)
 {
     stc_can_init_t stcInit;
     stc_can_af_id_t astcID[] = { \
-        {0xA1U, 0xA0U, CAN_AF_MSK_STD_EXT}, \
-        {0xA2U, 0xA0U, CAN_AF_MSK_STD},     \
-        {0xA3U, 0xF0U, CAN_AF_MSK_EXT},     \
+        {APP_CAN_AF1_ID, APP_CAN_AF1_ID_MSK, APP_CAN_AF1_MSK_TYPE}, \
+        {APP_CAN_AF2_ID, APP_CAN_AF2_ID_MSK, APP_CAN_AF2_MSK_TYPE},     \
+        {APP_CAN_AF3_ID, APP_CAN_AF3_ID_MSK, APP_CAN_AF3_MSK_TYPE},     \
     };
 
     /* CAN clock selection. */
-    CLK_CAN_ClkConfig(CLK_CAN_CH1, CLK_CAN1_CLK_MCLK_DIV3);
+    CLK_CAN_ClkConfig(APP_CAN_CLK_CH, APP_CAN_CLK_DIV);
 
-    /* */
     CAN_StructInit(&stcInit);
-    stcInit.u8WorkMode = CAN_MODE_ELB;
-    stcInit.pstcID = astcID;
+    stcInit.u8WorkMode   = CAN_MODE_ELB;
+    stcInit.pstcID       = astcID;
     stcInit.u8SelfACKCmd = CAN_SELF_ACK_ENABLE;
-    stcInit.u8RBOvfOp = CAN_RB_OVF_SAVE_NEW;
-    stcInit.u16AFSel = CAN_AF1 | CAN_AF2 | CAN_AF3;
+    stcInit.u8RBOvfOp    = CAN_RB_OVF_SAVE_NEW;
+    stcInit.u16AFSel     = APP_CAN_AF_SEL;
 
     GPIO_SetFunc(APP_CAN_TX_PORT, APP_CAN_TX_PIN, \
                  APP_CAN_TX_PIN_FUNC, PIN_SUBFUNC_DISABLE);
@@ -287,107 +351,6 @@ static void CANConfig(void)
     PWC_Fcg1PeriphClockCmd(APP_CAN_PERIP_CLK, Enable);
     CAN_Init(APP_CAN_UNIT, &stcInit);
 }
-
-static void CANRegRWTest(void)
-{
-#define CAN_BASE                            (0x40009000UL)
-#define __BIT_BAND_BASE                     (0x42000000UL)
-#define __PERIP_BASE                        (0x40000000UL)
-#define __REG_OFS(__reg__)                  ((__reg__) - __PERIP_BASE)
-#define __BIT_BAND_ADDR(__reg__, __pos__)   ((__REG_OFS(__reg__) << 5U) + ((uint32_t)(__pos__) << 2U) + __BIT_BAND_BASE)
-#define BIT_BAND(__reg__, __pos__)          (*(__IO uint32_t *)__BIT_BAND_ADDR((__reg__), (__pos__)))
-
-    uint32_t j;
-    uint32_t i;
-    uint32_t u32Size;
-    uint32_t u32Wt;
-
-    typedef struct
-    {
-        char *cRegName;
-        uint8_t u8BitW;
-        uint32_t u32RegAddr;
-        uint32_t u32RegMsk;
-    } stc_can_reg_t;
-
-    stc_can_reg_t astcReg[] = {
-        {"CFG_STAT", 8, CAN_BASE+0xA0, 0x79},
-        {"TCMD", 8, CAN_BASE+0xA1, 0xDF},
-        {"TCTRL", 8, CAN_BASE+0xA2, 0x70},
-        {"RCTRL", 8, CAN_BASE+0xA3, 0xD8},
-        {"RTIE", 8, CAN_BASE+0xA4, 0xFE},
-        {"ERRINT", 8, CAN_BASE+0xA6, 0xBF},
-        {"SBT", 32, CAN_BASE+0xA8, 0x01010101},
-        {"FBT", 32, CAN_BASE+0xAC, 0x01010101},
-        {"TDC", 8, CAN_BASE+0xB1, 0x81},
-        {"EALCAP", 8, CAN_BASE+0xB0, 0x01},
-        {"LIMIT", 8, CAN_BASE+0xA7, 0x11},
-        {"RECNT", 8, CAN_BASE+0xB2, 0x01},
-        {"TECNT", 8, CAN_BASE+0xB3, 0x01},
-        {"ACFCTRL", 8, CAN_BASE+0xB4, 0x20},
-        {"ACFEN", 16, CAN_BASE+0xB6, 0x01},
-        {"ACF", 32, CAN_BASE+0xB8, 0x60000001},
-        {"TBSLOT", 8, CAN_BASE+0xBE, 0xC1},
-        {"TTCFG", 8, CAN_BASE+0xBF, 0xDF},
-        {"REF_MSG", 32, CAN_BASE+0xC0, 0x80000100},
-        {"TRG_CFG", 16, CAN_BASE+0xC4, 0x1101},
-        {"TT_TRIG", 16, CAN_BASE+0xC6, 0x1},
-        {"TT_WTRIG", 16, CAN_BASE+0xC8, 0x1},
-    };
-
-    PWC_Fcg1PeriphClockCmd(APP_CAN_PERIP_CLK, Enable);
-
-    u32Size = ARRAY_SZ(astcReg);
-
-    for (i=0; i<u32Size; i++)
-    {
-        for (j=0; j<astcReg[i].u8BitW; j++)
-        {
-            if (astcReg[i].u32RegMsk & (1UL << j))
-            {
-                CAN_SWReset(APP_CAN_UNIT);
-                u32Wt = BIT_BAND(astcReg[i].u32RegAddr, j) ^ 0x1;
-                BIT_BAND(astcReg[i].u32RegAddr, j) = u32Wt;
-                if (BIT_BAND(astcReg[i].u32RegAddr, j) == u32Wt)
-                {
-                #if 1
-                    CAN_EnterNormalComm(APP_CAN_UNIT);
-                    u32Wt = BIT_BAND(astcReg[i].u32RegAddr, j) ^ 0x1;
-                    BIT_BAND(astcReg[i].u32RegAddr, j) = u32Wt;
-                    if (BIT_BAND(astcReg[i].u32RegAddr, j) == u32Wt)
-                    {
-                        DBG("\n%s[%d], write under NORMAL and RESET mode.", astcReg[i].cRegName, j);
-                    }
-                    else
-                    {
-                        DBG("\n%s[%d], write under RESET mode.", astcReg[i].cRegName, j);
-                    }
-                #else
-                    DBG("\n%s[%d], write under RESET mode.", astcReg[i].cRegName, j);
-                #endif
-                    continue;
-                }
-
-                CAN_EnterNormalComm(APP_CAN_UNIT);
-                u32Wt = BIT_BAND(astcReg[i].u32RegAddr, j) ^ 0x1;
-                BIT_BAND(astcReg[i].u32RegAddr, j) = u32Wt;
-                if (BIT_BAND(astcReg[i].u32RegAddr, j) == u32Wt)
-                {
-                    DBG("\n%s[%d], write under NORMAL mode.", astcReg[i].cRegName, j);
-                    continue;
-                }
-
-                DBG("\n%s[%d], NG.", astcReg[i].cRegName, j);
-            }
-        }
-    }
-}
-
-static void CAN_DETest(void)
-{
-
-}
-
 
 /**
  * @}

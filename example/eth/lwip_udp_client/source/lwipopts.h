@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -103,6 +103,8 @@ a lot of data that needs to be copied, this should be set high. */
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #define PBUF_POOL_BUFSIZE       1524
 
+/* ---------- IPv4 options ---------- */
+#define LWIP_IPV4               1
 
 /* ---------- TCP options ---------- */
 #define LWIP_TCP                1
@@ -204,17 +206,5 @@ The chip allows computing and verifying the IP, UDP, TCP and ICMP checksums by h
  * LWIP_SOCKET==1: Enable Socket API (require to use sockets.c)
  */
 #define LWIP_SOCKET                     0
-
-
-/* ---------- httpd options ---------- */
-/** Set this to 1 to support CGI */
-#define LWIP_HTTPD_CGI                  0
-
-/** Set this to 1 to support SSI (Server-Side-Includes) */
-#define LWIP_HTTPD_SSI                  0
-
-/** Set this to 1 to include "fsdata_custom.c" instead of "fsdata.c" for the
- * file system (to prevent changing the file included in CVS) */
-#define HTTPD_USE_CUSTOM_FSDATA         0
 
 #endif /* __LWIPOPTS_H__ */

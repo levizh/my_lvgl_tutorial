@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -72,40 +72,37 @@ extern "C"
  ******************************************************************************/
 /* Number of milliseconds when to check for link status from PHY */
 #ifndef LINK_TIMER_INTERVAL
-#define LINK_TIMER_INTERVAL           ((uint16_t)1000U)
+    #define LINK_TIMER_INTERVAL                 (1000U)
 #endif
 
 /* DHCP process states */
-#define DHCP_OFF                      ((uint8_t)0U)
-#define DHCP_START                    ((uint8_t)1U)
-#define DHCP_WAIT_ADDRESS             ((uint8_t)2U)
-#define DHCP_ADDRESS_ASSIGNED         ((uint8_t)3U)
-#define DHCP_TIMEOUT                  ((uint8_t)4U)
-#define DHCP_LINK_DOWN                ((uint8_t)5U)
-
-/* Enable LCD */
-// #define USE_LCD
+#define DHCP_OFF                                (0U)
+#define DHCP_START                              (1U)
+#define DHCP_WAIT_ADDRESS                       (2U)
+#define DHCP_ADDRESS_ASSIGNED                   (3U)
+#define DHCP_TIMEOUT                            (4U)
+#define DHCP_LINK_DOWN                          (5U)
 
 /* Enable DHCP, if disabled, Use static address */
-// #define USE_DHCP
+//#define USE_DHCP
 
 /* Static IP Address */
-#define IP_ADDR0                      ((uint8_t)192U)
-#define IP_ADDR1                      ((uint8_t)168U)
-#define IP_ADDR2                      ((uint8_t)1U)
-#define IP_ADDR3                      ((uint8_t)20U)
+#define IP_ADDR0                                (192U)
+#define IP_ADDR1                                (168U)
+#define IP_ADDR2                                (1U)
+#define IP_ADDR3                                (20U)
 
 /* Static Netmask */
-#define NETMASK_ADDR0                 ((uint8_t)255U)
-#define NETMASK_ADDR1                 ((uint8_t)255U)
-#define NETMASK_ADDR2                 ((uint8_t)255U)
-#define NETMASK_ADDR3                 ((uint8_t)0U)
+#define NETMASK_ADDR0                           (255U)
+#define NETMASK_ADDR1                           (255U)
+#define NETMASK_ADDR2                           (255U)
+#define NETMASK_ADDR3                           (0U)
 
 /* Static Gateway Address*/
-#define GW_ADDR0                      ((uint8_t)192U)
-#define GW_ADDR1                      ((uint8_t)168U)
-#define GW_ADDR2                      ((uint8_t)1U)
-#define GW_ADDR3                      ((uint8_t)1U)
+#define GW_ADDR0                                (192U)
+#define GW_ADDR1                                (168U)
+#define GW_ADDR2                                (1U)
+#define GW_ADDR3                                (1U)
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -118,7 +115,7 @@ void Ethernet_NotifyConnStatus(struct netif *netif);
 void LwIP_PeriodicHandle(struct netif *netif);
 
 #ifdef USE_DHCP
-void DHCP_Process(struct netif *netif);
+void LwIP_DhcpProcess(struct netif *netif);
 #endif
 
 #ifdef __cplusplus

@@ -54,11 +54,12 @@
 /*******************************************************************************
  * Include files
  ******************************************************************************/
-#include "usb_defines.h"
-#include "usb_otg_regs.h"
-#include "usb_core.h"
-#include "usb_otg.h"
-#include "stdio.h"
+#include <stdio.h>
+#include "hc32f4a0_usb_defines.h"
+#include "hc32f4a0_usb_otg_regs.h"
+#include "hc32f4a0_usb_core.h"
+#include "hc32f4a0_usb_otg.h"
+
 
 /*******************************************************************************
  * Local type definitions ('typedef')

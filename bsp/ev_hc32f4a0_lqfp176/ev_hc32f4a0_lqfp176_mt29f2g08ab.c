@@ -403,8 +403,6 @@ static void EV_EXMC_NFC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
-    GPIO_Unlock();
-
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinDir = PIN_DIR_OUT;
@@ -474,8 +472,6 @@ static void EV_EXMC_NFC_PortInit(void)
     GPIO_SetFunc(NFC_DATA5_PORT, NFC_DATA5_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(NFC_DATA6_PORT, NFC_DATA6_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(NFC_DATA7_PORT, NFC_DATA7_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
-
-    GPIO_Lock();
 }
 
 #endif /* BSP_EV_HC32F4A0_LQFP176/BSP_MT29F2G08AB_ENABLE */

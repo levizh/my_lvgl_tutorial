@@ -192,7 +192,7 @@ static bool touchpad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 {
     static lv_coord_t last_x = 0;
     static lv_coord_t last_y = 0;
-//    GPIO_TogglePins(GPIO_PORT_E, GPIO_PIN_02);
+//    GPIO_TogglePins(TEST_PORT, TEST_PIN);
     /*Save the pressed coordinates and the state*/
     if(touchpad_is_pressed()) {
         touchpad_get_xy(&last_x, &last_y);
@@ -242,7 +242,7 @@ static void touchpad_get_xy(lv_coord_t * x, lv_coord_t * y)
         BSP_TS_WriteReg(GT9147_REG_GSTID, &u8Tmp[1], 1);
 
         BSP_TS_ReadReg(GT9147_REG_TP1, &u8Tmp[2], 4);
-        
+
 //        yy = u8Tmp[2] | ((uint16_t)u8Tmp[3] << 8);
 //        xx = 800 - (u8Tmp[4] | ((uint16_t)u8Tmp[5] << 8));
 

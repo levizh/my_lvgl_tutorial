@@ -191,6 +191,7 @@ int32_t main(void)
     /* Configure clock */
     BSP_CLK_Init();
     /* Configure BSP */
+    BSP_IO_Init();
     BSP_LED_Init();
     /* Configure UART */
     DDL_PrintfInit();

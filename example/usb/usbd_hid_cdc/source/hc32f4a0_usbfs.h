@@ -61,15 +61,15 @@
 
 #if (DDL_USBFS_ENABLE == DDL_ON)
 
-#include "usb_core.h"
-#include "usb_dcd.h"
-#include "usb_hcd.h"
-#include "usb_dcd_int.h"
-#include "usb_hcd_int.h"
-#include "usb_otg.h"
+#include "hc32f4a0_usb_core.h"
+#include "hc32f4a0_usb_dcd.h"
+#include "hc32f4a0_usb_hcd.h"
+#include "hc32f4a0_usb_dcd_int.h"
+#include "hc32f4a0_usb_hcd_int.h"
+#include "hc32f4a0_usb_otg.h"
 
-#include "usb_defines.h"
-#include "usb_otg_regs.h"
+#include "hc32f4a0_usb_defines.h"
+#include "hc32f4a0_usb_otg_regs.h"
 
 #include "usbd_conf.h"
 #include "usbd_core.h"

@@ -73,22 +73,11 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* Key Port/Pin definition */
-#define KEY_PORT                        (GPIO_PORT_A)
-#define KEY_PIN                         (GPIO_PIN_00)
-
-/* Red LED Port/Pin definition */
-#define LED_R_PORT                      (GPIO_PORT_A)
-#define LED_R_PIN                       (GPIO_PIN_00)
-#define LED_R_ON()                      (GPIO_ResetPins(LED_R_PORT, LED_R_PIN))
-
-/* Green LED Port/Pin definition */
-#define LED_G_PORT                      (GPIO_PORT_B)
-#define LED_G_PIN                       (GPIO_PIN_00)
-#define LED_G_ON()                      (GPIO_ResetPins(LED_G_PORT, LED_G_PIN))
+/* Key definition */
+#define USER_KEY                        (BSP_KEY_1)
 
 /* CLKSYNC CK/RX/TX Port/Pin definition */
-#define CLKSYNC_CK_PORT                 (GPIO_PORT_E)   /* PE3: USART26CK */
+#define CLKSYNC_CK_PORT                 (GPIO_PORT_E)   /* PE3: USART6_CK */
 #define CLKSYNC_CK_PIN                  (GPIO_PIN_03)
 #define CLKSYNC_CK_GPIO_FUNC            (GPIO_FUNC_7)
 
@@ -112,7 +101,7 @@
 #define CLKSYNC_SLAVE_MODE              (1U)
 
 /* USART master or slave mode selection */
-#define CLKSYNC_DEVICE_MODE             (CLKSYNC_MASTER_MODE)
+#define CLKSYNC_DEVICE_MODE             (CLKSYNC_SLAVE_MODE)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -121,8 +110,6 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void LedConfig(void);
-static void SystemClockConfig(void);
 static en_result_t USART_WaitOnFlagUntilTimeout(M4_USART_TypeDef *USARTx,
                                                 uint32_t u32Flag,
                                                 en_flag_status_t enStatus,
@@ -141,40 +128,6 @@ static en_result_t CLKSYNC_TransmitReceive(M4_USART_TypeDef *USARTx,
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-
-/**
- * @brief  Configure RGB LED.
- * @param  None
- * @retval None
- */
-static void LedConfig(void)
-{
-    stc_gpio_init_t stcGpioInit;
-
-    GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;
-    stcGpioInit.u16PinState = PIN_STATE_SET;
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-}
-
-/**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Initialize XTAL clock */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
-}
 
 /**
  * @brief  This function handles USART Communication Timeout.
@@ -235,7 +188,7 @@ static en_result_t CLKSYNC_TransmitReceive(M4_USART_TypeDef *USARTx,
     uint32_t u32XferCount = u32Size;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if((USARTx) && (au8TxData) && (au8RxData) && (u32Size))
+    if(USARTx && au8TxData && au8RxData && u32Size)
     {
         enRet = Ok;
 
@@ -293,19 +246,28 @@ int32_t main(void)
     /* Buffer used for reception */
     uint8_t au8RxBuffer[(ARRAY_SZ(au8TxBuffer))];
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
+                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
+                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Configure system tick. */
     SysTick_Init(100UL);
 
-    /* Configure LED pin. */
-    LedConfig();
+    /* Initialize IO. */
+    BSP_IO_Init();
 
-    /* Configure USART RX/TX pin. */
+    /* Initialize LED. */
+    BSP_LED_Init();
+
+    /* Initialize key. */
+    BSP_KEY_Init();
+
+    /* Configure USART CK/RX/TX pin. */
     GPIO_SetFunc(CLKSYNC_CK_PORT, CLKSYNC_CK_PIN, CLKSYNC_CK_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
-    GPIO_SetFunc(CLKSYNC_RX_PORT, CLKSYNC_RX_PIN, CLKSYNC_CK_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
-    GPIO_SetFunc(CLKSYNC_TX_PORT, CLKSYNC_TX_PIN, CLKSYNC_CK_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(CLKSYNC_RX_PORT, CLKSYNC_RX_PIN, CLKSYNC_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(CLKSYNC_TX_PORT, CLKSYNC_TX_PIN, CLKSYNC_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
 
     /* Enable peripheral clock */
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);
@@ -324,7 +286,7 @@ int32_t main(void)
     USART_FuncCmd(CLKSYNC_UNIT, (USART_RX | USART_TX), Enable);
 
     /* User key */
-    while (Pin_Reset != GPIO_ReadInputPortPin(KEY_PORT, KEY_PIN))
+    while (Reset == BSP_KEY_GetStatus(USER_KEY))
     {
     }
 
@@ -334,11 +296,11 @@ int32_t main(void)
     /* Compare m_u8TxBuffer and m_u8RxBuffer data */
     if (memcmp(au8TxBuffer, au8RxBuffer, (ARRAY_SZ(au8TxBuffer))) == 0)
     {
-        LED_G_ON();
+        BSP_LED_On(LED_BLUE);
     }
     else
     {
-        LED_R_ON();
+        BSP_LED_On(LED_RED);
     }
 
     while (1)

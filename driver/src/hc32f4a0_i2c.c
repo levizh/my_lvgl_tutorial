@@ -640,7 +640,7 @@ void I2C_IntCmd(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32IntEn, en_functional_state
  * @param  [in] u8Data               The data to be send
  * @retval None
  */
-void I2C_SendData(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Data)
+void I2C_WriteDataReg(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Data)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
     pstcI2Cx->DTR = u8Data;
@@ -658,7 +658,7 @@ void I2C_SendData(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Data)
  *         @arg M4_I2C6
  * @retval The value of the received data
  */
-uint8_t I2C_ReadData(M4_I2C_TypeDef* const pstcI2Cx)
+uint8_t I2C_ReadDataReg(M4_I2C_TypeDef* const pstcI2Cx)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
     return (uint8_t)pstcI2Cx->DRR;
@@ -744,7 +744,7 @@ en_flag_status_t I2C_GetStatus(M4_I2C_TypeDef * const pstcI2Cx, uint32_t u32Stat
  *                                   Disable or Enable the function
  * @retval None
  */
-void  I2C_WriteStatus(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32StatusBit, en_flag_status_t enStatus)
+void I2C_WriteStatus(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32StatusBit, en_flag_status_t enStatus)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
     DDL_ASSERT(IS_VALID_WR_STATUS_BIT(u32StatusBit));
@@ -818,6 +818,295 @@ en_result_t I2C_StructInit(stc_i2c_init_t* pstcI2C_InitStruct)
     return enRet;
 }
 
+/**
+ * @brief  Try to get a status of a specified flag
+ * @param  [in] u32StatusBit         specifies the flag to check,
+ *         This parameter can be one of the following values:
+ *         @arg   I2C_SR_STARTF     : Start condition detected flag
+ *         @arg   I2C_SR_SLADDR0F   : Address 0 detected flag
+ *         @arg   I2C_SR_SLADDR1F   : Address 1 detected flag
+ *         @arg   I2C_SR_TENDF      : Transfer end flag
+ *         @arg   I2C_SR_STOPF      : Stop condition detected flag
+ *         @arg   I2C_SR_RFULLF     : Receive buffer full flag
+ *         @arg   I2C_SR_TEMPTYF    : Transfer buffer empty flag
+ *         @arg   I2C_SR_ARLOF      : Arbitration fails flag
+ *         @arg   I2C_SR_ACKRF      : ACK detected flag
+ *         @arg   I2C_SR_NACKF      : NACK detected flag
+ *         @arg   I2C_SR_TMOUTF     : Time out detected flag
+ *         @arg   I2C_SR_MSL        : Master mode flag
+ *         @arg   I2C_SR_BUSY       : Bus busy status flag
+ *         @arg   I2C_SR_TRA        : Transfer mode flag
+ *         @arg   I2C_SR_GENCALLF   : General call detected flag
+ *         @arg   I2C_SR_SMBDEFAULTF: Smbus default address detected flag
+ *         @arg   I2C_SR_SMBHOSTF   : Smbus host address detected flag
+ *         @arg   I2C_SR_SMBALRTF   : Smbus alarm address detected flag
+ * @retval  Process result
+ *          - ErrorTimeout  Failed to get expected status of specified flag
+ *          - Ok            successfully gotten the expected status of the specified flag 
+ */
+__STATIC_INLINE en_result_t I2C_WaitStatus(M4_I2C_TypeDef* const pstcI2Cx, uint32_t u32SRFlag,en_flag_status_t enStatus, uint32_t u32TimeOut)
+{
+    en_result_t enRet = Ok;
+
+    while(enStatus != ((pstcI2Cx->SR & u32SRFlag) ? Set : Reset))
+    {
+        if(0U == (u32TimeOut--))
+        {
+            enRet = ErrorTimeout;
+            break;
+        }
+    }
+    return enRet;
+}
+
+/**
+ * @brief  I2Cx Start 
+ * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
+ *         This parameter can be one of the following values:
+ *         @arg M4_I2C1
+ *         @arg M4_I2C2
+ *         @arg M4_I2C3
+ *         @arg M4_I2C4
+ *         @arg M4_I2C5
+ *         @arg M4_I2C6
+ * @param  [in]  u32Timeout  Maximum count of trying to get a status of a 
+ *               specified flag in status register
+ * @retval An en_result_t enumeration value:
+ *            - Ok: Start successfully
+ *            - ErrorTimeout: Start unsuccessfully, Time Out error occurred
+ */
+en_result_t I2C_Start(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut)
+{
+    uint32_t u32TimeOutTemp = u32TimeOut;
+    en_flag_status_t enBusyFlag, enStartFlag;
+    en_result_t u8Ret = Ok;
+
+    u8Ret = I2C_WaitStatus(pstcI2Cx, I2C_SR_BUSY, Reset, u32TimeOut);
+    if(Ok == u8Ret)
+    {
+        /* generate start signal */
+        I2C_GenerateStart(pstcI2Cx);
+        
+        /* Judge if start success*/
+        u32TimeOutTemp = u32TimeOut;
+        while(1)
+        {
+            enBusyFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_BUSY);
+            enStartFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_STARTF);
+            u32TimeOutTemp--;
+            if(((Set == enBusyFlag) && (Set == enStartFlag))||(0UL == u32TimeOutTemp))
+            {
+                break;
+            }
+        }
+        if(0UL == u32TimeOutTemp)
+        {
+            u8Ret = ErrorTimeout;
+        }
+    }
+
+    return u8Ret;
+}
+
+/**
+ * @brief  I2Cx Restart
+ * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
+ *         This parameter can be one of the following values:
+ *         @arg M4_I2C1
+ *         @arg M4_I2C2
+ *         @arg M4_I2C3
+ *         @arg M4_I2C4
+ *         @arg M4_I2C5
+ *         @arg M4_I2C6
+ * @param  [in]  u32Timeout  Maximum count of trying to get a status of a specified flag
+ * @retval An en_result_t enumeration value:
+ *            - Ok: Restart successfully
+ *            - ErrorTimeout: Restart unsuccessfully, Time Out error occurred
+ */
+en_result_t I2C_Restart(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut)
+{
+    en_flag_status_t enBusyFlag, enStartFlag;
+    en_result_t u8Ret = Ok;
+
+    /* generate restart signal */
+    /* Clear start status flag */
+    I2C_ClearStatus(pstcI2Cx, I2C_CLR_STARTFCLR);
+    /* Send restart condition */
+    I2C_GenerateReStart(pstcI2Cx);
+
+    /* Judge if start success*/
+    while(1)
+    {
+        enBusyFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_BUSY);
+        enStartFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_STARTF);
+        u32TimeOut--;
+        if(((Set == enBusyFlag) && (Set == enStartFlag))||(0UL == u32TimeOut))
+        {
+            break;
+        }
+    }
+    if(0UL == u32TimeOut)
+    {
+        u8Ret = ErrorTimeout;
+    }
+    return u8Ret;
+}
+
+/**
+ * @brief  I2Cx Send Address
+ * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
+ *         This parameter can be one of the following values:
+ *         @arg M4_I2C1
+ *         @arg M4_I2C2
+ *         @arg M4_I2C3
+ *         @arg M4_I2C4
+ *         @arg M4_I2C5
+ *         @arg M4_I2C6
+ * @param  [in] u32Adr       The address to be sent
+ * @param  [in]  u32Timeout  Maximum count of trying to get a status of a specified flag
+ * @retval An en_result_t enumeration value:
+ *            - Ok: Send successfully
+ *            - ErrorTimeout: Send unsuccessfully, Time Out error occurred
+ */
+en_result_t I2C_SendAddr(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Adr, uint32_t u32TimeOut)
+{
+    en_result_t enRet = ErrorTimeout;
+
+    enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_TEMPTYF, Set, u32TimeOut);
+    if(enRet == Ok)
+    {
+        /* Send I2C address */
+        I2C_WriteDataReg(pstcI2Cx, u8Adr);
+        if(0U == (u8Adr & 0x01U))
+        {
+            /* If in master transfer process, Need wait transfer end*/
+            enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_TENDF, Set, u32TimeOut);
+        }
+        if(enRet == Ok)
+        {
+            enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_ACKRF, Reset, u32TimeOut);
+        }
+    }
+    return enRet;
+}
+
+/**
+ * @brief  I2Cx Send Data
+ * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
+ *         This parameter can be one of the following values:
+ *         @arg M4_I2C1
+ *         @arg M4_I2C2
+ *         @arg M4_I2C3
+ *         @arg M4_I2C4
+ *         @arg M4_I2C5
+ *         @arg M4_I2C6
+ * @param  [in] pTxData     The data array to be sent
+ * @param  [in] u32Size     Number of data in array pTxData
+ * @param  [in] u32Timeout  Maximum count of trying to get a status of a specified flag
+ * @retval An en_result_t enumeration value:
+ *            - Ok: Send successfully
+ *            - ErrorTimeout: Send unsuccessfully, Time Out error occurred
+ */
+en_result_t I2C_SendData(M4_I2C_TypeDef* pstcI2Cx, uint8_t const pTxData[], uint32_t u32Size, uint32_t u32TimeOut)
+{
+    en_result_t enRet = Ok;
+    uint32_t u32Cnt = 0U;
+    while((u32Cnt != u32Size) && (enRet == Ok))
+    {
+        /* Wait tx buffer empty */
+        if(I2C_WaitStatus(pstcI2Cx, I2C_SR_TEMPTYF, Set, u32TimeOut) == Ok)
+        {
+            /* Send one byte data */
+            I2C_WriteDataReg(pstcI2Cx, pTxData[u32Cnt++]);
+            /* Wait transfer end*/
+            if(I2C_WaitStatus(pstcI2Cx, I2C_SR_TENDF, Set, u32TimeOut) == Ok)
+            {
+                enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_ACKRF, Reset, u32TimeOut);
+            }
+            else
+            {
+                enRet = ErrorTimeout;
+            }
+        }
+        else
+        {
+            enRet = ErrorTimeout;
+        }
+    }
+
+    return enRet;
+}
+
+/**
+ * @brief  I2Cx Receive Data
+ * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
+ *         This parameter can be one of the following values:
+ *         @arg M4_I2C1
+ *         @arg M4_I2C2
+ *         @arg M4_I2C3
+ *         @arg M4_I2C4
+ *         @arg M4_I2C5
+ *         @arg M4_I2C6
+ * @param  [Out] pRxData    Array to hold the received data
+ * @param  [in] u32Size     Number of data to be received
+ * @param  [in] u32Timeout  Maximum count of trying to get a status of a specified flag
+ * @retval An en_result_t enumeration value:
+ *            - Ok: Receive successfully
+ *            - ErrorTimeout: Receive unsuccessfully, Time Out error occurred
+ */
+en_result_t I2C_RcvData(M4_I2C_TypeDef* pstcI2Cx, uint8_t pRxData[], uint32_t u32Size, uint32_t u32TimeOut)
+{
+    en_result_t enRet = Ok;
+    for(uint32_t i=0u; i<u32Size; i++)
+    {
+        if(i == (u32Size - 1UL))
+        {
+            I2C_NackConfig(pstcI2Cx, Enable);
+        }
+        enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_RFULLF,Set,u32TimeOut);
+        if(enRet == Ok)
+        {
+             /* read data from register*/
+            pRxData[i] = I2C_ReadDataReg(pstcI2Cx);
+        }
+        else
+        {
+            break;
+        }
+    }
+    return enRet;
+}
+
+/**
+ * @brief  I2Cx Stop 
+ * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
+ *         This parameter can be one of the following values:
+ *         @arg M4_I2C1
+ *         @arg M4_I2C2
+ *         @arg M4_I2C3
+ *         @arg M4_I2C4
+ *         @arg M4_I2C5
+ *         @arg M4_I2C6
+ * @param  [in]  u32Timeout  Maximum count of trying to get a status of a specified flag
+ * @retval An en_result_t enumeration value:
+ *            - Ok: Stop successfully
+ *            - ErrorTimeout: Stop unsuccessfully, Time Out error occurred
+ */
+en_result_t I2C_Stop(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut)
+{
+    en_result_t enRet = Ok;
+
+    /* Clear stop flag */
+    while(Set == I2C_GetStatus(pstcI2Cx, I2C_SR_STOPF))
+    {
+        I2C_ClearStatus(pstcI2Cx, I2C_CLR_STOPFCLR);
+    }
+    I2C_GenerateStop(pstcI2Cx);
+
+    /* Wait STOPF */
+    enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_STOPF,Set,u32TimeOut);
+    return enRet;
+}
 /**
  * @}
  */

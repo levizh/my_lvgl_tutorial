@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-23       Heqb         First version
+   2020-05-06       Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -76,26 +76,15 @@
 #define CMP_TEST_UNIT                   (M4_CMP1)
 
 /* Define port and pin for CMP */
-/* CMP1 compare voltage  INP2_PGA1 */
-#define CMP1_INP2_PGA1_PORT             (GPIO_PORT_A)
-#define CMP1_INP2_PGA1_PIN              (GPIO_PIN_00)
-/* CMP1 reference voltage  CMP123_INM3*/
-#define CMP1_CMP123_INM3_PORT           (GPIO_PORT_A)
-#define CMP1_CMP123_INM3_PIN            (GPIO_PIN_07)
+/* CMP1 compare voltage CMP1_INP2(PGA2) */
+#define CMP1_INP2_PORT                  (GPIO_PORT_A)
+#define CMP1_INP2_PIN                   (GPIO_PIN_01)
+/* CMP1 reference voltage CMP1_INM3*/
+#define CMP1_INM3_PORT                  (GPIO_PORT_A)
+#define CMP1_INM3_PIN                   (GPIO_PIN_07)
 /* CMP1_VCOUT1*/
 #define CMP1_VCOUT1_PORT                (GPIO_PORT_B)
 #define CMP1_VCOUT1_PIN                 (GPIO_PIN_12)
-
-/* Define for RGB LED */
-#define LED_R_PORT                      (GPIO_PORT_A)
-#define LED_G_PORT                      (GPIO_PORT_B)
-#define LED_B_PORT                      (GPIO_PORT_C)
-#define LED_R_PIN                       (GPIO_PIN_00)
-#define LED_G_PIN                       (GPIO_PIN_01)
-#define LED_B_PIN                       (GPIO_PIN_01)
-
-#define LED_B_Set()                     (GPIO_SetPins(LED_B_PORT, LED_B_PIN))
-#define LED_B_Reset()                   (GPIO_ResetPins(LED_B_PORT, LED_B_PIN))
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -105,10 +94,9 @@
  * Local function prototypes ('static')
  ******************************************************************************/
 static void SystemClockConfig(void);
-static void LedConfig(void);
 static void CMP1_IrqCallback(void);
-static void PgaConfig(void);
 static void CmpConfig(void);
+static void PgaConfig(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -126,16 +114,14 @@ int32_t main(void)
 {
     stc_irq_signin_config_t stcIrqRegCfg;
 
+    /* LED Init */
+    BSP_IO_Init();
+    BSP_LED_Init();
     /* Configure system clock. */
     SystemClockConfig();
-
-    /* RGB LED Config */
-    LedConfig();
-
-    /* PGA Config */
+    /* Configure PGA */
     PgaConfig();
-
-    /* CMP Config */
+    /* Configure CMP */
     CmpConfig();
 
     /*NVIC configuration for interrupt */
@@ -144,7 +130,7 @@ int32_t main(void)
     stcIrqRegCfg.pfnCallback = &CMP1_IrqCallback;
     INTC_IrqSignIn(&stcIrqRegCfg);
     NVIC_ClearPendingIRQ(stcIrqRegCfg.enIRQn);
-    NVIC_SetPriority(stcIrqRegCfg.enIRQn, DDL_IRQ_PRIORITY_03);
+    NVIC_SetPriority(stcIrqRegCfg.enIRQn, DDL_IRQ_PRIORITY_15);
     NVIC_EnableIRQ(stcIrqRegCfg.enIRQn);
 
     /* Configuration finished */
@@ -161,13 +147,15 @@ int32_t main(void)
  */
 static void CMP1_IrqCallback(void)
 {
-    if(Set == CMP_GetResult(CMP_TEST_UNIT))
+    if(GPIO_ReadInputPortPin(CMP1_VCOUT1_PORT, CMP1_VCOUT1_PIN))
     {
-        LED_B_Set();
+        BSP_LED_On(LED_RED);
+        BSP_LED_Off(LED_BLUE);
     }
     else
     {
-        LED_B_Reset();
+        BSP_LED_On(LED_BLUE);
+        BSP_LED_Off(LED_RED);
     }
 }
 
@@ -178,35 +166,53 @@ static void CMP1_IrqCallback(void)
  */
 static void SystemClockConfig(void)
 {
-    stc_clk_xtal_init_t stcXTALInit;
+    stc_clk_pllh_init_t stcPLLHInit;
+    stc_clk_xtal_init_t stcXtalInit;
 
-    /* Configure XTAL */
-    stcXTALInit.u8XtalState = CLK_XTAL_ON;
-    stcXTALInit.u8XtalMode = CLK_XTALMODE_OSC;
-    stcXTALInit.u8XtalDrv = CLK_XTALDRV_HIGH;
-    stcXTALInit.u8XtalStb = CLK_XTALSTB_133US;
+    /* Configures XTAL. PLLH input source is XTAL. */
+    CLK_XtalStrucInit(&stcXtalInit);
+    stcXtalInit.u8XtalState = CLK_XTAL_ON;
+    stcXtalInit.u8XtalDrv   = CLK_XTALDRV_LOW;
+    stcXtalInit.u8XtalMode  = CLK_XTALMODE_OSC;
+    stcXtalInit.u8XtalStb   = CLK_XTALSTB_499US;
+    CLK_XtalInit(&stcXtalInit);
 
-    /* Initialize XTAL clock */
-    CLK_XtalInit(&stcXTALInit);
+    /* PCLK0, HCLK  Max 240MHz */
+    /* PCLK1, PCLK4 Max 120MHz */
+    /* PCLK2, PCLK3 Max 60MHz  */
+    /* EX BUS Max 120MHz */
+    CLK_ClkDiv(CLK_CATE_ALL,                                       \
+               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV2 | CLK_PCLK2_DIV4 | \
+                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 | \
+                CLK_HCLK_DIV1));
 
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
-}
+    CLK_PLLHStrucInit(&stcPLLHInit);
+    /*
+     * PLLP_freq = ((PLL_source / PLLM) * PLLN) / PLLP
+     *           = (8 / 1) * 120 / 4
+     *           = 240
+     */
+    stcPLLHInit.u8PLLState = CLK_PLLH_ON;
+    stcPLLHInit.PLLCFGR = 0UL;
+    stcPLLHInit.PLLCFGR_f.PLLM = (1UL   - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLN = (120UL - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLP = (4UL   - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLQ = (16UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLR = (16UL  - 1UL);
 
-/**
- * @brief  Configure RGB LED.
- * @param  None
- * @retval None
- */
-static void LedConfig(void)
-{
-    stc_gpio_init_t stcGpioInit = {0};
+    /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
+    CLK_PLLHInit(&stcPLLHInit);
 
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;
-    stcGpioInit.u16PinState = PIN_STATE_SET;
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-    GPIO_Init(LED_B_PORT, LED_B_PIN, &stcGpioInit);
+    /* Highspeed SRAM set to 1 Read/Write wait cycle */
+    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+
+    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
+    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    EFM_Unlock();
+    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
+    EFM_Unlock();
+
+    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
 
 /**
@@ -223,15 +229,15 @@ static void CmpConfig(void)
     /* Port function configuration for CMP*/
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
-    GPIO_Init(CMP1_INP2_PGA1_PORT, CMP1_INP2_PGA1_PIN, &stcGpioInit); /* CMP1 compare voltage */
-    GPIO_Init(CMP1_CMP123_INM3_PORT, CMP1_CMP123_INM3_PIN, &stcGpioInit); /* CMP1 reference voltage */
+    GPIO_Init(CMP1_INP2_PORT, CMP1_INP2_PIN, &stcGpioInit); /* CMP1 compare voltage */
+    GPIO_Init(CMP1_INM3_PORT, CMP1_INM3_PIN, &stcGpioInit); /* CMP1 reference voltage */
     GPIO_SetFunc(CMP1_VCOUT1_PORT, CMP1_VCOUT1_PIN, GPIO_FUNC_1, PIN_SUBFUNC_DISABLE); /* CMP1_VCOUT1 */
-
+    GPIO_OE(CMP1_VCOUT1_PORT, CMP1_VCOUT1_PIN, Enable); /* GPIO_B_12 output Enable */
     /* Clear structure */
     CMP_StructInit(&stcCmpInit);
 
     /* Configuration for normal compare function */
-    /*For CMP1 and Cmp3, when selecting channels inp2 and inp3, there are
+    /*For CMP1 and CMP3, when selecting channels inp2 and inp3, there are
     variety of compara voltage available, so you need to configure channels
     and voltage sources, and for others, you only need to configure channels*/
     stcCmpInit.u8CmpCh = CMP_CVSL_INP2;
@@ -239,7 +245,7 @@ static void CmpConfig(void)
     stcCmpInit.u8RefVol = CMP_RVSL_INM3;
     stcCmpInit.u8OutDetectEdges = CMP_DETECT_EDGS_BOTH;
     stcCmpInit.u8OutFilter = CMP_OUT_FILTER_PCLKDIV32;
-    stcCmpInit.u8OutPolarity = CMP_OUT_REVERSE_ON;
+    stcCmpInit.u8OutPolarity = CMP_OUT_REVERSE_OFF;
     CMP_NormalModeInit(CMP_TEST_UNIT, &stcCmpInit);
 
     /* Enable interrupt if need */
@@ -248,8 +254,8 @@ static void CmpConfig(void)
     /* Enable CMP output */
     CMP_OutputCmd(CMP_TEST_UNIT, Enable);
 
-    /* Enable VCOUT if need */
-    //CMP_VCOUTCmd(CMP_TEST_UNIT, Enable);
+    /* Enable VCOUT */
+    CMP_VCOUTCmd(CMP_TEST_UNIT, Enable);
 }
 
 /**
@@ -261,10 +267,8 @@ static void PgaConfig(void)
 {
     /* Enable peripheral Clock */
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_ADC1, Enable);
-    /* Config PGA */
-    ADC_PGA_Config(ADC_PGA_1, ADC_PGA_GAIN_2, ADC_PGA_VSS_PGAVSS);
     /* Enable PGA */
-    ADC_PGA_Cmd(ADC_PGA_1, Enable);
+    ADC_PGA_Cmd(ADC_PGA_2, Enable);
 }
 /**
  * @}

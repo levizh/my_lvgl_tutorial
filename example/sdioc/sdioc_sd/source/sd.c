@@ -56,13 +56,12 @@
 #include "sd.h"
 
 /**
- * @addtogroup HC32F4A0_DDL_Midware
+ * @addtogroup HC32F4A0_DDL_Examples
  * @{
  */
 
 /**
- * @defgroup MW_SD SD
- * @brief SD Midware Library
+ * @addtogroup SDIOC_SD_Card
  * @{
  */
 
@@ -350,7 +349,14 @@ en_result_t SD_GetCardCSD(stc_sd_handle_t *handle, stc_sd_card_csd_t *pstcCSD)
             handle->stcSdCardInfo.u32BlockNbr     = (pstcCSD->u32DeviceSize + 1U) ;
             handle->stcSdCardInfo.u32BlockNbr    *= (1UL << (pstcCSD->u8DeviceSizeMul + 2U));
             handle->stcSdCardInfo.u32BlockSize    = 1UL << (pstcCSD->u8ReadBlockLen);
-            handle->stcSdCardInfo.u32LogBlockNbr  =  (handle->stcSdCardInfo.u32BlockNbr) * ((handle->stcSdCardInfo.u32BlockSize) / 512U);
+            if (handle->stcSdCardInfo.u32BlockSize >= 512U)
+            {
+                handle->stcSdCardInfo.u32LogBlockNbr = handle->stcSdCardInfo.u32BlockNbr * (handle->stcSdCardInfo.u32BlockSize / 512U);
+            }
+            else
+            {
+                handle->stcSdCardInfo.u32LogBlockNbr = (handle->stcSdCardInfo.u32BlockNbr / 512U) * handle->stcSdCardInfo.u32BlockSize;
+            }
             handle->stcSdCardInfo.u32LogBlockSize = 512UL;
         }
         else if (SD_CARD_SDHC_SDXC == handle->stcSdCardInfo.u32CardType)
@@ -1989,7 +1995,14 @@ static en_result_t SD_ExtractCardCSD(stc_sd_handle_t *handle)
         handle->stcSdCardInfo.u32BlockNbr     = (stcCardCSD.u32DeviceSize + 1U) ;
         handle->stcSdCardInfo.u32BlockNbr    *= (1UL << (stcCardCSD.u8DeviceSizeMul + 2U));
         handle->stcSdCardInfo.u32BlockSize    = 1UL << (stcCardCSD.u8ReadBlockLen);
-        handle->stcSdCardInfo.u32LogBlockNbr  =  (handle->stcSdCardInfo.u32BlockNbr) * ((handle->stcSdCardInfo.u32BlockSize) / 512U);
+        if (handle->stcSdCardInfo.u32BlockSize >= 512U)
+        {
+            handle->stcSdCardInfo.u32LogBlockNbr = handle->stcSdCardInfo.u32BlockNbr * (handle->stcSdCardInfo.u32BlockSize / 512U);
+        }
+        else
+        {
+            handle->stcSdCardInfo.u32LogBlockNbr = (handle->stcSdCardInfo.u32BlockNbr / 512U) * handle->stcSdCardInfo.u32BlockSize;
+        }
         handle->stcSdCardInfo.u32LogBlockSize = 512UL;
     }
     else if (SD_CARD_SDHC_SDXC == handle->stcSdCardInfo.u32CardType)

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-09       Heqb         First version
+   2020-05-06       Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -90,17 +90,17 @@ extern "C"
  */
 typedef struct
 {
-    uint8_t u8CmpCh;               /*!< Select the compare voltage channel for normal mode
+    uint8_t u8CmpCh;                /*!< Select the compare voltage channel for normal mode
                                         @ref CMP_CVSL_Channal */
-    uint16_t u16CmpVol;            /*!< Select the compare voltage source for normal mode
+    uint16_t u16CmpVol;             /*!< Select the compare voltage source for normal mode
                                         (Config the parameter when use CMP1 or CMP3)@ref CMP1_3_CVSL_Source */
-    uint8_t u8RefVol;              /*!< Reference voltage for normal mode, @ref CMP_RVSL_Source*/
+    uint8_t u8RefVol;               /*!< Reference voltage for normal mode, @ref CMP_RVSL_Source*/
 
-    uint8_t u8OutPolarity;         /*!< Output polarity select, @ref CMP_Out_Polarity_Select */
+    uint8_t u8OutPolarity;          /*!< Output polarity select, @ref CMP_Out_Polarity_Select */
 
-    uint8_t u8OutDetectEdges;      /*!< Output detecte edge, @ref CMP_Out_Detect_Edge */
+    uint8_t u8OutDetectEdges;       /*!< Output detecte edge, @ref CMP_Out_Detect_Edge */
 
-    uint8_t u8OutFilter;           /*!< Output Filter, @ref CMP_Out_Filter */
+    uint8_t u8OutFilter;            /*!< Output Filter, @ref CMP_Out_Filter */
 }stc_cmp_init_t;
 
 /**
@@ -108,9 +108,15 @@ typedef struct
  */
 typedef struct
 {
-    uint8_t u8WinVolLow;           /*!< CMP reference low voltage for window mode
+    uint8_t u8CmpCh1;               /*!< Select the compare voltage channel for window mode
+                                        @ref CMP_CVSL_Channal */
+    uint16_t u16CmpVol;             /*!< Select the compare voltage source for window mode
+                                        (Config the parameter when use CMP1 or CMP3)@ref CMP1_3_CVSL_Source */
+    uint8_t u8CmpCh2;               /*!< Select the compare voltage channel for window mode
+                                        @ref CMP_CVSL_Channal */
+    uint8_t u8WinVolLow;            /*!< CMP reference low voltage for window mode
                                         @ref CMP_RVSL_Source */
-    uint8_t u8WinVolHigh;          /*!< CMP reference high voltage for window mode
+    uint8_t u8WinVolHigh;           /*!< CMP reference high voltage for window mode
                                         @ref CMP_RVSL_Source */
 }stc_cmp_win_ref_t;
 
@@ -119,13 +125,13 @@ typedef struct
  */
 typedef struct
 {
-    uint16_t u16TWSelect;           /*!< Timer windows source select
+    uint16_t u16TWSelect;           /*!< Timer window source select
                                          @ref CMP_TimerWin_Select */
-    uint8_t u8TWOutLevel;           /*!< Timer windows mode output level
+    uint8_t u8TWOutLevel;           /*!< Timer window mode output level
                                         @ref CMP_TimerWin_output_Level*/
-    uint8_t u8TWInvalidLevel;       /*!< Output level when timer windows invalid
+    uint8_t u8TWInvalidLevel;       /*!< Output level when timer window invalid
                                         @ref CMP_TimerWin_Invalid_Level */
-}stc_cmp_timerwindows_t;
+}stc_cmp_timerwindow_t;
 
 /**
  * @}
@@ -178,17 +184,17 @@ typedef struct
 /** @defgroup CMP1_3_CVSL_Source CMP1 CMP3 compare voltage selection
   * @{
   */
-#define CMP1_INP3_NONE          ((uint16_t)0x0000U)       /*!< Don't input voltage to CMP1 INP3 */
+#define CMP1_INP3_NONE          (0x0U)                    /*!< Don't input voltage to CMP1 INP3 */
 #define CMP1_INP3_CMP1_INP3     (CMP_VISR_P3SL_0)         /*!< Select CMP1_INP3 as CMP1 INP3 input */
 #define CMP1_INP3_CMP2_INP3     (CMP_VISR_P3SL_1)         /*!< Select CMP2_INP3 as CMP1 INP3 input */
-#define CMP1_INP2_NONE          ((uint16_t)0x0000U)       /*!< Don't input voltage to CMP1 INP2 */
+#define CMP1_INP2_NONE          (0x0U)                    /*!< Don't input voltage to CMP1 INP2 */
 #define CMP1_INP2_PGA1          (CMP_VISR_P2SL_0)         /*!< Select PGA1 as CMP1 INP2 input */
-#define CMP1_INP2_PGA2          (CMP_VISR_P3SL_1)         /*!< Select PGA2 as CMP1 INP2 input */
+#define CMP1_INP2_PGA2          (CMP_VISR_P2SL_1)         /*!< Select PGA2 as CMP1 INP2 input */
 #define CMP1_INP2_CMP1_INP2     (CMP_VISR_P2SL_2)         /*!< Select CMP1_INP2 as CMP1 INP2 input */
-#define CMP3_INP3_NONE          ((uint16_t)0x0000U)       /*!< Don't input voltage to CMP3 INP3 */
+#define CMP3_INP3_NONE          (0x0U)                    /*!< Don't input voltage to CMP3 INP3 */
 #define CMP3_INP3_CMP3_INP3     (CMP_VISR_P3SL_0)         /*!< Select CMP3_INP3 as CMP3 INP3 input */
 #define CMP3_INP3_CMP4_INP3     (CMP_VISR_P3SL_1)         /*!< Select CMP4_INP3 as CMP3 INP3 input */
-#define CMP3_INP2_NONE          ((uint16_t)0x0000U)       /*!< Don't input voltage to CMP3 INP2 */
+#define CMP3_INP2_NONE          (0x0U)                    /*!< Don't input voltage to CMP3 INP2 */
 #define CMP3_INP2_PGA3          (CMP_VISR_P2SL_0)         /*!< Select PGA3 as CMP3 INP2 input */
 #define CMP3_INP2_PGA4          (CMP_VISR_P2SL_1)         /*!< Select PGA4 as CMP3 INP2 input */
 #define CMP3_INP2_CMP3_INP2     (CMP_VISR_P2SL_2)         /*!< Select CMP3_INP2 as CMp3 INP2 input */
@@ -292,15 +298,15 @@ typedef struct
  * @addtogroup CMP_Global_Functions
  * @{
  */
-en_result_t CMP_StructInit(stc_cmp_init_t* pstcCMP_InitStruct);
+en_result_t CMP_StructInit(stc_cmp_init_t *pstcCMP_InitStruct);
 en_result_t CMP_DeInit(M4_CMP_TypeDef *CMPx);
 en_result_t CMP_NormalModeInit(M4_CMP_TypeDef *CMPx,
-                                const stc_cmp_init_t* pstcCmpInit);
-en_result_t CMP_WindowModeInit(M4_CMP_TypeDef *CMPx,
-                                const stc_cmp_init_t* pstcCmpInit,
-                                const stc_cmp_win_ref_t* pstcCmpWinRef);
+                               const stc_cmp_init_t *pstcCmpInit);
+en_result_t CMP_WindowModeInit(const M4_CMP_TypeDef *CMPx,
+                               const stc_cmp_init_t *pstcCmpInit,
+                               const stc_cmp_win_ref_t *pstcCmpWinRef);
 en_result_t CMP_TimerWindowConfig(M4_CMP_TypeDef *CMPx,
-                                 const stc_cmp_timerwindows_t* pstcCMP_TimerWinStruct);
+                                  const stc_cmp_timerwindow_t *pstcCMP_TimerWinStruct);
 
 en_result_t CMP_FuncCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewSttusa);
 en_result_t CMP_IntCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus);
@@ -309,10 +315,10 @@ en_result_t CMP_VCOUTCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus
 en_result_t CMP_SetOutDetectEdges(M4_CMP_TypeDef *CMPx, uint8_t u8CmpEdges);
 en_result_t CMP_SetOutputFilter(M4_CMP_TypeDef *CMPx, uint8_t u8CmpFilter);
 en_result_t CMP_SetOutputPolarity(M4_CMP_TypeDef *CMPx, uint8_t u8CmpPolarity);
-en_result_t CMP_SetCompaerVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8CmpVol);
+en_result_t CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8CmpVol);
 en_result_t CMP_SetRefVol(M4_CMP_TypeDef *CMPx, uint8_t u8RefVol);
 
-en_flag_status_t CMP_GetResult(M4_CMP_TypeDef *CMPx);
+en_flag_status_t CMP_GetResult(const M4_CMP_TypeDef *CMPx);
 /**
  * @}
  */

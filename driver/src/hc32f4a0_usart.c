@@ -120,6 +120,16 @@
     (M4_USART5 == (x))                          ||                             \
     (M4_USART6 == (x)))
 
+#define IS_USART_FRACTION_INSTANCE(x)                                          \
+(   (M4_USART1 == (x))                          ||                             \
+    (M4_USART2 == (x))                          ||                             \
+    (M4_USART3 == (x))                          ||                             \
+    (M4_USART4 == (x))                          ||                             \
+    (M4_USART6 == (x))                          ||                             \
+    (M4_USART7 == (x))                          ||                             \
+    (M4_USART8 == (x))                          ||                             \
+    (M4_USART9 == (x)))
+
 #define IS_USART_FLAG(x)                                                       \
 (   (USART_FLAG_PE | USART_FLAG_FE  | USART_FLAG_ORE   |                       \
      USART_FLAG_BE | USART_FLAG_RXNE | USART_FLAG_TC |                         \
@@ -624,8 +634,6 @@ en_result_t USART_LinInit(M4_USART_TypeDef *USARTx,
         DDL_ASSERT(IS_USART_CLOCK_PRESCALER(pstcInit->u32ClkPrescaler));
         DDL_ASSERT(IS_USART_LIN_BMC_CLK_PRESCALER(pstcInit->u32BmcClkPrescaler));
         DDL_ASSERT(IS_USART_OVERSAMPLING_BITS(pstcInit->u32OversamplingBits));
-        DDL_ASSERT(IS_USART_NOISE_FILTER(pstcInit->u32NoiseFilterState));
-        DDL_ASSERT(IS_USART_SB_DETECT_POLARITY(pstcInit->u32SbDetectPolarity));
         DDL_ASSERT(IS_USART_LIN_DETECT_BREAK_LEN(pstcInit->u32DetectBreakLen));
         DDL_ASSERT(IS_USART_LIN_SEND_BREAK_LEN(pstcInit->u32SendBreakLen));
         DDL_ASSERT(IS_USART_LIN_SEND_BREAK_MODE(pstcInit->u32SendBreakMode));
@@ -635,8 +643,7 @@ en_result_t USART_LinInit(M4_USART_TypeDef *USARTx,
 
         /* Set CR1 */
         WRITE_REG32(USARTx->CR1, (pstcInit->u32OversamplingBits | \
-                                  pstcInit->u32NoiseFilterState | \
-                                  pstcInit->u32SbDetectPolarity));
+                                  USART_CR1_SBS));
 
         /* Set CR2 */
         WRITE_REG32(USARTx->CR2, (USART_CR2_BIT9 | \
@@ -683,8 +690,6 @@ en_result_t USART_LinStructInit(stc_usart_lin_init_t *pstcInit)
         pstcInit->u32ClkPrescaler = USART_CLK_PRESCALER_DIV1;
         pstcInit->u32BmcClkPrescaler = USART_LIN_BMC_CLK_PRESCALER_DIV1;
         pstcInit->u32OversamplingBits = USART_OVERSAMPLING_BITS_16;
-        pstcInit->u32NoiseFilterState = USART_NOISE_FILTER_DISABLE;
-        pstcInit->u32SbDetectPolarity = USART_SB_DETECT_LOW;
         pstcInit->u32DetectBreakLen = USART_LIN_DETECT_BREAK_10B;
         pstcInit->u32SendBreakLen = USART_LIN_SEND_BREAK_10B;
         pstcInit->u32SendBreakMode = USART_LIN_SEND_BREAK_MODE_SBK;
@@ -726,8 +731,6 @@ en_result_t USART_SmartcardInit(M4_USART_TypeDef *USARTx,
         DDL_ASSERT(IS_USART_CLOCK_MODE(pstcInit->u32ClkMode));
         DDL_ASSERT(IS_USART_CLOCK_PRESCALER(pstcInit->u32ClkPrescaler));
         DDL_ASSERT(IS_USART_SIGNIFICANT_BIT(pstcInit->u32BitDirection));
-        DDL_ASSERT(IS_USART_NOISE_FILTER(pstcInit->u32NoiseFilterState));
-        DDL_ASSERT(IS_USART_SB_DETECT_POLARITY(pstcInit->u32SbDetectPolarity));
 
         /* Disbale TX/RX && clear flag */
         WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_BITS);
@@ -735,16 +738,16 @@ en_result_t USART_SmartcardInit(M4_USART_TypeDef *USARTx,
         /* Set CR1 */
         WRITE_REG32(USARTx->CR1, (USART_CR1_PCE | \
                                   pstcInit->u32BitDirection | \
-                                  pstcInit->u32NoiseFilterState | \
-                                  pstcInit->u32SbDetectPolarity));
+                                  USART_CR1_SBS));
 
         /* Set CR2 */
         WRITE_REG32(USARTx->CR2, (USART_CR2_BIT9 | \
                                   USART_CR2_BIT10 | \
-                                  pstcInit->u32ClkMode));
+                                  pstcInit->u32ClkMode | \
+                                  pstcInit->u32StopBit));
 
         /* Set CR3 */
-        WRITE_REG32(USARTx->CR3, USART_CR3_SCEN);
+        WRITE_REG32(USARTx->CR3, USART_CR3_SCEN | USART_SC_ETU_CLK_372);
 
         /* Set PR */
         WRITE_REG32(USARTx->PR, pstcInit->u32ClkPrescaler);
@@ -777,8 +780,6 @@ en_result_t USART_SmartcardStructInit(stc_usart_smartcard_init_t *pstcInit)
         pstcInit->u32ClkMode = USART_INTCLK_NONE_OUTPUT;
         pstcInit->u32ClkPrescaler = USART_CLK_PRESCALER_DIV1;
         pstcInit->u32BitDirection = USART_LSB;
-        pstcInit->u32NoiseFilterState = USART_NOISE_FILTER_DISABLE;
-        pstcInit->u32SbDetectPolarity = USART_SB_DETECT_LOW;
         enRet = Ok;
     }
 
@@ -2130,7 +2131,7 @@ en_result_t USART_SetBaudrate(M4_USART_TypeDef *USARTx,
 
     if (Ok == enRet)
     {
-        if (IS_USART_LIN_INSTANCE(USARTx) && u32FractEn)
+        if ((!IS_USART_FRACTION_INSTANCE(USARTx)) && u32FractEn)
         {
             enRet = Error;
         }
@@ -2195,7 +2196,7 @@ static en_result_t CalcUartBaudrate(const M4_USART_TypeDef *USARTx,
     C = u32UsartClk;
     B = u32Baudrate;
 
-    if ((C > 0UL) && (B > 0UL))
+    if (C && B)
     {
         OVER8 = READ_REG32_BIT(USARTx->CR1, USART_CR1_OVER8) ? 1UL : 0UL;
 
@@ -2208,15 +2209,18 @@ static en_result_t CalcUartBaudrate(const M4_USART_TypeDef *USARTx,
 
         u64Temp = (uint64_t)((uint64_t)8UL * ((uint64_t)2UL - (uint64_t)OVER8) * ((uint64_t)DIV_Integer + (uint64_t)1UL) * (uint64_t)B);
 
-        if ((DIV - (float32_t)DIV_Integer) > 0.00001f)
+        if (IS_USART_FRACTION_INSTANCE(USARTx))
         {
-            /* UART mode baudrate fraction calculation formula:                                 */
-            /*      B = C * (128 + DIV_Fraction) / (8 * (2 - OVER8) * (DIV_Integer + 1) * 256)  */
-            /*      DIV_Fraction = (256 * (8 * (2 - OVER8) * (DIV_Integer + 1) * B) / C) - 128  */
-            DIV_Fraction = (uint32_t)(256UL * u64Temp / C - 128UL);
-            if (DIV_Fraction > 0x7FUL)
+            if ((DIV - (float32_t)DIV_Integer) > 0.00001f)
             {
-                enRet = ErrorInvalidParameter;
+                /* UART mode baudrate fraction calculation formula:                                 */
+                /*      B = C * (128 + DIV_Fraction) / (8 * (2 - OVER8) * (DIV_Integer + 1) * 256)  */
+                /*      DIV_Fraction = (256 * (8 * (2 - OVER8) * (DIV_Integer + 1) * B) / C) - 128  */
+                DIV_Fraction = (uint32_t)(256UL * u64Temp / C - 128UL);
+                if (DIV_Fraction > 0x7FUL)
+                {
+                    enRet = ErrorInvalidParameter;
+                }
             }
         }
 
@@ -2300,7 +2304,7 @@ static en_result_t CalcClkSyncBaudrate(const M4_USART_TypeDef *USARTx,
     C = u32UsartClk;
     B = u32Baudrate;
 
-    if ((C > 0UL) && (B > 0UL))
+    if (C && B)
     {
         /* Clock sync mode baudrate integer calculation formula:    */
         /*          B = C / (4 * (DIV_Integer + 1))                 */
@@ -2311,15 +2315,18 @@ static en_result_t CalcClkSyncBaudrate(const M4_USART_TypeDef *USARTx,
 
         u64Temp = (uint64_t)((uint64_t)4U * ((uint64_t)DIV_Integer + (uint64_t)1UL) * (uint64_t)B);
 
-        if ((DIV - (float32_t)DIV_Integer) > 0.00001f)
+        if (IS_USART_FRACTION_INSTANCE(USARTx))
         {
-            /* Clock sync mode baudrate fraction calculation formula:               */
-            /*      B = C * (128 + DIV_Fraction) / (4 * (DIV_Integer + 1) * 256)    */
-            /*      DIV_Fraction = 256 * (4 * (DIV_Integer + 1) * B / C - 128       */
-            DIV_Fraction = (uint32_t)(256UL * u64Temp / C - 128UL);
-            if (DIV_Fraction > 0x7FUL)
+            if ((DIV - (float32_t)DIV_Integer) > 0.00001f)
             {
-                enRet = ErrorInvalidParameter;
+                /* Clock sync mode baudrate fraction calculation formula:               */
+                /*      B = C * (128 + DIV_Fraction) / (4 * (DIV_Integer + 1) * 256)    */
+                /*      DIV_Fraction = 256 * (4 * (DIV_Integer + 1) * B / C - 128       */
+                DIV_Fraction = (uint32_t)(256UL * u64Temp / C - 128UL);
+                if (DIV_Fraction > 0x7FUL)
+                {
+                    enRet = ErrorInvalidParameter;
+                }
             }
         }
 
@@ -2403,11 +2410,15 @@ static en_result_t CalcSmartcardBaudrate(const M4_USART_TypeDef *USARTx,
 
     C = u32UsartClk;
     B = u32Baudrate;
-    BCN = au16EtuClkCnts[READ_REG32_BIT(USARTx->CR3, USART_CR3_BCN)>>USART_CR3_BCN_POS];
 
-    if ((C > 0UL) && (B > 0UL))
+    if (C && B)
     {
         enRet = Ok;
+
+        BCN = READ_REG32_BIT(USARTx->CR3, USART_CR3_BCN);
+        DDL_ASSERT(IS_USART_SMARTCARD_ETU_CLK(BCN));
+        BCN = au16EtuClkCnts[BCN >> USART_CR3_BCN_POS];
+
         /* Smartcard mode baudrate integer calculation formula: */
         /*      B = C / (2 * BCN * (DIV_Integer + 1))           */
         /*      DIV_Integer = (C / (B * 2 * BCN)) - 1           */
@@ -2418,15 +2429,18 @@ static en_result_t CalcSmartcardBaudrate(const M4_USART_TypeDef *USARTx,
 
         u64Temp = (uint64_t)((uint64_t)2UL * BCN * ((uint64_t)DIV_Integer + (uint64_t)1UL) * B);
 
-        if ((DIV - (float32_t)DIV_Integer) > 0.00001f)
+        if (IS_USART_FRACTION_INSTANCE(USARTx))
         {
-            /* Smartcard mode baudrate fraction calculation formula:                        */
-            /*      B = C * (128 + DIV_Fraction) / ((2 * BCN) * (DIV_Integer + 1) * 256)    */
-            /*      DIV_Fraction = (256 * (2 * BCN * (DIV_Integer + 1) * B) / C) - 128      */
-            DIV_Fraction = (uint32_t)(256UL * u64Temp / C - 128UL);
-            if (DIV_Fraction > 0x7UL)
+            if ((DIV - (float32_t)DIV_Integer) > 0.00001f)
             {
-                enRet = ErrorInvalidParameter;
+                /* Smartcard mode baudrate fraction calculation formula:                        */
+                /*      B = C * (128 + DIV_Fraction) / ((2 * BCN) * (DIV_Integer + 1) * 256)    */
+                /*      DIV_Fraction = (256 * (2 * BCN * (DIV_Integer + 1) * B) / C) - 128      */
+                DIV_Fraction = (uint32_t)(256UL * u64Temp / C - 128UL);
+                if (DIV_Fraction > 0x7FUL)
+                {
+                    enRet = ErrorInvalidParameter;
+                }
             }
         }
 

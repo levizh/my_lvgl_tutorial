@@ -69,45 +69,12 @@
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
-/**
- * @brief Key state definition
- */
-typedef enum
-{
-    KeyIdle,
-    KeyRelease,
-} en_key_state_t;
-
-/**
- * @brief Key instance structure definition
- */
-typedef struct
-{
-    uint8_t u8Port;                     /*!< GPIO_PORT_x: x can be (0~7, 12~14) to select the GPIO peripheral */
-
-    uint8_t u8Pin;                      /*!< GPIO_PIN_x: x can be (0~7) to select the PIN index */
-
-    en_pin_state_t enPressPinState;     /*!< Pin level state when key is pressed */
-} stc_key_t;
 
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* Key Port/Pin definition */
-#define KEY_PORT                        (GPIO_PORT_A)
-#define KEY_PIN                         (GPIO_PIN_00)
-
-/* Red LED Port/Pin definition */
-#define LED_R_PORT                      (GPIO_PORT_A)
-#define LED_R_PIN                       (GPIO_PIN_00)
-#define LED_R_ON()                      (GPIO_ResetPins(LED_R_PORT, LED_R_PIN))
-#define LED_R_OFF()                     (GPIO_SetPins(LED_R_PORT, LED_R_PIN))
-
-/* Green LED Port/Pin definition */
-#define LED_G_PORT                      (GPIO_PORT_B)
-#define LED_G_PIN                       (GPIO_PIN_00)
-#define LED_G_OFF()                     (GPIO_SetPins(LED_G_PORT, LED_G_PIN))
-#define LED_G_TOGGLE()                  (GPIO_TogglePins(LED_G_PORT, LED_G_PIN))
+/* Key definition */
+#define USER_KEY                        (BSP_KEY_1)
 
 /* UART TX Port/Pin definition */
 #define USART_MASTER_TX_PORT            (GPIO_PORT_E)   /* PE6: USART6_TX */
@@ -125,9 +92,6 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static void LedConfig(void);
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey);
 static void UartRxErrProcess(void);
 
 /*******************************************************************************
@@ -137,71 +101,6 @@ static void UartRxErrProcess(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-
-/**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Initialize XTAL clock */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
-}
-
-/**
- * @brief  Configure RGB LED.
- * @param  None
- * @retval None
- */
-static void LedConfig(void)
-{
-    stc_gpio_init_t stcGpioInit;
-
-    GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;
-    stcGpioInit.u16PinState = PIN_STATE_SET;
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-}
-
-/**
- * @brief  Get key state.
- * @param  [in] pstcKey    Pointer to stc_key_t structure
- * @retval An en_result_t enumeration value:
- *           - KeyIdle: Key isn't pressed.
- *           - KeyRelease: Released after key is pressed.
- */
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey)
-{
-    en_key_state_t enKeyState = KeyIdle;
-
-    if (NULL != pstcKey)
-    {
-       if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-        {
-            DDL_Delay1ms(20ul);
-
-            if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-            {
-                while (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-                {
-                    ;
-                }
-                enKeyState = KeyRelease;
-            }
-        }
-    }
-
-    return enKeyState;
-}
 
 /**
  * @brief  USART RX error process function.
@@ -225,11 +124,6 @@ int32_t main(void)
 {
     uint8_t u8MasterTxData = 0U;
     uint8_t u8MasterRxData = 0U;
-    stc_key_t stcKeySw = {
-        .u8Port = KEY_PORT,
-        .u8Pin = KEY_PIN,
-        .enPressPinState = Pin_Reset,
-    };
     const stc_usart_uart_init_t stcUartInit = {
         .u32Baudrate = 19200UL,
         .u32BitDirection = USART_LSB,
@@ -242,14 +136,23 @@ int32_t main(void)
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
+                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
+                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Initialize UART for debug print function. */
-    DDL_UartInit();
+    DDL_PrintfInit();
 
-    /* Configure LED. */
-    LedConfig();
+    /* Initialize IO. */
+    BSP_IO_Init();
+
+    /* Initialize LED. */
+    BSP_LED_Init();
+
+    /* Initialize key. */
+    BSP_KEY_Init();
 
     /* Configure USART TX pin. */
     GPIO_SetFunc(USART_MASTER_TX_PORT, USART_MASTER_TX_PIN, USART_MASTER_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
@@ -263,9 +166,8 @@ int32_t main(void)
     while (1)
     {
         /* Wait key release */
-        while (KeyRelease !=  KeyGetState(&stcKeySw))
+        while (Reset == BSP_KEY_GetStatus(USER_KEY))
         {
-            ;
         }
 
         /* Enable TX function && Disable RX function */
@@ -278,7 +180,6 @@ int32_t main(void)
         /* Wait Tx complete */
         while (Reset == USART_GetFlag(USART_MASTER_UNIT, USART_FLAG_TC))
         {
-            ;
         }
 
         /* Enable RX function && Disable TX function*/
@@ -295,13 +196,13 @@ int32_t main(void)
 
         if (u8MasterRxData == u8MasterTxData)
         {
-            LED_G_TOGGLE();
-            LED_R_OFF();
+            BSP_LED_Off(LED_RED);
+            BSP_LED_Toggle(LED_BLUE);
         }
         else
         {
-            LED_G_OFF();
-            LED_R_ON();
+            BSP_LED_On(LED_RED);
+            BSP_LED_Off(LED_BLUE);
         }
 
         printf("Master send:%d; master receive:%d \r\n", u8MasterTxData, u8MasterRxData);

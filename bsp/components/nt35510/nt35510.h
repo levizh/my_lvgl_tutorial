@@ -131,7 +131,7 @@ extern "C"
   Global function prototypes (definition in C source)
  ******************************************************************************/
 /**
- * @defgroup NT35510_Global_Functions TCA9539 Global Functions
+ * @defgroup NT35510_Global_Functions NT35510 Global Functions
  * @{
  */
 void NT35510_Init(void);

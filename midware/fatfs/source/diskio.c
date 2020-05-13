@@ -3,99 +3,87 @@
 /*-----------------------------------------------------------------------*/
 /* If a working storage control module is available, it should be        */
 /* attached to the FatFs via a glue function rather than modifying it.   */
-/* This is an example of glue functions to attach various exsisting      */
+/* This is an example of glue functions to attach various existing      */
 /* storage control modules to the FatFs module with a defined API.       */
 /*-----------------------------------------------------------------------*/
 
-#include "ff.h"			/* Obtains integer types */
+#include "gen_drv.h"
 #include "diskio.h"		/* Declarations of disk functions */
 
-/* Definitions of physical drive number for each drive */
-#define DEV_RAM		0	/* Example: Map Ramdisk to physical drive 0 */
-#define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
-#define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
+/*******************************************************************************
+ * Local pre-processor symbols/macros ('#define')
+ ******************************************************************************/
+/**
+ * @brief Compiler Macro Definitions
+ */
+#if defined ( __GNUC__ ) && !defined (__CC_ARM) /*!< GNU Compiler */
+  #ifndef __WEAKDEF
+    #define __WEAKDEF                   __attribute__((weak))
+  #endif /* __WEAKDEF */
+#elif defined (__ICCARM__)                /*!< IAR Compiler */
+  #ifndef __WEAKDEF
+    #define __WEAKDEF                   __weak
+  #endif /* __WEAKDEF */
+#elif defined (__CC_ARM)                /*!< ARM Compiler */
+  #ifndef __WEAKDEF
+    #define __WEAKDEF                   __attribute__((weak))
+  #endif /* __WEAKDEF */
+#else
+    #error  "unsupported compiler!!"
+#endif
 
+/*******************************************************************************
+ * Global variable definitions (declared in header file with 'extern')
+ ******************************************************************************/
+extern stc_disk_drv_t gDiskDrv;
 
-/*-----------------------------------------------------------------------*/
-/* Get Drive Status                                                      */
-/*-----------------------------------------------------------------------*/
-
+/*******************************************************************************
+ * Function implementation - global ('extern') and local ('static')
+ ******************************************************************************/
+/**
+ * @brief  Gets Disk Status
+ * @param  pdrv:    Physical drive number (0..)
+ * @retval DSTATUS: Operation status
+ */
 DSTATUS disk_status (
-	BYTE pdrv		/* Physical drive nmuber to identify the drive */
+	BYTE pdrv		/* Physical drive number to identify the drive */
 )
 {
 	DSTATUS stat;
-	int result;
 
-	switch (pdrv) {
-	case DEV_RAM :
-		result = RAM_disk_status();
+	stat = gDiskDrv.drv[pdrv]->status(gDiskDrv.lun[pdrv]);
 
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_MMC :
-		result = MMC_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_USB :
-		result = USB_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-	}
-	return STA_NOINIT;
+	return stat;
 }
 
-
-
-/*-----------------------------------------------------------------------*/
-/* Inidialize a Drive                                                    */
-/*-----------------------------------------------------------------------*/
-
+/**
+ * @brief  Initializes a Drive
+ * @param  pdrv:    Physical drive number (0..)
+ * @retval DSTATUS: Operation status
+ */
 DSTATUS disk_initialize (
 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
-	int result;
+	DSTATUS stat = RES_OK;
 
-	switch (pdrv) {
-	case DEV_RAM :
-		result = RAM_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_MMC :
-		result = MMC_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case DEV_USB :
-		result = USB_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
+	if(gDiskDrv.state[pdrv] == 0)
+	{
+		gDiskDrv.state[pdrv] = 1;
+		stat = gDiskDrv.drv[pdrv]->initialize(gDiskDrv.lun[pdrv]);
 	}
-	return STA_NOINIT;
+
+	return stat;
 }
 
-
-
-/*-----------------------------------------------------------------------*/
-/* Read Sector(s)                                                        */
-/*-----------------------------------------------------------------------*/
-
+/**
+ * @brief  Reads Sector(s)
+ * @param  pdrv:    Physical drive number (0..)
+ * @param  buff:    Pointer to data buffer used to store read data
+ * @param  sector:  Sector address (LBA)
+ * @param  count:   Number of sectors to read (1..128)
+ * @retval DRESULT: Operation result
+ */
 DRESULT disk_read (
 	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
 	BYTE *buff,		/* Data buffer to store read data */
@@ -104,48 +92,21 @@ DRESULT disk_read (
 )
 {
 	DRESULT res;
-	int result;
 
-	switch (pdrv) {
-	case DEV_RAM :
-		// translate the arguments here
+	res = gDiskDrv.drv[pdrv]->read(gDiskDrv.lun[pdrv], buff, sector, count);
 
-		result = RAM_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_MMC :
-		// translate the arguments here
-
-		result = MMC_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_USB :
-		// translate the arguments here
-
-		result = USB_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-	}
-
-	return RES_PARERR;
+	return res;
 }
 
-
-
-/*-----------------------------------------------------------------------*/
-/* Write Sector(s)                                                       */
-/*-----------------------------------------------------------------------*/
-
 #if FF_FS_READONLY == 0
-
+/**
+ * @brief  Writes Sector(s)
+ * @param  pdrv:    Physical drive number (0..)
+ * @param  buff:    Pointer to data to be written
+ * @param  sector:  Sector address (LBA)
+ * @param  count:   Number of sectors to write (1..128)
+ * @retval DRESULT: Operation result
+ */
 DRESULT disk_write (
 	BYTE pdrv,			/* Physical drive nmuber to identify the drive */
 	const BYTE *buff,	/* Data to be written */
@@ -154,47 +115,20 @@ DRESULT disk_write (
 )
 {
 	DRESULT res;
-	int result;
 
-	switch (pdrv) {
-	case DEV_RAM :
-		// translate the arguments here
+	res = gDiskDrv.drv[pdrv]->write(gDiskDrv.lun[pdrv], buff, sector, count);
 
-		result = RAM_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_MMC :
-		// translate the arguments here
-
-		result = MMC_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case DEV_USB :
-		// translate the arguments here
-
-		result = USB_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-	}
-
-	return RES_PARERR;
+	return res;
 }
-
 #endif
 
-
-/*-----------------------------------------------------------------------*/
-/* Miscellaneous Functions                                               */
-/*-----------------------------------------------------------------------*/
-
+/**
+ * @brief  I/O control operation
+ * @param  pdrv:    Physical drive number (0..)
+ * @param  cmd:     Control code
+ * @param  buff:    Pointer to buffer used to send/receive data
+ * @retval DRESULT: Operation result
+ */
 DRESULT disk_ioctl (
 	BYTE pdrv,		/* Physical drive nmuber (0..) */
 	BYTE cmd,		/* Control code */
@@ -202,28 +136,18 @@ DRESULT disk_ioctl (
 )
 {
 	DRESULT res;
-	int result;
 
-	switch (pdrv) {
-	case DEV_RAM :
+	res = gDiskDrv.drv[pdrv]->ioctl(gDiskDrv.lun[pdrv], cmd, buff);
 
-		// Process of the command for the RAM drive
-
-		return res;
-
-	case DEV_MMC :
-
-		// Process of the command for the MMC/SD card
-
-		return res;
-
-	case DEV_USB :
-
-		// Process of the command the USB drive
-
-		return res;
-	}
-
-	return RES_PARERR;
+	return res;
 }
 
+/**
+  * @brief  Gets Time from RTC
+  * @param  None
+  * @retval Time in DWORD
+  */
+__WEAKDEF DWORD get_fattime (void)
+{
+	return 0;
+}

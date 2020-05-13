@@ -98,10 +98,11 @@ typedef struct
 #define DEVICE_ADDRESS                  0x06U
 
 /* Define port and pin for SDA and SCL */
-#define I2C_SCL_PORT                    (GPIO_PORT_C)
-#define I2C_SCL_PIN                     (GPIO_PIN_04)
-#define I2C_SDA_PORT                    (GPIO_PORT_C)
-#define I2C_SDA_PIN                     (GPIO_PIN_05)
+#define I2C_SCL_PORT                    (GPIO_PORT_D)
+#define I2C_SCL_PIN                     (GPIO_PIN_03)
+#define I2C_SDA_PORT                    (GPIO_PORT_F)
+#define I2C_SDA_PIN                     (GPIO_PIN_10)
+
 
 #define TIMEOUT                         ((uint32_t)0x10000)
 
@@ -129,16 +130,6 @@ typedef struct
 #define I2C_TEI_IRQn                    (Int016_IRQn)
 #define I2C_TEI_SOURCE                  (INT_I2C1_TEI)
 
-/* Define for RGB LED */
-#define LED_R_PORT                      (GPIO_PORT_A)
-#define LED_G_PORT                      (GPIO_PORT_B)
-#define LED_B_PORT                      (GPIO_PORT_C)
-#define LED_R_PIN                       (GPIO_PIN_00)
-#define LED_G_PIN                       (GPIO_PIN_00)
-#define LED_B_PIN                       (GPIO_PIN_01)
-#define LED_G_TOGGLE()                  (GPIO_TogglePins(LED_G_PORT, LED_G_PIN))
-#define LED_R_TOGGLE()                  (GPIO_TogglePins(LED_R_PORT, LED_R_PIN))
-
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -146,129 +137,107 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static void LedConfig(void);
-static void WaitSwX_ShortPress(void);
-static uint8_t Master_Initialize(void);
-static void I2C_EEI_Callback(void);
-static void I2C_TXI_Callback(void);
-static void I2C_RXI_Callback(void);
-static void I2C_TEI_Callback(void);
-static void BufWrite(uint8_t* pbuf, uint8_t u8Data);
-static uint8_t BufRead(uint8_t* pbuf);
-static uint8_t Master_StartOrRestart(uint8_t u8Start);
-static uint8_t Master_SendAdr(uint8_t u8Adr);
-static void MasterSendData(uint32_t u32Len, uint8_t* pbuf);
-static void MasterRevData(uint32_t u32Len, uint8_t* pbuf);
-static uint8_t GetComStatus(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-uint8_t u8TxBuf[TEST_DATA_LEN];
-uint8_t u8RxBuf[TEST_DATA_LEN];
-stc_i2c_communication_t stcI2cCom;
+static stc_i2c_communication_t stcI2cCom;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @brief  Main function of i2c_at24c02 project
+ * @brief  Master communication status read.
  * @param  None
- * @retval int32_t return value, if needed
+ * @retval uint8_t  If return 1 indicate communication finished.
  */
-int32_t main(void)
+static uint8_t GetComStatus(void)
 {
-    uint32_t i;
+    return stcI2cCom.u8FinishFlag;
+}
 
-    /* Configure system clock. */
-    SystemClockConfig();
+/**
+ * @brief  Configure system clock.
+ * @param  None
+ * @retval None
+ */
+static void SystemClockConfig(void)
+{
+    stc_clk_pllh_init_t stcPLLHInit;
+    
+    /* HCLK  Max 240MHz */
+    CLK_ClkDiv(CLK_CATE_ALL,                                                    \
+               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV2 | CLK_PCLK2_DIV4 |                  \
+                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 |                  \
+                CLK_HCLK_DIV1));
 
-    /* RGB LED configuration */
-    LedConfig();
+    /* Highspeed SRAM set to 1 Read/Write wait cycle */
+    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
 
-    /* Test buffer initialize */
-    for(i=0U; i<TEST_DATA_LEN; i++)
+    EFM_Unlock();
+    EFM_SetLatency(EFM_WAIT_CYCLE_6);
+    EFM_Unlock();
+    
+    /* PLLH config */
+    CLK_PLLHStrucInit(&stcPLLHInit);
+    /*
+    16MHz/M*N/P = 16/1*60/4 =240MHz
+    */
+    stcPLLHInit.u8PLLState = CLK_PLLH_ON;
+    stcPLLHInit.PLLCFGR = 0UL;
+    stcPLLHInit.PLLCFGR_f.PLLM = (1UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLN = (60UL - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLP = (4UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLR = (4UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLQ = (4UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_HRC;
+    CLK_PLLHInit(&stcPLLHInit);
+    CLK_PLLHCmd(Enable);
+    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
+
+    /* Config clock output system clock */
+    CLK_MCO1Config(CLK_MCOSOURCCE_SYSCLK, CLK_MCODIV_128);
+    /* Config clock output pin */
+    GPIO_SetFunc(GPIO_PORT_A, GPIO_PIN_08, GPIO_FUNC_1_MCO, Disable);
+    /* MCO1 output enable */
+    CLK_MCO1Cmd(Enable);
+}
+
+/**
+ * @brief   Send start or restart condition
+ * @param   [in]  u8Start  Indicate the start mode, start or restart
+ * @retval  Process result
+ *          - I2C_RET_ERROR  Send start or restart failed
+ *          - I2C_RET_OK     Send start or restart success
+ */
+static uint8_t Master_StartOrRestart(uint8_t u8Start)
+{
+    /* generate start or restart signal */
+    if(GENERATE_START == u8Start)
     {
-        u8TxBuf[i] = (uint8_t)i+1U;
+        I2C_GenerateStart(M4_I2C1);
     }
-    for(i=0U; i<TEST_DATA_LEN; i++)
+    else
     {
-        u8RxBuf[i] = 0U;
-    }
-
-    /* Initialize I2C port*/
-    GPIO_SetFunc(I2C_SCL_PORT, I2C_SCL_PIN, GPIO_FUNC_51_I2C1_SCL, PIN_SUBFUNC_DISABLE);
-    GPIO_SetFunc(I2C_SDA_PORT, I2C_SDA_PIN, GPIO_FUNC_50_I2C1_SDA, PIN_SUBFUNC_DISABLE);
-
-    /* Enable peripheral clock */
-    PWC_Fcg1PeriphClockCmd(PWC_FCG1_IIC1, Enable);
-
-    /* Initialize I2C peripheral and enable function*/
-    Master_Initialize();
-
-    /* TODO: Short press key SWX */
-    WaitSwX_ShortPress();
-
-    /* I2C master data write */
-    MasterSendData(TEST_DATA_LEN, u8TxBuf);
-
-    i = 0UL;
-    /* Wait communicaiton finished*/
-    while(0U == GetComStatus())
-    {
-        if(TIMEOUT == i++)
-        {
-            /* Communication time out*/
-            while(1)
-            {
-                LED_R_TOGGLE();
-                DDL_Delay1ms(500U);
-            }
-        }
-    }
-
-    /* 5mS delay for device*/
-    DDL_Delay1ms(1U);
-
-    /* I2C master data Read */
-    MasterRevData(TEST_DATA_LEN, u8RxBuf);
-
-    i = 0UL;
-    /* Wait communicaiton finished*/
-    while(0U == GetComStatus())
-    {
-        if(TIMEOUT == i++)
-        {
-            /* Communication time out*/
-            while(1)
-            {
-                LED_R_TOGGLE();
-                DDL_Delay1ms(500U);
-            }
-        }
-    }
-
-    /* Compare the data */
-    for(i=0U; i<TEST_DATA_LEN; i++)
-    {
-        if(u8TxBuf[i] != u8RxBuf[i])
-        {
-            /* Data write error*/
-            while(1)
-            {
-                LED_R_TOGGLE();
-                DDL_Delay1ms(500U);
-            }
-        }
+        /* Clear start status flag */
+        I2C_ClearStatus(M4_I2C1, I2C_CLR_STARTFCLR);
+        /* Send restart condition */
+        I2C_GenerateReStart(M4_I2C1);
     }
 
-    /* Communication finished */
-    while(1)
-    {
-        LED_G_TOGGLE();
-        DDL_Delay1ms(500U);
-    }
+    return I2C_RET_OK;
+}
+
+/**
+ * @brief   Send slave address
+ * @param   [in]  u8Adr  The slave address
+ * @retval  Process result
+ *          - I2C_RET_ERROR  Send failed
+ *          - I2C_RET_OK     Send success
+ */
+static en_result_t Master_SendAdr(uint8_t u8Adr)
+{
+    return I2C_SendAddr(M4_I2C1,u8Adr,TIMEOUT);
 }
 
 /**
@@ -308,45 +277,182 @@ static void MasterRevData(uint32_t u32Len, uint8_t* pbuf)
 }
 
 /**
- * @brief  Master communication status read.
- * @param  None
- * @retval uint8_t  If return 1 indicate communication finished.
+ * @brief   static function for buffer write.
+ * @param   [in]   pbuf   Buffer pointer
+ * @param   [in]   u8Data the data to be write.
+ * @retval  None
  */
-static uint8_t GetComStatus(void)
+static void BufWrite(uint8_t pbuf[], uint8_t u8Data)
 {
-    return stcI2cCom.u8FinishFlag;
+    if(stcI2cCom.u32DataIndex >= TEST_DATA_LEN)
+    {
+        //error
+        while(1)
+        {
+            ;
+        }
+    }
+    pbuf[stcI2cCom.u32DataIndex] = u8Data;
+    stcI2cCom.u32DataIndex++;
 }
 
-
 /**
- * @brief  Wait SWX key short press.
- * @param  None
- * @retval None
+ * @brief   Static function for buffer read.
+ * @param   [in]   pbuf   Buffer pointer
+ * @retval  uint8_t  The data read out from buffer.
  */
-static void WaitSwX_ShortPress(void)
+static uint8_t BufRead(uint8_t const pbuf[])
 {
+    uint8_t temp;
+    if(stcI2cCom.u32DataIndex >= TEST_DATA_LEN)
+    {
+        //error
+        while(1)
+        {
+            ;
+        }
+    }
+    temp = pbuf[stcI2cCom.u32DataIndex];
+    stcI2cCom.u32DataIndex++;
 
+    return temp;
 }
 
 /**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
+ * @brief   I2C EEI(communication error or event) interrupt callback function
+ * @param   None
+ * @retval  None
  */
-static void SystemClockConfig(void)
+static void I2C_EEI_Callback(void)
 {
-    stc_clk_xtal_init_t stcXTALInit;
+    /* If starf flag valid */
+    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_STARTF))
+    {
+        I2C_ClearStatus(M4_I2C1, I2C_CLR_STARTFCLR);
+        if(Mode_Send == stcI2cCom.enMode)
+        {
+            Master_SendAdr(((uint8_t)DEVICE_ADDRESS<<1U) | ADDRESS_W);
+        }
+        else
+        {
+            Master_SendAdr(((uint8_t)DEVICE_ADDRESS<<1U) | ADDRESS_R);
+        }
+    }
 
-    /* Configure XTAL */
-    stcXTALInit.u8XtalState = CLK_XTAL_ON;
-    stcXTALInit.u8XtalMode = CLK_XTALMODE_OSC;
-    stcXTALInit.u8XtalDrv = CLK_XTALDRV_HIGH;
+    /* If address flag valid */
+    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_SLADDR0F))
+    {
+        I2C_ClearStatus(M4_I2C1, I2C_CLR_SLADDR0FCLR);
+        /* Enable Tx or Rx function*/
+        if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_TRA))
+        {
+            /* Config tx buffer empty interrupt function*/
+            I2C_IntCmd(M4_I2C1, I2C_CR2_TEMPTYIE, Enable);
+            /* Write the first data to DTR immediately */
+            I2C_WriteDataReg(M4_I2C1, BufRead(stcI2cCom.pBuf));
+        }
+        else
+        {
+            /* Config rx buffer full interrupt function*/
+            I2C_IntCmd(M4_I2C1, I2C_CR2_RFULLIE, Enable);
+        }
 
-    /* Initialize XTAL clock */
-    CLK_XtalInit(&stcXTALInit);
+        /* Enable NACK interrupt */
+        I2C_IntCmd(M4_I2C1, I2C_CR2_STOPIE | I2C_CR2_NACKIE, Enable);
+    }
 
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
+    /* If NACK interrupt occurred */
+    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_NACKF))
+    {
+        /* clear NACK flag*/
+        I2C_ClearStatus(M4_I2C1, I2C_CLR_NACKFCLR);
+        /* Stop tx or rx process*/
+        if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_TRA))
+        {
+            /* Config tx buffer empty interrupt function disable*/
+            I2C_IntCmd(M4_I2C1, I2C_CR2_TEMPTYIE, Disable);
+            /* Read DRR register to release SCL*/
+            I2C_ReadDataReg(M4_I2C1);
+        }
+        else
+        {
+            /* Config rx buffer full interrupt function disable */
+            I2C_IntCmd(M4_I2C1, I2C_CR2_RFULLIE, Disable);
+        }
+    }
+
+    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_STOPF))
+    {
+        /* Communication finished */
+        stcI2cCom.u8FinishFlag = 1U;
+        /* Disable Stop flag interrupt */
+        I2C_IntCmd(M4_I2C1, I2C_CR2_STOPIE, Disable);
+        I2C_ClearStatus(M4_I2C1, I2C_CLR_STOPFCLR);
+    }
+}
+
+/**
+ * @brief   I2C TXI(transfer buffer empty) interrupt callback function
+ * @param   None
+ * @retval  None
+ */
+static void I2C_TXI_Callback(void)
+{
+    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_TEMPTYF))
+    {
+        if(stcI2cCom.u32DataIndex < TEST_DATA_LEN)
+        {
+            I2C_WriteDataReg(M4_I2C1, BufRead(stcI2cCom.pBuf));
+        }
+        else
+        {
+            I2C_IntCmd(M4_I2C1, I2C_CR2_TEMPTYIE, Disable);
+            I2C_IntCmd(M4_I2C1, I2C_CR2_TENDIE, Enable);
+        }
+    }
+}
+
+/**
+ * @brief   I2C RXI(receive buffer full) interrupt callback function
+ * @param   None
+ * @retval  None
+ */
+static void I2C_RXI_Callback(void)
+{
+    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_RFULLF))
+    {
+        BufWrite(stcI2cCom.pBuf, I2C_ReadDataReg(M4_I2C1));
+    }
+
+    if(stcI2cCom.u32DataIndex >= TEST_DATA_LEN)
+    {
+        /* Generate stop condition */
+        I2C_ClearStatus(M4_I2C1, I2C_CLR_STOPFCLR);
+        I2C_GenerateStop(M4_I2C1);
+        /* Enable Stop flag interrupt */
+        I2C_IntCmd(M4_I2C1, I2C_CR2_STOPIE, Enable);
+        /* Disable TXI interrupt */
+        I2C_IntCmd(M4_I2C1, I2C_CR2_RFULLIE, Disable);
+    }
+}
+
+/**
+ * @brief   I2C TEI(Transfer end) interrupt callback function
+ * @param   None
+ * @retval  None
+ */
+static void I2C_TEI_Callback(void)
+{
+    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_TENDF))
+    {
+        /* Generate stop condition */
+        I2C_ClearStatus(M4_I2C1, I2C_CLR_STOPFCLR);
+        I2C_GenerateStop(M4_I2C1);
+        /* Enable Stop flag interrupt */
+        I2C_IntCmd(M4_I2C1, I2C_CR2_STOPIE, Enable);
+        /* Disable TXI interrupt */
+        I2C_IntCmd(M4_I2C1, I2C_CR2_TEMPTYIE|I2C_CR2_TENDIE, Disable);
+    }
 }
 
 /**
@@ -366,8 +472,8 @@ static uint8_t Master_Initialize(void)
 
     I2C_StructInit(&stcI2cInit);
     stcI2cInit.u32Baudrate = I2C_BAUDRATE;
-    stcI2cInit.u32I2cClkDiv = I2C_CLK_DIV1;
     stcI2cInit.u32SclTime = 5U;
+    stcI2cInit.u32I2cClkDiv = I2C_CLK_DIV1;
     I2C_Init(M4_I2C1, &stcI2cInit, &fErr);
 
     /* Set slave address*/
@@ -420,254 +526,91 @@ static uint8_t Master_Initialize(void)
 }
 
 /**
- * @brief   Send start or restart condition
- * @param   [in]  u8Start  Indicate the start mode, start or restart
- * @retval  Process result
- *          - I2C_RET_ERROR  Send start or restart failed
- *          - I2C_RET_OK     Send start or restart success
- */
-static uint8_t Master_StartOrRestart(uint8_t u8Start)
-{
-    /* generate start or restart signal */
-    if(GENERATE_START == u8Start)
-    {
-        I2C_GenerateStart(M4_I2C1);
-    }
-    else
-    {
-        /* Clear start status flag */
-        I2C_ClearStatus(M4_I2C1, I2C_CLR_STARTFCLR);
-        /* Send restart condition */
-        I2C_GenerateReStart(M4_I2C1);
-    }
-
-    return I2C_RET_OK;
-}
-
-/**
- * @brief   Send slave address
- * @param   [in]  u8Adr  The slave address
- * @retval  Process result
- *          - I2C_RET_ERROR  Send failed
- *          - I2C_RET_OK     Send success
- */
-static uint8_t Master_SendAdr(uint8_t u8Adr)
-{
-    uint32_t u32TimeOut = TIMEOUT;
-    uint8_t u8Ret = I2C_RET_OK;
-
-    /* Wait tx buffer empty */
-    while(Reset == I2C_GetStatus(M4_I2C1, I2C_SR_TEMPTYF))
-    {
-        if(0U == (u32TimeOut--))
-        {
-            u8Ret = I2C_RET_ERROR;
-        }
-    }
-
-    if(I2C_RET_ERROR != u8Ret)
-    {
-        /* Send I2C address */
-        I2C_SendData(M4_I2C1, u8Adr);
-    }
-
-    return u8Ret;
-}
-
-/**
- * @brief  Configure RGB LED.
+ * @brief  Main function of i2c_master_irq project
  * @param  None
- * @retval None
+ * @retval int32_t return value, if needed
  */
-static void LedConfig(void)
+int32_t main(void)
 {
-    stc_gpio_init_t stcGpioInit = {0U};
+    /* Configure system clock. */
+    SystemClockConfig();
 
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;
-    stcGpioInit.u16PinState = PIN_STATE_SET;
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-}
-
-/**
- * @brief   I2C EEI(communication error or event) interrupt callback function
- * @param   None
- * @retval  None
- */
-static void I2C_EEI_Callback(void)
-{
-    /* If starf flag valid */
-    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_STARTF))
+    static uint8_t u8TxBuf[TEST_DATA_LEN];
+    static uint8_t u8RxBuf[TEST_DATA_LEN] = {0};
+    uint32_t i;
+    /* Test buffer initialize */
+    for(i=0U; i<TEST_DATA_LEN; i++)
     {
-        I2C_ClearStatus(M4_I2C1, I2C_CLR_STARTFCLR);
-        if(Mode_Send == stcI2cCom.enMode)
+        u8TxBuf[i] = (uint8_t)i+1U;
+    }
+
+    /* Initialize I2C port*/
+    stc_gpio_init_t stcGpioInit;
+    GPIO_StructInit(&stcGpioInit);
+    GPIO_Init(I2C_SCL_PORT, I2C_SCL_PIN, &stcGpioInit);
+    GPIO_Init(I2C_SDA_PORT, I2C_SDA_PIN, &stcGpioInit);
+    GPIO_SetFunc(I2C_SCL_PORT, I2C_SCL_PIN, GPIO_FUNC_49_I2C1_SCL, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(I2C_SDA_PORT, I2C_SDA_PIN, GPIO_FUNC_48_I2C1_SDA, PIN_SUBFUNC_DISABLE);
+
+    /* Enable peripheral clock */
+    PWC_Fcg1PeriphClockCmd(PWC_FCG1_IIC1, Enable);
+    /* Initialize I2C peripheral and enable function*/
+    Master_Initialize();
+    /* I2C master data write */
+    MasterSendData(TEST_DATA_LEN, u8TxBuf);
+
+    i = 0UL;
+    /* Wait communication finished*/
+    while(0U == GetComStatus())
+    {
+        if(TIMEOUT == i++)
         {
-            Master_SendAdr(((uint8_t)DEVICE_ADDRESS<<1U) | ADDRESS_W);
+            /* Communication time out*/
+            while(1)
+            {
+                DDL_Delay1ms(500U);
+            }
         }
-        else
+    }
+    /* 5mS delay for device*/
+    DDL_Delay1ms(5U);
+    /* I2C master data Read */
+    MasterRevData(TEST_DATA_LEN, u8RxBuf);
+
+    i = 0UL;
+    /* Wait communication finished*/
+    while(0U == GetComStatus())
+    {
+        if(TIMEOUT == i++)
         {
-            Master_SendAdr(((uint8_t)DEVICE_ADDRESS<<1U) | ADDRESS_R);
+            /* Communication time out*/
+            while(1)
+            {
+                DDL_Delay1ms(500U);
+            }
         }
     }
 
-    /* If address flag valid */
-    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_SLADDR0F))
+    /* Compare the data */
+    for(i=0U; i<TEST_DATA_LEN; i++)
     {
-        I2C_ClearStatus(M4_I2C1, I2C_CLR_SLADDR0FCLR);
-        /* Enable Tx or Rx function*/
-        if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_TRA))
+        if(u8TxBuf[i] != u8RxBuf[i])
         {
-            /* Config tx buffer empty interrupt function*/
-            I2C_IntCmd(M4_I2C1, I2C_CR2_TEMPTYIE, Enable);
-            /* Write the first data to DTR immediately */
-            I2C_SendData(M4_I2C1, BufRead(stcI2cCom.pBuf));
-        }
-        else
-        {
-            /* Config rx buffer full interrupt function*/
-            I2C_IntCmd(M4_I2C1, I2C_CR2_RFULLIE, Enable);
-        }
-
-        /* Enable NACK interrupt */
-        I2C_IntCmd(M4_I2C1, I2C_CR2_STOPIE | I2C_CR2_NACKIE, Enable);
-    }
-
-    /* If NACK interrupt occurred */
-    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_ACKRF))
-    {
-        /* clear NACK flag*/
-        I2C_ClearStatus(M4_I2C1, I2C_CLR_NACKFCLR);
-        /* Stop tx or rx process*/
-        if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_TRA))
-        {
-            /* Config tx buffer empty interrupt function disable*/
-            I2C_IntCmd(M4_I2C1, I2C_CR2_TEMPTYIE, Disable);
-
-            /* Read DRR register to release SCL*/
-            I2C_ReadData(M4_I2C1);
-        }
-        else
-        {
-            /* Config rx buffer full interrupt function disable */
-            I2C_IntCmd(M4_I2C1, I2C_CR2_RFULLIE, Disable);
+            /* Data write error*/
+            while(1)
+            {
+                DDL_Delay1ms(500U);
+            }
         }
     }
 
-    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_STOPF))
+    /* Communication finished */
+    while(1)
     {
-        /* Communication finished */
-        stcI2cCom.u8FinishFlag = 1U;
-        /* Disable Stop flag interrupt */
-        I2C_IntCmd(M4_I2C1, I2C_CR2_STOPIE, Disable);
-        I2C_ClearStatus(M4_I2C1, I2C_CLR_STOPFCLR);
+        DDL_Delay1ms(500U);
     }
 }
 
-/**
- * @brief   I2C TXI(transfer buffer empty) interrupt callback function
- * @param   None
- * @retval  None
- */
-static void I2C_TXI_Callback(void)
-{
-    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_TEMPTYF))
-    {
-        if(stcI2cCom.u32DataIndex < TEST_DATA_LEN)
-        {
-            I2C_SendData(M4_I2C1, BufRead(stcI2cCom.pBuf));
-        }
-        else
-        {
-            I2C_IntCmd(M4_I2C1, I2C_CR2_TEMPTYIE, Disable);
-            I2C_IntCmd(M4_I2C1, I2C_CR2_TENDIE, Enable);
-        }
-    }
-}
-
-/**
- * @brief   I2C RXI(receive buffer full) interrupt callback function
- * @param   None
- * @retval  None
- */
-static void I2C_RXI_Callback(void)
-{
-    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_RFULLF))
-    {
-        BufWrite(stcI2cCom.pBuf, I2C_ReadData(M4_I2C1));
-    }
-
-    if(stcI2cCom.u32DataIndex >= TEST_DATA_LEN)
-    {
-        /* Generate stop condition */
-        I2C_ClearStatus(M4_I2C1, I2C_CLR_STOPFCLR);
-        I2C_GenerateStop(M4_I2C1);
-        /* Enable Stop flag interrupt */
-        I2C_IntCmd(M4_I2C1, I2C_CR2_STOPIE, Enable);
-        /* Disable TXI interrupt */
-        I2C_IntCmd(M4_I2C1, I2C_CR2_RFULLIE, Disable);
-    }
-}
-
-/**
- * @brief   I2C TEI(Transfer end) interrupt callback function
- * @param   None
- * @retval  None
- */
-static void I2C_TEI_Callback(void)
-{
-    if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_TENDF))
-    {
-        /* Generate stop condition */
-        I2C_ClearStatus(M4_I2C1, I2C_CLR_STOPFCLR);
-        I2C_GenerateStop(M4_I2C1);
-        /* Enable Stop flag interrupt */
-        I2C_IntCmd(M4_I2C1, I2C_CR2_STOPIE, Enable);
-        /* Disable TXI interrupt */
-        I2C_IntCmd(M4_I2C1, I2C_CR2_TEMPTYIE|I2C_CR2_TENDIE, Disable);
-    }
-}
-
-/**
- * @brief   static function for buffer write.
- * @param   [in]   pbuf   Buffer pointer
- * @param   [in]   u8Data the data to be write.
- * @retval  None
- */
-static void BufWrite(uint8_t* pbuf, uint8_t u8Data)
-{
-    if(stcI2cCom.u32DataIndex >= TEST_DATA_LEN)
-    {
-        //error
-        while(1)
-        {
-            ;
-        }
-    }
-    *(uint8_t*)(pbuf + stcI2cCom.u32DataIndex) = u8Data;
-    stcI2cCom.u32DataIndex++;
-}
-
-/**
- * @brief   Static function for buffer read.
- * @param   [in]   pbuf   Buffer pointer
- * @retval  uint8_t  The data read out from buffer.
- */
-static uint8_t BufRead(uint8_t* pbuf)
-{
-    uint8_t temp;
-    if(stcI2cCom.u32DataIndex >= TEST_DATA_LEN)
-    {
-        //error
-        while(1)
-        {
-            ;
-        }
-    }
-    temp = *(uint8_t*)(pbuf + stcI2cCom.u32DataIndex);
-    stcI2cCom.u32DataIndex++;
-
-    return temp;
-}
 
 /**
  * @}

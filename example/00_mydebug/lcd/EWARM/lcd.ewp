@@ -181,7 +181,7 @@
         <debug>0</debug>
         <option>
           <name>CCDefines</name>
-          <state>__DEBUG</state>
+          <state>__DEBUG_</state>
           <state>HC32F4A0</state>
           <state>USE_DDL_DRIVER</state>
         </option>
@@ -318,6 +318,7 @@
           <state>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176</state>
           <state>$PROJ_DIR$\..\..\..\..\bsp\components\nt35510</state>
           <state>$PROJ_DIR$\..\..\..\..\bsp\components\tca9539</state>
+          <state>$PROJ_DIR$\..\..\..\..\bsp\components\ov5640</state>
           <state>$PROJ_DIR$\..\..\..\..\bsp\components\gt9147</state>
           <state>$PROJ_DIR$\..\source\lvgl\src\lv_core</state>
           <state>$PROJ_DIR$\..\source\lvgl\src\lv_draw</state>
@@ -1957,6 +1958,9 @@
         <name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_nt35510.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_ov5640.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_tca9539.c</name>
       </file>
     </group>
@@ -1970,6 +1974,12 @@
       <name>nt35510</name>
       <file>
         <name>$PROJ_DIR$\..\..\..\..\bsp\components\nt35510\nt35510.c</name>
+      </file>
+    </group>
+    <group>
+      <name>ov5640</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\..\bsp\components\ov5640\ov5640.c</name>
       </file>
     </group>
     <group>
@@ -2025,6 +2035,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_sram.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_tmra.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_utility.c</name>

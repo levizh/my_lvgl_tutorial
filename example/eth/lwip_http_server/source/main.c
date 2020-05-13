@@ -7,7 +7,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-03       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,14 +62,9 @@
 #include "netif/etharp.h"
 #include "ethernetif.h"
 #include "app_ethernet.h"
-
 #include "lwip/debug.h"
 #include "lwip/tcp.h"
 #include "lwip/apps/httpd.h"
-
-#ifdef USE_LCD
-#include "lcd_log.h"
-#endif
 
 /**
  * @addtogroup HC32F4A0_DDL_Examples
@@ -77,7 +72,7 @@
  */
 
 /**
- * @addtogroup ETH_LWIP_HTTP_SERVER_RAW
+ * @addtogroup ETH_LWIP_HTTP_Server_RAW
  * @{
  */
 
@@ -89,12 +84,12 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 #ifdef ETH_INTERFACE_RMII
-/* RMII_INTB */
-#define ETH_RMII_INTB_PORT                      (GPIO_PORT_B)
-#define ETH_RMII_INTB_PIN                       (GPIO_PIN_00)
-#define ETH_RMII_INTB_EXINT_CH                  (EXINT_CH00)
-#define ETH_RMII_INTB_INT_SRC                   (INT_PORT_EIRQ0)
-#define ETH_RMII_INTB_IRQn                      (Int037_IRQn)
+    /* RMII_INTB */
+    #define ETH_RMII_INTB_PORT                  (GPIO_PORT_B)
+    #define ETH_RMII_INTB_PIN                   (GPIO_PIN_00)
+    #define ETH_RMII_INTB_EXINT_CH              (EXINT_CH00)
+    #define ETH_RMII_INTB_INT_SRC               (INT_PORT_EIRQ0)
+    #define ETH_RMII_INTB_IRQn                  (Int037_IRQn)
 #endif
 
 /*******************************************************************************
@@ -133,8 +128,8 @@ void ETH_RMII_LinkIrqCallback(void)
 {
    if (Set == EXINT_GetExIntSrc(ETH_RMII_INTB_EXINT_CH))
    {
+        EthernetIF_UpdateLink(&gnetif);
         EXINT_ClrExIntSrc(ETH_RMII_INTB_EXINT_CH);
-        ethernetif_update_link(&gnetif);
    }
 }
 
@@ -172,7 +167,7 @@ static void ETH_RMII_LinkIntConfig(void)
     NVIC_SetPriority(stcIrqSignConfig.enIRQn, DDL_IRQ_PRIORITY_DEFAULT);
     NVIC_EnableIRQ(stcIrqSignConfig.enIRQn);
 }
-#endif
+#endif /* ETH_INTERFACE_RMII */
 
 /**
  * @brief  Configurate the BSP.
@@ -182,7 +177,6 @@ static void ETH_RMII_LinkIntConfig(void)
 static void BSP_Config(void)
 {
     /* Configure BSP */
-//    BSP_KEY_Init();
     BSP_IO_Init();
     BSP_LED_Init();
     /* Configure UART */
@@ -194,28 +188,6 @@ static void BSP_Config(void)
     /* Configure link interrupt IO for ETH RMII */
 #ifdef ETH_INTERFACE_RMII
     ETH_RMII_LinkIntConfig();
-#endif
-
-#ifdef USE_LCD
-    /* Initialize the LCD */
-    BSP_LCD_Init();
-    
-    /* Initialize the LCD Layers */
-    BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS);
-    
-    /* Set LCD Foreground Layer  */
-    BSP_LCD_SelectLayer(1);
-    
-    BSP_LCD_SetFont(&LCD_DEFAULT_FONT);
-    
-    /* Initialize LCD Log module */
-    LCD_LOG_Init();
-
-    /* Show Header and Footer texts */
-    LCD_LOG_SetHeader((uint8_t *)"Webserver Application Raw API");
-    LCD_LOG_SetFooter((uint8_t *)"HD-EVAL board");
-
-    LCD_UsrLog("  State: Ethernet Initialization ...\n");
 #endif
 }
 
@@ -255,13 +227,12 @@ static void Netif_Config(void)
         /* When the netif link is down this function must be called */
         netif_set_down(&gnetif);
     }
-
     /* Set the link callback function, this function is called on change of link status*/
-    netif_set_link_callback(&gnetif, ethernetif_link_callback);
+    netif_set_link_callback(&gnetif, EthernetIF_LinkCallback);
 }
 
 /**
- * @brief  Main function of ETH LWIP_HTTP_SERVER_RAW.
+ * @brief  Main function of ETH LWIP_HTTP_Server_RAW.
  * @param  None
  * @retval int32_t return value, if needed
  */

@@ -175,8 +175,8 @@ __USB_ALIGN_BEGIN uint8_t USB_Rx_Buffer   [CDC_DATA_MAX_PACKET_SIZE] __USB_ALIGN
     #pragma data_alignment=4
   #endif
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-__USB_ALIGN_BEGIN uint8_t APP_Rx_Buffer   [APP_RX_DATA_SIZE] __USB_ALIGN_END ;
-
+//__USB_ALIGN_BEGIN uint8_t APP_Rx_Buffer   [APP_RX_DATA_SIZE] __USB_ALIGN_END ;
+uint8_t APP_Rx_Buffer   [APP_RX_DATA_SIZE];
 
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
   #if defined ( __ICCARM__ ) /*!< IAR Compiler */
@@ -558,7 +558,8 @@ uint8_t  usbd_cdc_Setup (void  *pdev,
                     if( (req->wValue >> 8) == CDC_DESCRIPTOR_TYPE)
                     {
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-                        pbuf = usbd_cdc_Desc;
+                        //pbuf = usbd_cdc_Desc;
+                        pbuf = usbd_cdc_CfgDesc + 9u + (9u * USBD_ITF_MAX_NUM);
 #else
                         pbuf = usbd_cdc_CfgDesc + 9u + (9u * USBD_ITF_MAX_NUM);
 #endif

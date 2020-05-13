@@ -624,22 +624,13 @@ typedef struct
  */
 
 /**
- * @defgroup CAN_TTC_Extended_ID_Command CAN Time-triggered Communication Extended ID Command
- * @{
- */
-#define CAN_TTC_EXT_ID_ENABLE           (CAN_REF_MSG_REF_IDE)
-/**
- * @}
- */
-
-/**
  * @defgroup CAN_TTC_Trigger_Type CAN Time-triggered Communication Trigger Type
  * @{
  */
 #define CAN_TTC_TRIG_IMMED              (0x0U)                      /*!< Immediate trigger for immediate transmission. */
 #define CAN_TTC_TRIG_TIME               (CAN_TRG_CFG_TTYPE_0)       /*!< Time trigger for receive triggers. */
 #define CAN_TTC_TRIG_SSHOT_TRANS        (CAN_TRG_CFG_TTYPE_1)       /*!< Single shot transmit trigger for exclusive time windows. */
-#define CAN_TTC_TRIG_TRANS_STRT         (CAN_TRG_CFG_TTYPE_1 | \
+#define CAN_TTC_TRIG_TRANS_START        (CAN_TRG_CFG_TTYPE_1 | \
                                          CAN_TRG_CFG_TTYPE_0)       /*!< Transmit start trigger for merged arbitrating time windows. */
 #define CAN_TTC_TRIG_TRANS_STOP         (CAN_TRG_CFG_TTYPE_2)       /*!< Transmit stop trigger for merged arbitrating time windows. */
 /**

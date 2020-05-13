@@ -208,22 +208,41 @@ extern "C"
 /** @defgroup BSP_TCA9539_Config BSP TCA9539 expand IC I2C config
  * @{
  */
-#define TCA9539_ADDR            ((uint8_t)0xE8U)
-#define TCA9539_WRITE           ((uint8_t)0x00U)
-#define TCA9539_READ            ((uint8_t)0x01U)
+#define BSP_I2C_CH              (M4_I2C1)
+#define BSP_I2C_BAUDRATE        (200000UL)
+#define BSP_I2C_TIMEOUT         (10000UL)
 
-#define TCA9539_SCL_PORT        (GPIO_PORT_D)
-#define TCA9539_SCL_PIN         (GPIO_PIN_03)
-#define TCA9539_SDA_PORT        (GPIO_PORT_F)
-#define TCA9539_SDA_PIN         (GPIO_PIN_10)
+#define BSP_SCL_PORT            (GPIO_PORT_D)
+#define BSP_SCL_PIN             (GPIO_PIN_03)
+#define BSP_SDA_PORT            (GPIO_PORT_F)
+#define BSP_SDA_PIN             (GPIO_PIN_10)
 
-#define TCA9539_I2C_CH          (M4_I2C1)
-#define TCA9539_BAUDRATE        (200000UL)
-#define TCA9539_TIMEOUT         (10000UL)
+#define TCA9539_WRITE           ((uint8_t)0xE8U)
+#define TCA9539_READ            ((uint8_t)0xE9U)
 
-#define GT9147_I2C_CH           (M4_I2C1)
-#define GT9147_BAUDRATE         (200000UL)
-#define GT9147_TIMEOUT          (10000UL)
+#define TCA9539_SCL_PORT        (BSP_SCL_PORT)
+#define TCA9539_SCL_PIN         (BSP_SCL_PIN)
+#define TCA9539_SDA_PORT        (BSP_SDA_PORT)
+#define TCA9539_SDA_PIN         (BSP_SDA_PIN)
+
+#define TCA9539_I2C_CH          (BSP_I2C_CH)
+#define TCA9539_BAUDRATE        (BSP_I2C_BAUDRATE)
+#define TCA9539_TIMEOUT         (BSP_I2C_TIMEOUT)
+
+#define GT9147_WRITE            ((uint8_t)0xBA)
+#define GT9147_READ             ((uint8_t)0xBB)
+
+#define GT9147_I2C_CH           (BSP_I2C_CH)
+#define GT9147_BAUDRATE         (BSP_I2C_BAUDRATE)
+#define GT9147_TIMEOUT          (BSP_I2C_TIMEOUT)
+
+#define OV5640_WRITE            ((uint8_t)0x78)
+#define OV5640_READ             ((uint8_t)0x79)
+
+#define OV5640_I2C_CH           (BSP_I2C_CH)
+#define OV5640_BAUDRATE         (BSP_I2C_BAUDRATE)
+#define OV5640_TIMEOUT          (BSP_I2C_TIMEOUT)
+
 
 /**
  * @}
@@ -251,7 +270,7 @@ void BSP_LED_Toggle(uint8_t u8Led);
 void BSP_KEY_Init(void);
 en_flag_status_t BSP_KEY_GetStatus(uint32_t u32Key);
 void BSP_CLK_Init(void);
-void BSP_CAM_Init(void);
+void BSP_CAM_IO_Init(void);
 void BSP_CAM_RSTCmd(uint8_t Cmd);
 void BSP_CAM_STBYCmd(uint8_t Cmd);
 void BSP_LCD_IO_Init(void);

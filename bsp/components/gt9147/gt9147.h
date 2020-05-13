@@ -91,20 +91,17 @@ extern "C"
  * @defgroup GT9147_Global_Macros GT9147 Global Macros
  * @{
  */
-#define GT9147_REG_CTRL 	((uint16_t)0x4080)      /*!< GT9147 contrl */
-#define GT9147_REG_CFGS 	((uint16_t)0x4780)   	/*!< GT9147 config */
-#define GT9147_REG_CHECK 	((uint16_t)0xFF80)   	/*!< GT9147 checksum */
-#define GT9147_REG_PID      ((uint16_t)0x4081)   	/*!< GT9147 PID */
+#define GT9147_REG_CTRL         ((uint16_t)0x8040)      /*!< GT9147 contrl */
+#define GT9147_REG_CFGS         ((uint16_t)0x8047)      /*!< GT9147 config */
+#define GT9147_REG_CHECK        ((uint16_t)0x80FF)      /*!< GT9147 checksum */
+#define GT9147_REG_PID          ((uint16_t)0x8140)      /*!< GT9147 PID */
 
-#define GT9147_REG_GSTID 	((uint16_t)0x4E81)   	/*!< touch status */
-#define GT9147_REG_TP1 		((uint16_t)0x5081)  	/*!< TP1 info */
-#define GT9147_REG_TP2 		((uint16_t)0x5881)		/*!< TP2 info */
-#define GT9147_REG_TP3 		((uint16_t)0x6081)		/*!< TP3 info */
-#define GT9147_REG_TP4 		((uint16_t)0x6881)		/*!< TP4 info */
-#define GT9147_REG_TP5 		((uint16_t)0x7081)		/*!< TP5 info */
-
-#define GT9147_WRITE_CMD            ((uint8_t)0xBA)
-#define GT9147_READ_CMD             ((uint8_t)0xBB)
+#define GT9147_REG_GSTID        ((uint16_t)0x814E)      /*!< touch status */
+#define GT9147_REG_TP1          ((uint16_t)0x8150)      /*!< TP1 info */
+#define GT9147_REG_TP2          ((uint16_t)0x8158)      /*!< TP2 info */
+#define GT9147_REG_TP3          ((uint16_t)0x8160)      /*!< TP3 info */
+#define GT9147_REG_TP4          ((uint16_t)0x8168)      /*!< TP4 info */
+#define GT9147_REG_TP5          ((uint16_t)0x8170)      /*!< TP5 info */
 
 /**
  * @}

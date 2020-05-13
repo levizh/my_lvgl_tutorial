@@ -265,6 +265,7 @@ int32_t main(void)
     BSP_CLK_Init();
     XTAL32_ClkInit();
     /* Configure BSP */
+    BSP_IO_Init();
     BSP_LED_Init();
     /* Configure UART */
     DDL_PrintfInit();

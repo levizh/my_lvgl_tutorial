@@ -98,217 +98,6 @@ uint32_t gu32GlobalKey = 0x00000000UL;
  * @defgroup BSP_Global_Functions BSP Global Functions
  * @{
  */
-#if 0
-static en_result_t I2Cx_Start(M4_I2C_TypeDef* pstcI2Cx)
-{
-    uint32_t u32TimeOut = TCA9539_TIMEOUT;
-    en_flag_status_t enBusyFlag, enStartFlag;
-    en_result_t u8Ret = Ok;
-
-    while (Set == I2C_GetStatus(pstcI2Cx, I2C_SR_BUSY))
-    {
-        if(0UL == (u32TimeOut--))
-        {
-            return ErrorTimeout;
-        }
-    }
-    /* generate start signal */
-    I2C_GenerateStart(pstcI2Cx);
-
-    /* Judge if start success*/
-    //while((Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_BUSY)) ||
-    //        (Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_STARTF)))  /* MISRAC 2004*/
-    u32TimeOut = TCA9539_TIMEOUT;
-    while(1)
-    {
-        enBusyFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_BUSY);
-        enStartFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_STARTF);
-        u32TimeOut--;
-        if(((Set == enBusyFlag) && (Set == enStartFlag))||(0UL == u32TimeOut))
-        {
-            break;
-        }
-    }
-    if(0UL == u32TimeOut)
-    {
-        u8Ret = ErrorTimeout;
-    }
-    return u8Ret;
-}
-
-static en_result_t I2Cx_Restart(M4_I2C_TypeDef* pstcI2Cx)
-{
-    uint32_t u32TimeOut = TCA9539_TIMEOUT;
-    en_flag_status_t enBusyFlag, enStartFlag;
-    en_result_t u8Ret = Ok;
-
-    /* generate restart signal */
-    /* Clear start status flag */
-    I2C_ClearStatus(pstcI2Cx, I2C_CLR_STARTFCLR);
-    /* Send restart condition */
-    I2C_GenerateReStart(pstcI2Cx);
-
-    /* Judge if start success*/
-    //while((Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_BUSY)) ||
-    //        (Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_STARTF)))  /* MISRAC 2004*/
-    u32TimeOut = TCA9539_TIMEOUT;
-    while(1)
-    {
-        enBusyFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_BUSY);
-        enStartFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_STARTF);
-        u32TimeOut--;
-        if(((Set == enBusyFlag) && (Set == enStartFlag))||(0UL == u32TimeOut))
-        {
-            break;
-        }
-    }
-    if(0UL == u32TimeOut)
-    {
-        u8Ret = ErrorTimeout;
-    }
-    return u8Ret;
-}
-
-static en_result_t I2Cx_SendAddr(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Adr)
-{
-    uint32_t u32TimeOut = TCA9539_TIMEOUT;
-
-    /* Wait tx buffer empty */
-    while(Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_TEMPTYF))
-    {
-        if(0UL == (u32TimeOut--))
-        {
-            return ErrorTimeout;
-        }
-    }
-
-    /* Send I2C address */
-    I2C_SendData(pstcI2Cx, u8Adr);
-
-    if(0U == (u8Adr & 0x01U))
-    {
-        /* If in master transfer process, Need wait transfer end*/
-        uint32_t u32TimeOut = TCA9539_TIMEOUT;
-        while(Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_TENDF))
-        {
-            if(0UL == (u32TimeOut--))
-            {
-                return ErrorTimeout;
-            }
-        }
-    }
-    /* Check ACK */
-    u32TimeOut = TCA9539_TIMEOUT;
-    while(Set == I2C_GetStatus(pstcI2Cx, I2C_SR_ACKRF))
-    {
-        if(0U == (u32TimeOut--))
-        {
-            return ErrorTimeout;
-        }
-    }
-
-    return Ok;
-}
-
-static en_result_t I2Cx_SendData(M4_I2C_TypeDef* pstcI2Cx, uint8_t *pTxData, uint32_t u32Size)
-{
-    uint32_t u32TimeOut = TCA9539_TIMEOUT;
-
-    while(u32Size--)
-    {
-        /* Wait tx buffer empty */
-        u32TimeOut = TCA9539_TIMEOUT;
-        while(Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_TEMPTYF))
-        {
-            if(0UL == (u32TimeOut--))
-            {
-                return ErrorTimeout;
-            }
-        }
-
-        /* Send one byte data */
-        I2C_SendData(pstcI2Cx, *pTxData++);
-
-        /* Wait transfer end*/
-        u32TimeOut = TCA9539_TIMEOUT;
-        while(Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_TENDF))
-        {
-            if(0UL == (u32TimeOut--))
-            {
-                return ErrorTimeout;
-            }
-        }
-
-        /* Check ACK */
-        u32TimeOut = TCA9539_TIMEOUT;
-        while(Set == I2C_GetStatus(pstcI2Cx, I2C_SR_ACKRF))
-        {
-            if(0UL == (u32TimeOut--))
-            {
-                return ErrorTimeout;
-            }
-        }
-    }
-
-    return Ok;
-}
-
-static en_result_t I2Cx_RcvData(M4_I2C_TypeDef* pstcI2Cx, uint8_t *pRxData, const uint32_t u32Size)
-{
-    uint32_t u32TimeOut = TCA9539_TIMEOUT;
-
-    for(volatile uint32_t i=0UL; i<u32Size; i++)
-    {
-        /* if the last byte receive, need config NACK*/
-        if(i == (u32Size - 1UL))
-        {
-            I2C_NackConfig(pstcI2Cx, Enable);
-        }
-        else
-        {
-            __ASM("NOP");
-        }
-
-        /* Wait receive full flag*/
-        u32TimeOut = TCA9539_TIMEOUT;
-        while(Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_RFULLF))
-        {
-            if(0UL == (u32TimeOut--))
-            {
-                return ErrorTimeout;
-            }
-        }
-
-        /* read data from register*/
-        *pRxData++ = I2C_ReadData(pstcI2Cx);
-    }
-    return Ok;
-}
-
-static en_result_t I2Cx_Stop(M4_I2C_TypeDef* pstcI2Cx)
-{
-    uint32_t u32TimeOut;
-
-    /* Clear stop flag */
-    while(Set == I2C_GetStatus(pstcI2Cx, I2C_SR_STOPF))
-    {
-        I2C_ClearStatus(pstcI2Cx, I2C_CLR_STOPFCLR);
-    }
-
-    I2C_GenerateStop(pstcI2Cx);
-
-    /* Wait STOPF */
-    u32TimeOut = TCA9539_TIMEOUT;
-    while(Reset == I2C_GetStatus(pstcI2Cx, I2C_SR_STOPF))
-    {
-        if(0UL == (u32TimeOut--))
-        {
-            return ErrorTimeout;
-        }
-    }
-    return Ok;
-}
-#endif
 /**
   * @brief  EIO delay
   * @param  [in] u32Delay: Delay in ms
@@ -382,7 +171,7 @@ void EIO_Init(void)
 en_result_t EIO_Write(uint8_t u8Reg, uint8_t u8Val)
 {
     I2Cx_Start(TCA9539_I2C_CH, TCA9539_TIMEOUT);
-    I2Cx_SendAddr(TCA9539_I2C_CH, (TCA9539_ADDR | TCA9539_WRITE), TCA9539_TIMEOUT);
+    I2Cx_SendAddr(TCA9539_I2C_CH, TCA9539_WRITE, TCA9539_TIMEOUT);
     I2Cx_SendData(TCA9539_I2C_CH, (uint8_t *)&u8Reg, 1UL, TCA9539_TIMEOUT);
     I2Cx_SendData(TCA9539_I2C_CH, (uint8_t *)&u8Val, 1UL, TCA9539_TIMEOUT);
     I2Cx_Stop(TCA9539_I2C_CH, TCA9539_TIMEOUT);
@@ -406,11 +195,11 @@ en_result_t EIO_Write(uint8_t u8Reg, uint8_t u8Val)
 en_result_t EIO_Read(uint8_t u8Reg, uint8_t *u8Val)
 {
     I2Cx_Start(TCA9539_I2C_CH, TCA9539_TIMEOUT);
-    I2Cx_SendAddr(TCA9539_I2C_CH, (TCA9539_ADDR | TCA9539_WRITE), TCA9539_TIMEOUT);
+    I2Cx_SendAddr(TCA9539_I2C_CH, TCA9539_WRITE, TCA9539_TIMEOUT);
     I2Cx_SendData(TCA9539_I2C_CH, (uint8_t *)&u8Reg, 1UL, TCA9539_TIMEOUT);
 
     I2Cx_Restart(TCA9539_I2C_CH, TCA9539_TIMEOUT);
-    I2Cx_SendAddr(TCA9539_I2C_CH, (TCA9539_ADDR | TCA9539_READ), TCA9539_TIMEOUT);
+    I2Cx_SendAddr(TCA9539_I2C_CH, TCA9539_READ, TCA9539_TIMEOUT);
     I2Cx_RcvData(TCA9539_I2C_CH, u8Val, 1UL, TCA9539_TIMEOUT);
     I2Cx_Stop(TCA9539_I2C_CH, TCA9539_TIMEOUT);
     return Ok;
@@ -445,11 +234,9 @@ void EIO_IntInit(void)
  * @param  None
  * @retval none
  */
-void BSP_CAM_Init(void)
+void BSP_CAM_IO_Init(void)
 {
-    //BSP_IO_Init();
-
-    /* Turn off LED before output */ //todo
+    /* Init camera and touch panel control IO before direction setting */
     BSP_IO_WritePortPin(CAM_PORT, (CAM_RST_PIN | CAM_STBY_PIN), EIO_PIN_SET);
     /* CAM pins set to output */
     BSP_IO_ConfigPortPin(CAM_PORT, (CAM_RST_PIN | CAM_STBY_PIN), EIO_DIR_OUT);
@@ -462,7 +249,7 @@ void BSP_CAM_Init(void)
  *   @arg  EIO_PIN_RESET
  * @retval none
  */
-void BSP_CAM_RSTCmd(uint8_t Cmd)
+void BSP_CAM_ResetCmd(uint8_t Cmd)
 {
     BSP_IO_WritePortPin(CAM_PORT, CAM_RST_PIN, Cmd);
 }
@@ -474,7 +261,7 @@ void BSP_CAM_RSTCmd(uint8_t Cmd)
  *   @arg  EIO_PIN_RESET
  * @retval none
  */
-void BSP_CAM_STBYCmd(uint8_t Cmd)
+void BSP_CAM_StandbyCmd(uint8_t Cmd)
 {
     BSP_IO_WritePortPin(CAM_PORT, CAM_STBY_PIN, Cmd);
 }
@@ -555,8 +342,6 @@ void BSP_CT_ResetCmd(uint8_t Cmd)
  */
 void BSP_LED_Init(void)
 {
-    //BSP_IO_Init();
-
     /* Turn off LED before output */
     BSP_IO_WritePortPin(LED_PORT, (LED_RED_PIN | LED_BLUE_PIN), LED_OFF);
     /* LED pins set to output */
@@ -605,7 +390,6 @@ void BSP_LED_Toggle(uint8_t u8Led)
  * @param  None
  * @retval None
  */
-//uint8_t u8Idx;
 static void BSP_KEY_ROW0_IrqCallback(void)
 {
     uint32_t u32Idx = KEYSCAN_GetKeyoutIdx();

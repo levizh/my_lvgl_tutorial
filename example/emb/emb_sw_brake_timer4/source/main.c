@@ -69,37 +69,16 @@
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
-/**
- * @brief Key state definition
- */
-typedef enum
-{
-    KeyIdle,
-    KeyRelease,
-} en_key_state_t;
-
-/**
- * @brief Key instance structure definition
- */
-typedef struct
-{
-    uint8_t u8Port;                     /*!< GPIO_PORT_x: x can be (0~7, 12~14) to select the GPIO peripheral */
-
-    uint8_t u8Pin;                      /*!< GPIO_PIN_x: x can be (0~7) to select the PIN index */
-
-    en_pin_state_t enPressPinState;     /*!< Pin level state when key is pressed */
-} stc_key_t;
 
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/* Key definition */
+#define USER_KEY                        (BSP_KEY_1)
+
 /* EMB unit & fcg & interrupt number definition */
 #define EMB_UNIT                        (M4_EMB4)
 #define EMB_FUNCTION_CLK_GATE           (PWC_FCG2_EMB)
-
-/* Key Port/Pin definition */
-#define KEY_PORT                        (GPIO_PORT_A)
-#define KEY_PIN                         (GPIO_PIN_01)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -108,8 +87,6 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey);
 static uint32_t Tmr4PclkFreq(void);
 static void Timer4PwmConfig(void);
 
@@ -120,47 +97,6 @@ static void Timer4PwmConfig(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  Configure system clock
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    /* Configure the system clock to HRC32MHz. */
-    //CLK_HRCInit(CLK_HRC_ON, CLK_HRCFREQ_32);
-#warning "todo"
-}
-
-/**
- * @brief  Get key state
- * @param  [in] pstcKey    Pointer to stc_key_t structure
- * @retval An en_result_t enumeration value:
- *           - KeyIdle: Key isn't pressed
- *           - KeyRelease: Released after key is pressed
- */
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey)
-{
-    en_key_state_t enKeyState = KeyIdle;
-
-    DDL_ASSERT(NULL != pstcKey);
-
-    if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-    {
-        DDL_Delay1ms(20UL);
-
-        if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-        {
-            while (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-            {
-                ;
-            }
-            enKeyState = KeyRelease;
-        }
-    }
-
-    return enKeyState;
-}
 
 /**
  * @brief  Get TIMER4 PCLK frequency.
@@ -264,14 +200,14 @@ static void Timer4PwmConfig(void)
  */
 int32_t main(void)
 {
-    stc_key_t stcKeySw = {
-        .u8Port = KEY_PORT,
-        .u8Pin = KEY_PIN,
-        .enPressPinState = Pin_Reset,
-    };
+    /* Initialize system clock. */
+    BSP_CLK_Init();
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize IO. */
+    BSP_IO_Init();
+
+    /* Initialize key. */
+    BSP_KEY_Init();
 
     /* Configure Timer4 PWM. */
     Timer4PwmConfig();
@@ -281,17 +217,17 @@ int32_t main(void)
 
     while (1)
     {
-        while (KeyRelease != KeyGetState(&stcKeySw))
+        /* Wait key release */
+        while (Reset == BSP_KEY_GetStatus(USER_KEY))
         {
-            ;
         }
 
         /* Software start brake signal */
         EMB_SwBrake(EMB_UNIT, Enable);
 
-        while (KeyRelease != KeyGetState(&stcKeySw))
+        /* Wait key release */
+        while (Reset == BSP_KEY_GetStatus(USER_KEY))
         {
-            ;
         }
 
         /* Software stop brake signal */

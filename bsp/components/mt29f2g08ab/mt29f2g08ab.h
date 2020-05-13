@@ -140,14 +140,18 @@ en_result_t MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
 en_result_t MT29F2G08AB_WritePageMeta(uint32_t u32Page,
                                             const uint8_t *pu8Buf,
                                             uint32_t u32NumBytes);
-en_result_t MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
-                                            uint8_t *pu8Buf,
-                                            uint32_t u32NumBytes,
-                                            uint32_t u32EccValueSize);
-en_result_t MT29F2G08AB_WritePageHwEcc(uint32_t u32Page,
-                                            const uint8_t *pu8Buf,
-                                            uint32_t u32NumBytes,
-                                            uint32_t u32EccValueSize);
+en_result_t MT29F2G08AB_ReadPageHwEcc1Bit(uint32_t u32Page,
+                                                    uint8_t *pu8Buf,
+                                                    uint32_t u32NumBytes);
+en_result_t MT29F2G08AB_WritePageHwEcc1Bit(uint32_t u32Page,
+                                                    const uint8_t *pu8Buf,
+                                                    uint32_t u32NumBytes);
+en_result_t MT29F2G08AB_WritePageHwEcc4Bits(uint32_t u32Page,
+                                                    const uint8_t *pu8Buf,
+                                                    uint32_t u32NumBytes);
+en_result_t MT29F2G08AB_ReadPageHwEcc4Bits(uint32_t u32Page,
+                                                    uint8_t *pu8Buf,
+                                                    uint32_t u32NumBytes);
 
 /* Implement the intialization function on evb board source */
 en_result_t EV_NFC_MT29F2G08AB_Init(void);

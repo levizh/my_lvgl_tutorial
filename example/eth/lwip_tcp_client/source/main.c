@@ -1,13 +1,13 @@
 /**
  *******************************************************************************
  * @file  eth/lwip_tcp_client/source/main.c
- * @brief This sample code implements a http server application based on LwIP
+ * @brief This sample code implements a tcp client application based on LwIP
  *        Raw API of LwIP stack.
- * @note  The communication is done with a web browser of a remote PC.
+ * @note  The communication is done with a remote PC.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-03       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -64,21 +64,13 @@
 #include "app_ethernet.h"
 #include "tcp_client.h"
 
-#include "lwip/debug.h"
-#include "lwip/tcp.h"
-#include "lwip/apps/httpd.h"
-
-#ifdef USE_LCD
-#include "lcd.h"
-#endif
-
 /**
  * @addtogroup HC32F4A0_DDL_Examples
  * @{
  */
 
 /**
- * @addtogroup ETH_LWIP_HTTP_SERVER_RAW
+ * @addtogroup ETH_LWIP_TCP_Client_RAW
  * @{
  */
 
@@ -273,23 +265,6 @@ static void BSP_Config(void)
 #ifdef ETH_INTERFACE_RMII
     ETH_RMII_LinkIntConfig();
 #endif
-
-#ifdef USE_LCD
-    /* Initialize the LCD */
-    BSP_LCD_Init();
-    /* Initialize the LCD Layers */
-    BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS);
-    /* Set LCD Foreground Layer  */
-    BSP_LCD_SelectLayer(1);
-    BSP_LCD_SetFont(&LCD_DEFAULT_FONT);
-
-    /* Initialize LCD Log module */
-    LCD_LOG_Init();
-    /* Show Header and Footer texts */
-    LCD_LOG_SetHeader((uint8_t *)"Webserver Application Raw API");
-    LCD_LOG_SetFooter((uint8_t *)"HD-EVAL board");
-    LCD_UsrLog("  State: Ethernet Initialization ...\n");
-#endif
 }
 
 /**
@@ -333,7 +308,7 @@ static void Netif_Config(void)
 }
 
 /**
- * @brief  Main function of ETH LWIP_HTTP_SERVER_RAW.
+ * @brief  Main function of ETH LWIP_TCP_Client_RAW.
  * @param  None
  * @retval int32_t return value, if needed
  */

@@ -125,7 +125,8 @@ USBD_Class_cb_TypeDef  USBD_CUSTOMHID_cb =
     NULL,
     &USBD_CUSTOM_HID_GetCfgDesc,
 #ifdef USB_OTG_HS_CORE
-    &USBD_HID_GetCfgDesc, /* use same config as per FS */
+    //&USBD_HID_GetCfgDesc, /* use same config as per FS */
+    &USBD_CUSTOM_HID_GetCfgDesc,
 #endif
 };
 
@@ -507,44 +508,44 @@ uint8_t  USBD_CUSTOM_HID_DataIn (void  *pdev,
 uint8_t  USBD_CUSTOM_HID_DataOut (void  *pdev,
                               uint8_t epnum)
 {
-    en_flag_status_t Led_State;
     if (epnum == HID_OUT_EP)
     {
-        if (Report_buf[1] == 0u)
-        {
-            Led_State = Reset;
-        }
-        else
-        {
-            Led_State = Set;
-        }
-
         switch (Report_buf[0])
         {
             case 1: /* Led 1 */
-                LED0_CTL(Led_State);
+                if(Report_buf[1] == 0U)
+                {
+                    /* RED LED on */
+                    BSP_LED_Off(LED_RED);
+                }
+                else
+                {
+                    /* RED LED off */
+                    BSP_LED_On(LED_RED);
+                }
                 break;
 
             case 2: /* Led 2 */
-                LED1_CTL(Led_State);
-                break;
-            case 3: /* Led 3 */
-                LED2_CTL(Led_State);
-                break;
-            case 4: /* Led 4 */
-                LED3_CTL(Led_State);
+                if(Report_buf[1] == 0U)
+                {
+                    /* BLUE LED on */
+                    BSP_LED_Off(LED_BLUE);
+                }
+                else
+                {
+                    /* BLUE LED off */
+                    BSP_LED_On(LED_BLUE);
+                }
                 break;
             default:
-                LED0_CTL(Reset);
-                LED1_CTL(Reset);
-                LED2_CTL(Reset);
-                LED3_CTL(Reset);
+                BSP_LED_Off(LED_RED);
+                BSP_LED_Off(LED_BLUE);
                 break;
         }
     }
 
-    DCD_EP_PrepareRx(pdev,HID_OUT_EP,Report_buf,2u);
-    DCD_SetEPStatus (pdev , HID_OUT_EP , USB_OTG_EP_RX_VALID);
+    DCD_EP_PrepareRx(pdev, HID_OUT_EP, Report_buf, 2u);
+    DCD_SetEPStatus (pdev, HID_OUT_EP, USB_OTG_EP_RX_VALID);
 
     return USBD_OK;
 }
@@ -559,40 +560,42 @@ uint8_t  USBD_CUSTOM_HID_DataOut (void  *pdev,
 
 uint8_t USBD_CUSTOM_HID_EP0_RxReady(void *pdev)
 {
-    en_flag_status_t Led_State;
 
     if (IsReportAvailable == 1u)
     {
         IsReportAvailable = 0u;
-        if (Report_buf[1] == 0u)
-        {
-            Led_State = Reset;
-        }
-        else
-        {
-            Led_State = Set;
-        }
 
         switch (Report_buf[0])
         {
             case 1: /* Led 1 */
-                LED0_CTL(Led_State);
+                if(Report_buf[1] == 0U)
+                {
+                    /* RED LED on */
+                    BSP_LED_Off(LED_RED);
+                }
+                else
+                {
+                    /* RED LED off */
+                    BSP_LED_On(LED_RED);
+                }
                 break;
 
             case 2: /* Led 2 */
-                LED1_CTL(Led_State);
+                if(Report_buf[1] == 0U)
+                {
+                    /* BLUE LED on */
+                    BSP_LED_Off(LED_BLUE);
+                }
+                else
+                {
+                    /* BLUE LED off */
+                    BSP_LED_On(LED_BLUE);
+                }
                 break;
-            case 3: /* Led 3 */
-                LED2_CTL(Led_State);
-                break;
-            case 4: /* Led 4 */
-                LED3_CTL(Led_State);
-                break;
+
             default:
-                LED0_CTL(Reset);
-                LED1_CTL(Reset);
-                LED2_CTL(Reset);
-                LED3_CTL(Reset);
+                BSP_LED_Off(LED_RED);
+                BSP_LED_Off(LED_BLUE);
                 break;
         }
     }

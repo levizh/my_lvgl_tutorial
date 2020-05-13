@@ -273,13 +273,16 @@ void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
 #ifndef M020_EVB_BD
     BSP_IO_Init();
 #endif
+
+    BSP_LED_Init();
+    DDL_PrintfInit();
+
     /* USB clock source configurate */
     CLK_USB_ClkConfig(CLK_USB_CLK_MCLK_DIV5);
 
     /* KEY SW2 interrupt function initialize */
     SW2_ExitIntIni();
 
-    //Ddl_UartInit();
     printf("USBFS start !!\n");
 
     GPIO_StructInit(&stcGpioCfg);

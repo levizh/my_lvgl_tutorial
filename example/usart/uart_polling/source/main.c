@@ -114,6 +114,13 @@ static void USART_RxErr_IrqCallback(void);
  */
 static void USART_RxErr_IrqCallback(void)
 {
+    __IO uint8_t u8Data;
+
+    if (Set == USART_GetFlag(USART_UNIT, (USART_FLAG_PE | USART_FLAG_FE)))
+    {
+        u8Data = (uint8_t)USART_RecData(USART_UNIT);
+    }
+
     USART_ClearFlag(USART_UNIT, (USART_CLEAR_FLAG_PE | \
                                  USART_CLEAR_FLAG_FE | \
                                  USART_CLEAR_FLAG_ORE));
@@ -165,6 +172,7 @@ int32_t main(void)
                               CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Initialize LED. */
+    BSP_IO_Init();
     BSP_LED_Init();
 
     /* Configure USART RX/TX pin. */
@@ -180,7 +188,6 @@ int32_t main(void)
         BSP_LED_On(LED_RED);
         while(1)
         {
-            ;
         }
     }
 
@@ -201,7 +208,6 @@ int32_t main(void)
 
             while (Reset == USART_GetFlag(USART_UNIT, USART_FLAG_TXE)) /* Wait Tx data register empty */
             {
-                ;
             }
 
             USART_SendData(USART_UNIT, u16RxData);

@@ -251,28 +251,39 @@ __STATIC_INLINE void I2C_GenerateStop(M4_I2C_TypeDef* pstcI2Cx)
     SET_REG32_BIT(pstcI2Cx->CR1, I2C_CR1_STOP);
 }
 
-en_result_t I2C_BaudrateConfig(M4_I2C_TypeDef* pstcI2Cx, const stc_i2c_init_t* pstcI2C_InitStruct, float32_t *pf32Err);
+/* Initialization and Configuration **********************************/
 void I2C_DeInit(M4_I2C_TypeDef* pstcI2Cx);
+en_result_t I2C_StructInit(stc_i2c_init_t* pstcI2C_InitStruct);
 en_result_t I2C_Init(M4_I2C_TypeDef* pstcI2Cx, const stc_i2c_init_t* pstcI2C_InitStruct, float32_t *pf32Err);
+en_result_t I2C_BaudrateConfig(M4_I2C_TypeDef* pstcI2Cx, const stc_i2c_init_t* pstcI2C_InitStruct, float32_t *pf32Err);
 void I2C_Cmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
 void I2C_SmbusConfig(M4_I2C_TypeDef* pstcI2Cx, uint32_t SmbusConfig);
 void I2C_SmBusCmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
 void I2C_SoftwareResetCmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
-en_result_t I2C_StructInit(stc_i2c_init_t* pstcI2C_InitStruct);
-
 void I2C_DigitalFilterConfig(M4_I2C_TypeDef* pstcI2Cx, uint32_t DigFilterMode);
 void I2C_DigitalFilterCmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
 void I2C_AnalogFilterCmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
 void I2C_GeneralCallCmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
-void I2C_SlaveAdrConfig(M4_I2C_TypeDef* pstcI2Cx, en_i2c_adr_t enAdrNum, uint32_t u32AdrConfig, uint32_t u32Adr);
 void I2C_IntCmd(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32IntEn, en_functional_state_t enNewState);
-
-void I2C_SendData(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Data);
-uint8_t I2C_ReadData(M4_I2C_TypeDef* const pstcI2Cx);
+void I2C_SlaveAdrConfig(M4_I2C_TypeDef* pstcI2Cx, en_i2c_adr_t enAdrNum, uint32_t u32AdrConfig, uint32_t u32Adr);
 void I2C_NackConfig(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
+
+/* Status management **************************************************/ 
 en_flag_status_t I2C_GetStatus(M4_I2C_TypeDef* const pstcI2Cx, uint32_t u32StatusBit);
 void I2C_WriteStatus(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32StatusBit, en_flag_status_t enStatus);
 void I2C_ClearStatus(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32StatusBit);
+
+/* Data transfers ************************************  ***************/ 
+void I2C_WriteDataReg(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Data);
+uint8_t I2C_ReadDataReg(M4_I2C_TypeDef* const pstcI2Cx);
+
+/* High level functions for reference *********************************/
+en_result_t I2C_Start(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut);
+en_result_t I2C_Restart(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut);
+en_result_t I2C_SendAddr(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Adr, uint32_t u32TimeOut);
+en_result_t I2C_SendData(M4_I2C_TypeDef* pstcI2Cx, uint8_t const pTxData[], uint32_t u32Size, uint32_t u32TimeOut);
+en_result_t I2C_RcvData(M4_I2C_TypeDef* pstcI2Cx, uint8_t pRxData[], uint32_t u32Size, uint32_t u32TimeOut);
+en_result_t I2C_Stop(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut);
 
 /**
  * @}

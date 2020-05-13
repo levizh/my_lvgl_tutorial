@@ -65,12 +65,12 @@ extern "C"
 #include "hc32_ddl.h"
 
 /**
- * @addtogroup HC32F4A0_DDL_Midware
+ * @addtogroup HC32F4A0_DDL_Examples
  * @{
  */
 
 /**
- * @addtogroup MW_SD
+ * @addtogroup SDIOC_SD_Card
  * @{
  */
 

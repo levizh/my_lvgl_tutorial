@@ -73,27 +73,26 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* Red LED Port/Pin definition */
-#define LED_R_PORT                      (GPIO_PORT_A)
-#define LED_R_PIN                       (GPIO_PIN_00)
-#define LED_R_ON()                      (GPIO_ResetPins(LED_R_PORT, LED_R_PIN))
-#define LED_R_OFF()                     (GPIO_SetPins(LED_R_PORT, LED_R_PIN))
 
 /* USART Channel && RX/TX Port/Pin definition */
 #define LIN_CH                          (M4_USART10)
 
-#define LIN_RX_PORT                     (GPIO_PORT_I)   /* PI9: USART10_RX */
-#define LIN_RX_PIN                      (GPIO_PIN_09)
+#define LIN_RX_PORT                     (GPIO_PORT_I)   /* PI1: USART10_RX */
+#define LIN_RX_PIN                      (GPIO_PIN_11)
 #define LIN_RX_GPIO_FUNC                (GPIO_FUNC_39_USART10_RX)
 
-#define LIN_TX_PORT                     (GPIO_PORT_I)   /* PI11: USART10_TX */
-#define LIN_TX_PIN                      (GPIO_PIN_11)
+#define LIN_TX_PORT                     (GPIO_PORT_I)   /* PI09: USART10_TX */
+#define LIN_TX_PIN                      (GPIO_PIN_09)
 #define LIN_TX_GPIO_FUNC                (GPIO_FUNC_38_USART10_TX)
+
+/* LIN sleep port/pin definition */
+#define LIN_SLEEP_PORT                  (EIO_PORT0)
+#define LIN_SLEEP_PIN                   (EIO_PIN5)
 
 /* Interrupt number definition */
 #define LIN_RX_IRQn                     (Int000_IRQn)
 #define LIN_RXERR_IRQn                  (Int001_IRQn)
-#define LIN_BREAKWKUP_IRQn              (Int001_IRQn)
+#define LIN_BREAKWKUP_IRQn              (Int002_IRQn)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -102,8 +101,6 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static void LedConfig(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -112,38 +109,6 @@ static void LedConfig(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Initialize XTAL clock */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
-}
-
-/**
- * @brief  Configure RGB LED.
- * @param  None
- * @retval None
- */
-static void LedConfig(void)
-{
-    stc_gpio_init_t stcGpioInit;
-
-    GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;
-    stcGpioInit.u16PinState = PIN_STATE_SET;
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-}
 
 /**
  * @brief  Main function of LIN slave project
@@ -158,7 +123,7 @@ int32_t main(void)
         .USARTx = LIN_CH,
         .u32LinMode = LIN_SLAVE,
         .stcLinInit = {
-            .u32Baudrate = 9600UL,
+            .u32Baudrate = 8000UL,
             .u32ClkMode = USART_INTCLK_NONE_OUTPUT,
             .u32ClkPrescaler = USART_CLK_PRESCALER_DIV4,
             .u32BmcClkPrescaler = USART_LIN_BMC_CLK_PRESCALER_DIV4,
@@ -166,12 +131,12 @@ int32_t main(void)
             .u32DetectBreakLen = USART_LIN_DETECT_BREAK_10B,
         },
         .stcPinCfg = {
-            .u16RxPort = LIN_RX_PORT,
+            .u8RxPort = LIN_RX_PORT,
             .u16RxPin = LIN_RX_PIN,
-            .u16RxPinFunc = LIN_RX_GPIO_FUNC,
-            .u16TxPort = LIN_TX_PORT,
+            .u8RxPinFunc = LIN_RX_GPIO_FUNC,
+            .u8TxPort = LIN_TX_PORT,
             .u16TxPin = LIN_TX_PIN,
-            .u16RxPinFunc = LIN_TX_GPIO_FUNC,
+            .u8TxPinFunc = LIN_TX_GPIO_FUNC,
         },
         .stcIrqnCfg = {
             .RxIntIRQn = LIN_RX_IRQn,
@@ -181,14 +146,21 @@ int32_t main(void)
         .enLinState = LinStateSleep,
     };
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
+                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
+                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
-    /* Configure LED. */
-    LedConfig();
+    /* Initialize IO. */
+    BSP_IO_Init();
+
+    /* Initialize LED. */
+    BSP_LED_Init();
 
     /* Configure LIN transceiver chip sleep pin. */
-    #warning "todo"
+    BSP_IO_WritePortPin(LIN_SLEEP_PORT, LIN_SLEEP_PIN, 1U);
+    BSP_IO_ConfigPortPin(LIN_SLEEP_PORT, LIN_SLEEP_PIN, EIO_DIR_OUT);
 
     /* Initialize LIN slave function. */
     LIN_Init(&stcLinHandle);
@@ -198,51 +170,34 @@ int32_t main(void)
         /* Wait wakeup. */
         while (LinStateSleep == LIN_GetState(&stcLinHandle))
         {
-            ;
         }
 
         /* Start LIN slave receive frame header function(blocking mode). */
         enRet = LIN_SLAVE_RecFrameHeader(&stcLinHandle, &stcFrame , LIN_REC_WAITING_FOREVER);
-        if (Ok != enRet)
+        if (Ok == enRet)
         {
-            LED_R_ON();
-        }
-        else
-        {
-            LED_R_OFF();
+            /* Start LIN slave receive frame data function. */
+            enRet = LIN_SLAVE_RecFrameResponse(&stcLinHandle, LIN_REC_WAITING_FOREVER);
         }
 
-        /* Start LIN slave receive frame data function. */
-        enRet = LIN_SLAVE_RecFrameResponse(&stcLinHandle, 200);
-        if (Ok != enRet)
+        if (Ok == enRet)
         {
-            LED_R_ON();
-        }
-        else
-        {
-            LED_R_OFF();
-        }
-
-        /* Start LIN slave receive frame header function(blocking mode). */
-        enRet = LIN_SLAVE_RecFrameHeader(&stcLinHandle, &stcFrame, LIN_REC_WAITING_FOREVER);
-        if (Ok != enRet)
-        {
-            LED_R_ON();
-        }
-        else
-        {
-            LED_R_OFF();
+            /* Start LIN slave receive frame header function(blocking mode). */
+            enRet = LIN_SLAVE_RecFrameHeader(&stcLinHandle, &stcFrame, LIN_REC_WAITING_FOREVER);
+            if (Ok == enRet)
+            {
+                /* LIN slave send frame response. */
+                enRet = LIN_SLAVE_SendFrameResponse(&stcLinHandle);
+            }
         }
 
-        /* LIN slave send frame response. */
-        enRet = LIN_SLAVE_SendFrameResponse(&stcLinHandle);
         if (Ok != enRet)
         {
-            LED_R_ON();
+            BSP_LED_On(LED_RED);
         }
         else
         {
-            LED_R_OFF();
+            BSP_LED_Off(LED_RED);
         }
 
         /* Enter sleep. */

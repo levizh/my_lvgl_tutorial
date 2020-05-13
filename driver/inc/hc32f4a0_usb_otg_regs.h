@@ -64,8 +64,8 @@
     #define     __IO    volatile
 #endif
 
-#define USB_OTG_HS_BASE_ADDR                 (0x40080000ul)
-#define USB_OTG_FS_BASE_ADDR                 (0x400C0000ul)
+#define USB_OTG_HS_BASE_ADDR                 (0x400C0000ul)
+#define USB_OTG_FS_BASE_ADDR                 (0x40080000ul)
 
 #define USB_OTG_CORE_GLOBAL_REGS_OFFSET      (0x000u)
 #define USB_OTG_DEV_GLOBAL_REG_OFFSET        (0x800u)

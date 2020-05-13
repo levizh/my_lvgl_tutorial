@@ -177,12 +177,6 @@ typedef struct
     uint32_t u32OversamplingBits;       /*!< Oversampling Bits.
                                              This parameter can be a value of @ref USART_Oversampling_Bits */
 
-    uint32_t u32NoiseFilterState;       /*!< RX pin noise filter state.
-                                             This parameter can be a value of @ref USART_Noise_Filter_State */
-
-    uint32_t u32SbDetectPolarity;       /*!< Start Bit Detect Polarity.
-                                             This parameter can be a value of @ref USART_Start_Bit_Detect_Polarity */
-
     uint32_t u32DetectBreakLen;         /*!< Detect break length.
                                              This parameter can be a value of @ref USART_LIN_Detect_Break_Length */
 
@@ -206,14 +200,11 @@ typedef struct
     uint32_t u32ClkPrescaler;           /*!< Clock prescaler.
                                              This parameter can be a value of @ref USART_Clock_Prescaler_Division */
 
+    uint32_t u32StopBit;                /*!< Stop Bits.
+                                             This parameter can be a value of @ref USART_Stop_Bits */
+
     uint32_t u32BitDirection;           /*!< Significant bit.
                                              This parameter can be a value of @ref USART_Significant_Bit */
-
-    uint32_t u32NoiseFilterState;       /*!< RX pin noise filter state.
-                                             This parameter can be a value of @ref USART_Noise_Filter_State */
-
-    uint32_t u32SbDetectPolarity;       /*!< Start Bit Detect Polarity.
-                                             This parameter can be a value of @ref USART_Start_Bit_Detect_Polarity */
 } stc_usart_smartcard_init_t;
 
 /**
@@ -316,7 +307,7 @@ typedef struct
 #define USART_LIN_INT_WKUP                  (USART_CR2_WKUPIE)  /*!< USART LIN wakeup signal detect interrupt function */
 #define USART_LIN_BUSERR                    (USART_CR2_BEE)     /*!< USART LIN bus error detect function */
 #define USART_LIN_INT_BUSERR                (USART_CR2_BEIE)    /*!< USART LIN bus error detect interrupt function */
-#define USART_LIN_INT_BREAK                 (USART_CR2_BEIE)    /*!< USART LIN break field detect interrupt function */
+#define USART_LIN_INT_BREAK                 (USART_CR2_LBDIE)   /*!< USART LIN break field detect interrupt function */
 /**
  * @}
  */

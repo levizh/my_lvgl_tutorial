@@ -58,7 +58,7 @@
 #include "usbd_core.h"
 #include "usbd_req.h"
 #include "usbd_ioreq.h"
-#include "usb_dcd_int.h"
+#include "hc32f4a0_usb_dcd_int.h"
 #include "usb_bsp.h"
 
 /*******************************************************************************

@@ -54,8 +54,8 @@
 /*******************************************************************************
  * Include files
  ******************************************************************************/
-#include "usb_core.h"
-#include "usb_hcd.h"
+#include "hc32f4a0_usb_core.h"
+#include "hc32f4a0_usb_hcd.h"
 #include "usb_conf.h"
 #include "usb_bsp.h"
 

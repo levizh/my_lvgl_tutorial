@@ -351,6 +351,11 @@ extern "C"
     #include "tca9539.h"
 #endif /* BSP_TCA9539_ENABLE */
 
+#if (BSP_OV5640_ENABLE == BSP_ON)
+    #include "ev_hc32f4a0_lqfp176_ov5640.h"
+    #include "ov5640.h"
+#endif /* BSP_OV5640_ENABLE */
+
 #endif /* USE_DDL_DRIVER */
 
 /*******************************************************************************

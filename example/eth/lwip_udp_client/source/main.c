@@ -1,13 +1,13 @@
 /**
  *******************************************************************************
  * @file  eth/lwip_udp_client/source/main.c
- * @brief This sample code implements a http server application based on LwIP
+ * @brief This sample code implements a udp client application based on LwIP
  *        Raw API of LwIP stack.
- * @note  The communication is done with a web browser of a remote PC.
+ * @note  The communication is done with a remote PC.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-03       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,14 +62,7 @@
 #include "netif/etharp.h"
 #include "ethernetif.h"
 #include "app_ethernet.h"
-
-#include "lwip/debug.h"
-#include "lwip/tcp.h"
-#include "lwip/apps/httpd.h"
-
-#ifdef USE_LCD
-#include "lcd_log.h"
-#endif
+#include "udp_client.h"
 
 /**
  * @addtogroup HC32F4A0_DDL_Examples
@@ -77,7 +70,7 @@
  */
 
 /**
- * @addtogroup ETH_LWIP_HTTP_SERVER_RAW
+ * @addtogroup ETH_LWIP_UDP_Client_RAW
  * @{
  */
 
@@ -88,6 +81,25 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
+#ifdef ETH_INTERFACE_RMII
+    /* RMII_INTB */
+    #define ETH_RMII_INTB_PORT                  (GPIO_PORT_B)
+    #define ETH_RMII_INTB_PIN                   (GPIO_PIN_00)
+    #define ETH_RMII_INTB_EXINT_CH              (EXINT_CH00)
+    #define ETH_RMII_INTB_INT_SRC               (INT_PORT_EIRQ0)
+    #define ETH_RMII_INTB_IRQn                  (Int037_IRQn)
+#endif
+
+/* SW1 Port/Pin definition */
+#define SW1_IN_PORT                             (GPIO_PORT_H)
+#define SW1_IN_PIN                              (GPIO_PIN_07)
+#define SW1_IN_EXINT_CH                         (EXINT_CH07)
+#define SW1_IN_INT_SRC                          (INT_PORT_EIRQ7)
+#define SW1_IN_IRQn                             (Int032_IRQn)
+#define SW1_IN_WAKEUP                           (INTC_WUPEN_EIRQWUEN_7)
+
+#define SW1_OUT_PORT                            (GPIO_PORT_A)
+#define SW1_OUT_PIN                             (GPIO_PIN_06)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -116,33 +128,142 @@ void SysTick_IrqHandler(void)
 }
 
 /**
+ * @brief  SW1 interrupt callback function.
+ * @param  None
+ * @retval None
+ */
+void SW1_IrqCallback(void)
+{
+    static uint8_t u8ConnSta = 0U;
+
+    if (Set == EXINT_GetExIntSrc(SW1_IN_EXINT_CH))
+    {
+        if (0U == u8ConnSta)
+        {
+            u8ConnSta = 1U;
+            /* Connect to udp server */ 
+            UdpClient_Connect();
+        }
+        else
+        {
+            u8ConnSta = 0U;
+            /* Disconnect to udp server */ 
+            UdpClient_Disconnect();
+        }
+        EXINT_ClrExIntSrc(SW1_IN_EXINT_CH);
+    }
+}
+
+#ifdef ETH_INTERFACE_RMII
+/**
+ * @brief  ETH RMII interrupt callback function.
+ * @param  None
+ * @retval None
+ */
+void ETH_RMII_LinkIrqCallback(void)
+{
+   if (Set == EXINT_GetExIntSrc(ETH_RMII_INTB_EXINT_CH))
+   {
+        EthernetIF_UpdateLink(&gnetif);
+        EXINT_ClrExIntSrc(ETH_RMII_INTB_EXINT_CH);
+   }
+}
+
+/**
+ * @brief  ETH RMII link interrupt configuration.
+ * @param  None
+ * @retval None
+ */
+static void ETH_RMII_LinkIntConfig(void)
+{
+    stc_exint_init_t stcExintInit;
+    stc_irq_signin_config_t stcIrqSignConfig;
+    stc_gpio_init_t stcGpioInit;
+
+    /* GPIO config */
+    GPIO_StructInit(&stcGpioInit);
+    stcGpioInit.u16ExInt  = PIN_EXINT_ON;
+    stcGpioInit.u16PullUp = PIN_PU_ON;
+    GPIO_Init(ETH_RMII_INTB_PORT, ETH_RMII_INTB_PIN, &stcGpioInit);
+
+    /* Exint config */
+    EXINT_StructInit(&stcExintInit);
+    stcExintInit.u32ExIntCh  = ETH_RMII_INTB_EXINT_CH;
+    stcExintInit.u32ExIntLvl = EXINT_TRIGGER_FALLING;
+    EXINT_Init(&stcExintInit);
+
+    /* IRQ sign-in */
+    stcIrqSignConfig.enIntSrc    = ETH_RMII_INTB_INT_SRC;
+    stcIrqSignConfig.enIRQn      = ETH_RMII_INTB_IRQn;
+    stcIrqSignConfig.pfnCallback = &ETH_RMII_LinkIrqCallback;
+    INTC_IrqSignIn(&stcIrqSignConfig);
+
+    /* NVIC config */
+    NVIC_ClearPendingIRQ(stcIrqSignConfig.enIRQn);
+    NVIC_SetPriority(stcIrqSignConfig.enIRQn, DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(stcIrqSignConfig.enIRQn);
+}
+#endif /* ETH_INTERFACE_RMII */
+
+/**
+ * @brief  SW1 configuration.
+ * @param  None
+ * @retval None
+ */
+static void SW1_Config(void)
+{
+    stc_exint_init_t stcExintInit;
+    stc_irq_signin_config_t stcIrqSignConfig;
+    stc_gpio_init_t stcGpioInit;
+
+    /* GPIO config */
+    GPIO_StructInit(&stcGpioInit);
+    stcGpioInit.u16PinDir   = PIN_DIR_OUT;
+    stcGpioInit.u16PinState = PIN_STATE_RESET;
+    GPIO_Init(SW1_OUT_PORT, SW1_OUT_PIN, &stcGpioInit);
+
+    stcGpioInit.u16PinDir = PIN_DIR_IN;
+    stcGpioInit.u16ExInt  = PIN_EXINT_ON;
+    stcGpioInit.u16PullUp = PIN_PU_ON;
+    GPIO_Init(SW1_IN_PORT, SW1_IN_PIN, &stcGpioInit);
+
+    /* Exint config */
+    EXINT_StructInit(&stcExintInit);
+    stcExintInit.u32ExIntCh  = SW1_IN_EXINT_CH;
+    stcExintInit.u32ExIntLvl = EXINT_TRIGGER_FALLING;
+    EXINT_Init(&stcExintInit);
+
+    /* IRQ sign-in */
+    stcIrqSignConfig.enIntSrc    = SW1_IN_INT_SRC;
+    stcIrqSignConfig.enIRQn      = SW1_IN_IRQn;
+    stcIrqSignConfig.pfnCallback = &SW1_IrqCallback;
+    INTC_IrqSignIn(&stcIrqSignConfig);
+
+    /* NVIC config */
+    NVIC_ClearPendingIRQ(stcIrqSignConfig.enIRQn);
+    NVIC_SetPriority(stcIrqSignConfig.enIRQn, DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(stcIrqSignConfig.enIRQn);
+}
+
+/**
  * @brief  Configurate the BSP.
  * @param  None
  * @retval None
  */
 static void BSP_Config(void)
 {
-#ifdef USE_LCD
-    /* Configure LED_RED, LED_BLUE */
-    BSP_LED_Init(LED_RED);
-    BSP_LED_Init(LED_BLUE);
-
-    /* Set Systick Interrupt to the highest priority */
-    NVIC_SetPriority(SysTick_IRQn, 0x0, 0x0);
-
-    /* Init IO Expander */
+    /* Configure BSP */
     BSP_IO_Init();
-    /* Enable IO Expander interrupt for ETH MII pin */
-    BSP_IO_ConfigPin(MII_INT_PIN, IO_MODE_IT_FALLING_EDGE);
-
-    /* Initialize the LCD */
-    BSP_LCD_Init();
-
-    /* Show Header and Footer texts */
-    LCD_LOG_SetHeader((uint8_t *)"Webserver Application Raw API");
-    LCD_LOG_SetFooter((uint8_t *)"ST-EVAL board");
-
-    LCD_UsrLog("  State: Ethernet Initialization ...\n");
+    BSP_LED_Init();
+    /* Configure UART */
+    DDL_PrintfInit();
+    /* SysTick configuration */
+    SysTick_Init(1000U);
+    /* Set Systick Interrupt to the highest priority */
+    NVIC_SetPriority(SysTick_IRQn, DDL_IRQ_PRIORITY_00);
+    /* Configure link interrupt IO for ETH RMII */
+#ifdef ETH_INTERFACE_RMII
+    ETH_RMII_LinkIntConfig();
 #endif
 }
 
@@ -182,60 +303,27 @@ static void Netif_Config(void)
         /* When the netif link is down this function must be called */
         netif_set_down(&gnetif);
     }
-
     /* Set the link callback function, this function is called on change of link status*/
-    netif_set_link_callback(&gnetif, ethernetif_link_callback);
+    netif_set_link_callback(&gnetif, EthernetIF_LinkCallback);
 }
 
 /**
- * @brief  External interrupt Ch.2 ISR
- * @param  None
- * @retval None
- */
-void EXINT02_Handler(void)
-{
-   if (Set == EXINT_GetExIntSrc(EXINT_CH02))
-   {
-        EXINT_ClrExIntSrc(EXINT_CH02);
-        ethernetif_update_link(&gnetif);
-   }
-}
-
-/**
- * @brief  System Clock Configuration
- * @param  None
- * @retval None
- */
-static void SystemClock_Config(void)
-{
-
-}
-
-/**
- * @brief  Main function of ETH LWIP_HTTP_SERVER_RAW.
+ * @brief  Main function of ETH LWIP_UDP_Client_RAW.
  * @param  None
  * @retval int32_t return value, if needed
  */
 int main(void)
 {
-    /* Configure the system clock */
-    SystemClock_Config();
-
-    /* SysTick configuration */
-    SysTick_Init(1000u);
-
+    /* Configure clock */
+    BSP_CLK_Init();
     /* Configure the BSP */
     BSP_Config();
-
+    /* SW1 configuration */
+    SW1_Config();
     /* Initialize the LwIP stack */
     lwip_init();
-
     /* Configure the Network interface */
     Netif_Config();
-
-    /* Http webserver Init */
-    httpd_init();
-
     /* Notify user about the network interface config */
     Ethernet_NotifyConnStatus(&gnetif);
 
@@ -247,7 +335,6 @@ int main(void)
 
         /* Handle timeouts */
         sys_check_timeouts();
-
         /* Handle periodic timers */
         LwIP_PeriodicHandle(&gnetif);
     }

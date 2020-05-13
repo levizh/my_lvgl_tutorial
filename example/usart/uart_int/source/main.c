@@ -194,7 +194,16 @@ static void USART_Rx_IrqCallback(void)
  */
 static void USART_RxErr_IrqCallback(void)
 {
-    USART_ClearFlag(USART_UNIT, (USART_CLEAR_FLAG_PE | USART_CLEAR_FLAG_FE | USART_CLEAR_FLAG_ORE));
+    __IO uint8_t u8Data;
+
+    if (Set == USART_GetFlag(USART_UNIT, (USART_FLAG_PE | USART_FLAG_FE)))
+    {
+        u8Data = (uint8_t)USART_RecData(USART_UNIT);
+    }
+
+    USART_ClearFlag(USART_UNIT, (USART_CLEAR_FLAG_PE | \
+                                 USART_CLEAR_FLAG_FE | \
+                                 USART_CLEAR_FLAG_ORE));
 }
 
 /**
@@ -309,7 +318,6 @@ int32_t main(void)
         BSP_LED_On(LED_RED);
         while(1)
         {
-            ;
         }
     }
 

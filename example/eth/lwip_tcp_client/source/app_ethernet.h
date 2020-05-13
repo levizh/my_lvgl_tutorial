@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -83,9 +83,6 @@ extern "C"
 #define DHCP_TIMEOUT                            (4U)
 #define DHCP_LINK_DOWN                          (5U)
 
-/* Enable LCD */
-//#define USE_LCD
-
 /* Enable DHCP, if disabled, Use static address */
 //#define USE_DHCP
 
@@ -127,7 +124,7 @@ void Ethernet_NotifyConnStatus(struct netif *netif);
 void LwIP_PeriodicHandle(struct netif *netif);
 
 #ifdef USE_DHCP
-void DHCP_Process(struct netif *netif);
+void LwIP_DhcpProcess(struct netif *netif);
 #endif
 
 #ifdef __cplusplus

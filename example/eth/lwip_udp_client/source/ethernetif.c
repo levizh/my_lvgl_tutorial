@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -57,8 +57,6 @@
 #include "lwip/timeouts.h"
 #include "netif/etharp.h"
 #include "ethernetif.h"
-#include <string.h>
-
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -93,19 +91,50 @@ __ALIGN_BEGIN uint8_t EthTxBuff[ETH_TXBUF_NUMBER][ETH_TXBUF_SIZE];
 /* Ethernet Receive Buffer */
 __ALIGN_BEGIN uint8_t EthRxBuff[ETH_RXBUF_NUMBER][ETH_RXBUF_SIZE];
 
-
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @brief  Initializes the ETH GPIO.
+ * @brief  Initializes the Ethernet GPIO.
  * @param  None
  * @retval None
  */
-static void ETH_GpioInit(void)
+static void Ethernet_GpioInit(void)
 {
-    /* Enable GPIOs clocks */
+    /* ETH_RST */
+    BSP_IO_ConfigPortPin(EIO_PORT1, EIO_ETH_RST, EIO_DIR_OUT);
+    BSP_IO_WritePortPin(EIO_PORT1, EIO_ETH_RST, (uint8_t)Disable);
+    SysTick_Delay(PHY_HW_RESET_DELAY);
+    BSP_IO_WritePortPin(EIO_PORT1, EIO_ETH_RST, (uint8_t)Enable);
+    SysTick_Delay(PHY_HW_RESET_DELAY);
 
+   /* Configure MII/RMII selection IO for ETH */
+#ifdef ETH_INTERFACE_RMII
+    /* Ethernet RMII pins configuration */
+    /*
+        ETH_SMI_MDIO ----------------> PA2
+        ETH_SMI_MDC -----------------> PC1
+        ETH_RMII_TX_EN --------------> PG11
+        ETH_RMII_TXD0 ---------------> PG13
+        ETH_RMII_TXD1 ---------------> PG14
+        ETH_RMII_REF_CLK ------------> PA1
+        ETH_RMII_CRS_DV -------------> PA7
+        ETH_RMII_RXD0 ---------------> PC4
+        ETH_RMII_RXD1 ---------------> PC5
+        ETH_RMII_RX_ER --------------> PI10
+    */
+    BSP_IO_ConfigPortPin(EIO_PORT1, EIO_RMII_SEL, EIO_DIR_OUT);
+    BSP_IO_WritePortPin(EIO_PORT1, EIO_RMII_SEL, (uint8_t)Disable);
+
+    /* Configure PA1, PA2 and PA7 */
+    GPIO_SetFunc(GPIO_PORT_A, (GPIO_PIN_01 | GPIO_PIN_02 | GPIO_PIN_07), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
+    /* Configure PC1, PC4 and PC5 */
+    GPIO_SetFunc(GPIO_PORT_C, (GPIO_PIN_01 | GPIO_PIN_04 | GPIO_PIN_05), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
+    /* Configure PG11, PG13 and PG14 */
+    GPIO_SetFunc(GPIO_PORT_G, (GPIO_PIN_11 | GPIO_PIN_13 | GPIO_PIN_14), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
+    /* Configure PI10 */
+    GPIO_SetFunc(GPIO_PORT_I, GPIO_PIN_10, GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
+#else
     /* Ethernet MII pins configuration */
     /*
         ETH_SMI_MDIO ----------------> PA2
@@ -122,52 +151,26 @@ static void ETH_GpioInit(void)
         ETH_MII_RXD1 ----------------> PC5
         ETH_MII_RXD2 ----------------> PB0
         ETH_MII_RXD3 ----------------> PB1
-        ETH_MII_RX_ER ---------------> PI10 (not configured)
-        ETH_MII_CRS -----------------> PH2 (not configured)
-        ETH_MII_COL -----------------> PH3 (not configured)
+        ETH_MII_RX_ER ---------------> PI10
+        ETH_MII_CRS -----------------> PH2
+        ETH_MII_COL -----------------> PH3
     */
-
-    /* Ethernet RMII pins configuration */
-    /*
-        ETH_SMI_MDIO ----------------> PA2
-        ETH_SMI_MDC -----------------> PC1
-        ETH_RMII_TX_EN --------------> PG11
-        ETH_RMII_TXD0 ---------------> PG13
-        ETH_RMII_TXD1 ---------------> PG14
-        ETH_RMII_REF_CLK ------------> PA1
-        ETH_RMII_CRS_DV -------------> PA7
-        ETH_RMII_RXD0 ---------------> PC4
-        ETH_RMII_RXD1 ---------------> PC5
-        ETH_RMII_RX_ER --------------> PI10 (not configured)
-    */
-
-    // ETH_NRST_PIN_LOW();
-    // _eth_delay_(LAN8742A_RESET_DELAY);
-    // ETH_NRST_PIN_HIGH();
-    // _eth_delay_(LAN8742A_RESET_DELAY);
+    BSP_IO_ConfigPortPin(EIO_PORT1, EIO_RMII_SEL, EIO_DIR_OUT);
+    BSP_IO_WritePortPin(EIO_PORT1, EIO_RMII_SEL, (uint8_t)Enable);
 
     /* Configure PA1, PA2 and PA7 */
-
-    /* Configure PB5 and PB8 */
-
-    /* Configure PC1, PC2, PC3, PC4 and PC5 */
-
-
-    /* Configure PG11, PG14 and PG13 */
-
-    /* Configure PH6, PH7 */
-
-    /* Configure PA0 */
-
-    /* Configure PH3 */
-
+    GPIO_SetFunc(GPIO_PORT_A, (GPIO_PIN_01 | GPIO_PIN_02 | GPIO_PIN_07), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
+    /* Configure PB0, PB1, PB6, PB8 and PB9 */
+    GPIO_SetFunc(GPIO_PORT_B, (GPIO_PIN_00 | GPIO_PIN_01 | GPIO_PIN_06 | GPIO_PIN_08 | GPIO_PIN_09), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
+    /* Configure PC1, PC4 and PC5 */
+    GPIO_SetFunc(GPIO_PORT_C, (GPIO_PIN_01 | GPIO_PIN_04 | GPIO_PIN_05), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
+    /* Configure PG11, PG13 and PG14 */
+    GPIO_SetFunc(GPIO_PORT_G, (GPIO_PIN_11 | GPIO_PIN_13 | GPIO_PIN_14), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
+    /* Configure PH2, PH3 */
+    GPIO_SetFunc(GPIO_PORT_H, (GPIO_PIN_02 | GPIO_PIN_03), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
     /* Configure PI10 */
-    /* Note: Ethernet works properly in the default setting (which RX_ER is not
-    connected to PI10 of STM32F4x9NIH6) because PI10 is shared with data signal
-    of SDRAM.
-    If RX_ER signal is needed, uncomment PI10 configuration code source (above
-    the note) then remove R244 and solder R43 of the STM324x9I-EVAL board.
-    */
+    GPIO_SetFunc(GPIO_PORT_I, GPIO_PIN_10, GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
+#endif
 }
 
 /**
@@ -179,20 +182,24 @@ static void ETH_GpioInit(void)
  */
 static void low_level_init(struct netif *netif)
 {
-    uint16_t u16RegVal = 0U;
     stc_eth_init_t stcEthInit;
+    uint16_t u16RegVal = 0U;
 
-    /* Init ETH GPIO */
-    ETH_GpioInit();
-
+    /* Init Ethernet GPIO */
+    Ethernet_GpioInit();
     /* Enable ETH clock */
+    PWC_Fcg1PeriphClockCmd(PWC_FCG1_ETHER, Enable);
 
     /* Reset ETHERNET */
     ETH_DeInit();
-
     /* Configure structure initialization */
     ETH_CommStructInit(&EthHandle.stcCommInit);
     ETH_StructInit(&stcEthInit);
+#ifdef ETH_INTERFACE_RMII
+    EthHandle.stcCommInit.u32MediaInterface  = ETH_MAC_MEDIA_INTERFACE_RMII;
+#else
+    EthHandle.stcCommInit.u32MediaInterface  = ETH_MAC_MEDIA_INTERFACE_MII;
+#endif
 
     /* Configure ethernet peripheral */
     if (Ok == ETH_Init(&EthHandle, &stcEthInit))
@@ -207,7 +214,7 @@ static void low_level_init(struct netif *netif)
     ETH_DMA_RxDescListInit(&EthHandle, EthDmaRxDscrTab, &EthRxBuff[0][0], ETH_RXBUF_NUMBER);
 
     /* set MAC hardware address length */
-    netif->hwaddr_len = ETH_HWADDR_LEN;
+    netif->hwaddr_len = ETHARP_HWADDR_LEN;
 
     /* set MAC hardware address */
     netif->hwaddr[0] = (EthHandle.stcCommInit).u8MACAddr[0];
@@ -226,12 +233,32 @@ static void low_level_init(struct netif *netif)
 
     /* Enable MAC and DMA transmission and reception */
     ETH_Start();
+    
+    /* Configure PHY LED mode */
+    u16RegVal = PHY_PAGE_ADDR_7;
+    ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);
+    ETH_PHY_ReadRegister(&EthHandle, PHY_P7_IWLFR, &u16RegVal);
+    MODIFY_REG16(u16RegVal, PHY_LED_SELECT, PHY_LED_SELECT_10);
+    ETH_PHY_WriteRegister(&EthHandle, PHY_P7_IWLFR, u16RegVal);
+    u16RegVal = PHY_PAGE_ADDR_0;
+    ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);
+
+#ifdef ETH_INTERFACE_RMII
+    /* Disable Power Saving Mode */
+    ETH_PHY_ReadRegister(&EthHandle, PHY_PSMR, &u16RegVal);
+    CLEAR_REG16_BIT(u16RegVal, PHY_EN_PWR_SAVE);
+    ETH_PHY_WriteRegister(&EthHandle, PHY_PSMR, u16RegVal);
 
     /* Configure PHY to generate an interrupt when Eth Link state changes */
-    ETH_PHY_ReadRegister(&EthHandle, PHY_IWLFR, &u16RegVal);
-    u16RegVal |= PHY_LINK_INT_EN;
+    u16RegVal = PHY_PAGE_ADDR_7;
+    ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);
     /* Enable Interrupt on change of link status */
-    ETH_PHY_WriteRegister(&EthHandle, PHY_IWLFR, u16RegVal);
+    ETH_PHY_ReadRegister(&EthHandle, PHY_P7_IWLFR, &u16RegVal);
+    SET_REG16_BIT(u16RegVal, PHY_INT_LINK_CHANGE);
+    ETH_PHY_WriteRegister(&EthHandle, PHY_P7_IWLFR, u16RegVal);
+    u16RegVal = PHY_PAGE_ADDR_0;
+    ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);
+#endif
 }
 
 /**
@@ -246,7 +273,7 @@ static void low_level_init(struct netif *netif)
  *
  * @note Returning ERR_MEM here if a DMA queue of your MAC is full can lead to
  *       strange results. You might consider waiting for space in the DMA queue
- *       to become availale since the stack doesn't retry to send a packet
+ *       to become available since the stack doesn't retry to send a packet
  *       dropped because of memory failure (except for the TCP timers).
  */
 static err_t low_level_output(struct netif *netif, struct pbuf *p)
@@ -340,6 +367,7 @@ static struct pbuf *low_level_input(struct netif *netif)
     uint32_t payloadOffset;
     uint32_t i = 0UL;
 
+    /* Get received frame */
     if (Ok != ETH_DMA_GetReceiveFrame(&EthHandle))
     {
         return NULL;
@@ -445,7 +473,7 @@ void ethernetif_input(struct netif *netif)
  * This function should be passed as a parameter to netif_add().
  *
  * @param netif the lwip network interface structure for this ethernetif
- * @return ERR_OK if the loopif is initialized
+ * @return ERR_OK if the IF is initialized
  *         ERR_MEM if private data couldn't be allocated
  *         any other err_t on error
  */
@@ -488,7 +516,7 @@ u32_t sys_now(void)
  * @param  netif the network interface
  * @retval None
  */
-void ethernetif_check_link(struct netif *netif)
+void EthernetIF_CheckLink(struct netif *netif)
 {
     static uint8_t u8PreStatus = 0U;
     uint16_t u16RegVal = 0U;
@@ -496,16 +524,19 @@ void ethernetif_check_link(struct netif *netif)
     /* Read PHY_BSR */
     ETH_PHY_ReadRegister(&EthHandle, PHY_BSR, &u16RegVal);
     /* Check whether the link is up or down*/
-    if ((Reset != (u16RegVal & PHY_LINK_STATUS)) && (0UL == u8PreStatus))
+    if ((0x0000U != u16RegVal) && (0xFFFFU != u16RegVal))
     {
-        netif_set_link_up(netif);
-        u8PreStatus = 1U;
-    }
+        if ((Reset != (u16RegVal & PHY_LINK_STATUS)) && (0UL == u8PreStatus))
+        {
+            netif_set_link_up(netif);
+            u8PreStatus = 1U;
+        }
 
-    if ((Reset == (u16RegVal & PHY_LINK_STATUS)) && (1UL == u8PreStatus))
-    {
-        netif_set_link_down(netif);
-        u8PreStatus = 0U;
+        if ((Reset == (u16RegVal & PHY_LINK_STATUS)) && (1UL == u8PreStatus))
+        {
+            netif_set_link_down(netif);
+            u8PreStatus = 0U;
+        }
     }
 }
 
@@ -514,26 +545,37 @@ void ethernetif_check_link(struct netif *netif)
  * @param  netif the network interface
  * @retval None
  */
-void ethernetif_update_link(struct netif *netif)
+void EthernetIF_UpdateLink(struct netif *netif)
 {
     uint16_t u16RegVal = 0U;
 
+    u16RegVal = PHY_PAGE_ADDR_0;
+    ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);
     /* Read PHY_IISDR */
     ETH_PHY_ReadRegister(&EthHandle, PHY_IISDR, &u16RegVal);
     /* Check whether the link interrupt has occurred or not */
-    if (Reset != (u16RegVal & PHY_LINK_INTERRUPT))
+    if (Reset != (u16RegVal & PHY_FLAG_LINK_STATUS_CHANGE))
     {
         /* Read PHY_BSR */
         ETH_PHY_ReadRegister(&EthHandle, PHY_BSR, &u16RegVal);
+        if ((0x0000U != u16RegVal) && (0xFFFFU != u16RegVal))
+        {
+            if (!netif_is_link_up(netif))
+            {
+                /* Wait until the auto-negotiation will be completed */
+                SysTick_Delay(2U);
+                ETH_PHY_ReadRegister(&EthHandle, PHY_BSR, &u16RegVal);
+            }
 
-        /* Check whether the link is up or down*/
-        if (Reset != (u16RegVal & PHY_LINK_STATUS))
-        {
-            netif_set_link_up(netif);
-        }
-        else
-        {
-            netif_set_link_down(netif);
+            /* Check whether the link is up or down*/
+            if (Reset != (u16RegVal & PHY_LINK_STATUS))
+            {
+                netif_set_link_up(netif);
+            }
+            else
+            {
+                netif_set_link_down(netif);
+            }
         }
     }
 }
@@ -545,7 +587,7 @@ void ethernetif_update_link(struct netif *netif)
  * @param  netif The network interface
  * @retval None
  */
-void ethernetif_link_callback(struct netif *netif)
+void EthernetIF_LinkCallback(struct netif *netif)
 {
     __IO uint32_t tickStart = 0UL;
     uint16_t u16RegVal = 0U;
@@ -614,7 +656,7 @@ void ethernetif_link_callback(struct netif *netif)
     }
 
     /* Notify link status change */
-    ethernetif_notify_link_change(netif);
+    EthernetIF_NotifyLinkChange(netif);
 }
 
 /**
@@ -622,9 +664,9 @@ void ethernetif_link_callback(struct netif *netif)
  * @param  netif the network interface
  * @retval None
  */
-__weak void ethernetif_notify_link_change(struct netif *netif)
+__WEAKDEF void EthernetIF_NotifyLinkChange(struct netif *netif)
 {
-    /* This is function clould be implemented in user file
+    /* This is function could be implemented in user file
        when the callback is needed */
 }
 

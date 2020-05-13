@@ -136,13 +136,18 @@ static void disp_init(void)
     /*You code here*/
     BSP_LCD_Init();
 
+    BSP_LCD_Clear(WHITE);
+
+    /* Turn on backlight */
+    BSP_LCD_BKLCmd(EIO_PIN_SET);
 }
 
 /* Flush the content of the internal buffer the specific area on the display
  * You can use DMA or any hardware acceleration to do this operation in the background but
  * 'lv_disp_flush_ready()' has to be called when finished. */
 uint32_t cc=5000;
-extern uint16_t test_buf[800];
+extern uint8_t cam_state;
+//extern uint16_t test_buf[800];
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
     static uint32_t cnt = 0;
@@ -156,6 +161,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     for (uint32_t row = 0; row < row_num; row++)
     {
         cnt = cc;
+        while(cam_state);
         /* Set cursor */
         NT35510_SetCursor(area->x1, area->y1+row);
 //        NT35510_SetCursor(area->x1, area->y1+row);
@@ -204,23 +210,23 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 
     int32_t x;
     int32_t y;
-//    GPIO_TogglePins(GPIO_PORT_E, GPIO_PIN_02);
+//    GPIO_TogglePins(TEST_PORT, TEST_PIN);
 ////    NT35510_SetCursor(area->x1, area->y1);
 ////    LCD_WriteReg(NT35510_WRITE_RAM);
     for(y = area->y1; y <= area->y2; y++) {
         for(x = area->x1; x <= area->x2; x++) {
             /* Put a pixel to the display. For example: */
             /* put_px(x, y, *color_p)*/
-//          GPIO_TogglePins(GPIO_PORT_E, GPIO_PIN_02);
+//          GPIO_TogglePins(TEST_PORT, TEST_PIN);
             NT35510_WritePixel(x, y, color_p->full);
 ////          LCD_WriteData(color_p->full);
-//            GPIO_TogglePins(GPIO_PORT_E, GPIO_PIN_02);
+//            GPIO_TogglePins(TEST_PORT, TEST_PIN);
             color_p++;
             cnt++;
 
         }
     }
-//    GPIO_TogglePins(GPIO_PORT_E, GPIO_PIN_02);
+//    GPIO_TogglePins(TEST_PORT, TEST_PIN);
 #endif
     /* IMPORTANT!!!
      * Inform the graphics library that you are ready with the flushing*/

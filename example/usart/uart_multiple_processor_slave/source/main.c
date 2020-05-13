@@ -98,17 +98,17 @@ typedef struct
 #define USART_FUNCTION_CLK_GATE         (PWC_FCG3_USART6)
 
 /* UART unit interrupt definition */
-#define USART_UNIT_ERR_INT              (INT_USART6_EI)
-#define USART_UNIT_ERR_IRQn             (Int000_IRQn)
+#define USART_UNIT_ERR_INT_SRC          (INT_USART6_EI)
+#define USART_UNIT_ERR_INT_IRQn         (Int000_IRQn)
 
-#define USART_UNIT_RX_INT               (INT_USART6_RI)
-#define USART_UNIT_RX_IRQn              (Int001_IRQn)
+#define USART_UNIT_RX_INT_SRC           (INT_USART6_RI)
+#define USART_UNIT_RX_INT_IRQn          (Int001_IRQn)
 
-#define USART_UNIT_TX_INT               (INT_USART6_TI)
-#define USART_UNIT_TX_IRQn              (Int002_IRQn)
+#define USART_UNIT_TX_INT_SRC           (INT_USART6_TI)
+#define USART_UNIT_TX_INT_IRQn          (Int002_IRQn)
 
-#define USART_UNIT_TCI_INT              (INT_USART6_TCI)
-#define USART_UNIT_TCI_IRQn             (Int003_IRQn)
+#define USART_UNIT_TCI_INT_SRC          (INT_USART6_TCI)
+#define USART_UNIT_TCI_INT_IRQn         (Int003_IRQn)
 
 /* UART multiple processor ID definition */
 #define UART_MASTER_STATION_ID          (0x20U)
@@ -129,11 +129,10 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static void UartTxIrqCallback(void);
-static void UartTcIrqCallback(void);
-static void UartRxIrqCallback(void);
-static void UartRxErrIrqCallback(void);
+static void USART_TxEmpty_IrqCallback(void);
+static void USART_TxComplete_IrqCallback(void);
+static void USART_Rx_IrqCallback(void);
+static void USART_RxErr_IrqCallback(void);
 static en_result_t RingBufWrite(stc_ring_buffer_t *pstcBuffer, uint8_t u8Data);
 static en_result_t RingBufRead(stc_ring_buffer_t *pstcBuffer, uint8_t *pu8Data);
 static void UsartSetSilenceMode(uint8_t u8Mode);
@@ -158,29 +157,11 @@ static stc_ring_buffer_t m_stcRingBuf = {
  ******************************************************************************/
 
 /**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Initialize XTAL clock */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
-}
-
-/**
  * @brief  UART TX Empty IRQ callback.
  * @param  None.
  * @retval None
  */
-static void UartTxIrqCallback(void)
+static void USART_TxEmpty_IrqCallback(void)
 {
     uint8_t u8Data = 0u;
     en_flag_status_t enFlag = USART_GetFlag(USART_UNIT, USART_FLAG_TXE);
@@ -192,7 +173,6 @@ static void UartTxIrqCallback(void)
 
         while (Reset == USART_GetFlag(USART_UNIT, USART_FLAG_TXE))   /* Wait Tx data register empty */
         {
-            ;
         }
 
         if (Ok == RingBufRead(&m_stcRingBuf, &u8Data))
@@ -213,7 +193,7 @@ static void UartTxIrqCallback(void)
  * @param  None.
  * @retval None
  */
-static void UartTcIrqCallback(void)
+static void USART_TxComplete_IrqCallback(void)
 {
     en_flag_status_t enFlag = USART_GetFlag(USART_UNIT, USART_FLAG_TC);
     en_functional_state_t enState = USART_GetFuncState(USART_UNIT, USART_INT_TC);
@@ -233,9 +213,9 @@ static void UartTcIrqCallback(void)
  * @param  None
  * @retval None
  */
-static void UartRxIrqCallback(void)
+static void USART_Rx_IrqCallback(void)
 {
-    uint8_t u8RxData = 0u;
+    uint8_t u8RxData = 0U;
     en_flag_status_t enFlag = USART_GetFlag(USART_UNIT, USART_FLAG_RXNE);
     en_functional_state_t enState = USART_GetFuncState(USART_UNIT, USART_INT_RX);
 
@@ -268,7 +248,7 @@ static void UartRxIrqCallback(void)
  * @param  None.
  * @retval None
  */
-static void UartRxErrIrqCallback(void)
+static void USART_RxErr_IrqCallback(void)
 {
     USART_ClearFlag(USART_UNIT, (USART_CLEAR_FLAG_FE | USART_CLEAR_FLAG_PE | USART_CLEAR_FLAG_ORE));
 }
@@ -382,8 +362,11 @@ int32_t main(void)
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
+                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
+                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Configure USART RX/TX pin. */
     GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
@@ -399,27 +382,27 @@ int32_t main(void)
     USART_MultiProcessorInit(USART_UNIT, &stcUartMultiProcessorInit);
 
     /* Register error IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = USART_UNIT_ERR_IRQn;
-    stcIrqSigninCfg.enIntSrc = USART_UNIT_ERR_INT;
-    stcIrqSigninCfg.pfnCallback = &UartRxErrIrqCallback;
+    stcIrqSigninCfg.enIRQn = USART_UNIT_ERR_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = USART_UNIT_ERR_INT_SRC;
+    stcIrqSigninCfg.pfnCallback = &USART_RxErr_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register RX IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = USART_UNIT_RX_IRQn;
-    stcIrqSigninCfg.enIntSrc = USART_UNIT_RX_INT;
-    stcIrqSigninCfg.pfnCallback = &UartRxIrqCallback;
+    stcIrqSigninCfg.enIRQn = USART_UNIT_RX_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = USART_UNIT_RX_INT_SRC;
+    stcIrqSigninCfg.pfnCallback = &USART_Rx_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_00);
 
     /* Register TX IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = USART_UNIT_TX_IRQn;
-    stcIrqSigninCfg.enIntSrc = USART_UNIT_TX_INT;
-    stcIrqSigninCfg.pfnCallback = &UartTxIrqCallback;
+    stcIrqSigninCfg.enIRQn = USART_UNIT_TX_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = USART_UNIT_TX_INT_SRC;
+    stcIrqSigninCfg.pfnCallback = &USART_TxEmpty_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register TC IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = USART_UNIT_TCI_IRQn;
-    stcIrqSigninCfg.enIntSrc = USART_UNIT_TCI_INT;
-    stcIrqSigninCfg.pfnCallback = &UartTcIrqCallback;
+    stcIrqSigninCfg.enIRQn = USART_UNIT_TCI_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = USART_UNIT_TCI_INT_SRC;
+    stcIrqSigninCfg.pfnCallback = &USART_TxComplete_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Enable RX/TX function */

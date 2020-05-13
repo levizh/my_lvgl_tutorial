@@ -55,8 +55,8 @@
  * Include files
  ******************************************************************************/
 #include "usb_conf.h"
-#include "usb_otg_regs.h"
-#include "usb_defines.h"
+#include "hc32f4a0_usb_otg_regs.h"
+#include "hc32f4a0_usb_defines.h"
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')

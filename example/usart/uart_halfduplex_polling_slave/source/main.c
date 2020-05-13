@@ -91,7 +91,6 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
 static void UartRxErrProcess(void);
 
 /*******************************************************************************
@@ -101,24 +100,6 @@ static void UartRxErrProcess(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-
-/**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Initialize XTAL clock */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
-}
 
 /**
  * @brief  USART RX error process function.
@@ -153,8 +134,11 @@ int32_t main(void)
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
+                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
+                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Configure USART TX pin. */
     GPIO_SetFunc(USART_SLAVE_TX_PORT, USART_SLAVE_TX_PIN, USART_SLAVE_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
@@ -173,7 +157,6 @@ int32_t main(void)
         /* Wait slave unit Rx data register no empty */
         while (Reset == USART_GetFlag(USART_SLAVE_UNIT, USART_FLAG_RXNE))
         {
-            ;
         }
 
         /* Slave unit receive data */
@@ -189,7 +172,6 @@ int32_t main(void)
         /* Wait slave unit Tx complete */
         while (Reset == USART_GetFlag(USART_SLAVE_UNIT, USART_FLAG_TC))
         {
-            ;
         }
 
         /* Enable slave RX function && Disable slave TX function*/

@@ -143,48 +143,48 @@
 (   ((x) == EMB_OSC_ENABLE)                     ||                             \
     ((x) == EMB_OSC_DISABLE))
 
-#define IS_VALID_EMB_TMR4_PWM_W_SEL(x)                                       \
-(   ((x) == EMB_TMR4_PWM_W_ENABLE)            ||                             \
+#define IS_VALID_EMB_TMR4_PWM_W_SEL(x)                                         \
+(   ((x) == EMB_TMR4_PWM_W_ENABLE)              ||                             \
     ((x) == EMB_TMR4_PWM_W_DISABLE))
 
-#define IS_VALID_EMB_TMR4_PWM_V_SEL(x)                                       \
-(   ((x) == EMB_TMR4_PWM_V_ENABLE)            ||                             \
+#define IS_VALID_EMB_TMR4_PWM_V_SEL(x)                                         \
+(   ((x) == EMB_TMR4_PWM_V_ENABLE)              ||                             \
     ((x) == EMB_TMR4_PWM_V_DISABLE))
 
-#define IS_VALID_EMB_TMR4_PWM_U_SEL(x)                                       \
-(   ((x) == EMB_TMR4_PWM_U_ENABLE)            ||                             \
+#define IS_VALID_EMB_TMR4_PWM_U_SEL(x)                                         \
+(   ((x) == EMB_TMR4_PWM_U_ENABLE)              ||                             \
     ((x) == EMB_TMR4_PWM_U_DISABLE))
 
 #define IS_VALID_EMB_TIMER6_1_PWM_SEL(x)                                       \
-(   ((x) == EMB_TMR6_1_PWM_ENABLE)            ||                             \
+(   ((x) == EMB_TMR6_1_PWM_ENABLE)              ||                             \
     ((x) == EMB_TMR6_1_PWM_DISABLE))
 
 #define IS_VALID_EMB_TIMER6_2_PWM_SEL(x)                                       \
-(   ((x) == EMB_TMR6_2_PWM_ENABLE)            ||                             \
+(   ((x) == EMB_TMR6_2_PWM_ENABLE)              ||                             \
     ((x) == EMB_TMR6_2_PWM_DISABLE))
 
 #define IS_VALID_EMB_TIMER6_3_PWM_SEL(x)                                       \
-(   ((x) == EMB_TMR6_3_PWM_ENABLE)            ||                             \
+(   ((x) == EMB_TMR6_3_PWM_ENABLE)              ||                             \
     ((x) == EMB_TMR6_3_PWM_DISABLE))
 
 #define IS_VALID_EMB_TIMER6_4_PWM_SEL(x)                                       \
-(   ((x) == EMB_TMR6_4_PWM_ENABLE)            ||                             \
+(   ((x) == EMB_TMR6_4_PWM_ENABLE)              ||                             \
     ((x) == EMB_TMR6_4_PWM_DISABLE))
 
 #define IS_VALID_EMB_TIMER6_5_PWM_SEL(x)                                       \
-(   ((x) == EMB_TMR6_5_PWM_ENABLE)            ||                             \
+(   ((x) == EMB_TMR6_5_PWM_ENABLE)              ||                             \
     ((x) == EMB_TMR6_5_PWM_DISABLE))
 
 #define IS_VALID_EMB_TIMER6_6_PWM_SEL(x)                                       \
-(   ((x) == EMB_TMR6_6_PWM_ENABLE)            ||                             \
+(   ((x) == EMB_TMR6_6_PWM_ENABLE)              ||                             \
     ((x) == EMB_TMR6_6_PWM_DISABLE))
 
 #define IS_VALID_EMB_TIMER6_7_PWM_SEL(x)                                       \
-(   ((x) == EMB_TMR6_7_PWM_ENABLE)            ||                             \
+(   ((x) == EMB_TMR6_7_PWM_ENABLE)              ||                             \
     ((x) == EMB_TMR6_7_PWM_DISABLE))
 
 #define IS_VALID_EMB_TIMER6_8_PWM_SEL(x)                                       \
-(   ((x) == EMB_TMR6_8_PWM_ENABLE)            ||                             \
+(   ((x) == EMB_TMR6_8_PWM_ENABLE)              ||                             \
     ((x) == EMB_TMR6_8_PWM_DISABLE))
 
 #define IS_VALID_EMB_DETECT_PORT1_LEVEL(x)                                     \
@@ -203,48 +203,48 @@
 (   ((x) == EMB_DETECT_PORT4_LEVEL_LOW)         ||                             \
     ((x) == EMB_DETECT_PORT4_LEVEL_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR4_PWM_W_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR4_PWM_W_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR4_PWM_W_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR4_PWM_W_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR4_PWM_W_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR4_PWM_V_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR4_PWM_V_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR4_PWM_V_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR4_PWM_V_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR4_PWM_V_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR4_PWM_U_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR4_PWM_U_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR4_PWM_U_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR4_PWM_U_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR4_PWM_U_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR6_1_PWM_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR6_1_PWM_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR6_1_PWM_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR6_1_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_1_PWM_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR6_2_PWM_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR6_2_PWM_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR6_2_PWM_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR6_2_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_2_PWM_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR6_3_PWM_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR6_3_PWM_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR6_3_PWM_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR6_3_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_3_PWM_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR6_4_PWM_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR6_4_PWM_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR6_4_PWM_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR6_4_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_4_PWM_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR6_5_PWM_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR6_5_PWM_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR6_5_PWM_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR6_5_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_5_PWM_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR6_6_PWM_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR6_6_PWM_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR6_6_PWM_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR6_6_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_6_PWM_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR6_7_PWM_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR6_7_PWM_BOTH_LOW)   ||                             \
+#define IS_VALID_EMB_DETECT_TMR6_7_PWM_LEVEL(x)                                \
+(   ((x) == EMB_DETECT_TMR6_7_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_7_PWM_BOTH_HIGH))
 
 #define IS_VALID_EMB_DETECT_TMR6_8_PWM_LEVEL(x)                              \
-(   ((x) == EMB_DETECT_TMR6_8_PWM_BOTH_LOW)   ||                             \
+(   ((x) == EMB_DETECT_TMR6_8_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_8_PWM_BOTH_HIGH))
 
 #define IS_VALID_EMB_INT(x)                                                    \
@@ -367,11 +367,11 @@ en_result_t EMB_Timer4Init(M4_EMB_TypeDef *EMBx,
         DDL_ASSERT(IS_VALID_EMB_DETECT_PORT4_LEVEL(pstcInit->stcPort4.u32PortLevel));
         DDL_ASSERT(IS_VALID_EMB_PORT4_FILTER_DIV(pstcInit->stcPort4.u32PortFilterDiv));
         DDL_ASSERT(IS_VALID_EMB_TMR4_PWM_U_SEL(pstcInit->stcTimer4PmwU.u32Timer4PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_U_LEVEL(pstcInit->stcTimer4PmwU.u32Timer4PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_U_LEVEL(pstcInit->stcTimer4PmwU.u32Timer4PwmLvl));
         DDL_ASSERT(IS_VALID_EMB_TMR4_PWM_V_SEL(pstcInit->stcTimer4PmwV.u32Timer4PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_V_LEVEL(pstcInit->stcTimer4PmwV.u32Timer4PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_V_LEVEL(pstcInit->stcTimer4PmwV.u32Timer4PwmLvl));
         DDL_ASSERT(IS_VALID_EMB_TMR4_PWM_W_SEL(pstcInit->stcTimer4PmwW.u32Timer4PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_W_LEVEL(pstcInit->stcTimer4PmwW.u32Timer4PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_W_LEVEL(pstcInit->stcTimer4PmwW.u32Timer4PwmLvl));
 
         /* Set default value && clear flag */
         WRITE_REG32(EMBx->SOE, 0x00UL);
@@ -390,6 +390,7 @@ en_result_t EMB_Timer4Init(M4_EMB_TypeDef *EMBx,
                      pstcInit->u32Cmp2 | \
                      pstcInit->u32Cmp3 | \
                      pstcInit->u32Cmp4 | \
+                     pstcInit->u32Osc | \
                      pstcInit->stcTimer4PmwW.u32Timer4PwmSel | \
                      pstcInit->stcTimer4PmwV.u32Timer4PwmSel | \
                      pstcInit->stcTimer4PmwU.u32Timer4PwmSel | \

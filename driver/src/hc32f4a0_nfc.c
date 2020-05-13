@@ -148,6 +148,24 @@
     (EXMC_NFC_INT_ECC_CORRECTABLE_ERROR == (x)) ||                             \
     (EXMC_NFC_INT_ECC_UNCORRECTABLE_ERROR == (x)))
 
+#define IS_EXMC_NFC_SECTION(x)                                                 \
+(   (EXMC_NFC_ECC_SECTION0 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION1 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION2 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION3 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION4 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION5 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION6 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION7 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION8 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION9 == (x))              ||                             \
+    (EXMC_NFC_ECC_SECTION10 == (x))             ||                             \
+    (EXMC_NFC_ECC_SECTION11 == (x))             ||                             \
+    (EXMC_NFC_ECC_SECTION12 == (x))             ||                             \
+    (EXMC_NFC_ECC_SECTION13 == (x))             ||                             \
+    (EXMC_NFC_ECC_SECTION14 == (x))             ||                             \
+    (EXMC_NFC_ECC_SECTION15 == (x)))
+
 #define IS_EXMC_NFC_FLAG(x)                                                    \
 (   (EXMC_NFC_FLAG_RB_BANK0                         |                          \
      EXMC_NFC_FLAG_RB_BANK1                         |                          \
@@ -162,6 +180,10 @@
      EXMC_NFC_FLAG_ECC_CALC_COMPLETION              |                          \
      EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR            |                          \
      EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR) & (x))
+
+/**
+ * @}
+ */
 
 #define IS_EXMC_NFC_SPARE_COLUMN_SIZE(x)        ((x) <= 0xFFUL)
 
@@ -296,11 +318,13 @@
 #define NFC_NFC_ISTR_MASK                       ((uint32_t)0xFF53UL)
 
 /*!< NFC_DATR for 32bit */
-#define NFC_DATR_REG32(x)                       (*((uint32_t *)((uint32_t)(&(M4_NFC->DATR_BASE)) + ((x) << 2UL))))
-//#define NFC_DATR_REG32(x)                       (M4_NFC->DATR_BASE)
+#define NFC_DATR_REG32(x)                       (M4_NFC->DATR_BASE)
 
 /*!< NFC_ID_DATR for 32bit */
 #define NFC_ID_REG32(x)                         (*((__IO uint32_t *)((uint32_t)(&(M4_NFC->DATR_BASE)) + 0x8010UL + ((x) << 2UL))))
+
+/*!< NFC_SYND_REG for 32bit */
+#define NFC_SYND_REG32(sect, reg)               (*((__IO uint32_t *)((uint32_t)(&(M4_NFC->ECC_SYND0_0)) + (sect) *   16UL + (reg) * 4UL)))
 
 /**
  * @defgroup Parameter_Align Parameter Align
@@ -606,6 +630,82 @@ en_flag_status_t EXMC_NFC_GetFlag(uint32_t u32Flag)
     }
 
     return (((Set == enStatus1) && (Set == enStatus2)) ? Set : Reset);
+}
+
+/**
+ * @brief  Get the 1BIT ECC result of the specified section.
+ * @param  [in] u32Flag                 The specified flag
+ *   @arg EXMC_NFC_ECC_SECTION0: ECC section 0
+ *   @arg EXMC_NFC_ECC_SECTION1: ECC section 1
+ *   @arg EXMC_NFC_ECC_SECTION2: ECC section 2
+ *   @arg EXMC_NFC_ECC_SECTION3: ECC section 3
+ *   @arg EXMC_NFC_ECC_SECTION4: ECC section 4
+ *   @arg EXMC_NFC_ECC_SECTION5: ECC section 5
+ *   @arg EXMC_NFC_ECC_SECTION6: ECC section 6
+ *   @arg EXMC_NFC_ECC_SECTION7: ECC section 7
+ *   @arg EXMC_NFC_ECC_SECTION8: ECC section 8
+ *   @arg EXMC_NFC_ECC_SECTION9: ECC section 9
+ *   @arg EXMC_NFC_ECC_SECTION10: ECC section 10
+ *   @arg EXMC_NFC_ECC_SECTION11: ECC section 11
+ *   @arg EXMC_NFC_ECC_SECTION12: ECC section 12
+ *   @arg EXMC_NFC_ECC_SECTION13: ECC section 13
+ *   @arg EXMC_NFC_ECC_SECTION14: ECC section 14
+ *   @arg EXMC_NFC_ECC_SECTION15: ECC section 15
+ * @retval The register value
+ */
+uint32_t EXMC_NFC_GetEcc1BitResult(uint32_t u32Section)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_EXMC_NFC_SECTION(u32Section));
+
+    return READ_REG32(*(__IO uint32_t *)((uint32_t)(&M4_NFC->ECCR0) + u32Section * 4UL));
+}
+
+/**
+ * @brief  Get the 4 bits ECC syndrome register valule.
+ * @param  [in] u32Section          The syndrome section
+ *   @arg EXMC_NFC_SYND0: ECC syndrome section 0
+ *   @arg EXMC_NFC_SYND1: ECC syndrome section 1
+ *   @arg EXMC_NFC_SYND2: ECC syndrome section 2
+ *   @arg EXMC_NFC_SYND3: ECC syndrome section 3
+ *   @arg EXMC_NFC_SYND4: ECC syndrome section 4
+ *   @arg EXMC_NFC_SYND5: ECC syndrome section 5
+ *   @arg EXMC_NFC_SYND6: ECC syndrome section 6
+ *   @arg EXMC_NFC_SYND7: ECC syndrome section 7
+ *   @arg EXMC_NFC_SYND8: ECC syndrome section 8
+ *   @arg EXMC_NFC_SYND9: ECC syndrome section 9
+ *   @arg EXMC_NFC_SYND10: ECC syndrome section 10
+ *   @arg EXMC_NFC_SYND11: ECC syndrome section 11
+ *   @arg EXMC_NFC_SYND12: ECC syndrome section 12
+ *   @arg EXMC_NFC_SYND13: ECC syndrome section 13
+ *   @arg EXMC_NFC_SYND14: ECC syndrome section 14
+ *   @arg EXMC_NFC_SYND15: ECC syndrome section 15
+ * @param  [out] au16Synd       The syndrome value
+ * @retval An en_result_t enumeration value:
+ *           - Ok: Initialize successfully
+ *           - ErrorInvalidParameter: pstcInit = NULL
+ * @note  The paramter size of array au16Synd[] must be larger than 8
+ */
+en_result_t EXMC_NFC_GetSyndrome(uint32_t u32Section, uint16_t au16Synd[])
+{
+    uint32_t u32SyndVal;
+    en_result_t enRet = ErrorInvalidParameter;
+
+    if (NULL != au16Synd)
+    {
+        /* Check parameters */
+        DDL_ASSERT(IS_EXMC_NFC_SECTION(u32Section));
+
+        for (uint32_t i = 0UL; i < 4UL; i++)
+        {
+            u32SyndVal = READ_REG32(NFC_SYND_REG32(u32Section, i));
+            RW_MEM32(&au16Synd[i * 2UL]) = u32SyndVal;
+        }
+
+        enRet = Ok;
+    }
+
+    return enRet;
 }
 
 /**
@@ -1158,7 +1258,7 @@ en_result_t EXMC_NFC_ReadPageMeta(uint32_t u32Bank,
     uint32_t u32SpareSize = NFC_SPARE_SIZE;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if (pu8Data && u32NumBytes && (u32NumBytes <= (u32PageSize + u32SpareSize)))
+    if (pu8Data && u32NumBytes)
     {
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
@@ -1202,7 +1302,7 @@ en_result_t EXMC_NFC_WritePageMeta(uint32_t u32Bank,
     uint32_t u32SpareSize = NFC_SPARE_SIZE;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if (pu8Data && u32NumBytes && (u32NumBytes <= (u32PageSize + u32SpareSize)))
+    if (pu8Data && u32NumBytes)
     {
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
@@ -1246,7 +1346,7 @@ en_result_t EXMC_NFC_ReadPageHwEcc(uint32_t u32Bank,
     uint32_t u32SpareSize = NFC_SPARE_SIZE;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if (pu8Data && u32NumBytes && (u32NumBytes <= (u32PageSize + u32SpareSize)))
+    if (pu8Data && u32NumBytes)
     {
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
@@ -1289,7 +1389,7 @@ en_result_t EXMC_NFC_WritePageHwEcc(uint32_t u32Bank,
     uint32_t u32SpareSize = NFC_SPARE_SIZE;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if (pu8Data && u32NumBytes && (u32NumBytes <= (u32PageSize + u32SpareSize)))
+    if (pu8Data && u32NumBytes)
     {
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));

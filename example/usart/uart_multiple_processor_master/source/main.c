@@ -70,26 +70,6 @@
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
-/**
- * @brief Key state definition
- */
-typedef enum
-{
-    KeyIdle,
-    KeyRelease,
-} en_key_state_t;
-
-/**
- * @brief Key instance structure definition
- */
-typedef struct
-{
-    uint8_t u8Port;                     /*!< GPIO_PORT_x, x can be (A~I) to select the GPIO peripheral */
-
-    uint8_t u8Pin;                      /*!< GPIO_PIN_x, x can be (0~15) to select the PIN index */
-
-    en_pin_state_t enPressPinState;     /*!< Pin level state when key is pressed */
-} stc_key_t;
 
 /**
  * @brief  Ring buffer structure definition
@@ -106,22 +86,8 @@ typedef struct
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* Key Port/Pin definition */
-#define KEY_PORT                        (GPIO_PORT_A)
-#define KEY_PIN                         (GPIO_PIN_00)
-
-/* Red LED Port/Pin definition */
-#define LED_R_PORT                      (GPIO_PORT_A)
-#define LED_R_PIN                       (GPIO_PIN_00)
-#define LED_R_ON()                      (GPIO_ResetPins(LED_R_PORT, LED_R_PIN))
-#define LED_R_OFF()                     (GPIO_SetPins(LED_R_PORT, LED_R_PIN))
-
-/* Green LED Port/Pin definition */
-#define LED_G_PORT                      (GPIO_PORT_B)
-#define LED_G_PIN                       (GPIO_PIN_00)
-#define LED_G_ON()                      (GPIO_ResetPins(LED_G_PORT, LED_G_PIN))
-#define LED_G_OFF()                     (GPIO_SetPins(LED_G_PORT, LED_G_PIN))
-#define LED_G_TOGGLE()                  (GPIO_TogglePins(LED_G_PORT, LED_G_PIN))
+/* Key definition */
+#define USER_KEY                        (BSP_KEY_1)
 
 /* UART RX/TX Port/Pin definition */
 #define USART_RX_PORT                   (GPIO_PORT_H)   /* PH6: USART6_RX */
@@ -137,17 +103,17 @@ typedef struct
 #define USART_FUNCTION_CLK_GATE         (PWC_FCG3_USART6)
 
 /* UART unit interrupt definition */
-#define USART_UNIT_ERR_INT              (INT_USART6_EI)
-#define USART_UNIT_ERR_IRQn             (Int000_IRQn)
+#define USART_UNIT_ERR_INT_SRC          (INT_USART6_EI)
+#define USART_UNIT_ERR_INT_IRQn         (Int000_IRQn)
 
-#define USART_UNIT_RX_INT               (INT_USART6_RI)
-#define USART_UNIT_RX_IRQn              (Int001_IRQn)
+#define USART_UNIT_RX_INT_SRC           (INT_USART6_RI)
+#define USART_UNIT_RX_INT_IRQn          (Int001_IRQn)
 
-#define USART_UNIT_TX_INT               (INT_USART6_TI)
-#define USART_UNIT_TX_IRQn              (Int002_IRQn)
+#define USART_UNIT_TX_INT_SRC           (INT_USART6_TI)
+#define USART_UNIT_TX_INT_IRQn          (Int002_IRQn)
 
-#define USART_UNIT_TCI_INT              (INT_USART6_TCI)
-#define USART_UNIT_TCI_IRQn             (Int003_IRQn)
+#define USART_UNIT_TCI_INT_SRC          (INT_USART6_TCI)
+#define USART_UNIT_TCI_INT_IRQn         (Int003_IRQn)
 
 /* UART multiple processor ID definition */
 #define UART_MASTER_STATION_ID          (0x20U)
@@ -168,13 +134,10 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static void LedConfig(void);
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey);
-static void UartTxIrqCallback(void);
-static void UartTcIrqCallback(void);
-static void UartRxIrqCallback(void);
-static void UartRxErrIrqCallback(void);
+static void USART_TxEmpty_IrqCallback(void);
+static void USART_TxComplete_IrqCallback(void);
+static void USART_Rx_IrqCallback(void);
+static void USART_RxErr_IrqCallback(void);
 static en_result_t RingBufWrite(stc_ring_buffer_t *pstcBuffer, uint8_t u8Data);
 static en_result_t RingBufRead(stc_ring_buffer_t *pstcBuffer, uint8_t *pu8Data);
 static void UsartSetSilenceMode(uint8_t u8Mode);
@@ -185,90 +148,24 @@ static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static uint8_t m_u8UartSilenceMode = 0U;
+static uint8_t m_u8UartSilenceMode = USART_UART_NORMAL_MODE;
 
 static stc_ring_buffer_t m_stcRingBuf = {
-    .u16InIdx = 0u,
-    .u16OutIdx = 0u,
-    .u16UsedSize = 0u,
+    .u16InIdx = 0U,
+    .u16OutIdx = 0U,
+    .u16UsedSize = 0U,
     .u16Capacity = RING_BUFFER_SIZE,
 };
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-
-/**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Initialize XTAL clock */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
-}
-
-/**
- * @brief  Configure RGB LED.
- * @param  None
- * @retval None
- */
-static void LedConfig(void)
-{
-    stc_gpio_init_t stcGpioInit;
-
-    GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;
-    stcGpioInit.u16PinState = PIN_STATE_SET;
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-}
-
-/**
- * @brief  Get key state.
- * @param  [in] pstcKey    Pointer to stc_key_t structure
- * @retval An en_result_t enumeration value:
- *           - KeyIdle: Key isn't pressed.
- *           - KeyRelease: Released after key is pressed.
- */
-static en_key_state_t KeyGetState(const stc_key_t *pstcKey)
-{
-    en_key_state_t enKeyState = KeyIdle;
-
-    if (NULL != pstcKey)
-    {
-       if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-        {
-            DDL_Delay1ms(20ul);
-
-            if (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-            {
-                while (pstcKey->enPressPinState == GPIO_ReadInputPortPin(pstcKey->u8Port, pstcKey->u8Pin))
-                {
-                    ;
-                }
-                enKeyState = KeyRelease;
-            }
-        }
-    }
-
-    return enKeyState;
-}
-
 /**
  * @brief  UART TX Empty IRQ callback.
  * @param  None
  * @retval None
  */
-static void UartTxIrqCallback(void)
+static void USART_TxEmpty_IrqCallback(void)
 {
     uint8_t u8Data = 0u;
     en_flag_status_t enFlag = USART_GetFlag(USART_UNIT, USART_FLAG_TXE);
@@ -301,7 +198,7 @@ static void UartTxIrqCallback(void)
  * @param  None
  * @retval None
  */
-static void UartTcIrqCallback(void)
+static void USART_TxComplete_IrqCallback(void)
 {
     en_flag_status_t enFlag = USART_GetFlag(USART_UNIT, USART_FLAG_TC);
     en_functional_state_t enState = USART_GetFuncState(USART_UNIT, USART_INT_TC);
@@ -321,7 +218,7 @@ static void UartTcIrqCallback(void)
  * @param  None
  * @retval None
  */
-static void UartRxIrqCallback(void)
+static void USART_Rx_IrqCallback(void)
 {
     uint8_t u8RxData = 0u;
     en_flag_status_t enFlag = USART_GetFlag(USART_UNIT, USART_FLAG_RXNE);
@@ -356,7 +253,7 @@ static void UartRxIrqCallback(void)
  * @param  None
  * @retval None
  */
-static void UartRxErrIrqCallback(void)
+static void USART_RxErr_IrqCallback(void)
 {
     USART_ClearFlag(USART_UNIT, (USART_CLEAR_FLAG_FE | USART_CLEAR_FLAG_PE | USART_CLEAR_FLAG_ORE));
 }
@@ -466,11 +363,6 @@ int32_t main(void)
     static uint8_t u8TxData = 0U;
     static uint8_t u8RxData = 0U;
     stc_irq_signin_config_t stcIrqSigninCfg;
-    stc_key_t stcKeySw = {
-        .u8Port = KEY_PORT,
-        .u8Pin = KEY_PIN,
-        .enPressPinState = Pin_Reset,
-    };
     const stc_usart_multiprocessor_init_t stcUartMultiProcessorInit = {
         .u32Baudrate = 9600UL,
         .u32BitDirection = USART_LSB,
@@ -483,14 +375,23 @@ int32_t main(void)
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
+    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
+                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
+                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Initialize UART for debug print function. */
-    DDL_UartInit();
+    DDL_PrintfInit();
 
-    /* Configure LED. */
-    LedConfig();
+    /* Initialize IO. */
+    BSP_IO_Init();
+
+    /* Initialize LED. */
+    BSP_LED_Init();
+
+    /* Initialize key. */
+    BSP_KEY_Init();
 
     /* Configure USART RX/TX pin. */
     GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
@@ -506,35 +407,34 @@ int32_t main(void)
     USART_MultiProcessorInit(USART_UNIT, &stcUartMultiProcessorInit);
 
     /* Register error IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = USART_UNIT_ERR_IRQn;
-    stcIrqSigninCfg.enIntSrc = USART_UNIT_ERR_INT;
-    stcIrqSigninCfg.pfnCallback = &UartRxErrIrqCallback;
+    stcIrqSigninCfg.enIRQn = USART_UNIT_ERR_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = USART_UNIT_ERR_INT_SRC;
+    stcIrqSigninCfg.pfnCallback = &USART_RxErr_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register RX IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = USART_UNIT_RX_IRQn;
-    stcIrqSigninCfg.enIntSrc = USART_UNIT_RX_INT;
-    stcIrqSigninCfg.pfnCallback = &UartRxIrqCallback;
+    stcIrqSigninCfg.enIRQn = USART_UNIT_RX_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = USART_UNIT_RX_INT_SRC;
+    stcIrqSigninCfg.pfnCallback = &USART_Rx_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_00);
 
     /* Register TX IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = USART_UNIT_TX_IRQn;
-    stcIrqSigninCfg.enIntSrc = USART_UNIT_TX_INT;
-    stcIrqSigninCfg.pfnCallback = &UartTxIrqCallback;
+    stcIrqSigninCfg.enIRQn = USART_UNIT_TX_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = USART_UNIT_TX_INT_SRC;
+    stcIrqSigninCfg.pfnCallback = &USART_TxEmpty_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     /* Register TC IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = USART_UNIT_TCI_IRQn;
-    stcIrqSigninCfg.enIntSrc = USART_UNIT_TCI_INT;
-    stcIrqSigninCfg.pfnCallback = &UartTcIrqCallback;
+    stcIrqSigninCfg.enIRQn = USART_UNIT_TCI_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = USART_UNIT_TCI_INT_SRC;
+    stcIrqSigninCfg.pfnCallback = &USART_TxComplete_IrqCallback;
     InstalIrqHandler(&stcIrqSigninCfg, DDL_IRQ_PRIORITY_DEFAULT);
 
     while (1)
     {
         /* Wait key release */
-        while (KeyRelease != KeyGetState(&stcKeySw))
+        while (Reset == BSP_KEY_GetStatus(USER_KEY))
         {
-            ;
         }
 
         RingBufWrite(&m_stcRingBuf, u8TxData);
@@ -543,7 +443,6 @@ int32_t main(void)
 
         while (IS_RING_BUFFER_EMPYT(&m_stcRingBuf))
         {
-            ;
         }
 
         RingBufRead(&m_stcRingBuf, &u8RxData);
@@ -552,13 +451,13 @@ int32_t main(void)
 
         if (u8RxData == u8TxData)
         {
-            LED_R_OFF();
-            LED_G_TOGGLE();
+            BSP_LED_Off(LED_RED);
+            BSP_LED_Toggle(LED_BLUE);
         }
         else
         {
-            LED_R_ON();
-            LED_G_OFF();
+            BSP_LED_On(LED_RED);
+            BSP_LED_Off(LED_BLUE);
         }
 
         u8TxData++;

@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-06-28       Yangjp          First version
+   2020-01-03       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -70,8 +70,8 @@ extern "C"
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /* Chip module on-off define */
-#define DDL_ON                                      (1u)
-#define DDL_OFF                                     (0u)
+#define DDL_ON                                      (1U)
+#define DDL_OFF                                     (0U)
 
 /**
  * @brief This is the list of modules to be used in the Device Driver Library.
@@ -86,7 +86,7 @@ extern "C"
 #define DDL_UTILITY_ENABLE                          (DDL_ON)
 #define DDL_PRINT_ENABLE                            (DDL_OFF)
 
-#define DDL_ADC_ENABLE                              (DDL_OFF)
+#define DDL_ADC_ENABLE                              (DDL_ON)
 #define DDL_AES_ENABLE                              (DDL_OFF)
 #define DDL_CAN_ENABLE                              (DDL_OFF)
 #define DDL_CLK_ENABLE                              (DDL_ON)
@@ -98,7 +98,7 @@ extern "C"
 #define DDL_DMA_ENABLE                              (DDL_OFF)
 #define DDL_DMC_ENABLE                              (DDL_OFF)
 #define DDL_DVP_ENABLE                              (DDL_OFF)
-#define DDL_EFM_ENABLE                              (DDL_OFF)
+#define DDL_EFM_ENABLE                              (DDL_ON)
 #define DDL_EMB_ENABLE                              (DDL_OFF)
 #define DDL_ETH_ENABLE                              (DDL_OFF)
 #define DDL_EVENT_PORT_ENABLE                       (DDL_OFF)
@@ -107,10 +107,10 @@ extern "C"
 #define DDL_GPIO_ENABLE                             (DDL_ON)
 #define DDL_HASH_ENABLE                             (DDL_OFF)
 #define DDL_HRPWM_ENABLE                            (DDL_OFF)
-#define DDL_I2C_ENABLE                              (DDL_OFF)
+#define DDL_I2C_ENABLE                              (DDL_ON)
 #define DDL_I2S_ENABLE                              (DDL_OFF)
-#define DDL_INTERRUPTS_ENABLE                       (DDL_OFF)
-#define DDL_KEYSCAN_ENABLE                          (DDL_OFF)
+#define DDL_INTERRUPTS_ENABLE                       (DDL_ON)
+#define DDL_KEYSCAN_ENABLE                          (DDL_ON)
 #define DDL_MAU_ENABLE                              (DDL_OFF)
 #define DDL_MPU_ENABLE                              (DDL_OFF)
 #define DDL_NFC_ENABLE                              (DDL_OFF)
@@ -122,12 +122,12 @@ extern "C"
 #define DDL_SDIOC_ENABLE                            (DDL_OFF)
 #define DDL_SMC_ENABLE                              (DDL_OFF)
 #define DDL_SPI_ENABLE                              (DDL_OFF)
-#define DDL_SRAM_ENABLE                             (DDL_OFF)
+#define DDL_SRAM_ENABLE                             (DDL_ON)
 #define DDL_SWDT_ENABLE                             (DDL_OFF)
 #define DDL_TMR0_ENABLE                             (DDL_OFF)
 #define DDL_TMR2_ENABLE                             (DDL_OFF)
-#define DDL_TMR4_ENABLE                             (DDL_OFF)
-#define DDL_TMR6_ENABLE                             (DDL_OFF)
+#define DDL_TMR4_ENABLE                             (DDL_ON)
+#define DDL_TMR6_ENABLE                             (DDL_ON)
 #define DDL_TMRA_ENABLE                             (DDL_ON)
 #define DDL_TRNG_ENABLE                             (DDL_OFF)
 #define DDL_USART_ENABLE                            (DDL_OFF)
@@ -137,85 +137,98 @@ extern "C"
 #define DDL_WDT_ENABLE                              (DDL_OFF)
 
 /* Midware module on-off define */
-#define MW_ON                                       (1u)
-#define MW_OFF                                      (0u)
+#define MW_ON                                       (1U)
+#define MW_OFF                                      (0U)
 
 /**
  * @brief This is the list of midware modules to be used.
  * Select the modules you need to use to MW_ON.
  */
 #define MW_FS_ENABLE                                (MW_OFF)
-#define MW_SDRAM_IS42S16400J7TLI_ENABLE             (MW_OFF)
-#define MW_SRAM_IS62WV51216_ENABLE                  (MW_OFF)
-#define MW_LIN_ENABLE                               (MW_OFF)
-#define MW_NANDFLASH_MT29F2G08AB_ENABLE             (MW_OFF)
-#define MW_W25QXX_ENABLE                            (MW_OFF)
-#define MW_WM8731_ENABLE                            (MW_OFF)
+#define MW_LWIP_ENABLE                              (MW_OFF)
+
+/* BSP on-off define */
+#define BSP_ON                                      (1U)
+#define BSP_OFF                                     (0U)
+
+/**
+ * @brief The following is a list of currently supported BSP boards.
+ */
+#define BSP_EV_HC32F4A0_LQFP176                     (1U)
+#define BSP_MS_HC32F4A0_LQFP176_050_MEM             (2U)
+
+/**
+ * @brief The macro BSP_EV_HC32F4A0 is used to specify the BSP board currently
+ * in use.
+ * The value should be set to one of the list of currently supported BSP boards.
+ * @note  If there is no supported BSP board or the BSP function is not used,
+ * the value needs to be set to BSP_EV_HC32F4A0.
+ */
+#define BSP_EV_HC32F4A0                             (BSP_EV_HC32F4A0_LQFP176)
+
+/**
+ * @brief This is the list of BSP components to be used.
+ * Select the components you need to use to BSP_ON.
+ */
+#define BSP_CY62167EV30LL_ENABLE                    (BSP_OFF)
+#define BSP_IS42S16400J7TLI_ENABLE                  (BSP_OFF)
+#define BSP_IS62WV51216_ENABLE                      (BSP_OFF)
+#define BSP_MT29F2G08AB_ENABLE                      (BSP_OFF)
+#define BSP_S29GL064N90TFI03_ENABLE                 (BSP_OFF)
+#define BSP_TCA9539_ENABLE                          (BSP_ON)
+#define BSP_W25QXX_ENABLE                           (BSP_OFF)
+#define BSP_WM8731_ENABLE                           (BSP_OFF)
 
 /**
  * @brief Ethernet and PHY Configuration.
  * @note  PHY delay these values are based on a 1 ms Systick interrupt.
  */
 /* MAC ADDRESS */
-#define ETH_MAC_ADDR0                   ((uint8_t)2U)
-#define ETH_MAC_ADDR1                   ((uint8_t)0U)
-#define ETH_MAC_ADDR2                   ((uint8_t)0U)
-#define ETH_MAC_ADDR3                   ((uint8_t)0U)
-#define ETH_MAC_ADDR4                   ((uint8_t)0U)
-#define ETH_MAC_ADDR5                   ((uint8_t)0U)
+#define ETH_MAC_ADDR0                   (2U)
+#define ETH_MAC_ADDR1                   (0U)
+#define ETH_MAC_ADDR2                   (0U)
+#define ETH_MAC_ADDR3                   (0U)
+#define ETH_MAC_ADDR4                   (0U)
+#define ETH_MAC_ADDR5                   (0U)
 
 /* Ethernet driver buffers size and count */
-#define ETH_TXBUF_SIZE                  ETH_PACKET_MAX_SIZE   /* Buffer size for receive              */
-#define ETH_RXBUF_SIZE                  ETH_PACKET_MAX_SIZE   /* Buffer size for transmit             */
-#define ETH_TXBUF_NUMBER                ((uint32_t)4UL)       /* 4 Rx buffers of size ETH_RX_BUF_SIZE */
-#define ETH_RXBUF_NUMBER                ((uint32_t)4UL)       /* 4 Tx buffers of size ETH_TX_BUF_SIZE */
+#define ETH_TXBUF_SIZE                  (ETH_PACKET_MAX_SIZE) /* Buffer size for receive              */
+#define ETH_RXBUF_SIZE                  (ETH_PACKET_MAX_SIZE) /* Buffer size for transmit             */
+#define ETH_TXBUF_NUMBER                (4UL)                 /* 4 Rx buffers of size ETH_RX_BUF_SIZE */
+#define ETH_RXBUF_NUMBER                (4UL)                 /* 4 Tx buffers of size ETH_TX_BUF_SIZE */
 
 /* PHY Address*/
-#define PHY_ADDRESS                     0x00U                 /* RTL8201F */
+#define PHY_ADDRESS                     (0x00U)               /* RTL8201F                             */
 
 /* PHY Configuration delay */
-#define PHY_HW_RESET_DEALY              ((uint32_t)0x00000020UL)
-#define PHY_RESET_DELAY                 ((uint32_t)0x00000040UL)
-#define PHY_CONFIG_DELAY                ((uint32_t)0x0000007FUL)
-#define PHY_READ_TIMEOUT                ((uint32_t)0x000000FFUL)
-#define PHY_WRITE_TIMEOUT               ((uint32_t)0x000000FFUL)
+#define PHY_HW_RESET_DELAY              (0x00000020UL)
+#define PHY_RESET_DELAY                 (0x00000040UL)
+#define PHY_CONFIG_DELAY                (0x0000007FUL)
+#define PHY_READ_TIMEOUT                (0x000000FFUL)
+#define PHY_WRITE_TIMEOUT               (0x000000FFUL)
 
 /* Common PHY Registers */
-#define PHY_BCR                         ((uint16_t)0x00U)    /*!< Basic Control Register */
-#define PHY_BSR                         ((uint16_t)0x01U)    /*!< Basic Status Register  */
+#define PHY_BCR                         (0x00U)     /*!< Basic Control Register               */
+#define PHY_BSR                         (0x01U)     /*!< Basic Status Register                */
 
-#define PHY_SOFT_RESET                  ((uint16_t)0x8000U)  /*!< PHY Soft Reset                       */
-#define PHY_LOOPBACK                    ((uint16_t)0x4000U)  /*!< Select loop-back mode                */
-#define PHY_FULLDUPLEX_100M             ((uint16_t)0x2100U)  /*!< Set the full-duplex mode at 100 Mb/s */
-#define PHY_HALFDUPLEX_100M             ((uint16_t)0x2000U)  /*!< Set the half-duplex mode at 100 Mb/s */
-#define PHY_FULLDUPLEX_10M              ((uint16_t)0x0100U)  /*!< Set the full-duplex mode at 10 Mb/s  */
-#define PHY_HALFDUPLEX_10M              ((uint16_t)0x0000U)  /*!< Set the half-duplex mode at 10 Mb/s  */
-#define PHY_AUTONEGOTIATION             ((uint16_t)0x1000U)  /*!< Enable auto-negotiation function     */
-#define PHY_POWERDOWN                   ((uint16_t)0x0800U)  /*!< Select the power down mode           */
-#define PHY_ISOLATE                     ((uint16_t)0x0400U)  /*!< Isolate PHY from MII                 */
-#define PHY_RESTART_AUTONEGOTIATION     ((uint16_t)0x0200U)  /*!< Restart auto-negotiation function    */
+#define PHY_SOFT_RESET                  (0x8000U)   /*!< PHY Soft Reset                       */
+#define PHY_LOOPBACK                    (0x4000U)   /*!< Select loop-back mode                */
+#define PHY_FULLDUPLEX_100M             (0x2100U)   /*!< Set the full-duplex mode at 100 Mb/s */
+#define PHY_HALFDUPLEX_100M             (0x2000U)   /*!< Set the half-duplex mode at 100 Mb/s */
+#define PHY_FULLDUPLEX_10M              (0x0100U)   /*!< Set the full-duplex mode at 10 Mb/s  */
+#define PHY_HALFDUPLEX_10M              (0x0000U)   /*!< Set the half-duplex mode at 10 Mb/s  */
+#define PHY_AUTONEGOTIATION             (0x1000U)   /*!< Enable auto-negotiation function     */
+#define PHY_POWERDOWN                   (0x0800U)   /*!< Select the power down mode           */
+#define PHY_ISOLATE                     (0x0400U)   /*!< Isolate PHY from MII                 */
+#define PHY_RESTART_AUTONEGOTIATION     (0x0200U)   /*!< Restart auto-negotiation function    */
 
-#define PHY_100BASE_TX_FD               ((uint16_t)0x4000U)  /*!< 100Base-TX full duplex support       */
-#define PHY_100BASE_TX_HD               ((uint16_t)0x2000U)  /*!< 100Base-TX half duplex support       */
-#define PHY_10BASE_T_FD                 ((uint16_t)0x1000U)  /*!< 10Base-T full duplex support         */
-#define PHY_10BASE_T_HD                 ((uint16_t)0x0800U)  /*!< 10Base-T half duplex support         */
-#define PHY_AUTONEGO_COMPLETE           ((uint16_t)0x0020U)  /*!< Auto-Negotiation process completed   */
-#define PHY_LINK_STATUS                 ((uint16_t)0x0004U)  /*!< Valid link established               */
-#define PHY_JABBER_DETECTION            ((uint16_t)0x0002U)  /*!< Jabber condition detected            */
-
-/* Extended PHY Registers */
-#define PHY_RMSR                        ((uint16_t)0x10U)    /*!< PHY RMII Mode Setting Register                         */
-#define PHY_IWLFR                       ((uint16_t)0x13U)    /*!< PHY Interrupt, WOL Enable, and LEDs Function Registers */
-#define PHY_IISDR                       ((uint16_t)0x1EU)    /*!< PHY Interrupt Indicators and SNR Display Register      */
-
-/* The following parameters will return to default values after a software reset */
-#define PHY_RMII_CLK_DIR                ((uint16_t)0x1000U)  /*!< TXC direction in RMII Mode, 0: Output, 1: Input        */
-#define PHY_RMII_MODE                   ((uint16_t)0x0008U)  /*!< RMII Mode, 0: MII Mode, 1: RMII Mode                   */
-#define PHY_RMII_RXDV_CRSDV             ((uint16_t)0x0004U)  /*!< RXDV select, 0: CRS_DV, 1: RXDV                        */
-
-#define PHY_LINK_INT_EN                 ((uint16_t)0x2000U)  /*!< Link Change Interrupt Mask.  */
-
-#define PHY_LINK_INTERRUPT              ((uint16_t)0x0800U)  /*!< Link Status Change Interrupt */
+#define PHY_100BASE_TX_FD               (0x4000U)   /*!< 100Base-TX full duplex support       */
+#define PHY_100BASE_TX_HD               (0x2000U)   /*!< 100Base-TX half duplex support       */
+#define PHY_10BASE_T_FD                 (0x1000U)   /*!< 10Base-T full duplex support         */
+#define PHY_10BASE_T_HD                 (0x0800U)   /*!< 10Base-T half duplex support         */
+#define PHY_AUTONEGO_COMPLETE           (0x0020U)   /*!< Auto-Negotiation process completed   */
+#define PHY_LINK_STATUS                 (0x0004U)   /*!< Valid link established               */
+#define PHY_JABBER_DETECTION            (0x0002U)   /*!< Jabber condition detected            */
 
 /*******************************************************************************
  * Global variable definitions ('extern')

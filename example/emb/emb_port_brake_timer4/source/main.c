@@ -76,15 +76,12 @@
 /* EMB unit & fcg & interrupt number definition */
 #define EMB_UNIT                        (M4_EMB4)
 #define EMB_FUNCTION_CLK_GATE           (PWC_FCG2_EMB)
-#define EMB_IRQn                        (INT_EMB_GR4)
+#define EMB_INT_SRC                     (INT_EMB_GR4)
+#define EMB_INT_IRQn                    (Int000_IRQn)
 
 /* EMB Port/Pin definition */
 #define EMB_PORT                        (GPIO_PORT_B)    /* PB2: EMB_Port1 */
 #define EMB_PIN                         (GPIO_PIN_02)
-
-/* Key Port/Pin definition */
-#define KEY_PORT                        (GPIO_PORT_A)
-#define KEY_PIN                         (GPIO_PIN_01)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -93,7 +90,6 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
 static uint32_t Tmr4PclkFreq(void);
 static void Timer4PwmConfig(void);
 static void EMB_IrqCallback(void);
@@ -105,18 +101,6 @@ static void EMB_IrqCallback(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  Configure system clock
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    /* Configure the system clock to HRC32MHz. */
-    //CLK_HRCInit(CLK_HRC_ON, CLK_HRCFREQ_32);
-    #warning "todo"
-}
-
 /**
  * @brief  Get TIMER4 PCLK frequency.
  * @param  None
@@ -221,14 +205,6 @@ static void EMB_IrqCallback(void)
 {
     if (Set == EMB_GetFlag(EMB_UNIT, EMB_FLAG_PORT1))
     {
-        while (Pin_Reset == GPIO_ReadInputPortPin(KEY_PORT, KEY_PIN))
-        {
-        }
-
-        while (Set == EMB_GetStatus(EMB_UNIT, EMB_STATE_PORT1))
-        {
-        }
-
         EMB_ClearFlag(EMB_UNIT, EMB_FLAG_PORT1);  /* Clear Port  Brake */
     }
 }
@@ -243,8 +219,8 @@ int32_t main(void)
     stc_irq_signin_config_t stcIrqSigninCfg;
     stc_emb_tmr4_init_t stcEmbInit;
 
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Initialize system clock. */
+    BSP_CLK_Init();
 
     /* Configure Timer4 PWM. */
     Timer4PwmConfig();
@@ -259,12 +235,13 @@ int32_t main(void)
     stcEmbInit.stcPort1.u32PortLevel = EMB_DETECT_PORT1_LEVEL_LOW;
     stcEmbInit.stcPort1.u32PortFilterDiv = EMB_PORT1_FILTER_CLK_DIV8;
     EMB_Timer4Init(EMB_UNIT, &stcEmbInit);
+
     EMB_IntCmd(EMB_UNIT, EMB_INT_PORT1, Enable);
-    EMB_SetReleasePwmMode(EMB_UNIT, EMB_EVENT_PORT1, EMB_RELEALSE_PWM_SEL_FLAG_ZERO);
+    EMB_SetReleasePwmMode(EMB_UNIT, EMB_EVENT_PORT1, EMB_RELEALSE_PWM_SEL_STATE_ZERO);
 
     /* Register IRQ handler && configure NVIC. */
-    stcIrqSigninCfg.enIRQn = Int000_IRQn;
-    stcIrqSigninCfg.enIntSrc = EMB_IRQn;
+    stcIrqSigninCfg.enIRQn = EMB_INT_IRQn;
+    stcIrqSigninCfg.enIntSrc = EMB_INT_SRC;
     stcIrqSigninCfg.pfnCallback = &EMB_IrqCallback;
     INTC_IrqSignIn(&stcIrqSigninCfg);
     NVIC_ClearPendingIRQ(stcIrqSigninCfg.enIRQn);

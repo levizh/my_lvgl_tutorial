@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -208,15 +208,6 @@ static void low_level_init(struct netif *netif)
         netif->flags |= NETIF_FLAG_LINK_UP;
     }
 
-    /* Configure PHY LED mode */
-    u16RegVal = PHY_PAGE_ADDR_7;
-    ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);
-    ETH_PHY_ReadRegister(&EthHandle, PHY_P7_IWLFR, &u16RegVal);
-    MODIFY_REG16(u16RegVal, PHY_LED_SELECT, PHY_LED_SELECT_10);
-    ETH_PHY_WriteRegister(&EthHandle, PHY_P7_IWLFR, u16RegVal);
-    u16RegVal = PHY_PAGE_ADDR_0;
-    ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);
-
     /* Initialize Tx Descriptors list: Chain Mode */
     ETH_DMA_TxDescListInit(&EthHandle, EthDmaTxDscrTab, &EthTxBuff[0][0], ETH_TXBUF_NUMBER);
     /* Initialize Rx Descriptors list: Chain Mode  */
@@ -242,6 +233,15 @@ static void low_level_init(struct netif *netif)
 
     /* Enable MAC and DMA transmission and reception */
     ETH_Start();
+    
+    /* Configure PHY LED mode */
+    u16RegVal = PHY_PAGE_ADDR_7;
+    ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);
+    ETH_PHY_ReadRegister(&EthHandle, PHY_P7_IWLFR, &u16RegVal);
+    MODIFY_REG16(u16RegVal, PHY_LED_SELECT, PHY_LED_SELECT_10);
+    ETH_PHY_WriteRegister(&EthHandle, PHY_P7_IWLFR, u16RegVal);
+    u16RegVal = PHY_PAGE_ADDR_0;
+    ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);
 
 #ifdef ETH_INTERFACE_RMII
     /* Disable Power Saving Mode */
@@ -273,7 +273,7 @@ static void low_level_init(struct netif *netif)
  *
  * @note Returning ERR_MEM here if a DMA queue of your MAC is full can lead to
  *       strange results. You might consider waiting for space in the DMA queue
- *       to become availale since the stack doesn't retry to send a packet
+ *       to become available since the stack doesn't retry to send a packet
  *       dropped because of memory failure (except for the TCP timers).
  */
 static err_t low_level_output(struct netif *netif, struct pbuf *p)
@@ -367,6 +367,7 @@ static struct pbuf *low_level_input(struct netif *netif)
     uint32_t payloadOffset;
     uint32_t i = 0UL;
 
+    /* Get received frame */
     if (Ok != ETH_DMA_GetReceiveFrame(&EthHandle))
     {
         return NULL;
@@ -472,7 +473,7 @@ void ethernetif_input(struct netif *netif)
  * This function should be passed as a parameter to netif_add().
  *
  * @param netif the lwip network interface structure for this ethernetif
- * @return ERR_OK if the loopif is initialized
+ * @return ERR_OK if the IF is initialized
  *         ERR_MEM if private data couldn't be allocated
  *         any other err_t on error
  */
@@ -663,9 +664,9 @@ void EthernetIF_LinkCallback(struct netif *netif)
  * @param  netif the network interface
  * @retval None
  */
-__weak void EthernetIF_NotifyLinkChange(struct netif *netif)
+__WEAKDEF void EthernetIF_NotifyLinkChange(struct netif *netif)
 {
-    /* This is function clould be implemented in user file
+    /* This is function could be implemented in user file
        when the callback is needed */
 }
 

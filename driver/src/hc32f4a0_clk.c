@@ -381,31 +381,62 @@
 
 /* Parameter valid check for CAN clock source */
 #define IS_CLK_CAN_CLK(src)                                                     \
-(   ((src) == CLK_CAN_CLK_MCLK_DIV2)                ||                          \
-    ((src) == CLK_CAN_CLK_MCLK_DIV3)                ||                          \
-    ((src) == CLK_CAN_CLK_MCLK_DIV4)                ||                          \
-    ((src) == CLK_CAN_CLK_MCLK_DIV5)                ||                          \
-    ((src) == CLK_CAN_CLK_MCLK_DIV6)                ||                          \
-    ((src) == CLK_CAN_CLK_MCLK_DIV7)                ||                          \
-    ((src) == CLK_CAN_CLK_MCLK_DIV8)                ||                          \
-    ((src) == CLK_CAN_CLK_PLLHQ)                    ||                          \
-    ((src) == CLK_CAN_CLK_PLLHR)                    ||                          \
-    ((src) == CLK_CAN_CLK_PLLAP)                    ||                          \
-    ((src) == CLK_CAN_CLK_PLLAQ)                    ||                          \
-    ((src) == CLK_CAN_CLK_PLLAR)                    ||                          \
-    ((src) == CLK_CAN_CLK_XTAL))
+(   ((src) == CLK_CAN1_CLK_MCLK_DIV2)               ||                          \
+    ((src) == CLK_CAN1_CLK_MCLK_DIV3)               ||                          \
+    ((src) == CLK_CAN1_CLK_MCLK_DIV4)               ||                          \
+    ((src) == CLK_CAN1_CLK_MCLK_DIV5)               ||                          \
+    ((src) == CLK_CAN1_CLK_MCLK_DIV6)               ||                          \
+    ((src) == CLK_CAN1_CLK_MCLK_DIV7)               ||                          \
+    ((src) == CLK_CAN1_CLK_MCLK_DIV8)               ||                          \
+    ((src) == CLK_CAN1_CLK_PLLHQ)                   ||                          \
+    ((src) == CLK_CAN1_CLK_PLLHR)                   ||                          \
+    ((src) == CLK_CAN1_CLK_PLLAP)                   ||                          \
+    ((src) == CLK_CAN1_CLK_PLLAQ)                   ||                          \
+    ((src) == CLK_CAN1_CLK_PLLAR)                   ||                          \
+    ((src) == CLK_CAN1_CLK_XTAL)                    ||                          \
+    ((src) == CLK_CAN2_CLK_MCLK_DIV2)               ||                          \
+    ((src) == CLK_CAN2_CLK_MCLK_DIV3)               ||                          \
+    ((src) == CLK_CAN2_CLK_MCLK_DIV4)               ||                          \
+    ((src) == CLK_CAN2_CLK_MCLK_DIV5)               ||                          \
+    ((src) == CLK_CAN2_CLK_MCLK_DIV6)               ||                          \
+    ((src) == CLK_CAN2_CLK_MCLK_DIV7)               ||                          \
+    ((src) == CLK_CAN2_CLK_MCLK_DIV8)               ||                          \
+    ((src) == CLK_CAN2_CLK_PLLHQ)                   ||                          \
+    ((src) == CLK_CAN2_CLK_PLLHR)                   ||                          \
+    ((src) == CLK_CAN2_CLK_PLLAP)                   ||                          \
+    ((src) == CLK_CAN2_CLK_PLLAQ)                   ||                          \
+    ((src) == CLK_CAN2_CLK_PLLAR)                   ||                          \
+    ((src) == CLK_CAN2_CLK_XTAL))
 
 /* Parameter valid check for CAN channel for clock source config */
 #define IS_CLK_CAN_CH(ch)       (((ch) & CLK_CAN_CH_ALL) != (uint8_t)(0x00U))
 
 /* Parameter valid check for I2S clock source */
 #define IS_CLK_I2S_CLK(src)                                                     \
-(   ((src) == CLK_I2S_CLK_PCLK)                     ||                          \
-    ((src) == CLK_I2S_CLK_PLLHQ)                    ||                          \
-    ((src) == CLK_I2S_CLK_PLLHR)                    ||                          \
-    ((src) == CLK_I2S_CLK_PLLAP)                    ||                          \
-    ((src) == CLK_I2S_CLK_PLLAQ)                    ||                          \
-    ((src) == CLK_I2S_CLK_PLLAR))
+(   ((src) == CLK_I2S1_CLK_PCLK)                    ||                          \
+    ((src) == CLK_I2S1_CLK_PLLHQ)                   ||                          \
+    ((src) == CLK_I2S1_CLK_PLLHR)                   ||                          \
+    ((src) == CLK_I2S1_CLK_PLLAP)                   ||                          \
+    ((src) == CLK_I2S1_CLK_PLLAQ)                   ||                          \
+    ((src) == CLK_I2S1_CLK_PLLAR)                   ||                          \
+    ((src) == CLK_I2S2_CLK_PCLK)                    ||                          \
+    ((src) == CLK_I2S2_CLK_PLLHQ)                   ||                          \
+    ((src) == CLK_I2S2_CLK_PLLHR)                   ||                          \
+    ((src) == CLK_I2S2_CLK_PLLAP)                   ||                          \
+    ((src) == CLK_I2S2_CLK_PLLAQ)                   ||                          \
+    ((src) == CLK_I2S2_CLK_PLLAR)                   ||                          \
+    ((src) == CLK_I2S3_CLK_PCLK)                    ||                          \
+    ((src) == CLK_I2S3_CLK_PLLHQ)                   ||                          \
+    ((src) == CLK_I2S3_CLK_PLLHR)                   ||                          \
+    ((src) == CLK_I2S3_CLK_PLLAP)                   ||                          \
+    ((src) == CLK_I2S3_CLK_PLLAQ)                   ||                          \
+    ((src) == CLK_I2S3_CLK_PLLAR)                   ||                          \
+    ((src) == CLK_I2S4_CLK_PCLK)                    ||                          \
+    ((src) == CLK_I2S4_CLK_PLLHQ)                   ||                          \
+    ((src) == CLK_I2S4_CLK_PLLHR)                   ||                          \
+    ((src) == CLK_I2S4_CLK_PLLAP)                   ||                          \
+    ((src) == CLK_I2S4_CLK_PLLAQ)                   ||                          \
+    ((src) == CLK_I2S4_CLK_PLLAR))
 
 /* Parameter valid check for I2S channel for clock source config */
 #define IS_CLK_I2S_CH(ch)       (((ch) & CLK_I2S_CH_ALL) != (uint8_t)(0x00U))

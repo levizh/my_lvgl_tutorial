@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-03       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -144,8 +144,6 @@ extern "C"
  * @brief This is the list of midware modules to be used.
  * Select the modules you need to use to MW_ON.
  */
-#define MW_FS_ENABLE                                (MW_OFF)
-#define MW_LWIP_ENABLE                              (MW_ON)
 
 /* BSP on-off define */
 #define BSP_ON                                      (1U)

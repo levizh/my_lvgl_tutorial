@@ -86,7 +86,7 @@ en_result_t I2Cx_SendAddr(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Adr, uint32_t u32T
     }
 
     /* Send I2C address */
-    I2C_SendData(pstcI2Cx, u8Adr);
+    I2C_WriteDataReg(pstcI2Cx, u8Adr);
 
     if(0U == (u8Adr & 0x01U))
     {
@@ -130,7 +130,7 @@ en_result_t I2Cx_SendData(M4_I2C_TypeDef* pstcI2Cx, uint8_t *pTxData, uint32_t u
         }
 
         /* Send one byte data */
-        I2C_SendData(pstcI2Cx, *pTxData++);
+        I2C_WriteDataReg(pstcI2Cx, *pTxData++);
 
         /* Wait transfer end*/
         u32TimeOut = u32To;
@@ -183,7 +183,7 @@ en_result_t I2Cx_RcvData(M4_I2C_TypeDef* pstcI2Cx, uint8_t *pRxData, const uint3
         }
 
         /* read data from register*/
-        *pRxData++ = I2C_ReadData(pstcI2Cx);
+        *pRxData++ = I2C_ReadDataReg(pstcI2Cx);
     }
     return Ok;
 }

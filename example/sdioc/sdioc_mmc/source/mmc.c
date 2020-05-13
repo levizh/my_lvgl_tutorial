@@ -56,13 +56,12 @@
 #include "mmc.h"
 
 /**
- * @addtogroup HC32F4A0_DDL_Midware
+ * @addtogroup HC32F4A0_DDL_Examples
  * @{
  */
 
 /**
- * @defgroup MW_MMC MMC
- * @brief MMC Midware Library
+ * @addtogroup SDIOC_Mmc_Card
  * @{
  */
 
@@ -350,7 +349,14 @@ en_result_t MMC_GetCardCSD(stc_mmc_handle_t *handle, stc_mmc_card_csd_t *pstcCSD
         handle->stcMmcCardInfo.u32BlockNbr     = (pstcCSD->u32DeviceSize + 1U) ;
         handle->stcMmcCardInfo.u32BlockNbr    *= (1UL << (pstcCSD->u8DeviceSizeMul + 2U));
         handle->stcMmcCardInfo.u32BlockSize    = 1UL << (pstcCSD->u8ReadBlockLen);
-        handle->stcMmcCardInfo.u32LogBlockNbr  = (handle->stcMmcCardInfo.u32BlockNbr) * ((handle->stcMmcCardInfo.u32BlockSize) / 512U);
+        if (handle->stcMmcCardInfo.u32BlockSize >= 512U)
+        {
+            handle->stcMmcCardInfo.u32LogBlockNbr = handle->stcMmcCardInfo.u32BlockNbr * (handle->stcMmcCardInfo.u32BlockSize / 512U);
+        }
+        else
+        {
+            handle->stcMmcCardInfo.u32LogBlockNbr = (handle->stcMmcCardInfo.u32BlockNbr / 512U) * handle->stcMmcCardInfo.u32BlockSize;
+        }
         handle->stcMmcCardInfo.u32LogBlockSize = 512UL;
 
         pstcCSD->u8EraseGroupSize     = (uint8_t)((u32Temp & 0x7CU) >> 2U);
@@ -1694,7 +1700,14 @@ static void MMC_ExtractCardCSD(stc_mmc_handle_t *handle)
     handle->stcMmcCardInfo.u32BlockNbr     = (stcCardCSD.u32DeviceSize + 1U);
     handle->stcMmcCardInfo.u32BlockNbr    *= (1UL << (stcCardCSD.u8DeviceSizeMul + 2U));
     handle->stcMmcCardInfo.u32BlockSize    = 1UL << (stcCardCSD.u8ReadBlockLen);
-    handle->stcMmcCardInfo.u32LogBlockNbr  = (handle->stcMmcCardInfo.u32BlockNbr) * ((handle->stcMmcCardInfo.u32BlockSize) / 512U);
+    if (handle->stcMmcCardInfo.u32BlockSize >= 512U)
+    {
+        handle->stcMmcCardInfo.u32LogBlockNbr = handle->stcMmcCardInfo.u32BlockNbr * (handle->stcMmcCardInfo.u32BlockSize / 512U);
+    }
+    else
+    {
+        handle->stcMmcCardInfo.u32LogBlockNbr = (handle->stcMmcCardInfo.u32BlockNbr / 512U) * handle->stcMmcCardInfo.u32BlockSize;
+    }
     handle->stcMmcCardInfo.u32LogBlockSize = 512UL;
 }
 

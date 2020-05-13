@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Yangjp          First version
+   2020-05-06       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -57,10 +57,6 @@
 #include "lwip/dhcp.h"
 #include "app_ethernet.h"
 #include "ethernetif.h"
-#ifdef USE_LCD
-#include "lcd_log.h"
-#endif
-
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -70,7 +66,7 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 #ifdef USE_DHCP
-#define DHCP_MAX_TRIES                  4
+    #define DHCP_MAX_TRIES                      (4U)
 #endif
 
 /*******************************************************************************
@@ -105,14 +101,8 @@ void Ethernet_NotifyConnStatus(struct netif *netif)
 #ifdef USE_DHCP
         u8DHCPState = DHCP_START;
 #else
-    #ifdef USE_LCD
-        uint8_t iptxt[20];
-        sprintf((char*)iptxt, "%s", ip4addr_ntoa((const ip4_addr_t*)&netif->ip_addr));
-        LCD_UsrLog("Static IP address: %s\n", iptxt);
-    #else
         /* Turn On LED BULE to indicate ETH and LwIP init success*/
         BSP_LED_On(LED_BLUE);
-    #endif /* USE_LCD */
 #endif /* USE_DHCP */
     }
     else
@@ -120,13 +110,8 @@ void Ethernet_NotifyConnStatus(struct netif *netif)
 #ifdef USE_DHCP
         u8DHCPState = DHCP_LINK_DOWN;
 #endif  /* USE_DHCP */
-
-#ifdef USE_LCD
-        LCD_UsrLog("The network cable is not connected \n");
-#else
         /* Turn On LED RED to indicate ETH and LwIP init error */
         BSP_LED_On(LED_RED);
-#endif /* USE_LCD */
     }
 }
 
@@ -135,7 +120,7 @@ void Ethernet_NotifyConnStatus(struct netif *netif)
  * @param  [in] netif                   Pointer to a struct netif structure
  * @retval None
  */
-void ethernetif_notify_link_change(struct netif *netif)
+void EthernetIF_NotifyLinkChange(struct netif *netif)
 {
 #ifndef USE_DHCP
     ip_addr_t ipaddr;
@@ -145,13 +130,8 @@ void ethernetif_notify_link_change(struct netif *netif)
 
     if (netif_is_link_up(netif))
     {
-#ifdef USE_LCD
-        LCD_UsrLog("The network cable is now connected \n");
-#else
         BSP_LED_Off(LED_RED);
         BSP_LED_On(LED_BLUE);
-#endif /* USE_LCD */
-
 #ifdef USE_DHCP
         /* Update DHCP state machine */
         u8DHCPState = DHCP_START;
@@ -160,13 +140,7 @@ void ethernetif_notify_link_change(struct netif *netif)
         IP_ADDR4(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
         IP_ADDR4(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
         netif_set_addr(netif, &ipaddr, &netmask, &gw);
-    #ifdef USE_LCD
-        uint8_t iptxt[20];
-        sprintf((char*)iptxt, "%s", ip4addr_ntoa((const ip4_addr_t*)&netif->ip_addr));
-        LCD_UsrLog("Static IP address: %s\n", iptxt);
-    #endif /* USE_LCD */
 #endif /* USE_DHCP */
-
         /* When the netif is fully configured this function must be called. */
         netif_set_up(netif);
     }
@@ -175,16 +149,11 @@ void ethernetif_notify_link_change(struct netif *netif)
 #ifdef USE_DHCP
         u8DHCPState = DHCP_LINK_DOWN;
 #endif /* USE_DHCP */
-
         /*  When the netif link is down this function must be called. */
         netif_set_down(netif);
 
-#ifdef USE_LCD
-        LCD_UsrLog("The network cable is not connected \n");
-#else
         BSP_LED_Off(LED_BLUE);
         BSP_LED_On(LED_RED);
-#endif /* USE_LCD */
     }
 }
 
@@ -203,7 +172,7 @@ void LwIP_PeriodicHandle(struct netif *netif)
     if (curTick - u32DHCPfineTimer >= DHCP_FINE_TIMER_MSECS)
     {
         u32DHCPfineTimer = curTick;
-        DHCP_Process(netif);
+        LwIP_DhcpProcess(netif);
     }
 #endif /* USE_DHCP */
 
@@ -212,27 +181,23 @@ void LwIP_PeriodicHandle(struct netif *netif)
     if ((curTick - u32LinkTimer) >= LINK_TIMER_INTERVAL)
     {
         u32LinkTimer = curTick;
-        ethernetif_check_link(netif);
+        EthernetIF_CheckLink(netif);
     }
 #endif /* ETH_INTERFACE_RMII */
 }
 
 #ifdef USE_DHCP
-
 /**
- * @brief  DHCP Process
+ * @brief  Lwip DHCP Process
  * @param  [in] netif                   Pointer to a struct netif structure
  * @retval None
  */
-void DHCP_Process(struct netif *netif)
+void LwIP_DhcpProcess(struct netif *netif)
 {
     ip_addr_t ipaddr;
     ip_addr_t netmask;
     ip_addr_t gw;
     struct dhcp *dhcp;
-#ifdef USE_LCD
-    uint8_t iptxt[20];
-#endif
 
     switch (u8DHCPState)
     {
@@ -242,20 +207,12 @@ void DHCP_Process(struct netif *netif)
             ip_addr_set_zero_ip4(&netif->gw);
             u8DHCPState = DHCP_WAIT_ADDRESS;
             dhcp_start(netif);
-#ifdef USE_LCD
-            LCD_UsrLog("State: Looking for DHCP server ...\n");
-#endif
             break;
         case DHCP_WAIT_ADDRESS:
             if (dhcp_supplied_address(netif))
             {
                 u8DHCPState = DHCP_ADDRESS_ASSIGNED;
-#ifdef USE_LCD
-                sprintf((char*)iptxt, "%s", ip4addr_ntoa((const ip4_addr_t*)&netif->ip_addr));
-                LCD_UsrLog("IP address assigned by a DHCP server: %s\n", iptxt);
-#else
                 BSP_LED_On(LED_BLUE);
-#endif
             }
             else
             {
@@ -270,13 +227,7 @@ void DHCP_Process(struct netif *netif)
                     IP_ADDR4(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2, NETMASK_ADDR3);
                     IP_ADDR4(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
                     netif_set_addr(netif, &ipaddr, &netmask, &gw);
-#ifdef USE_LCD
-                    sprintf((char*)iptxt, "%s", ip4addr_ntoa((const ip4_addr_t*)&netif->ip_addr));
-                    LCD_UsrLog("DHCP Timeout !! \n");
-                    LCD_UsrLog("Static IP address: %s\n", iptxt);
-#else
                     BSP_LED_On(LED_BLUE);
-#endif
                 }
             }
             break;
@@ -289,7 +240,6 @@ void DHCP_Process(struct netif *netif)
             break;
     }
 }
-
 #endif
 
 /******************************************************************************

@@ -720,8 +720,6 @@ static void EV_EXMC_SMC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
-    GPIO_Unlock();
-
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinDrv = PIN_MID_DRV;
@@ -853,10 +851,9 @@ static void EV_EXMC_SMC_PortInit(void)
     GPIO_SetFunc(SMC_ADD21_PORT, SMC_ADD21_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(SMC_ADD22_PORT, SMC_ADD22_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
 
-    GPIO_Lock();
-
     GPIO_SetPins(SMC_IO3_PORT, SMC_IO3_PIN);
 
+    /* Reset */
     GPIO_ResetPins(SMC_RST0_PORT, SMC_RST0_PIN);
     GPIO_ResetPins(SMC_RST1_PORT, SMC_RST1_PIN);
     DDL_Delay1ms(10UL);

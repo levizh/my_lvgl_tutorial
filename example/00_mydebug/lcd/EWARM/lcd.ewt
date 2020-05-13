@@ -2328,6 +2328,9 @@
         <name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_nt35510.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_ov5640.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_tca9539.c</name>
       </file>
     </group>
@@ -2341,6 +2344,12 @@
       <name>nt35510</name>
       <file>
         <name>$PROJ_DIR$\..\..\..\..\bsp\components\nt35510\nt35510.c</name>
+      </file>
+    </group>
+    <group>
+      <name>ov5640</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\..\bsp\components\ov5640\ov5640.c</name>
       </file>
     </group>
     <group>
@@ -2396,6 +2405,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_sram.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_tmra.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_utility.c</name>

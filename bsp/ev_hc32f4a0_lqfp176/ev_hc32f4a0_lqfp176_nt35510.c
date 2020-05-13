@@ -120,7 +120,7 @@ void LCD_Port_Init(void)
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinDrv = PIN_HIGH_DRV;
 
-    /* LDC_CS */
+    /* LCD_CS */
     GPIO_Init(LCD_CS_PORT, LCD_CS_PIN, &stcGpioInit);
 
     /* LCD_WE */

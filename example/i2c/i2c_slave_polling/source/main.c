@@ -76,12 +76,12 @@
 #define DEVICE_ADDRESS                  0x06U
 
 /* Define port and pin for SDA and SCL */
-#define I2C_SCL_PORT                    (GPIO_PORT_C)
-#define I2C_SCL_PIN                     (GPIO_PIN_04)
-#define I2C_SDA_PORT                    (GPIO_PORT_C)
-#define I2C_SDA_PIN                     (GPIO_PIN_05)
+#define I2C_SCL_PORT                    (GPIO_PORT_D)
+#define I2C_SCL_PIN                     (GPIO_PIN_03)
+#define I2C_SDA_PORT                    (GPIO_PORT_F)
+#define I2C_SDA_PIN                     (GPIO_PIN_10)
 
-#define TIMEOUT                         ((uint32_t)0x10000)
+#define TIMEOUT                         (0x10000U)
 
 #define I2C_RET_OK                      0U
 #define I2C_RET_ERROR                   1U
@@ -97,18 +97,6 @@
 /* Define i2c baudrate */
 #define I2C_BAUDRATE                    400000UL
 
-/* Define for RGB LED */
-#define LED_R_PORT                      (GPIO_PORT_A)
-#define LED_G_PORT                      (GPIO_PORT_B)
-#define LED_B_PORT                      (GPIO_PORT_C)
-#define LED_R_PIN                       (GPIO_PIN_00)
-#define LED_G_PIN                       (GPIO_PIN_00)
-#define LED_B_PIN                       (GPIO_PIN_01)
-#define LED_G_TOGGLE()                  (GPIO_TogglePins(LED_G_PORT, LED_G_PIN))
-#define LED_R_TOGGLE()                  (GPIO_TogglePins(LED_R_PORT, LED_R_PIN))
-
-
-
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -116,85 +104,14 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
-static void LedConfig(void);
-static uint8_t Slave_Initialize(void);
-static uint8_t Slave_RevData(uint8_t *pu8RxData);
-static uint8_t Slave_WriteData(uint8_t *pTxData, uint32_t u32Size);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-uint8_t u8TxBuf[TEST_DATA_LEN];
-uint8_t u8RxBuf[TEST_DATA_LEN];
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  Main function of i2c_at24c02 project
- * @param  None
- * @retval int32_t return value, if needed
- */
-int32_t main(void)
-{
-    uint32_t i;
-
-    /* Configure system clock. */
-    SystemClockConfig();
-
-    /* RGB LED configuration */
-    LedConfig();
-
-    /* Test buffer initialize */
-    for(i=0U; i<TEST_DATA_LEN; i++)
-    {
-        u8RxBuf[i] = 0U;
-    }
-
-    /* Initialize I2C port*/
-    GPIO_SetFunc(I2C_SCL_PORT, I2C_SCL_PIN, GPIO_FUNC_51_I2C1_SCL, PIN_SUBFUNC_DISABLE);
-    GPIO_SetFunc(I2C_SDA_PORT, I2C_SDA_PIN, GPIO_FUNC_50_I2C1_SDA, PIN_SUBFUNC_DISABLE);
-
-    /* Enable peripheral clock */
-    PWC_Fcg1PeriphClockCmd(PWC_FCG1_IIC1, Enable);
-
-    /* Initialize I2C peripheral and enable function*/
-    Slave_Initialize();
-
-    while(1)
-    {
-        /* Wait slave address matched*/
-        while(Reset == I2C_GetStatus(M4_I2C1, I2C_SR_SLADDR0F))
-        {
-            ;
-        }
-        I2C_ClearStatus(M4_I2C1, I2C_CLR_SLADDR0FCLR);
-
-        if(Reset == I2C_GetStatus(M4_I2C1, I2C_SR_TRA))
-        {
-            /* Slave receive data*/
-            Slave_RevData(u8RxBuf);
-            //continue;
-        }
-        else
-        {
-            /* Slave send data*/
-            Slave_WriteData(u8RxBuf, TEST_DATA_LEN);
-
-            break;
-        }
-    }
-
-    /* Communication finished */
-    while(1)
-    {
-        LED_G_TOGGLE();
-        DDL_Delay1ms(500U);
-    }
-
-}
-
 /**
  * @brief  Configure system clock.
  * @param  None
@@ -202,19 +119,46 @@ int32_t main(void)
  */
 static void SystemClockConfig(void)
 {
-    stc_clk_xtal_init_t stcXTALInit;
+    stc_clk_pllh_init_t stcPLLHInit;
+    
+    /* HCLK  Max 240MHz */
+    CLK_ClkDiv(CLK_CATE_ALL,                                                    \
+               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV2 | CLK_PCLK2_DIV4 |                \
+                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 |                \
+                CLK_HCLK_DIV1));
 
-    /* Configure XTAL */
-    stcXTALInit.u8XtalState = CLK_XTAL_ON;
-    stcXTALInit.u8XtalMode = CLK_XTALMODE_OSC;
-    stcXTALInit.u8XtalDrv = CLK_XTALDRV_HIGH;
+    /* Highspeed SRAM set to 1 Read/Write wait cycle */
+    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
 
-    /* Initialize XTAL clock */
-    CLK_XtalInit(&stcXTALInit);
+    EFM_Unlock();
+    EFM_SetLatency(EFM_WAIT_CYCLE_6);
+    EFM_Unlock();
+    
+    /* PLLH config */
+    CLK_PLLHStrucInit(&stcPLLHInit);
+    /*
+    16MHz/M*N/P = 16/1*60/4 =240MHz
+    */
+    stcPLLHInit.u8PLLState = CLK_PLLH_ON;
+    stcPLLHInit.PLLCFGR = 0UL;
+    stcPLLHInit.PLLCFGR_f.PLLM = (1UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLN = (60UL - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLP = (4UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLR = (4UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLQ = (4UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_HRC;
+    CLK_PLLHInit(&stcPLLHInit);
+    CLK_PLLHCmd(Enable);
+    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 
-    /* Switch system clock from HRC(default) to XTAL */
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL);
+    /* Config clock output system clock */
+    CLK_MCO1Config(CLK_MCOSOURCCE_SYSCLK, CLK_MCODIV_128);
+    /* Config clock output pin */
+    GPIO_SetFunc(GPIO_PORT_A, GPIO_PIN_08, GPIO_FUNC_1_MCO, Disable);
+    /* MCO1 output enable */
+    CLK_MCO1Cmd(Enable);
 }
+
 
 /**
  * @brief   Slave send data to master
@@ -226,51 +170,23 @@ static void SystemClockConfig(void)
  */
 static uint8_t Slave_WriteData(uint8_t *pTxData, uint32_t u32Size)
 {
-    uint32_t u32TimeOut = TIMEOUT;
-    __IO uint8_t u8tmp;
     uint8_t Ret = I2C_RET_OK;
-
-    while(u32Size--)
-    {
-        /* Wait tx buffer empty */
-        u32TimeOut = TIMEOUT;
-        while(Reset == I2C_GetStatus(M4_I2C1, I2C_SR_TEMPTYF))
-        {
-            if(0U == (u32TimeOut--))
-            {
-                Ret = I2C_RET_ERROR;
-                break;
-            }
-        }
-
-        /* Send one byte data */
-        I2C_SendData(M4_I2C1, *pTxData++);
-
-        /* Check ACK */
-        u32TimeOut = TIMEOUT;
-        while(Set == I2C_GetStatus(M4_I2C1, I2C_SR_ACKRF))
-        {
-            if(0U == (u32TimeOut--))
-            {
-                Ret = I2C_RET_ERROR;
-                break;
-            }
-        }
+    if(I2C_SendData(M4_I2C1, pTxData, u32Size, TIMEOUT) != Ok)
+    { 
+        Ret = I2C_RET_ERROR;
     }
-
     /* Wait stop condition */
-    u32TimeOut = TIMEOUT;
+    uint32_t u32TimeOut = TIMEOUT;
     while(Reset == I2C_GetStatus(M4_I2C1, I2C_SR_STOPF))
     {
         /* Release SCL pin */
-        u8tmp = I2C_ReadData(M4_I2C1);
-        if(0U == (u32TimeOut--))
+        I2C_ReadDataReg(M4_I2C1);
+        if(0u == (u32TimeOut--))
         {
             Ret = I2C_RET_ERROR;
             break;
         }
     }
-
     return Ret;
 }
 
@@ -281,7 +197,7 @@ static uint8_t Slave_WriteData(uint8_t *pTxData, uint32_t u32Size)
  *          - I2C_RET_ERROR  Receive failed
  *          - I2C_RET_OK     Receive success
  */
-static uint8_t Slave_RevData(uint8_t *pu8RxData)
+static uint8_t Slave_RevData(uint8_t u8RxData[])
 {
     uint8_t i = 0U;
 
@@ -291,7 +207,7 @@ static uint8_t Slave_RevData(uint8_t *pu8RxData)
         if(Set == I2C_GetStatus(M4_I2C1, I2C_SR_RFULLF))
         {
             /* Read the data from buffer */
-            pu8RxData[i++] = I2C_ReadData(M4_I2C1);
+            u8RxData[i++] = I2C_ReadDataReg(M4_I2C1);
         }
 
         /* Detect the stop signal on the bus */
@@ -337,22 +253,58 @@ static uint8_t Slave_Initialize(void)
 }
 
 /**
- * @brief  Configure RGB LED.
+ * @brief  Main function of i2c_slave_polling project
  * @param  None
- * @retval None
+ * @retval int32_t return value, if needed
  */
-static void LedConfig(void)
+int32_t main(void)
 {
-    stc_gpio_init_t stcGpioInit = {0U};
+    /* Configure system clock. */
+    SystemClockConfig();
 
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;
-    stcGpioInit.u16PinState = PIN_STATE_SET;
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-    GPIO_Init(LED_B_PORT, LED_B_PIN, &stcGpioInit);
+    /* Initialize I2C port*/
+    stc_gpio_init_t stcGpioInit;
+    GPIO_StructInit(&stcGpioInit);
+    GPIO_Init(I2C_SCL_PORT, I2C_SCL_PIN, &stcGpioInit);
+    GPIO_Init(I2C_SDA_PORT, I2C_SDA_PIN, &stcGpioInit);
+    GPIO_SetFunc(I2C_SCL_PORT, I2C_SCL_PIN, GPIO_FUNC_49_I2C1_SCL, PIN_SUBFUNC_DISABLE);
+    GPIO_SetFunc(I2C_SDA_PORT, I2C_SDA_PIN, GPIO_FUNC_48_I2C1_SDA, PIN_SUBFUNC_DISABLE);
+    
+    /* Enable peripheral clock */
+    PWC_Fcg1PeriphClockCmd(PWC_FCG1_IIC1, Enable);
+
+    /* Initialize I2C peripheral and enable function*/
+    Slave_Initialize();
+    uint8_t u8RxBuf[TEST_DATA_LEN] = {0};
+    while(1)
+    {
+        /* Wait slave address matched*/
+        while(Reset == I2C_GetStatus(M4_I2C1, I2C_SR_SLADDR0F))
+        {
+            ;
+        }
+        I2C_ClearStatus(M4_I2C1, I2C_CLR_SLADDR0FCLR);
+
+        if(Reset == I2C_GetStatus(M4_I2C1, I2C_SR_TRA))
+        {
+            /* Slave receive data*/
+            Slave_RevData(u8RxBuf);
+        }
+        else
+        {
+            /* Slave send data*/
+            Slave_WriteData(u8RxBuf, TEST_DATA_LEN);
+            break;
+        }
+    }
+
+    /* Communication finished */
+    while(1)
+    {
+        DDL_Delay1ms(500U);
+    }
+
 }
-
-
 
 /**
  * @}

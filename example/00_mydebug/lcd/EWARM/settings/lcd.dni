@@ -43,7 +43,7 @@ CustomRangesText8=QSPI
 CustomRanges9=0 3758096384 536870912 2 0
 CustomRangesText9=Private peripheral
 [DebugChecksum]
-Checksum=-54162112
+Checksum=-367090878
 [Exceptions]
 StopOnUncaught=_ 0
 StopOnThrow=_ 0

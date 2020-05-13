@@ -151,16 +151,12 @@ static void CAM_Port_Init(void)
  */
 void BSP_CAM_Init(void)
 {
-    en_result_t enRet = Error;
-
     CAM_Port_Init();
 
     /* Enable DVP module clk */
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_DVP, Enable);
 
     OV5640_Init();
-
-
 }
 
 /**
@@ -218,14 +214,14 @@ void BSP_CAM_WriteReg(uint16_t reg, uint8_t *pTxBuf, uint32_t len)
     uint16_t tmp = 0U;
     tmp = ((reg & 0xFFU) << 8U) | ((reg & 0xFF00U) >> 8U);
 
-    I2Cx_Start(OV5640_I2C_CH, OV5640_TIMEOUT);
+    I2C_Start(OV5640_I2C_CH, OV5640_TIMEOUT);
 
-    I2Cx_SendAddr(OV5640_I2C_CH, OV5640_WRITE, OV5640_TIMEOUT);
+    I2C_SendAddr(OV5640_I2C_CH, OV5640_WRITE, OV5640_TIMEOUT);
 
-    I2Cx_SendData(OV5640_I2C_CH, (uint8_t *)&tmp, 2UL, OV5640_TIMEOUT);
-    I2Cx_SendData(OV5640_I2C_CH, pTxBuf, len, OV5640_TIMEOUT);
+    I2C_SendData(OV5640_I2C_CH, (uint8_t *)&tmp, 2UL, OV5640_TIMEOUT);
+    I2C_SendData(OV5640_I2C_CH, pTxBuf, len, OV5640_TIMEOUT);
 
-    I2Cx_Stop(OV5640_I2C_CH, OV5640_TIMEOUT);
+    I2C_Stop(OV5640_I2C_CH, OV5640_TIMEOUT);
 }
 
 /**
@@ -237,19 +233,19 @@ void BSP_CAM_ReadReg(uint16_t reg, uint8_t *pRxBuf, uint32_t len)
     uint16_t tmp = 0U;
     tmp = ((reg & 0xFFU) << 8U) | ((reg & 0xFF00U) >> 8U);
 
-    I2Cx_Start(OV5640_I2C_CH, OV5640_TIMEOUT);
+    I2C_Start(OV5640_I2C_CH, OV5640_TIMEOUT);
 
-    I2Cx_SendAddr(OV5640_I2C_CH, OV5640_WRITE, OV5640_TIMEOUT);
+    I2C_SendAddr(OV5640_I2C_CH, OV5640_WRITE, OV5640_TIMEOUT);
 
-    I2Cx_SendData(OV5640_I2C_CH, (uint8_t*)&tmp, 2UL, OV5640_TIMEOUT);
+    I2C_SendData(OV5640_I2C_CH, (uint8_t*)&tmp, 2UL, OV5640_TIMEOUT);
 
-    I2Cx_Restart(OV5640_I2C_CH, OV5640_TIMEOUT);
+    I2C_Restart(OV5640_I2C_CH, OV5640_TIMEOUT);
 
-    I2Cx_SendAddr(OV5640_I2C_CH, OV5640_READ, OV5640_TIMEOUT);
+    I2C_SendAddr(OV5640_I2C_CH, OV5640_READ, OV5640_TIMEOUT);
 
-    I2Cx_RcvData(OV5640_I2C_CH, pRxBuf, len, OV5640_TIMEOUT);
+    I2C_RcvData(OV5640_I2C_CH, pRxBuf, len, OV5640_TIMEOUT);
 
-    I2Cx_Stop(OV5640_I2C_CH, OV5640_TIMEOUT);
+    I2C_Stop(OV5640_I2C_CH, OV5640_TIMEOUT);
 }
 
 /**

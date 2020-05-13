@@ -83,7 +83,7 @@
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
-#define DVP_BUF_SIZE    960U
+#define DVP_BUF_SIZE    480U
 uint8_t u8Tmp[10];
 uint16_t x,y,gt_reg;
 uint16_t test_buf[10];

@@ -102,21 +102,21 @@
 void BSP_TS_Init(void)
 {
     uint8_t tmp[10];
-    I2Cx_Start(GT9147_I2C_CH, GT9147_TIMEOUT);
+    I2C_Start(GT9147_I2C_CH, GT9147_TIMEOUT);
 
-    I2Cx_SendAddr(GT9147_I2C_CH, GT9147_WRITE, GT9147_TIMEOUT);
+    I2C_SendAddr(GT9147_I2C_CH, GT9147_WRITE, GT9147_TIMEOUT);
 
     tmp[0] = 0x81;
     tmp[1] = 0x40;
-    I2Cx_SendData(GT9147_I2C_CH, &tmp[0], 2UL, GT9147_TIMEOUT);
+    I2C_SendData(GT9147_I2C_CH, &tmp[0], 2UL, GT9147_TIMEOUT);
     //I2Cx_SendData(GT9147_I2C_CH, 0X40, 1UL, GT9147_TIMEOUT);
 
-    I2Cx_Restart(GT9147_I2C_CH, GT9147_TIMEOUT);
+    I2C_Restart(GT9147_I2C_CH, GT9147_TIMEOUT);
 
-    I2Cx_SendAddr(GT9147_I2C_CH, GT9147_READ, GT9147_TIMEOUT);
-    I2Cx_RcvData(GT9147_I2C_CH, &tmp[0], 4UL, GT9147_TIMEOUT);
+    I2C_SendAddr(GT9147_I2C_CH, GT9147_READ, GT9147_TIMEOUT);
+    I2C_RcvData(GT9147_I2C_CH, &tmp[0], 4UL, GT9147_TIMEOUT);
 
-    I2Cx_Stop(GT9147_I2C_CH, TCA9539_TIMEOUT);
+    I2C_Stop(GT9147_I2C_CH, TCA9539_TIMEOUT);
 }
 
 void BSP_TS_ReadReg(uint16_t reg, uint8_t *pRxBuf, uint32_t len)
@@ -124,22 +124,22 @@ void BSP_TS_ReadReg(uint16_t reg, uint8_t *pRxBuf, uint32_t len)
     uint16_t tmp = 0U;
     tmp = ((reg & 0xFFU) << 8U) | ((reg & 0xFF00U) >> 8U);
 
-    I2Cx_Start(GT9147_I2C_CH, GT9147_TIMEOUT);
+    I2C_Start(GT9147_I2C_CH, GT9147_TIMEOUT);
 
-    I2Cx_SendAddr(GT9147_I2C_CH, GT9147_WRITE, GT9147_TIMEOUT);
+    I2C_SendAddr(GT9147_I2C_CH, GT9147_WRITE, GT9147_TIMEOUT);
 
     //tmp[0] = 0x81;
     //tmp[1] = 0x40;
-    I2Cx_SendData(GT9147_I2C_CH, (uint8_t*)&tmp, 2UL, GT9147_TIMEOUT);
+    I2C_SendData(GT9147_I2C_CH, (uint8_t*)&tmp, 2UL, GT9147_TIMEOUT);
     //I2Cx_SendData(GT9147_I2C_CH, 0X40, 1UL, GT9147_TIMEOUT);
 
-    I2Cx_Restart(GT9147_I2C_CH, GT9147_TIMEOUT);
+    I2C_Restart(GT9147_I2C_CH, GT9147_TIMEOUT);
 
-    I2Cx_SendAddr(GT9147_I2C_CH, GT9147_READ, GT9147_TIMEOUT);
+    I2C_SendAddr(GT9147_I2C_CH, GT9147_READ, GT9147_TIMEOUT);
 
-    I2Cx_RcvData(GT9147_I2C_CH, pRxBuf, len, GT9147_TIMEOUT);
+    I2C_RcvData(GT9147_I2C_CH, pRxBuf, len, GT9147_TIMEOUT);
 
-    I2Cx_Stop(GT9147_I2C_CH, GT9147_TIMEOUT);
+    I2C_Stop(GT9147_I2C_CH, GT9147_TIMEOUT);
 }
 
 void BSP_TS_WriteReg(uint16_t reg, uint8_t *pTxBuf, uint32_t len)
@@ -147,14 +147,14 @@ void BSP_TS_WriteReg(uint16_t reg, uint8_t *pTxBuf, uint32_t len)
     uint16_t tmp = 0U;
     tmp = ((reg & 0xFFU) << 8U) | ((reg & 0xFF00U) >> 8U);
 
-    I2Cx_Start(GT9147_I2C_CH, GT9147_TIMEOUT);
+    I2C_Start(GT9147_I2C_CH, GT9147_TIMEOUT);
 
-    I2Cx_SendAddr(GT9147_I2C_CH, GT9147_WRITE, GT9147_TIMEOUT);
+    I2C_SendAddr(GT9147_I2C_CH, GT9147_WRITE, GT9147_TIMEOUT);
 
-    I2Cx_SendData(GT9147_I2C_CH, (uint8_t*)&tmp, 2UL, GT9147_TIMEOUT);
-    I2Cx_SendData(GT9147_I2C_CH, pTxBuf, len, GT9147_TIMEOUT);
+    I2C_SendData(GT9147_I2C_CH, (uint8_t*)&tmp, 2UL, GT9147_TIMEOUT);
+    I2C_SendData(GT9147_I2C_CH, pTxBuf, len, GT9147_TIMEOUT);
 
-    I2Cx_Stop(GT9147_I2C_CH, TCA9539_TIMEOUT);
+    I2C_Stop(GT9147_I2C_CH, TCA9539_TIMEOUT);
 }
 
 //uint8_t BSP_TS_GetXY()

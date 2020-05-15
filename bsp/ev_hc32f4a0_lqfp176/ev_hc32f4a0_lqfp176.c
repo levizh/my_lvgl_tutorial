@@ -55,8 +55,9 @@
  ******************************************************************************/
 #include "ev_hc32f4a0_lqfp176.h"
 #include "ev_hc32f4a0_lqfp176_tca9539.h"
+#if (BSP_NT35510_ENABLE == BSP_ON)
 #include "ev_hc32f4a0_lqfp176_nt35510.h"
-
+#endif
 
 /**
  * @defgroup BSP BSP
@@ -618,6 +619,10 @@ void BSP_KEY_Init(void)
 
     BSP_KEY_COL_Init();
 
+    EXINT_ClrExIntSrc(BSP_KEY_ROW0_EXINT);
+    EXINT_ClrExIntSrc(BSP_KEY_ROW1_EXINT);
+    EXINT_ClrExIntSrc(BSP_KEY_ROW2_EXINT);
+
     KEYSCAN_Cmd(Enable);
 }
 
@@ -704,12 +709,13 @@ void BSP_CLK_Init(void)
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
 
+#if (BSP_NT35510_ENABLE == BSP_ON)
 void BSP_LCD_Init(void)
 {
     //LCD_Init();
     NT35510_Init();
 }
-
+#endif
 
 
 /**

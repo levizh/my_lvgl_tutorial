@@ -55,8 +55,7 @@
  ******************************************************************************/
 #include "hc32_ddl.h"
 #include "lvgl.h"
-#include "RGB565_480x272.h"
-#include "RGB565_480x208.h"
+//#include "RGB565_480x272.h"
 
 /**
  * @addtogroup HC32F4A0_DDL_Examples
@@ -93,7 +92,6 @@ uint16_t DVP_Buf1[DVP_BUF_SIZE], DVP_Buf2[DVP_BUF_SIZE];
 uint16_t draw_cnt = 0;
 uint32_t dvp_frame_cnt=0;
 uint32_t dvp_line_cnt=0;
-uint8_t dis_title = 0;
 
 /*
     0: cam idle
@@ -105,19 +103,12 @@ uint8_t cam_state = 0;;
     0: gui idle
     1: gui busy
 */
-uint8_t gui_state = 0;
-
-/*
-    0: gui
-    1: dvp
-*/
-uint8_t lcd_state = 0;
+uint8_t gui_state = 0;;
 
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
 void DVP_CaptureOn(void);
-void DVP_CaptureOff(void);
 
 
 
@@ -167,10 +158,7 @@ void key_serve(void)
         if (Set == BSP_KEY_GetStatus(BSP_KEY_7))
         {
 //            BSP_LED_Toggle(LED_RED);
-            DVP_CaptureOff();
-            demo_create();
-            lcd_state = 0;
-            dis_title = 0;
+            DVP_CaptureOn();
         }
         if (Set == BSP_KEY_GetStatus(BSP_KEY_8))
         {
@@ -178,10 +166,7 @@ void key_serve(void)
         }
         if (Set == BSP_KEY_GetStatus(BSP_KEY_9))
         {
-            DVP_CaptureOn();
-            lcd_state = 1;
-            NT35510_SetCursor(0, 0);
-
+            BSP_LED_Toggle(LED_RED | LED_BLUE);
         }
 }
 
@@ -201,17 +186,16 @@ void draw_bmp(void)
     stc_dma_init_t stcDmaInit;
     static uint8_t i = 0;
 
-
-//    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_PTDIS, Enable);
 
     DMA_StructInit(&stcDmaInit);
     if(i%2)
     {
-        stcDmaInit.u32SrcAddr   = (uint32_t)&RGB565_480x272[0];
+////        stcDmaInit.u32SrcAddr   = (uint32_t)&RGB565_480x272[0];
     }
     else
     {
-        stcDmaInit.u32SrcAddr   = (uint32_t)&_acnew_york_480x272[0];
+////        stcDmaInit.u32SrcAddr   = (uint32_t)&_acnew_york_480x272[0];
     }
     i++;
     stcDmaInit.u32DestAddr  = 0x60002000;
@@ -224,18 +208,6 @@ void draw_bmp(void)
     DMA_Init(M4_DMA1, DMA_CH2, &stcDmaInit);
     DMA_SetTrigSrc(M4_DMA1, DMA_CH2, EVT_AOS_STRG);
     DMA_Cmd(M4_DMA1, Enable);
-
-    if (0 == dis_title)
-    {
-        dis_title = 1;
-        NT35510_SetCursor(0, 592);
-
-        /* Prepare to write to LCD RAM */
-        LCD_WriteReg(NT35510_WRITE_RAM);
-
-        LCD_WriteMultipleData((uint16_t*)&gImage_RGB480x208[0], 480*208);
-
-    }
 
 #if 0
     //for RGB565_480x272
@@ -260,7 +232,7 @@ void draw_bmp(void)
 #endif
 }
 
-void Draw_bmp_init(void)
+void Draw_bmp(void)
 {
     static uint8_t i = 0;
 //    uint32_t k=0;
@@ -271,14 +243,12 @@ void Draw_bmp_init(void)
 //    }
     if(i%2)
     {
-        DMA_SetSrcAddr(M4_DMA1, DMA_CH2, (uint32_t)&RGB565_480x272[0]);
+////        DMA_SetSrcAddr(M4_DMA1, DMA_CH2, (uint32_t)&RGB565_480x272[0]);
 //        DMA_SetSrcAddr(M4_DMA1, DMA_CH2, (uint32_t)&u32buf[0]);
     }
     else
     {
-        DMA_SetSrcAddr(M4_DMA1, DMA_CH2, (uint32_t)&_acnew_york_480x272[0]);
-//        DMA_SetSrcAddr(M4K_DMA1, DMA_CH2, (uint32_t)&gImage_RGB480x208[0]);
-
+////        DMA_SetSrcAddr(M4_DMA1, DMA_CH2, (uint32_t)&_acnew_york_480x272[0]);
     }
     i++;
     DMA_SetTransCnt(M4_DMA1, DMA_CH2, 480*272/4);
@@ -305,7 +275,7 @@ void DVP_Init(void)
     M4_DVP->SSYNMR = 0UL;
     M4_DVP->CPSFTR = 0UL;
     M4_DVP->CPSZER = 0UL;
-    M4_DVP->CTR = 0x00004020UL | (0 << 8 );
+    M4_DVP->CTR = 0x00004020UL | (2 << 8 );
 }
 
 void DVP_TMRA_Init(void)
@@ -352,7 +322,7 @@ void DVP_FrameStart_IrqCallback(void)
     if (dvp_frame_cnt>=4)
     {
 //        __asm("nop");
-        NT35510_SetCursor(0U, 0U);
+        NT35510_SetCursor(0U, 320U);
         /* Prepare to write to LCD RAM */
         LCD_WriteReg(NT35510_WRITE_RAM);
 //        dvp_frame_cnt=0;
@@ -612,7 +582,7 @@ int32_t main(void)
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMRA_1, Enable);
 
     BSP_CLK_Init();
-
+//    BSP_KEY_Init();
     /* EXBUS CLK 60MHz */
 //    CLK_ClkDiv(CLK_CATE_EXCLK, CLK_EXCLK_DIV4);
     /* EXBUS CLK 120MHz */
@@ -646,9 +616,7 @@ int32_t main(void)
 
     BSP_CAM_Init();
     OV5640_RGB565_Mode();
-//    BSP_CAM_SetOutSize(0, 0, 480, 800);
-    //1:1
-    BSP_CAM_SetOutSize(0x0190, 0, 480, 800);
+    BSP_CAM_SetOutSize(0, 40, 480, 480);
 //    BSP_OV5640_Test_Pattern(1);
 
     DVP_DMA_Init();
@@ -725,28 +693,59 @@ int32_t main(void)
 //    lv_test_theme_2();
 //    gt_reg = 0x8047;
     gt_reg = 0x0;
-
+    NT35510_SetCursor(0, 320);
     /* Prepare to write to LCD RAM */
     LCD_WriteReg(NT35510_WRITE_RAM);
 //    draw_bmp();
     DVP_Init();
-//    DVP_CaptureOn();
+    DVP_CaptureOn();
     while (1)
     {
-        if ((lcd_state==0))
+//        BSP_LED_On(LED_RED | LED_BLUE);
+//        DDL_Delay1ms(100UL);
+//        BSP_LED_Off(LED_RED | LED_BLUE);
+//        DDL_Delay1ms(100UL);
+//        *(uint16_t *)(0x60001000UL) = 0xFF;
+//        *(uint16_t *)(0x60001000UL) = 0x00;
+//        *(uint16_t *)(0x60002000UL) = 0xFF;
+//        *(uint16_t *)(0x60001FFEUL) = 0xFF;
+////        *(uint16_t *)(0x60004000UL) = 0xFF;
+////        *(uint16_t *)(0x60004000UL) = 0x00;     //NG
+////        *(uint16_t *)(0x60008000UL) = 0xFF;
+////        *(uint16_t *)(0x60008000UL) = 0x00;
+//        BSP_CAM_RSTCmd(EIO_PIN_SET);
+//        BSP_CAM_RSTCmd(EIO_PIN_RESET);
+//        BSP_CAM_STBYCmd(EIO_PIN_SET);
+//        BSP_CAM_STBYCmd(EIO_PIN_RESET);
+//        LCD_WriteData(color++);
+//        BSP_LCD_Clear(WHITE);
+//        BSP_LCD_Clear(BLUE);
+//        BSP_LCD_Clear(GRED);
+//        BSP_LCD_Clear(CYAN);
+//        NT35510_DrawLine(100,10,10,300,0x55);
+//        BSP_LCD_DrawCircle(200,300,90,0x786);
+//        BSP_LCD_FillTriangle(30,60,100,30,200,50,0x555);
+
+        if ((cam_state==0))// && (dvp_frame_cnt<3))
         {
+            DMA_ChannelCmd(M4_DMA1, DMA_CH0, Disable);
+            DMA_ChannelCmd(M4_DMA2, DMA_CH0, Disable);
+//            gui_state = 1;
             lv_task_handler();
-            if (draw_cnt>=1000)
-            {
-                draw_bmp();
-                Draw_bmp_init();
-                draw_cnt = 0;
-            }
+            key_serve();
+//            gui_state = 0;
+//            GPIO_TogglePins(TEST_PORT2, TEST_PIN2);
+            DMA_ChannelCmd(M4_DMA1, DMA_CH0, Enable);
+            DMA_ChannelCmd(M4_DMA2, DMA_CH0, Enable);
         }
-        key_serve();
 
 //        DVP_data = M4_DVP->DTR;
-
+        if (draw_cnt>=1000)
+        {
+//            draw_bmp();
+//            Draw_bmp();
+            draw_cnt = 0;
+        }
 //        if(gt_reg<=0x8100)
         if(gt_reg!=0x00)
         {

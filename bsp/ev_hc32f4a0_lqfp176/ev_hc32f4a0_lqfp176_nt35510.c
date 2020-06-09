@@ -118,7 +118,7 @@ void LCD_Port_Init(void)
     stc_gpio_init_t stcGpioInit;
 
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDrv = PIN_HIGH_DRV;
+    stcGpioInit.u16PinDrv = PIN_DRV_HIGH;
 
     /* LCD_CS */
     GPIO_Init(LCD_CS_PORT, LCD_CS_PIN, &stcGpioInit);
@@ -129,7 +129,7 @@ void LCD_Port_Init(void)
     /* LCD_OE */
     GPIO_Init(LCD_OE_PORT, LCD_OE_PIN, &stcGpioInit);
 
-    /* DMC_DATA[0:15] */
+    /* SMC_DATA[0:15] */
     GPIO_Init(LCD_DATA0_PORT,  LCD_DATA0_PIN, &stcGpioInit);
     GPIO_Init(LCD_DATA1_PORT,  LCD_DATA1_PIN, &stcGpioInit);
     GPIO_Init(LCD_DATA2_PORT,  LCD_DATA2_PIN, &stcGpioInit);
@@ -414,7 +414,7 @@ void BSP_LCD_Clear(uint16_t RGBCode)
     NT35510_SetCursor(0U, 0U);
 
     /* Prepare to write to LCD RAM */
-    LCD_WriteReg(NT35510_WRITE_RAM);
+    LCD_WriteReg(lcddev.wramcmd);
     for(index = 0; index < (NT35510_LCD_PIXEL_WIDTH*NT35510_LCD_PIXEL_HEIGHT); index++)
     {
         LCD_WriteData(RGBCode);

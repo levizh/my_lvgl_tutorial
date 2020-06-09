@@ -124,7 +124,7 @@ typedef struct
 {
     uint8_t u8ChNum;            /*!< The number of the ADC channel which to be configured as an AWD channel.
                                      This parameter can be a value of range [ADC_CH_NUM_0, ADC_CH_NUM_15] of @ref ADC_Channel_Number */
-    uint16_t u16CmpMd;          /*!< The comparison mode of AWD.
+    uint16_t u16CmpMode;        /*!< The comparison mode of AWD.
                                      This parameter can be a value of @ref ADC_AWD_Comparison_Mode */
     uint16_t u16LowerLimit;     /*!< Threshold lower limit value(to register ADC_AWDxDR0). */
     uint16_t u16UpperLimit;     /*!< Threshold upper limit value(to register ADC_AWDxDR1). */
@@ -226,8 +226,8 @@ typedef struct
  * @defgroup ADC_Sequence_A_Resume_Channel_Position ADC Sequence A Resume Channel Position
  * @{
  */
-#define ADC_SA_RESUME_POS_INT_CH        (0x0U)
-#define ADC_SA_RESUME_POS_FIRST_CH      (ADC_CR1_RSCHSEL)
+#define ADC_SA_RESUME_POS_INT_CH        (0x0U)                      /*!< Resumes from the interrupt channel of the sequence. */
+#define ADC_SA_RESUME_POS_FIRST_CH      (ADC_CR1_RSCHSEL)           /*!< Resumes from the first channel of the sequence. */
 /**
  * @}
  */
@@ -238,12 +238,12 @@ typedef struct
  */
 #define ADC_TRIG_SRC_ADTRG              (0x0U)                      /*!< The trigger source is the falling edge(the low level of the should \
                                                                          hold at least 1.5*PCLK cycle) of external pin ADTRGx(x=1, 2, 3). */
-#define ADC_TRIG_SRC_EVENT0             (ADC_TRGSR_TRGSELA_0)       /*!< The trigger source is a internal event from other periperl. \
+#define ADC_TRIG_SRC_EVENT0             (ADC_TRGSR_TRGSELA_0)       /*!< The trigger source is a internal event from other peripheral. \
                                                                          Only one event can be configured to trigger ADC. */
-#define ADC_TRIG_SRC_EVENT1             (ADC_TRGSR_TRGSELA_1)       /*!< The trigger source is a internal event from other periperl. \
+#define ADC_TRIG_SRC_EVENT1             (ADC_TRGSR_TRGSELA_1)       /*!< The trigger source is a internal event from other peripheral. \
                                                                          Only one event can be configured to trigger ADC. */
 #define ADC_TRIG_SRC_EVENT0_EVENT1      (ADC_TRGSR_TRGSELA_0 | \
-                                         ADC_TRGSR_TRGSELA_1)       /*!< The trigger source are two internal events from other periperl(s). \
+                                         ADC_TRGSR_TRGSELA_1)       /*!< The trigger source are two internal events from other peripheral(s). \
                                                                          Two events can be configured to trigger ADC and one of which can trigger the ADC. */
 /**
  * @}
@@ -278,7 +278,7 @@ typedef struct
  */
 
 /**
- * @defgroup ADC_Channle ADC Channle
+ * @defgroup ADC_Channel ADC Channel
  * @{
  */
 #define ADC_CH0                     (0x1UL << ADC_CH_NUM_0)
@@ -344,7 +344,7 @@ typedef struct
  */
 
 /**
- * @defgroup ADC_All_Channles_Mask ADC All Channles Mask
+ * @defgroup ADC_All_Channels_Mask ADC All Channels Mask
  * @{
  */
 #define ADC1_CH_ALL                 (0xFFFFUL)
@@ -378,8 +378,8 @@ typedef struct
  * @defgroup ADC_Extend_Channel_Source ADC Extend Channel Source
  * @{
  */
-#define ADC_EXCH_SRC_ADC_PIN        (0x0U)
-#define ADC_EXCH_SRC_INTERNAL       (ADC_EXCHSELR_EXCHSEL)
+#define ADC_EXCH_SRC_ADC_PIN        (0x0U)                      /*!< The input source of the extended channel is analog input pin. */
+#define ADC_EXCH_SRC_INTERNAL       (ADC_EXCHSELR_EXCHSEL)      /*!< The input source of the extended channel is internal analog signal. */
 /**
  * @}
  */
@@ -390,7 +390,14 @@ typedef struct
  */
 #define ADC_SEQ_FLAG_EOCA           (ADC_ISR_EOCAF)             /*!< Status flag of the end of conversion of sequence A. */
 #define ADC_SEQ_FLAG_EOCB           (ADC_ISR_EOCBF)             /*!< Status flag of the end of conversion of sequence B. */
-#define ADC_SEQ_FLAG_SA_INTED       (ADC_ISR_SASTPDF)           /*!< Status flag of sequence A was interrupted by sequence B. */
+#define ADC_SEQ_FLAG_NESTED         (ADC_ISR_SASTPDF)           /*!< Status flag of sequence A was interrupted by sequence B. */
+
+#define ADC_SEQ_FLAG_ALL            (ADC_SEQ_FLAG_EOCA | \
+                                     ADC_SEQ_FLAG_EOCB | \
+                                     ADC_SEQ_FLAG_NESTED)
+
+#define ADC_SEQ_FLAG_CLR_ALL        (ADC_SEQ_FLAG_EOCA | \
+                                     ADC_SEQ_FLAG_EOCB)
 /**
  * @}
  */
@@ -439,7 +446,7 @@ typedef struct
 /**
  * @defgroup ADC_AWD_Combination_Mode ADC AWD(Analog Watchdog) Combination Mode
  * @note If combination mode is valid(ADC_AWD_COMB_OR/ADC_AWD_COMB_AND/ADC_AWD_COMB_XOR) and
-         the channles selected by the AWD0 and AWD1 are deferent, make sure that the channel
+         the Channels selected by the AWD0 and AWD1 are deferent, make sure that the channel
          of AWD1 is converted after the channel conversion of AWD0 ends.
  * @{
  */
@@ -455,9 +462,13 @@ typedef struct
  * @defgroup ADC_AWD_Status_Flag ADC AWD Status Flag
  * @{
  */
-#define ADC_AWD_FLAG_0              (ADC_AWDSR_AWD0F)           /*!< Flag of AWD0. */
-#define ADC_AWD_FLAG_1              (ADC_AWDSR_AWD1F)           /*!< Flag of AWD1. */
+#define ADC_AWD_FLAG_AWD0           (ADC_AWDSR_AWD0F)        /*!< Flag of AWD0. */
+#define ADC_AWD_FLAG_AWD1           (ADC_AWDSR_AWD1F)           /*!< Flag of AWD1. */
 #define ADC_AWD_FLAG_COMB           (ADC_AWDSR_AWDCMF)          /*!< Flag of combination of mode. */
+
+#define ADC_AWD_FLAG_ALL            (ADC_AWD_FLAG_AWD0 | \
+                                     ADC_AWD_FLAG_AWD1 | \
+                                     ADC_AWD_FLAG_COMB)
 /**
  * @}
  */
@@ -525,10 +536,10 @@ typedef struct
  * @defgroup ADC_Common_Trigger_Event_Command ADC Common Trigger Event Command
  * @{
  */
-#define ADC_COM1_TRIG_DISABLE       ((uint32_t)0x00UL)
-#define ADC_COM2_TRIG_DISABLE       ((uint32_t)0x00UL)
-#define ADC_COM1_TRIG_ENABLE        ((uint32_t)(0x01UL << 30U))
-#define ADC_COM2_TRIG_ENABLE        ((uint32_t)(0x01UL << 31U))
+#define ADC_COM1_TRIG_DISABLE       (0x00UL)
+#define ADC_COM2_TRIG_DISABLE       (0x00UL)
+#define ADC_COM1_TRIG_ENABLE        (0x01UL << 30U)
+#define ADC_COM2_TRIG_ENABLE        (0x01UL << 31U)
 /**
  * @}
  */
@@ -549,34 +560,34 @@ typedef struct
  * @{
  */
 en_result_t ADC_Init(M4_ADC_TypeDef *ADCx, const stc_adc_init_t *pstcInit);
-en_result_t ADC_DeInit(M4_ADC_TypeDef *ADCx);
+void ADC_DeInit(M4_ADC_TypeDef *ADCx);
 
 en_result_t ADC_StructInit(stc_adc_init_t *pstcInit);
 
-en_result_t ADC_SetScanMode(M4_ADC_TypeDef *ADCx, uint16_t u16Mode);
+void ADC_SetScanMode(M4_ADC_TypeDef *ADCx, uint16_t u16Mode);
 en_result_t ADC_ChannelCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, \
                            uint32_t u32AdcCh, const uint8_t pu8SplTime[], \
                            en_functional_state_t enNewState);
 
-en_result_t ADC_AvgChannelConfig(M4_ADC_TypeDef *ADCx, uint16_t u16AvgCnt);
-en_result_t ADC_AvgChannelCmd(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, en_functional_state_t enNewState);
-en_result_t ADC_SetExChannelSrc(M4_ADC_TypeDef *ADCx, uint8_t u8ExChSrc);
+void ADC_AvgChannelConfig(M4_ADC_TypeDef *ADCx, uint16_t u16AvgCnt);
+void ADC_AvgChannelCmd(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, en_functional_state_t enNewState);
+void ADC_SetExChannelSrc(M4_ADC_TypeDef *ADCx, uint8_t u8ExChSrc);
 
 en_result_t ADC_TrigSrcStructInit(stc_adc_trig_cfg_t *pstcCfg);
 en_result_t ADC_TrigSrcConfig(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, const stc_adc_trig_cfg_t *pstcCfg);
-en_result_t ADC_TrigSrcCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState);
+void ADC_TrigSrcCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState);
 en_result_t ADC_ComTrigCmd(M4_ADC_TypeDef *ADCx, uint16_t u16TrigSrc, uint32_t u32ComTrigEn);
 
-en_result_t ADC_SeqIntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState);
+void ADC_SeqIntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState);
 en_flag_status_t ADC_SeqGetStatus(const M4_ADC_TypeDef *ADCx, uint8_t u8Flag);
-en_result_t ADC_SeqClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag);
+void ADC_SeqClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag);
 
 en_result_t ADC_AWD_Config(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, const stc_adc_awd_cfg_t *pstcCfg);
-en_result_t ADC_AWD_CombModeCmd(M4_ADC_TypeDef *ADCx, uint16_t u16CombMode, en_functional_state_t enNewState);
-en_result_t ADC_AWD_Cmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_state_t enNewState);
-en_result_t ADC_AWD_IntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_state_t enNewState);
+void ADC_AWD_CombModeCmd(M4_ADC_TypeDef *ADCx, uint16_t u16CombMode, en_functional_state_t enNewState);
+void ADC_AWD_Cmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_state_t enNewState);
+void ADC_AWD_IntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_state_t enNewState);
 en_flag_status_t ADC_AWD_GetStatus(const M4_ADC_TypeDef *ADCx, uint8_t u8Flag);
-en_result_t ADC_AWD_ClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag);
+void ADC_AWD_ClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag);
 
 void ADC_PGA_Config(uint8_t u8PGAx, uint8_t u8GainFactor, uint8_t u8PgaVss);
 void ADC_PGA_Cmd(uint8_t u8PGAx, en_functional_state_t enNewState);
@@ -592,8 +603,8 @@ uint8_t ADC_GetChannelPinNum(const M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh);
 
 en_result_t ADC_PollingSA(M4_ADC_TypeDef *ADCx, uint16_t pu16AdcVal[], uint8_t u8Length, uint32_t u32Timeout);
 
-en_result_t ADC_Start(M4_ADC_TypeDef *ADCx);
-en_result_t ADC_Stop(M4_ADC_TypeDef *ADCx);
+void ADC_Start(M4_ADC_TypeDef *ADCx);
+void ADC_Stop(M4_ADC_TypeDef *ADCx);
 en_result_t ADC_GetAllData(const M4_ADC_TypeDef *ADCx, uint16_t pu16AdcVal[], uint8_t u8Length);
 en_result_t ADC_GetChannelData(const M4_ADC_TypeDef *ADCx, uint32_t u32TargetCh, \
                                uint16_t pu16AdcVal[], uint8_t u8Length);

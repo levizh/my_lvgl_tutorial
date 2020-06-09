@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_hid_msc\source\usbd_usr.c
+ * @brief This file includes the user application layer.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_usr.c
- **
- ** A detailed description is available at
- ** @link
-        This file includes the user application layer.
-    @endlink
- **
- **   - 2019-11-19  1.0  zhangxl First version for USB MSC_HID composite demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -59,6 +59,17 @@
 #include "usbd_ioreq.h"
 #include "usb_conf.h"
 #include "usb_bsp.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_HID_MSC
+ * @{
+ */
+
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -74,13 +85,13 @@
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
 USBD_Usr_cb_TypeDef USR_cb = {
-    USBD_USR_Init,
-    USBD_USR_DeviceReset,
-    USBD_USR_DeviceConfigured,
-    USBD_USR_DeviceSuspended,
-    USBD_USR_DeviceResumed,
-    USBD_USR_DeviceConnected,
-    USBD_USR_DeviceDisconnected,
+    &USBD_USR_Init,
+    &USBD_USR_DeviceReset,
+    &USBD_USR_DeviceConfigured,
+    &USBD_USR_DeviceSuspended,
+    &USBD_USR_DeviceResumed,
+    &USBD_USR_DeviceConnected,
+    &USBD_USR_DeviceDisconnected,
 };
 
 /*******************************************************************************
@@ -116,14 +127,15 @@ void USBD_USR_DeviceReset(uint8_t speed)
     switch (speed)
     {
         case USB_OTG_SPEED_HIGH:
-            printf("     USB Device Library V1.2.1 [HS]");
+            printf("     USB Device Library V1.1.0 [HS]");
             break;
 
         case USB_OTG_SPEED_FULL:
-            printf("     USB Device Library V1.2.1 [FS]");
+            printf("     USB Device Library V1.1.0 [FS]");
             break;
         default:
-            printf("     USB Device Library V1.2.1 [??]");
+            printf("     USB Device Library V1.1.0 [??]");
+             break;
     }
 }
 
@@ -188,6 +200,15 @@ void USBD_USR_DeviceResumed(void)
     printf("> USB Device in Idle Mode.\n");
     /* Users can do their application actions here for the USB-Reset */
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
 
 /*******************************************************************************
  * EOF (not truncated)

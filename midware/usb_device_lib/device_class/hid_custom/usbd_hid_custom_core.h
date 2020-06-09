@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_hid_custom_core.h
+ * @brief Header file for the usbd_customhid_core.c file.
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,23 +48,40 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_hid_custom_core.h
- **
- ** A detailed description is available at
- ** @link header file for the usbd_customhid_core.c @endlink
- **
- **   - 2019-07-23  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 #ifndef __USB_CUSTOMHID_CORE_H_
 #define __USB_CUSTOMHID_CORE_H_
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include  "usbd_ioreq.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @addtogroup USBD_HID_CUSTOM_CORE
+ * @{
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -63,59 +90,110 @@
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
+
 /**
- *******************************************************************************
- ** \brief USBD_HID_Exported_Defines
- **
- ******************************************************************************/
-#define CUSTOM_HID_REPORT_DESC_SIZE         (116u)
+ * @defgroup USBD_HID_CUSTOM_CORE_Global_Macros USBD HID Custom Core Global Macros
+ * @{
+ */
 
-#define USB_CUSTOM_HID_CONFIG_DESC_SIZ      (41u)
-#define USB_CUSTOM_HID_DESC_SIZ             (9u)
+#define CUSTOM_HID_REPORT_DESC_SIZE         (116U)
 
-#define CUSTOM_HID_DESCRIPTOR_TYPE          (0x21u)
-#define CUSTOM_HID_REPORT_DESC              (0x22u)
+#define USB_CUSTOM_HID_CONFIG_DESC_SIZ      (41U)
+#define USB_CUSTOM_HID_DESC_SIZ             (9U)
 
-#define CUSTOM_HID_REQ_SET_PROTOCOL         (0x0Bu)
-#define CUSTOM_HID_REQ_GET_PROTOCOL         (0x03u)
+#define CUSTOM_HID_DESCRIPTOR_TYPE          (0x21U)
+#define CUSTOM_HID_REPORT_DESC              (0x22U)
 
-#define CUSTOM_HID_REQ_SET_IDLE             (0x0Au)
-#define CUSTOM_HID_REQ_GET_IDLE             (0x02u)
+#define CUSTOM_HID_REQ_SET_PROTOCOL         (0x0BU)
+#define CUSTOM_HID_REQ_GET_PROTOCOL         (0x03U)
 
-#define CUSTOM_HID_REQ_SET_REPORT           (0x09u)
-#define CUSTOM_HID_REQ_GET_REPORT           (0x01u)
+#define CUSTOM_HID_REQ_SET_IDLE             (0x0AU)
+#define CUSTOM_HID_REQ_GET_IDLE             (0x02U)
 
-#define LED1_REPORT_ID                      (0x01u)
-#define LED1_REPORT_COUNT                   (0x01u)
+#define CUSTOM_HID_REQ_SET_REPORT           (0x09U)
+#define CUSTOM_HID_REQ_GET_REPORT           (0x01U)
 
-#define LED2_REPORT_ID                      (0x02u)
-#define LED2_REPORT_COUNT                   (0x01u)
+#define LED1_REPORT_ID                      (0x01U)
+#define LED1_REPORT_COUNT                   (0x01U)
 
-#define LED3_REPORT_ID                      (0x03u)
-#define LED3_REPORT_COUNT                   (0x01u)
+#define LED2_REPORT_ID                      (0x02U)
+#define LED2_REPORT_COUNT                   (0x01U)
 
-#define LED4_REPORT_ID                      (0x04u)
-#define LED4_REPORT_COUNT                   (0x01u)
+#define LED3_REPORT_ID                      (0x03U)
+#define LED3_REPORT_COUNT                   (0x01U)
 
-#define KEY_REPORT_ID                       (0x05u)
-#define TAMPER_REPORT_ID                    (0x06u)
-#define ADC_REPORT_ID                       (0x07u)
+#define LED4_REPORT_ID                      (0x04U)
+#define LED4_REPORT_COUNT                   (0x01U)
+
+#define KEY_REPORT_ID                       (0x05U)
+#define TAMPER_REPORT_ID                    (0x06U)
+#define ADC_REPORT_ID                       (0x07U)
+/**
+ * @}
+ */
+
 
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+
+/**
+ * @addtogroup USBD_HID_CUSTOM_CORE_Global_Variables
+ * @{
+ */
 extern USBD_Class_cb_TypeDef  USBD_CUSTOMHID_cb;
-extern uint8_t Report_buf[2u];
-extern uint8_t Send_Buf[2u];
+extern uint8_t Report_buf[2U];
+extern uint8_t Send_Buf[2U];
+/**
+ * @}
+ */
 
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBD_HID_CUSTOM_CORE_Global_Functions
+ * @{
+ */
 uint8_t USBD_CUSTOM_HID_SendReport (USB_OTG_CORE_HANDLE  *pdev,
                                  uint8_t *report,
                                  uint16_t len);
 
-#endif  // __USB_CUSTOMHID_CORE_H_
+uint8_t USBD_CUSTOM_HID_Init (void  *pdev,
+                               uint8_t cfgidx);
+uint8_t USBD_CUSTOM_HID_DeInit (void  *pdev,
+                                 uint8_t cfgidx);
+uint8_t USBD_CUSTOM_HID_Setup (void  *pdev,
+                                USB_SETUP_REQ *req);
+uint8_t *USBD_CUSTOM_HID_GetCfgDesc (uint8_t speed, uint16_t *length);
+uint8_t USBD_CUSTOM_HID_DataIn (void  *pdev, uint8_t epnum);
+uint8_t USBD_CUSTOM_HID_DataOut (void  *pdev, uint8_t epnum);
+uint8_t USBD_CUSTOM_HID_EP0_RxReady (void  *pdev);
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* __USB_CUSTOMHID_CORE_H_ */
 
 /*******************************************************************************
  * EOF (not truncated)

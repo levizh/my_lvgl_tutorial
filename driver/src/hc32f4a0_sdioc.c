@@ -92,13 +92,13 @@
 /* 3.2V-3.3V */
 #define SDMMC_ACMD41_VOLTAGE_WINDOW             (0x80100000UL)
 
-/* Command send and response timeout */
+/* Command send and response timeout(ms) */
 #define SDMMC_CMD_TIMEOUT                       (5000UL)
 /* Max erase Timeout 60s */
 #define SDMMC_MAX_ERASE_TIMEOUT                 (60000UL)
 
-/* SDIOC software reset timeout */
-#define SDIOC_SW_RESET_TIMEOUT                  (100UL)
+/* SDIOC software reset timeout(ms) */
+#define SDIOC_SW_RESET_TIMEOUT                  (50UL)
 
 /* SDIOC NORINTSGEN register Mask */
 #define SDIOC_NORINTSGEN_CLEAR_MASK             (0x01F7U)
@@ -210,103 +210,110 @@
     ((x) == SDIOC_OUTPUT_CLK_FREQ_52M))
 
 #define IS_SDIOC_GET_HOST_FLAG(x)                                              \
-(   0UL != ((x) & (SDIOC_HOST_FALG_CMDL         |                              \
-                   SDIOC_HOST_FALG_DATL         |                              \
-                   SDIOC_HOST_FALG_DATL_D0      |                              \
-                   SDIOC_HOST_FALG_DATL_D1      |                              \
-                   SDIOC_HOST_FALG_DATL_D2      |                              \
-                   SDIOC_HOST_FALG_DATL_D3      |                              \
-                   SDIOC_HOST_FALG_WPL          |                              \
-                   SDIOC_HOST_FALG_CDL          |                              \
-                   SDIOC_HOST_FALG_CSS          |                              \
-                   SDIOC_HOST_FALG_CIN          |                              \
-                   SDIOC_HOST_FALG_BRE          |                              \
-                   SDIOC_HOST_FALG_BWE          |                              \
-                   SDIOC_HOST_FALG_RTA          |                              \
-                   SDIOC_HOST_FALG_WTA          |                              \
-                   SDIOC_HOST_FALG_DA           |                              \
-                   SDIOC_HOST_FALG_CID          |                              \
-                   SDIOC_HOST_FALG_CIC)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(SDIOC_HOST_FALG_CMDL       |                  \
+                                 SDIOC_HOST_FALG_DATL       |                  \
+                                 SDIOC_HOST_FALG_DATL_D0    |                  \
+                                 SDIOC_HOST_FALG_DATL_D1    |                  \
+                                 SDIOC_HOST_FALG_DATL_D2    |                  \
+                                 SDIOC_HOST_FALG_DATL_D3    |                  \
+                                 SDIOC_HOST_FALG_WPL        |                  \
+                                 SDIOC_HOST_FALG_CDL        |                  \
+                                 SDIOC_HOST_FALG_CSS        |                  \
+                                 SDIOC_HOST_FALG_CIN        |                  \
+                                 SDIOC_HOST_FALG_BRE        |                  \
+                                 SDIOC_HOST_FALG_BWE        |                  \
+                                 SDIOC_HOST_FALG_RTA        |                  \
+                                 SDIOC_HOST_FALG_WTA        |                  \
+                                 SDIOC_HOST_FALG_DA         |                  \
+                                 SDIOC_HOST_FALG_CID        |                  \
+                                 SDIOC_HOST_FALG_CIC))))))
 
 #define IS_SDIOC_GET_NORMAL_ERROR_INT_FLAG(x)                                  \
-(   0UL != ((x) & (SDIOC_NORMAL_INT_FLAG_EI     |                              \
-                   SDIOC_NORMAL_INT_FLAG_CINT   |                              \
-                   SDIOC_NORMAL_INT_FLAG_CRM    |                              \
-                   SDIOC_NORMAL_INT_FLAG_CIST   |                              \
-                   SDIOC_NORMAL_INT_FLAG_BRR    |                              \
-                   SDIOC_NORMAL_INT_FLAG_BWR    |                              \
-                   SDIOC_NORMAL_INT_FLAG_BGE    |                              \
-                   SDIOC_NORMAL_INT_FLAG_TC     |                              \
-                   SDIOC_NORMAL_INT_FLAG_CC     |                              \
-                   SDIOC_ERROR_INT_FLAG_ACE     |                              \
-                   SDIOC_ERROR_INT_FLAG_DEBE    |                              \
-                   SDIOC_ERROR_INT_FLAG_DCE     |                              \
-                   SDIOC_ERROR_INT_FLAG_DTOE    |                              \
-                   SDIOC_ERROR_INT_FLAG_CIE     |                              \
-                   SDIOC_ERROR_INT_FLAG_CEBE    |                              \
-                   SDIOC_ERROR_INT_FLAG_CCE     |                              \
-                   SDIOC_ERROR_INT_FLAG_CTOE)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(SDIOC_NORMAL_INT_FLAG_EI   |                  \
+                                 SDIOC_NORMAL_INT_FLAG_CINT |                  \
+                                 SDIOC_NORMAL_INT_FLAG_CRM  |                  \
+                                 SDIOC_NORMAL_INT_FLAG_CIST |                  \
+                                 SDIOC_NORMAL_INT_FLAG_BRR  |                  \
+                                 SDIOC_NORMAL_INT_FLAG_BWR  |                  \
+                                 SDIOC_NORMAL_INT_FLAG_BGE  |                  \
+                                 SDIOC_NORMAL_INT_FLAG_TC   |                  \
+                                 SDIOC_NORMAL_INT_FLAG_CC   |                  \
+                                 SDIOC_ERROR_INT_FLAG_ACE   |                  \
+                                 SDIOC_ERROR_INT_FLAG_DEBE  |                  \
+                                 SDIOC_ERROR_INT_FLAG_DCE   |                  \
+                                 SDIOC_ERROR_INT_FLAG_DTOE  |                  \
+                                 SDIOC_ERROR_INT_FLAG_CIE   |                  \
+                                 SDIOC_ERROR_INT_FLAG_CEBE  |                  \
+                                 SDIOC_ERROR_INT_FLAG_CCE   |                  \
+                                 SDIOC_ERROR_INT_FLAG_CTOE))))))
 
 #define IS_SDIOC_CLEAR_NORMAL_ERROR_INT_FLAG(x)                                \
-(   0UL != ((x) & (SDIOC_NORMAL_INT_FLAG_CRM    |                              \
-                   SDIOC_NORMAL_INT_FLAG_CIST   |                              \
-                   SDIOC_NORMAL_INT_FLAG_BRR    |                              \
-                   SDIOC_NORMAL_INT_FLAG_BWR    |                              \
-                   SDIOC_NORMAL_INT_FLAG_BGE    |                              \
-                   SDIOC_NORMAL_INT_FLAG_TC     |                              \
-                   SDIOC_NORMAL_INT_FLAG_CC     |                              \
-                   SDIOC_ERROR_INT_FLAG_ACE     |                              \
-                   SDIOC_ERROR_INT_FLAG_DEBE    |                              \
-                   SDIOC_ERROR_INT_FLAG_DCE     |                              \
-                   SDIOC_ERROR_INT_FLAG_DTOE    |                              \
-                   SDIOC_ERROR_INT_FLAG_CIE     |                              \
-                   SDIOC_ERROR_INT_FLAG_CEBE    |                              \
-                   SDIOC_ERROR_INT_FLAG_CCE     |                              \
-                   SDIOC_ERROR_INT_FLAG_CTOE)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(SDIOC_NORMAL_INT_FLAG_CRM  |                  \
+                                 SDIOC_NORMAL_INT_FLAG_CIST |                  \
+                                 SDIOC_NORMAL_INT_FLAG_BRR  |                  \
+                                 SDIOC_NORMAL_INT_FLAG_BWR  |                  \
+                                 SDIOC_NORMAL_INT_FLAG_BGE  |                  \
+                                 SDIOC_NORMAL_INT_FLAG_TC   |                  \
+                                 SDIOC_NORMAL_INT_FLAG_CC   |                  \
+                                 SDIOC_ERROR_INT_FLAG_ACE   |                  \
+                                 SDIOC_ERROR_INT_FLAG_DEBE  |                  \
+                                 SDIOC_ERROR_INT_FLAG_DCE   |                  \
+                                 SDIOC_ERROR_INT_FLAG_DTOE  |                  \
+                                 SDIOC_ERROR_INT_FLAG_CIE   |                  \
+                                 SDIOC_ERROR_INT_FLAG_CEBE  |                  \
+                                 SDIOC_ERROR_INT_FLAG_CCE   |                  \
+                                 SDIOC_ERROR_INT_FLAG_CTOE))))))
 
 #define IS_SDIOC_NORMAL_ERROR_INT(x)                                           \
-(   0UL != ((x) & (SDIOC_NORMAL_INT_CINTSEN     |                              \
-                   SDIOC_NORMAL_INT_CRMSEN      |                              \
-                   SDIOC_NORMAL_INT_CISTSEN     |                              \
-                   SDIOC_NORMAL_INT_BRRSEN      |                              \
-                   SDIOC_NORMAL_INT_BWRSEN      |                              \
-                   SDIOC_NORMAL_INT_BGESEN      |                              \
-                   SDIOC_NORMAL_INT_TCSEN       |                              \
-                   SDIOC_NORMAL_INT_CCSEN       |                              \
-                   SDIOC_ERROR_INT_ACESEN       |                              \
-                   SDIOC_ERROR_INT_DEBESEN      |                              \
-                   SDIOC_ERROR_INT_DCESEN       |                              \
-                   SDIOC_ERROR_INT_DTOESEN      |                              \
-                   SDIOC_ERROR_INT_CIESEN       |                              \
-                   SDIOC_ERROR_INT_CEBESEN      |                              \
-                   SDIOC_ERROR_INT_CCESEN       |                              \
-                   SDIOC_ERROR_INT_CTOESEN)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(SDIOC_NORMAL_INT_CINTSEN   |                  \
+                                 SDIOC_NORMAL_INT_CRMSEN    |                  \
+                                 SDIOC_NORMAL_INT_CISTSEN   |                  \
+                                 SDIOC_NORMAL_INT_BRRSEN    |                  \
+                                 SDIOC_NORMAL_INT_BWRSEN    |                  \
+                                 SDIOC_NORMAL_INT_BGESEN    |                  \
+                                 SDIOC_NORMAL_INT_TCSEN     |                  \
+                                 SDIOC_NORMAL_INT_CCSEN     |                  \
+                                 SDIOC_ERROR_INT_ACESEN     |                  \
+                                 SDIOC_ERROR_INT_DEBESEN    |                  \
+                                 SDIOC_ERROR_INT_DCESEN     |                  \
+                                 SDIOC_ERROR_INT_DTOESEN    |                  \
+                                 SDIOC_ERROR_INT_CIESEN     |                  \
+                                 SDIOC_ERROR_INT_CEBESEN    |                  \
+                                 SDIOC_ERROR_INT_CCESEN     |                  \
+                                 SDIOC_ERROR_INT_CTOESEN))))))
 
 #define IS_SDIOC_AUTO_CMD_ERROR_FLAG(x)                                        \
-(   0U != ((x) & (SDIOC_AUTO_CMD_ERROR_FLAG_CMDE        |                      \
-                  SDIOC_AUTO_CMD_ERROR_FLAG_IE          |                      \
-                  SDIOC_AUTO_CMD_ERROR_FLAG_EBE         |                      \
-                  SDIOC_AUTO_CMD_ERROR_FLAG_CE          |                      \
-                  SDIOC_AUTO_CMD_ERROR_FLAG_TOE         |                      \
-                  SDIOC_AUTO_CMD_ERROR_FLAG_NE)))
+(   (0U != (x))                                                             && \
+    (0U == ((x) & ((uint16_t)(~(uint16_t)(SDIOC_AUTO_CMD_ERROR_FLAG_CMDE    |  \
+                                          SDIOC_AUTO_CMD_ERROR_FLAG_IE      |  \
+                                          SDIOC_AUTO_CMD_ERROR_FLAG_EBE     |  \
+                                          SDIOC_AUTO_CMD_ERROR_FLAG_CE      |  \
+                                          SDIOC_AUTO_CMD_ERROR_FLAG_TOE     |  \
+                                          SDIOC_AUTO_CMD_ERROR_FLAG_NE))))))
 
 #define IS_SDIOC_FORCE_AUTO_CMD_FLAG(x)                                        \
-(   0U != ((x) & (SDIOC_FORCE_AUTO_CMD_ERROR_FCMDE      |                      \
-                  SDIOC_FORCE_AUTO_CMD_ERROR_FIE        |                      \
-                  SDIOC_FORCE_AUTO_CMD_ERROR_FEBE       |                      \
-                  SDIOC_FORCE_AUTO_CMD_ERROR_FCE        |                      \
-                  SDIOC_FORCE_AUTO_CMD_ERROR_FTOE       |                      \
-                  SDIOC_FORCE_AUTO_CMD_ERROR_FNE)))
+(   (0U != (x))                                                             && \
+    (0U == ((x) & ((uint16_t)(~(uint16_t)(SDIOC_FORCE_AUTO_CMD_ERROR_FCMDE  |  \
+                                          SDIOC_FORCE_AUTO_CMD_ERROR_FIE    |  \
+                                          SDIOC_FORCE_AUTO_CMD_ERROR_FEBE   |  \
+                                          SDIOC_FORCE_AUTO_CMD_ERROR_FCE    |  \
+                                          SDIOC_FORCE_AUTO_CMD_ERROR_FTOE   |  \
+                                          SDIOC_FORCE_AUTO_CMD_ERROR_FNE))))))
 
 #define IS_SDIOC_FORCE_ERROR_INT_FLAG(x)                                       \
-(   0U != ((x) & (SDIOC_FORCE_ERROR_INT_FACE    |                              \
-                  SDIOC_FORCE_ERROR_INT_FDEBE   |                              \
-                  SDIOC_FORCE_ERROR_INT_FDCE    |                              \
-                  SDIOC_FORCE_ERROR_INT_FDTOE   |                              \
-                  SDIOC_FORCE_ERROR_INT_FCIE    |                              \
-                  SDIOC_FORCE_ERROR_INT_FCEBE   |                              \
-                  SDIOC_FORCE_ERROR_INT_FCCE    |                              \
-                  SDIOC_FORCE_ERROR_INT_FCTOE)))
+(   (0U != (x))                                                             && \
+    (0U == ((x) & ((uint16_t)(~(uint16_t)(SDIOC_FORCE_ERROR_INT_FACE        |  \
+                                          SDIOC_FORCE_ERROR_INT_FDEBE       |  \
+                                          SDIOC_FORCE_ERROR_INT_FDCE        |  \
+                                          SDIOC_FORCE_ERROR_INT_FDTOE       |  \
+                                          SDIOC_FORCE_ERROR_INT_FCIE        |  \
+                                          SDIOC_FORCE_ERROR_INT_FCEBE       |  \
+                                          SDIOC_FORCE_ERROR_INT_FCCE        |  \
+                                          SDIOC_FORCE_ERROR_INT_FCTOE))))))
 
 #define IS_SDIOC_RESOPNE_TYPE(x)                                               \
 (   ((x) == SDIOC_RESOPNE_TYPE_NO)              ||                             \
@@ -401,11 +408,11 @@ en_result_t SDIOC_Init(M4_SDIOC_TypeDef *SDIOCx, const stc_sdioc_init_t *pstcSdi
         /* Set the SDIOC mode */
         if (M4_SDIOC1 == SDIOCx)
         {
-            bM4_PERIC->SDIOC_SYCTLREG_b.SELMMC1 = pstcSdiocInit->u32Mode;
+            WRITE_REG32(bM4_PERIC->SDIOC_SYCTLREG_b.SELMMC1, pstcSdiocInit->u32Mode);
         }
         else
         {
-            bM4_PERIC->SDIOC_SYCTLREG_b.SELMMC2 = pstcSdiocInit->u32Mode;
+            WRITE_REG32(bM4_PERIC->SDIOC_SYCTLREG_b.SELMMC2, pstcSdiocInit->u32Mode);
         }
 
         /* Set the SDIOC clock control value */
@@ -467,8 +474,6 @@ en_result_t SDIOC_StructInit(stc_sdioc_init_t *pstcSdiocInit)
 en_result_t SDIOC_SoftwareReset(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8ResetType)
 {
     en_result_t enRet = Ok;
-    uint8_t u8RegSta;
-    uint32_t u32Timeout = 0UL;
     __IO uint32_t u32Count = 0UL;
 
     /* Check parameters */
@@ -477,17 +482,15 @@ en_result_t SDIOC_SoftwareReset(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8ResetType)
 
     WRITE_REG8(SDIOCx->SFTRST, u8ResetType);
     /* Wait for reset finish */
-    u32Timeout = SDIOC_SW_RESET_TIMEOUT * (SystemCoreClock / 8U / 1000U);
+    u32Count = SDIOC_SW_RESET_TIMEOUT * (HCLK_VALUE / 20000UL);
     do
     {
-        u8RegSta = READ_REG8_BIT(SDIOCx->SFTRST, u8ResetType);
-        u32Count++;
-    } while ((u32Count < u32Timeout) && (0U != u8RegSta));
-
-    if (0U != u8RegSta)
-    {
-        enRet = ErrorTimeout;
-    }
+        if (--u32Count == 0UL)
+        {
+            enRet = ErrorTimeout;
+            break;
+        }
+    } while (0U != READ_REG8_BIT(SDIOCx->SFTRST, u8ResetType));
 
     return enRet;
 }
@@ -629,16 +632,17 @@ void SDIOC_SetClockDiv(M4_SDIOC_TypeDef *SDIOCx, uint16_t u16ClkDiv)
  * @note   More clock values can be set as needed, but the maximum cannot exceed 50MHz.
  * @param  [in] u32ClkFreq              SDIOCx_CK clock frequency
  *         This parameter can be one of the following values:
- *           @arg SDIOC_OUTPUT_CLK_FREQ_400K:   SDIOC clock: 40KHz
+ *           @arg SDIOC_OUTPUT_CLK_FREQ_400K:   SDIOC clock: 400KHz
  *           @arg SDIOC_OUTPUT_CLK_FREQ_25M:    SDIOC clock: 25MHz
  *           @arg SDIOC_OUTPUT_CLK_FREQ_26M:    SDIOC clock: 26MHz
  *           @arg SDIOC_OUTPUT_CLK_FREQ_50M:    SDIOC clock: 50MHz
  *           @arg SDIOC_OUTPUT_CLK_FREQ_52M:    SDIOC clock: 52MHz
+ *           @arg Any other value
  * @param  [out] pu16ClkDiv             Pointer to a value of clock division
  * @retval An en_result_t enumeration value:
  *           - Ok: SDIOC Initialize success
  *           - Error: The Bus clock frequency is too high
- *           - ErrorInvalidParameter: pu16ClkDiv == NULL or 0UL == u32ClkFreq or u32ClkFreq > SDIOC_OUTPUT_CLK_FREQ_50M
+ *           - ErrorInvalidParameter: pu16ClkDiv == NULL or 0UL == u32ClkFreq
  */
 en_result_t SDIOC_GetOptimumClockDiv(uint32_t u32ClkFreq, uint16_t *pu16ClkDiv)
 {
@@ -646,7 +650,7 @@ en_result_t SDIOC_GetOptimumClockDiv(uint32_t u32ClkFreq, uint16_t *pu16ClkDiv)
     uint32_t u32BusClk = 0UL, u32ClkDiv = 0UL;
     uint32_t u32Temp = 0UL;
 
-    if ((NULL == pu16ClkDiv) || (0UL == u32ClkFreq) || (u32ClkFreq > SDIOC_OUTPUT_CLK_FREQ_50M))
+    if ((NULL == pu16ClkDiv) || (0UL == u32ClkFreq))
     {
         enRet = ErrorInvalidParameter;
     }
@@ -971,16 +975,16 @@ en_result_t SDIOC_CmdStructInit(stc_sdioc_cmd_init_t *pstcCmd)
  *           @arg SDIOC_RESPONSE_REG_BIT32_63:  Command Response Register 32-63bit
  *           @arg SDIOC_RESPONSE_REG_BIT64_95:  Command Response Register 64-95bit
  *           @arg SDIOC_RESPONSE_REG_BIT96_127: Command Response Register 96-127bit
- * @param  [out] u32RespVal             Pointer to a Response value
+ * @param  [out] pu32RespVal            Pointer to a Response value
  * @retval An en_result_t enumeration value:
  *           - Ok: Get response success
- *           - ErrorInvalidParameter: u32RespVal == NULL
+ *           - ErrorInvalidParameter: pu32RespVal == NULL
  */
-en_result_t SDIOC_GetResponse(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8RespReg, uint32_t *u32RespVal)
+en_result_t SDIOC_GetResponse(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8RespReg, uint32_t *pu32RespVal)
 {
     en_result_t enRet = Ok;
 
-    if (NULL == u32RespVal)
+    if (NULL == pu32RespVal)
     {
         enRet = ErrorInvalidParameter;
     }
@@ -990,7 +994,7 @@ en_result_t SDIOC_GetResponse(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8RespReg, uint3
         DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
         DDL_ASSERT(IS_SDIOC_RESPONSE_REG(u8RespReg));
 
-        *u32RespVal = READ_REG32(*(__IO uint32_t *)SDIOC_RESPx(SDIOCx, u8RespReg));
+        *pu32RespVal = READ_REG32(*(__IO uint32_t *)SDIOC_RESPx(SDIOCx, u8RespReg));
     }
 
     return enRet;
@@ -1083,20 +1087,20 @@ en_result_t SDIOC_DataStructInit(stc_sdioc_data_init_t *pstcData)
  *         This parameter can be one of the following values:
  *           @arg M4_SDIOC1:            SDIOC unit 1 instance register base
  *           @arg M4_SDIOC2:            SDIOC unit 2 instance register base
- * @param  [out] pu8Data                Pointer to the buffer
+ * @param  [out] au8Data                Pointer to the buffer
  * @param  [in] u32Len                  Data length
  * @retval An en_result_t enumeration value:
  *           - Ok: Read data success
- *           - ErrorInvalidParameter: NULL == pu8Data or (u32Len % 4U) != 0
+ *           - ErrorInvalidParameter: NULL == au8Data or (u32Len % 4U) != 0
  */
-en_result_t SDIOC_ReadBuffer(M4_SDIOC_TypeDef *SDIOCx, uint8_t pu8Data[], uint32_t u32Len)
+en_result_t SDIOC_ReadBuffer(M4_SDIOC_TypeDef *SDIOCx, uint8_t au8Data[], uint32_t u32Len)
 {
     en_result_t enRet = Ok;
     uint32_t i = 0UL;
     uint32_t u32Temp = 0UL;
     __IO uint32_t *BUF_REG = NULL;
 
-    if ((NULL == pu8Data) || (0U != (u32Len % 4U)))
+    if ((NULL == au8Data) || (0U != (u32Len % 4U)))
     {
         enRet = ErrorInvalidParameter;
     }
@@ -1109,10 +1113,10 @@ en_result_t SDIOC_ReadBuffer(M4_SDIOC_TypeDef *SDIOCx, uint8_t pu8Data[], uint32
         for (i = 0U; i < u32Len; i += 4U)
         {
             u32Temp = READ_REG32(*BUF_REG);
-            pu8Data[i]    = (uint8_t)(u32Temp & 0x000000FFUL);
-            pu8Data[i+1U] = (uint8_t)((u32Temp >> 8U) & 0x000000FFUL);
-            pu8Data[i+2U] = (uint8_t)((u32Temp >> 16U) & 0x000000FFUL);
-            pu8Data[i+3U] = (uint8_t)((u32Temp >> 24U) & 0x000000FFUL);
+            au8Data[i]    = (uint8_t)(u32Temp & 0x000000FFUL);
+            au8Data[i+1U] = (uint8_t)((u32Temp >> 8U) & 0x000000FFUL);
+            au8Data[i+2U] = (uint8_t)((u32Temp >> 16U) & 0x000000FFUL);
+            au8Data[i+3U] = (uint8_t)((u32Temp >> 24U) & 0x000000FFUL);
         }
     }
 
@@ -1125,20 +1129,20 @@ en_result_t SDIOC_ReadBuffer(M4_SDIOC_TypeDef *SDIOCx, uint8_t pu8Data[], uint32
  *         This parameter can be one of the following values:
  *           @arg M4_SDIOC1:            SDIOC unit 1 instance register base
  *           @arg M4_SDIOC2:            SDIOC unit 2 instance register base
- * @param  [in] pu8Data                 Pointer to the buffer
+ * @param  [in] au8Data                 Pointer to the buffer
  * @param  [in] u32Len                  Data length
  * @retval An en_result_t enumeration value:
  *           - Ok: Write data success
- *           - ErrorInvalidParameter: NULL == pu8Data or (u32Len % 4U) != 0
+ *           - ErrorInvalidParameter: NULL == au8Data or (u32Len % 4U) != 0
  */
-en_result_t SDIOC_WriteBuffer(M4_SDIOC_TypeDef *SDIOCx, const uint8_t pu8Data[], uint32_t u32Len)
+en_result_t SDIOC_WriteBuffer(M4_SDIOC_TypeDef *SDIOCx, const uint8_t au8Data[], uint32_t u32Len)
 {
     en_result_t enRet = Ok;
     uint32_t i = 0UL;
     uint32_t u32Temp = 0UL;
     __IO uint32_t *BUF_REG = NULL;
 
-    if ((NULL == pu8Data) || (0U != (u32Len % 4U)))
+    if ((NULL == au8Data) || (0U != (u32Len % 4U)))
     {
         enRet = ErrorInvalidParameter;
     }
@@ -1150,8 +1154,8 @@ en_result_t SDIOC_WriteBuffer(M4_SDIOC_TypeDef *SDIOCx, const uint8_t pu8Data[],
         BUF_REG = (__IO uint32_t *)SDIOC_BUF(SDIOCx);
         for (i = 0U; i < u32Len; i += 4U)
         {
-            u32Temp = (uint32_t)pu8Data[i]             | ((uint32_t)pu8Data[i+1U] << 8U) |
-                      ((uint32_t)pu8Data[i+2U] << 16U) | ((uint32_t)pu8Data[i+3U] << 24U);
+            u32Temp = (uint32_t)au8Data[i]             | ((uint32_t)au8Data[i+1U] << 8U) |
+                      ((uint32_t)au8Data[i+2U] << 16U) | ((uint32_t)au8Data[i+3U] << 24U);
             WRITE_REG32(*BUF_REG, u32Temp);
         }
     }
@@ -2760,12 +2764,11 @@ static en_result_t SDMMC_WaitResponse(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Chec
     en_result_t enRet = Ok;
 
     *pu32ErrSta = 0UL;
-    /* 8 is the number of required instructions cycles for the below loop statement.
-    The u32Timeout is expressed in ms */
-    u32Count = u32Timeout * (SystemCoreClock / 8U / 1000U);
+    /* The u32Timeout is expressed in ms */
+    u32Count = u32Timeout * (HCLK_VALUE / 20000UL);
     do
     {
-        if (u32Count-- == 0U)
+        if (--u32Count == 0UL)
         {
             enRet = ErrorTimeout;
             break;
@@ -2825,12 +2828,11 @@ static en_result_t SDMMC_GetCmdError(M4_SDIOC_TypeDef *SDIOCx)
     __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
-    /* 8 is the number of required instructions cycles for the below loop statement.
-    The SDMMC_CMD_TIMEOUT is expressed in ms */
-    u32Count = SDMMC_CMD_TIMEOUT * (SystemCoreClock / 8U / 1000U);
+    /* The SDMMC_CMD_TIMEOUT is expressed in ms */
+    u32Count = SDMMC_CMD_TIMEOUT * (HCLK_VALUE / 20000UL);
     do
     {
-        if (u32Count-- == 0U)
+        if (--u32Count == 0UL)
         {
             enRet = ErrorTimeout;
             break;
@@ -2916,10 +2918,10 @@ static en_result_t SDMMC_GetCmdResp1Busy(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32T
         else
         {
             /* Wait for busy status to release */
-            u32Count = u32Timeout * (SystemCoreClock / 8U / 1000U);
+            u32Count = u32Timeout * (HCLK_VALUE / 20000UL);
             do
             {
-                if (u32Count-- == 0U)
+                if (--u32Count == 0UL)
                 {
                     enRet = ErrorTimeout;
                     break;

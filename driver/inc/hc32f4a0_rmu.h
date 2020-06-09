@@ -136,6 +136,27 @@ typedef struct
  * @addtogroup RMU_Global_Functions
  * @{
  */
+
+/**
+ * @brief  Enable RMU register write
+ * @param  None
+ * @retval None
+ */
+__STATIC_INLINE void RMU_REG_WRITE_ENABLE(void)
+{
+    WRITE_REG16(M4_PWC->FPRC, 0xA502U);
+}
+
+/**
+ * @brief  Disable RMU register write
+ * @param  None
+ * @retval None
+ */
+__STATIC_INLINE void RMU_REG_WRITE_DISABLE(void)
+{
+    WRITE_REG16(M4_PWC->FPRC, 0xA500U);
+}
+
 en_result_t RMU_GetStatus(stc_rmu_rstcause_t *pstcData);
 en_result_t RMU_ClrStatus(void);
 void RMU_CPULockUpCmd(en_functional_state_t enNewState);

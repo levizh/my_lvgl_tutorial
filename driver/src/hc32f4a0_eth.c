@@ -121,16 +121,10 @@
 /* Ethernet Remote Wake-up frame register length */
 #define ETH_WAKEUP_REGISTER_LENGTH                          (8U)
 
-/* Ethernet Missed frames counter Shift */
-#define ETH_DMA_RX_OVERFLOW_MISSEDFRAME_COUNTERSHIFT        (17U)
-
 /* Ethernet PTP PPS channel 1 time register address Shift */
 #define ETH_PTP_PPS1_TIME_REG_ADDRSHIFT                     (0x64U)
 
-/* Ethernet PTP PPS channel 1 Function Select Shift */
-#define ETH_PTP_PPS1_FUNCTION_SELECTSHIFT                   (8U)
-
-/* Wait timeout */
+/* Wait timeout(ms) */
 #define ETH_TIMEOUT_WRITE_REGISTER                          (50UL)
 #define ETH_TIMEOUT_SOFTWARE_RESET                          (500UL)
 #define ETH_TIMEOUT_LINK_STATUS                             (5000UL)
@@ -163,7 +157,9 @@
  * @defgroup ETH_Check_Parameters_Validity ETH Check Parameters Validity
  * @{
  */
-#define IS_ETH_PHY_ADDRESS(x)                               ((x) <= 0x20U)
+#define IS_ETH_PHY_ADDRESS(x)                               ((x) < 0x20U)
+
+#define IS_ETH_PHY_REGISTER(x)                              ((x) < 0x20U)
 
 #define IS_ETH_AUTO_NEGOTIATION(x)                                             \
 (   ((x) == ETH_AUTO_NEGOTIATION_DISABLE)                   ||                 \
@@ -364,18 +360,15 @@
     ((x) == ETH_MAC_L4_PORT_FILTER_PROTOCOL_UDP))
 
 #define IS_ETH_MAC_L3_DA_FILTER_MASK(x)                                        \
-(   (0UL == (x))                                            ||                 \
-    (0UL != ((x) & (ETH_MAC_L34CTLR_L3HDBM))))
+(   ((x) | ETH_MAC_L34CTLR_L3HDBM) == ETH_MAC_L34CTLR_L3HDBM)
 
 #define IS_ETH_MAC_L3_SA_FILTER_MASK(x)                                        \
-(   (0UL == (x))                                            ||                 \
-    (0UL != ((x) & (ETH_MAC_L34CTLR_L3HSBM))))
+(   ((x) | ETH_MAC_L34CTLR_L3HSBM) == ETH_MAC_L34CTLR_L3HSBM)
 
 #define IS_ETH_MAC_L3_DA_SA_FILTER_MASK(x)                                     \
-(   (0UL == (x))                                            ||                 \
-    (0UL != ((x) & (ETH_MAC_L34CTLR_L3HSBM                  |                  \
-                    ETH_MAC_L34CTLR_L3HDBM_0                |                  \
-                    ETH_MAC_L34CTLR_L3HDBM_1))))
+(   0UL == ((x) & ((uint32_t)(~(ETH_MAC_L34CTLR_L3HSBM      |                  \
+                                ETH_MAC_L34CTLR_L3HDBM_0    |                  \
+                                ETH_MAC_L34CTLR_L3HDBM_1)))))
 
 #define IS_ETH_MAC_L3_DA_FILTER(x)                                             \
 (   ((x) == ETH_MAC_L3_DA_FILTER_DISABLE)                   ||                 \
@@ -392,15 +385,17 @@
     ((x) == ETH_MAC_L3_ADDR_FILTER_PROTOCOL_IPV6))
 
 #define IS_ETH_MAC_INTERRUPT_FLAG(x)                                           \
-(   0UL != ((x) & (ETH_MAC_INT_FLAG_TSPIS                   |                  \
-                   ETH_MAC_INT_FLAG_MMCTXIS                 |                  \
-                   ETH_MAC_INT_FLAG_MMCRXIS                 |                  \
-                   ETH_MAC_INT_FLAG_MMCIS                   |                  \
-                   ETH_MAC_INT_FLAG_PMTIS)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_MAC_INT_FLAG_TSPIS     |                  \
+                                 ETH_MAC_INT_FLAG_MMCTXIS   |                  \
+                                 ETH_MAC_INT_FLAG_MMCRXIS   |                  \
+                                 ETH_MAC_INT_FLAG_MMCIS     |                  \
+                                 ETH_MAC_INT_FLAG_PMTIS))))))
 
 #define IS_ETH_MAC_INTERRUPT(x)                                                \
-(   0UL != ((x) & (ETH_MAC_INT_TSPIM                        |                  \
-                   ETH_MAC_INT_PMTIM)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_MAC_INT_TSPIM          |                  \
+                                 ETH_MAC_INT_PMTIM))))))
 
 #define IS_ETH_MAC_ADDRESS_NORMAL_INDEX(x)                                     \
 (   ((x) == ETH_MAC_ADDRESS0)                               ||                 \
@@ -421,10 +416,9 @@
     ((x) == ETH_MAC_ADDRESS_FILTER_PERFECT_SA))
 
 #define IS_ETH_MAC_ADDRESS_MASK(x)                                             \
-(   (0UL == (x))                                            ||                 \
-    (0UL != ((x) & (ETH_MAC_ADDRESS_MASK_ALL))))
+(   ((x) | ETH_MAC_ADDRESS_MASK_ALL) == ETH_MAC_ADDRESS_MASK_ALL)
 
-#define IS_ETH_DMA_DESC_SKIP_LENGTH(x)                      ((x) <= 32U)
+#define IS_ETH_DMA_DESC_SKIP_LENGTH(x)                      ((x) < 0x20U)
 
 #define IS_ETH_DMA_BURST_MODE(x)                                               \
 (   ((x) == ETH_DMA_BURST_MODE_NORMAL)                      ||                 \
@@ -528,41 +522,43 @@
     ((x) == ETH_DMA_SECONDFRAME_OPERARTE_ENABLE))
 
 #define IS_ETH_DMA_INTERRUPT(x)                                                \
-(   0UL != ((x) & (ETH_DMA_INT_NIE                          |                  \
-                   ETH_DMA_INT_AIE                          |                  \
-                   ETH_DMA_INT_ERE                          |                  \
-                   ETH_DMA_INT_FBE                          |                  \
-                   ETH_DMA_INT_ETE                          |                  \
-                   ETH_DMA_INT_RWE                          |                  \
-                   ETH_DMA_INT_RSE                          |                  \
-                   ETH_DMA_INT_RUE                          |                  \
-                   ETH_DMA_INT_RIE                          |                  \
-                   ETH_DMA_INT_UNE                          |                  \
-                   ETH_DMA_INT_OVE                          |                  \
-                   ETH_DMA_INT_TJE                          |                  \
-                   ETH_DMA_INT_TUE                          |                  \
-                   ETH_DMA_INT_TSE                          |                  \
-                   ETH_DMA_INT_TIE)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_DMA_INT_NIE            |                  \
+                                 ETH_DMA_INT_AIE            |                  \
+                                 ETH_DMA_INT_ERE            |                  \
+                                 ETH_DMA_INT_FBE            |                  \
+                                 ETH_DMA_INT_ETE            |                  \
+                                 ETH_DMA_INT_RWE            |                  \
+                                 ETH_DMA_INT_RSE            |                  \
+                                 ETH_DMA_INT_RUE            |                  \
+                                 ETH_DMA_INT_RIE            |                  \
+                                 ETH_DMA_INT_UNE            |                  \
+                                 ETH_DMA_INT_OVE            |                  \
+                                 ETH_DMA_INT_TJE            |                  \
+                                 ETH_DMA_INT_TUE            |                  \
+                                 ETH_DMA_INT_TSE            |                  \
+                                 ETH_DMA_INT_TIE))))))
 
 #define IS_ETH_DMA_FLAG(x)                                                     \
-(   0UL != ((x) & (ETH_DMA_FLAG_PTPS                        |                  \
-                   ETH_DMA_FLAG_PMTS                        |                  \
-                   ETH_DMA_FLAG_MMCS                        |                  \
-                   ETH_DMA_FLAG_NIS                         |                  \
-                   ETH_DMA_FLAG_AIS                         |                  \
-                   ETH_DMA_FLAG_ERS                         |                  \
-                   ETH_DMA_FLAG_FBS                         |                  \
-                   ETH_DMA_FLAG_ETS                         |                  \
-                   ETH_DMA_FLAG_RWS                         |                  \
-                   ETH_DMA_FLAG_RSS                         |                  \
-                   ETH_DMA_FLAG_RUS                         |                  \
-                   ETH_DMA_FLAG_RIS                         |                  \
-                   ETH_DMA_FLAG_UNS                         |                  \
-                   ETH_DMA_FLAG_OVS                         |                  \
-                   ETH_DMA_FLAG_TJS                         |                  \
-                   ETH_DMA_FLAG_TUS                         |                  \
-                   ETH_DMA_FLAG_TSS                         |                  \
-                   ETH_DMA_FLAG_TIS)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_DMA_FLAG_PTPS          |                  \
+                                 ETH_DMA_FLAG_PMTS          |                  \
+                                 ETH_DMA_FLAG_MMCS          |                  \
+                                 ETH_DMA_FLAG_NIS           |                  \
+                                 ETH_DMA_FLAG_AIS           |                  \
+                                 ETH_DMA_FLAG_ERS           |                  \
+                                 ETH_DMA_FLAG_FBS           |                  \
+                                 ETH_DMA_FLAG_ETS           |                  \
+                                 ETH_DMA_FLAG_RWS           |                  \
+                                 ETH_DMA_FLAG_RSS           |                  \
+                                 ETH_DMA_FLAG_RUS           |                  \
+                                 ETH_DMA_FLAG_RIS           |                  \
+                                 ETH_DMA_FLAG_UNS           |                  \
+                                 ETH_DMA_FLAG_OVS           |                  \
+                                 ETH_DMA_FLAG_TJS           |                  \
+                                 ETH_DMA_FLAG_TUS           |                  \
+                                 ETH_DMA_FLAG_TSS           |                  \
+                                 ETH_DMA_FLAG_TIS))))))
 
 #define IS_ETH_DMA_MISS_FRAME_TYPE(x)                                          \
 (   ((x) == ETH_DMA_OVERFLOW_RXFIFO_COUNTER)                ||                 \
@@ -590,62 +586,65 @@
     ((x) == ETH_DMATXDESC_SA_REPLACE_MACADDR1))
 
 #define IS_ETH_DMATXDESC_STATUS(x)                                             \
-(   0UL != ((x) & (ETH_DMATXDESC_OWN                        |                  \
-                   ETH_DMATXDESC_IOC                        |                  \
-                   ETH_DMATXDESC_TLS                        |                  \
-                   ETH_DMATXDESC_TFS                        |                  \
-                   ETH_DMATXDESC_DCRC                       |                  \
-                   ETH_DMATXDESC_DPAD                       |                  \
-                   ETH_DMATXDESC_TTSE                       |                  \
-                   ETH_DMATXDESC_CRCR                       |                  \
-                   ETH_DMATXDESC_TER                        |                  \
-                   ETH_DMATXDESC_TSAC                       |                  \
-                   ETH_DMATXDESC_TTSS                       |                  \
-                   ETH_DMATXDESC_IHE                        |                  \
-                   ETH_DMATXDESC_ETSUM                      |                  \
-                   ETH_DMATXDESC_JTE                        |                  \
-                   ETH_DMATXDESC_FFF                        |                  \
-                   ETH_DMATXDESC_TPCE                       |                  \
-                   ETH_DMATXDESC_LOCE                       |                  \
-                   ETH_DMATXDESC_NCE                        |                  \
-                   ETH_DMATXDESC_TLCE                       |                  \
-                   ETH_DMATXDESC_ECE                        |                  \
-                   ETH_DMATXDESC_VLF                        |                  \
-                   ETH_DMATXDESC_EDE                        |                  \
-                   ETH_DMATXDESC_UDE                        |                  \
-                   ETH_DMATXDESC_DEE)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_DMATXDESC_OWN          |                  \
+                                 ETH_DMATXDESC_IOC          |                  \
+                                 ETH_DMATXDESC_TLS          |                  \
+                                 ETH_DMATXDESC_TFS          |                  \
+                                 ETH_DMATXDESC_DCRC         |                  \
+                                 ETH_DMATXDESC_DPAD         |                  \
+                                 ETH_DMATXDESC_TTSE         |                  \
+                                 ETH_DMATXDESC_CRCR         |                  \
+                                 ETH_DMATXDESC_TER          |                  \
+                                 ETH_DMATXDESC_TSAC         |                  \
+                                 ETH_DMATXDESC_TTSS         |                  \
+                                 ETH_DMATXDESC_IHE          |                  \
+                                 ETH_DMATXDESC_ETSUM        |                  \
+                                 ETH_DMATXDESC_JTE          |                  \
+                                 ETH_DMATXDESC_FFF          |                  \
+                                 ETH_DMATXDESC_TPCE         |                  \
+                                 ETH_DMATXDESC_LOCE         |                  \
+                                 ETH_DMATXDESC_NCE          |                  \
+                                 ETH_DMATXDESC_TLCE         |                  \
+                                 ETH_DMATXDESC_ECE          |                  \
+                                 ETH_DMATXDESC_VLF          |                  \
+                                 ETH_DMATXDESC_EDE          |                  \
+                                 ETH_DMATXDESC_UDE          |                  \
+                                 ETH_DMATXDESC_DEE))))))
 
 #define IS_ETH_DMARXDESC_STATUS(x)                                             \
-(   0UL != ((x) & (ETH_DMARXDESC_OWN                        |                  \
-                   ETH_DMARXDESC_DAF                        |                  \
-                   ETH_DMARXDESC_ERSUM                      |                  \
-                   ETH_DMARXDESC_DPE                        |                  \
-                   ETH_DMARXDESC_SAF                        |                  \
-                   ETH_DMARXDESC_LEE                        |                  \
-                   ETH_DMARXDESC_OVE                        |                  \
-                   ETH_DMARXDESC_VLAT                       |                  \
-                   ETH_DMARXDESC_RFS                        |                  \
-                   ETH_DMARXDESC_RLS                        |                  \
-                   ETH_DMARXDESC_IPE_TSPA_GF                |                  \
-                   ETH_DMARXDESC_RLCE                       |                  \
-                   ETH_DMARXDESC_FRAT                       |                  \
-                   ETH_DMARXDESC_WTE                        |                  \
-                   ETH_DMARXDESC_REE                        |                  \
-                   ETH_DMARXDESC_DBE                        |                  \
-                   ETH_DMARXDESC_CRE                        |                  \
-                   ETH_DMARXDESC_DAS_ESA)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_DMARXDESC_OWN          |                  \
+                                 ETH_DMARXDESC_DAF          |                  \
+                                 ETH_DMARXDESC_ERSUM        |                  \
+                                 ETH_DMARXDESC_DPE          |                  \
+                                 ETH_DMARXDESC_SAF          |                  \
+                                 ETH_DMARXDESC_LEE          |                  \
+                                 ETH_DMARXDESC_OVE          |                  \
+                                 ETH_DMARXDESC_VLAT         |                  \
+                                 ETH_DMARXDESC_RFS          |                  \
+                                 ETH_DMARXDESC_RLS          |                  \
+                                 ETH_DMARXDESC_IPE_TSPA_GF  |                  \
+                                 ETH_DMARXDESC_RLCE         |                  \
+                                 ETH_DMARXDESC_FRAT         |                  \
+                                 ETH_DMARXDESC_WTE          |                  \
+                                 ETH_DMARXDESC_REE          |                  \
+                                 ETH_DMARXDESC_DBE          |                  \
+                                 ETH_DMARXDESC_CRE          |                  \
+                                 ETH_DMARXDESC_DAS_ESA))))))
 
 #define IS_ETH_DMARXDESC_EXTEND_STATUS(x)                                      \
-(   0UL != ((x) & (ETH_DMARXDESC_L4FMS                      |                  \
-                   ETH_DMARXDESC_L3FMS                      |                  \
-                   ETH_DMARXDESC_TSPD                       |                  \
-                   ETH_DMARXDESC_PTPV                       |                  \
-                   ETH_DMARXDESC_PTPFT                      |                  \
-                   ETH_DMARXDESC_IPV6DR                     |                  \
-                   ETH_DMARXDESC_IPV4DR                     |                  \
-                   ETH_DMARXDESC_IPCB                       |                  \
-                   ETH_DMARXDESC_IPPE                       |                  \
-                   ETH_DMARXDESC_IPHE)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_DMARXDESC_L4FMS        |                  \
+                                 ETH_DMARXDESC_L3FMS        |                  \
+                                 ETH_DMARXDESC_TSPD         |                  \
+                                 ETH_DMARXDESC_PTPV         |                  \
+                                 ETH_DMARXDESC_PTPFT        |                  \
+                                 ETH_DMARXDESC_IPV6DR       |                  \
+                                 ETH_DMARXDESC_IPV4DR       |                  \
+                                 ETH_DMARXDESC_IPCB         |                  \
+                                 ETH_DMARXDESC_IPPE         |                  \
+                                 ETH_DMARXDESC_IPHE))))))
 
 #define IS_ETH_DMADESC_OWN(x)                                                  \
 (   ((x) == ETH_DMADESC_OWN_CPU)                            ||                 \
@@ -656,9 +655,10 @@
     ((x) == ETH_DMADESC_BUFFER2))
 
 #define IS_ETH_PMT_FLAG(x)                                                     \
-(   0UL != ((x) & (ETH_PMT_FLAG_RTWKFR                      |                  \
-                   ETH_PMT_FLAG_WKFR                        |                  \
-                   ETH_PMT_FLAG_MPFR)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_PMT_FLAG_RTWKFR        |                  \
+                                 ETH_PMT_FLAG_WKFR          |                  \
+                                 ETH_PMT_FLAG_MPFR))))))
 
 #define IS_ETH_MMC_COUNTER_PRESETMODE(x)                                       \
 (   ((x) == ETH_MMC_COUNTER_PRESETMODE_DISABLE)             ||                 \
@@ -674,44 +674,48 @@
     ((x) == ETH_MMC_COUNTER_RELOAD_DISABLE))
 
 #define IS_ETH_MMC_TX_INTERRUPT(x)                                             \
-(   0UL != ((x) & (ETH_MMC_INT_TXEDEIM                      |                  \
-                   ETH_MMC_INT_TXUGIM                       |                  \
-                   ETH_MMC_INT_TXCAEIM                      |                  \
-                   ETH_MMC_INT_TXECEIM                      |                  \
-                   ETH_MMC_INT_TXLCEIM                      |                  \
-                   ETH_MMC_INT_TXDEEIM                      |                  \
-                   ETH_MMC_INT_TXMGIM                       |                  \
-                   ETH_MMC_INT_TXBGIM)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_MMC_INT_TXEDEIM        |                  \
+                                 ETH_MMC_INT_TXUGIM         |                  \
+                                 ETH_MMC_INT_TXCAEIM        |                  \
+                                 ETH_MMC_INT_TXECEIM        |                  \
+                                 ETH_MMC_INT_TXLCEIM        |                  \
+                                 ETH_MMC_INT_TXDEEIM        |                  \
+                                 ETH_MMC_INT_TXMGIM         |                  \
+                                 ETH_MMC_INT_TXBGIM))))))
 
 #define IS_ETH_MMC_RX_INTERRUPT(x)                                             \
-(   0UL != ((x) & (ETH_MMC_INT_RXOEIM                       |                  \
-                   ETH_MMC_INT_RXLEIM                       |                  \
-                   ETH_MMC_INT_RXUGIM                       |                  \
-                   ETH_MMC_INT_RXREIM                       |                  \
-                   ETH_MMC_INT_RXAEIM                       |                  \
-                   ETH_MMC_INT_RXCEIM                       |                  \
-                   ETH_MMC_INT_RXMGIM                       |                  \
-                   ETH_MMC_INT_RXBGIM)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_MMC_INT_RXOEIM         |                  \
+                                 ETH_MMC_INT_RXLEIM         |                  \
+                                 ETH_MMC_INT_RXUGIM         |                  \
+                                 ETH_MMC_INT_RXREIM         |                  \
+                                 ETH_MMC_INT_RXAEIM         |                  \
+                                 ETH_MMC_INT_RXCEIM         |                  \
+                                 ETH_MMC_INT_RXMGIM         |                  \
+                                 ETH_MMC_INT_RXBGIM))))))
 
 #define IS_ETH_MMC_TX_FLAG(x)                                                  \
-(   0UL != ((x) & (ETH_MMC_FLAG_TXEDEIS                     |                  \
-                   ETH_MMC_FLAG_TXUGIS                      |                  \
-                   ETH_MMC_FLAG_TXCAEIS                     |                  \
-                   ETH_MMC_FLAG_TXECEIS                     |                  \
-                   ETH_MMC_FLAG_TXLCEIS                     |                  \
-                   ETH_MMC_FLAG_TXDEEIS                     |                  \
-                   ETH_MMC_FLAG_TXMGIS                      |                  \
-                   ETH_MMC_FLAG_TXBGIS)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_MMC_FLAG_TXEDEIS       |                  \
+                                 ETH_MMC_FLAG_TXUGIS        |                  \
+                                 ETH_MMC_FLAG_TXCAEIS       |                  \
+                                 ETH_MMC_FLAG_TXECEIS       |                  \
+                                 ETH_MMC_FLAG_TXLCEIS       |                  \
+                                 ETH_MMC_FLAG_TXDEEIS       |                  \
+                                 ETH_MMC_FLAG_TXMGIS        |                  \
+                                 ETH_MMC_FLAG_TXBGIS))))))
 
 #define IS_ETH_MMC_RX_FLAG(x)                                                  \
-(   0UL != ((x) & (ETH_MMC_FLAG_RXOEIS                      |                  \
-                   ETH_MMC_FLAG_RXLEIS                      |                  \
-                   ETH_MMC_FLAG_RXUGIS                      |                  \
-                   ETH_MMC_FLAG_RXREIS                      |                  \
-                   ETH_MMC_FLAG_RXAEIS                      |                  \
-                   ETH_MMC_FLAG_RXCEIS                      |                  \
-                   ETH_MMC_FLAG_RXMGIS                      |                  \
-                   ETH_MMC_FLAG_RXBGIS)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_MMC_FLAG_RXOEIS        |                  \
+                                 ETH_MMC_FLAG_RXLEIS        |                  \
+                                 ETH_MMC_FLAG_RXUGIS        |                  \
+                                 ETH_MMC_FLAG_RXREIS        |                  \
+                                 ETH_MMC_FLAG_RXAEIS        |                  \
+                                 ETH_MMC_FLAG_RXCEIS        |                  \
+                                 ETH_MMC_FLAG_RXMGIS        |                  \
+                                 ETH_MMC_FLAG_RXBGIS))))))
 
 #define IS_ETH_MMC_REG(x)                                                      \
 (   ((x) == ETH_MMC_REG_TXBRGFR)                            ||                 \
@@ -754,10 +758,11 @@
     ((x) == ETH_PTP_DATAGRAM_TYPE_PDELAY))
 
 #define IS_ETH_PTP_FRAME_TYPE(x)                                               \
-(   0UL != ((x) & (ETH_PTP_FRAME_TYPE_IPV4FRAME             |                  \
-                   ETH_PTP_FRAME_TYPE_IPV6FRAME             |                  \
-                   ETH_PTP_FRAME_TYPE_ETHERNETFRAME         |                  \
-                   ETH_PTP_FRAME_TYPE_ALL_RECEIVEFRAME)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_PTP_FRAME_TYPE_IPV4FRAME       |          \
+                                 ETH_PTP_FRAME_TYPE_IPV6FRAME       |          \
+                                 ETH_PTP_FRAME_TYPE_ETHERNETFRAME   |          \
+                                 ETH_PTP_FRAME_TYPE_ALL_RECEIVEFRAME))))))
 
 #define IS_ETH_PTP_CALIBRATION_MODE(x)                                         \
 (   ((x) == ETH_PTP_CALIBRATION_MODE_COARSE)                ||                 \
@@ -768,11 +773,12 @@
     ((x) == ETH_PTP_TIME_UPDATE_SIGN_PLUS))
 
 #define IS_ETH_PTP_FLAG(x)                                                     \
-(   0UL != ((x) & (ETH_PTP_FLAG_TSERR1                      |                  \
-                   ETH_PTP_FLAG_TSTAR1                      |                  \
-                   ETH_PTP_FLAG_TSERR0                      |                  \
-                   ETH_PTP_FLAG_TSTAR0                      |                  \
-                   ETH_PTP_FLAG_TSOVF)))
+(   (0UL != (x))                                            &&                 \
+    (0UL == ((x) & ((uint32_t)(~(ETH_PTP_FLAG_TSERR1        |                  \
+                                 ETH_PTP_FLAG_TSTAR1        |                  \
+                                 ETH_PTP_FLAG_TSERR0        |                  \
+                                 ETH_PTP_FLAG_TSTAR0        |                  \
+                                 ETH_PTP_FLAG_TSOVF))))))
 
 #define IS_ETH_PPS1_COMPLEX_FUNC(ch, mode, freq)                               \
 (   ((ch)    == ETH_PPS_TARGET_CH0)                         ||                 \
@@ -883,10 +889,10 @@ en_result_t ETH_DeInit(void)
  */
 en_result_t ETH_Init(stc_eth_handle_t *pstcEthHandle, stc_eth_init_t *pstcEthInit)
 {
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
     uint32_t u32TempReg = 0UL;
-    uint32_t u32BusClk = 0UL;
-    uint32_t u32TickStart = 0UL;
+    uint32_t u32BusClk = 0UL, u32PhyTimeout = 0UL;
     uint16_t u16PhyReg = 0U;
 
     if ((NULL == pstcEthHandle) || (NULL == pstcEthInit))
@@ -945,17 +951,31 @@ en_result_t ETH_Init(stc_eth_handle_t *pstcEthHandle, stc_eth_init_t *pstcEthIni
             else
             {
                 /* Delay to assure PHY reset */
-                SysTick_Delay(PHY_RESET_DELAY);
+                DDL_Delay1ms(PHY_RESET_DELAY);
 
                 if (ETH_AUTO_NEGOTIATION_DISABLE != pstcEthHandle->stcCommInit.u16AutoNegotiation)
                 {
+                    u32PhyTimeout = PHY_READ_TIMEOUT * (HCLK_VALUE / 20000UL);
                     /* Wait for linke status */
-                    u32TickStart = SysTick_GetTick();
+                    u32Count = ETH_TIMEOUT_LINK_STATUS * (HCLK_VALUE / 20000UL);
                     do
                     {
-                        ETH_PHY_ReadRegister(pstcEthHandle, PHY_BSR, &u16PhyReg);
-                    } while ((PHY_LINK_STATUS != (u16PhyReg & PHY_LINK_STATUS)) &&
-                             ((SysTick_GetTick() - u32TickStart) <= ETH_TIMEOUT_LINK_STATUS));
+                        if (--u32Count == 0UL)
+                        {
+                            break;
+                        }
+                        if (ErrorTimeout == ETH_PHY_ReadRegister(pstcEthHandle, PHY_BSR, &u16PhyReg))
+                        {
+                            if (u32Count > u32PhyTimeout)
+                            {
+                                u32Count -= u32PhyTimeout;
+                            }
+                            else
+                            {
+                                u32Count = 1UL;
+                            }
+                        }
+                    } while (PHY_LINK_STATUS != (u16PhyReg & PHY_LINK_STATUS));
 
                     if ((0x0000U == u16PhyReg) || (0xFFFFU == u16PhyReg))
                     {
@@ -975,12 +995,25 @@ en_result_t ETH_Init(stc_eth_handle_t *pstcEthHandle, stc_eth_init_t *pstcEthIni
                         else
                         {
                             /* Wait until the auto-negotiation will be completed */
-                            u32TickStart = SysTick_GetTick();
+                            u32Count = ETH_TIMEOUT_AUTONEGO_COMPLETE * (HCLK_VALUE / 20000UL);
                             do
                             {
-                                ETH_PHY_ReadRegister(pstcEthHandle, PHY_BSR, &u16PhyReg);
-                            } while ((PHY_AUTONEGO_COMPLETE != (u16PhyReg & PHY_AUTONEGO_COMPLETE)) &&
-                                     ((SysTick_GetTick() - u32TickStart) <= ETH_TIMEOUT_AUTONEGO_COMPLETE));
+                                if (--u32Count == 0UL)
+                                {
+                                    break;
+                                }
+                                if (ErrorTimeout == ETH_PHY_ReadRegister(pstcEthHandle, PHY_BSR, &u16PhyReg))
+                                {
+                                    if (u32Count > u32PhyTimeout)
+                                    {
+                                        u32Count -= u32PhyTimeout;
+                                    }
+                                    else
+                                    {
+                                        u32Count = 1UL;
+                                    }
+                                }
+                            } while (PHY_AUTONEGO_COMPLETE != (u16PhyReg & PHY_AUTONEGO_COMPLETE));
 
                             if (PHY_AUTONEGO_COMPLETE != (u16PhyReg & PHY_AUTONEGO_COMPLETE))
                             {
@@ -1027,7 +1060,7 @@ en_result_t ETH_Init(stc_eth_handle_t *pstcEthHandle, stc_eth_init_t *pstcEthIni
                     else
                     {
                         /* Delay to assure PHY configuration */
-                        SysTick_Delay(PHY_CONFIG_DELAY);
+                        DDL_Delay1ms(PHY_CONFIG_DELAY);
                     }
                 }
             }
@@ -1082,12 +1115,12 @@ en_result_t ETH_CommStructInit(stc_eth_comm_init_t *pstcCommInit)
     {
         pstcCommInit->u16AutoNegotiation = ETH_AUTO_NEGOTIATION_ENABLE;
         pstcCommInit->u16PHYAddress      = PHY_ADDRESS;
-        pstcCommInit->u8MACAddr[0]       = ETH_MAC_ADDR0;
-        pstcCommInit->u8MACAddr[1]       = ETH_MAC_ADDR1;
-        pstcCommInit->u8MACAddr[2]       = ETH_MAC_ADDR2;
-        pstcCommInit->u8MACAddr[3]       = ETH_MAC_ADDR3;
-        pstcCommInit->u8MACAddr[4]       = ETH_MAC_ADDR4;
-        pstcCommInit->u8MACAddr[5]       = ETH_MAC_ADDR5;
+        pstcCommInit->au8MACAddr[0]      = ETH_MAC_ADDR0;
+        pstcCommInit->au8MACAddr[1]      = ETH_MAC_ADDR1;
+        pstcCommInit->au8MACAddr[2]      = ETH_MAC_ADDR2;
+        pstcCommInit->au8MACAddr[3]      = ETH_MAC_ADDR3;
+        pstcCommInit->au8MACAddr[4]      = ETH_MAC_ADDR4;
+        pstcCommInit->au8MACAddr[5]      = ETH_MAC_ADDR5;
         pstcCommInit->u32MediaInterface  = ETH_MAC_MEDIA_INTERFACE_MII;
         pstcCommInit->u32Speed           = ETH_MAC_SPEED_100M;
         pstcCommInit->u32DuplexMode      = ETH_MAC_MODE_FULLDUPLEX;
@@ -1131,18 +1164,21 @@ en_result_t ETH_StructInit(stc_eth_init_t *pstcEthInit)
  */
 en_result_t ETH_Start(void)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
 
-    /* Enable MAC Transmit */
-    ETH_MAC_TransmitCmd(Enable);
-    /* Enable MAC Receive */
-    ETH_MAC_ReceiveCmd(Enable);
     /* Flush Transmit FIFO */
     enRet = ETH_DMA_FlushTransmitFIFO();
-    /* Enable DMA Transmit */
-    ETH_DMA_TransmitCmd(Enable);
-    /* Enable DMA Receive */
-    ETH_DMA_ReceiveCmd(Enable);
+    if (Ok == enRet)
+    {
+        /* Enable MAC Transmit */
+        ETH_MAC_TransmitCmd(Enable);
+        /* Enable MAC Receive */
+        ETH_MAC_ReceiveCmd(Enable);
+        /* Enable DMA Transmit */
+        ETH_DMA_TransmitCmd(Enable);
+        /* Enable DMA Receive */
+        ETH_DMA_ReceiveCmd(Enable);
+    }
 
     return enRet;
 }
@@ -1164,10 +1200,10 @@ en_result_t ETH_Stop(void)
     ETH_DMA_ReceiveCmd(Disable);
     /* Disable MAC Receive */
     ETH_MAC_ReceiveCmd(Disable);
-    /* Flush Transmit FIFO */
-    enRet = ETH_DMA_FlushTransmitFIFO();
     /* Disable MAC Transmit */
     ETH_MAC_TransmitCmd(Disable);
+    /* Flush Transmit FIFO */
+    enRet = ETH_DMA_FlushTransmitFIFO();
 
     return enRet;
 }
@@ -1181,7 +1217,8 @@ en_result_t ETH_Stop(void)
  * @param  [in] pstcEthHandle               Pointer to a @ref stc_eth_handle_t structure
  * @param  [in] u16Reg                      PHY register address
  *         This parameter can be one of the following values:
- *           @arg PHY_BCR:  PHY Basic Control Register
+ *           @arg PHY_BCR:      PHY Basic Control Register
+ *           @arg other value:  The value range from 1 to 31
  * @param  [in] u16RegVal                   PHY register value
  * @retval An en_result_t enumeration value:
  *           - Ok: Write register success
@@ -1190,9 +1227,8 @@ en_result_t ETH_Stop(void)
  */
 en_result_t ETH_PHY_WriteRegister(stc_eth_handle_t *pstcEthHandle, uint16_t u16Reg, uint16_t u16RegVal)
 {
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
-    uint32_t u32TickStart = 0UL;
-    __IO uint32_t u32TempReg = 0UL;
 
     if (NULL == pstcEthHandle)
     {
@@ -1202,27 +1238,25 @@ en_result_t ETH_PHY_WriteRegister(stc_eth_handle_t *pstcEthHandle, uint16_t u16R
     {
         /* Check parameters */
         DDL_ASSERT(IS_ETH_PHY_ADDRESS(pstcEthHandle->stcCommInit.u16PHYAddress));
+        DDL_ASSERT(IS_ETH_PHY_REGISTER(u16Reg));
 
         /* Set the MAC_SMIDATR register */
         WRITE_REG32(M4_ETH->MAC_SMIDATR, u16RegVal);
         /* Set the MAC_SMIADDR register */
         /* Keep only the MDC Clock Range SMIC[3:0] bits value */
         MODIFY_REG32(M4_ETH->MAC_SMIADDR, ETH_MAC_SMIADDR_CLEAR_MASK,
-                    ((((uint32_t)(pstcEthHandle->stcCommInit.u16PHYAddress) << ETH_MAC_SMIADDR_SMIA_POS) & ETH_MAC_SMIADDR_SMIA) |
-                    (((uint32_t)u16Reg << ETH_MAC_SMIADDR_SMIR_POS) & ETH_MAC_SMIADDR_SMIR) |
-                    ETH_MAC_SMIADDR_SMIW | ETH_MAC_SMIADDR_SMIB));
+                    (((uint32_t)(pstcEthHandle->stcCommInit.u16PHYAddress) << ETH_MAC_SMIADDR_SMIA_POS) |
+                    ((uint32_t)u16Reg << ETH_MAC_SMIADDR_SMIR_POS) | ETH_MAC_SMIADDR_SMIW | ETH_MAC_SMIADDR_SMIB));
         /* Check for the Busy flag */
-        u32TickStart = SysTick_GetTick();
+        u32Count = PHY_WRITE_TIMEOUT * (HCLK_VALUE / 20000UL);
         do
         {
-            u32TempReg = M4_ETH->MAC_SMIADDR;
-        } while ((u32TempReg & ETH_MAC_SMIADDR_SMIB) &&
-                 ((SysTick_GetTick() - u32TickStart) <= PHY_WRITE_TIMEOUT));
-
-        if (0UL != (u32TempReg & ETH_MAC_SMIADDR_SMIB))
-        {
-            enRet = ErrorTimeout;
-        }
+            if (--u32Count == 0UL)
+            {
+                enRet = ErrorTimeout;
+                break;
+            }
+        } while (0UL != READ_REG32_BIT(M4_ETH->MAC_SMIADDR, ETH_MAC_SMIADDR_SMIB));
     }
 
     return enRet;
@@ -1234,8 +1268,9 @@ en_result_t ETH_PHY_WriteRegister(stc_eth_handle_t *pstcEthHandle, uint16_t u16R
  * @param  [in] pstcEthHandle               Pointer to a @ref stc_eth_handle_t structure
  * @param  [in] u16Reg                      PHY register address
  *         This parameter can be one of the following values:
- *           @arg PHY_BCR:  PHY Basic Control Register
- *           @arg PHY_BSR:  PHY Basic Status Register
+ *           @arg PHY_BCR:      PHY Basic Control Register
+ *           @arg PHY_BSR:      PHY Basic Status Register
+ *           @arg other value:  The value range from 2 to 31
  * @param  [out] pu16RegVal                 Pointer to PHY register value
  * @retval An en_result_t enumeration value:
  *           - Ok: Read register success
@@ -1244,9 +1279,8 @@ en_result_t ETH_PHY_WriteRegister(stc_eth_handle_t *pstcEthHandle, uint16_t u16R
  */
 en_result_t ETH_PHY_ReadRegister(stc_eth_handle_t *pstcEthHandle, uint16_t u16Reg, uint16_t *pu16RegVal)
 {
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
-    uint32_t u32TickStart = 0UL;
-    __IO uint32_t u32TempReg = 0UL;
 
     if ((NULL == pstcEthHandle) || (NULL == pu16RegVal))
     {
@@ -1256,26 +1290,25 @@ en_result_t ETH_PHY_ReadRegister(stc_eth_handle_t *pstcEthHandle, uint16_t u16Re
     {
         /* Check parameters */
         DDL_ASSERT(IS_ETH_PHY_ADDRESS(pstcEthHandle->stcCommInit.u16PHYAddress));
+        DDL_ASSERT(IS_ETH_PHY_REGISTER(u16Reg));
 
         /* Set the MAC_SMIADDR register */
         /* Keep only the MDC Clock Range SMIC[3:0] bits value */
         MODIFY_REG32(M4_ETH->MAC_SMIADDR, ETH_MAC_SMIADDR_CLEAR_MASK,
-                    ((((uint32_t)(pstcEthHandle->stcCommInit.u16PHYAddress) << ETH_MAC_SMIADDR_SMIA_POS) & ETH_MAC_SMIADDR_SMIA) |
-                    (((uint32_t)u16Reg << ETH_MAC_SMIADDR_SMIR_POS) & ETH_MAC_SMIADDR_SMIR) |
-                    ETH_MAC_SMIADDR_SMIB));
+                    (((uint32_t)(pstcEthHandle->stcCommInit.u16PHYAddress) << ETH_MAC_SMIADDR_SMIA_POS) |
+                    ((uint32_t)u16Reg << ETH_MAC_SMIADDR_SMIR_POS) | ETH_MAC_SMIADDR_SMIB));
         /* Check for the Busy flag */
-        u32TickStart = SysTick_GetTick();
+        u32Count = PHY_READ_TIMEOUT * (HCLK_VALUE / 20000UL);
         do
         {
-            u32TempReg = M4_ETH->MAC_SMIADDR;
-        } while ((u32TempReg & ETH_MAC_SMIADDR_SMIB) &&
-                 ((SysTick_GetTick() - u32TickStart) <= PHY_READ_TIMEOUT));
+            if (--u32Count == 0UL)
+            {
+                enRet = ErrorTimeout;
+                break;
+            }
+        } while (0UL != READ_REG32_BIT(M4_ETH->MAC_SMIADDR, ETH_MAC_SMIADDR_SMIB));
 
-        if (0UL != (u32TempReg & ETH_MAC_SMIADDR_SMIB))
-        {
-            enRet = ErrorTimeout;
-        }
-        else
+        if (ErrorTimeout != enRet)
         {
             /* Get the MAC_SMIDATR value */
             *pu16RegVal = (uint16_t)(READ_REG32(M4_ETH->MAC_SMIDATR));
@@ -1321,9 +1354,9 @@ en_result_t ETH_PHY_LoopBackCmd(stc_eth_handle_t *pstcEthHandle, en_functional_s
             {
                 CLEAR_REG16_BIT(u16RegVal, PHY_LOOPBACK);
             }
-            if (Ok == ETH_PHY_WriteRegister(pstcEthHandle, PHY_BCR, u16RegVal))
+            if (Ok != ETH_PHY_WriteRegister(pstcEthHandle, PHY_BCR, u16RegVal))
             {
-                enRet = Ok;
+                enRet = Error;
             }
         }
     }
@@ -1337,14 +1370,10 @@ en_result_t ETH_PHY_LoopBackCmd(stc_eth_handle_t *pstcEthHandle, en_functional_s
 /**
  * @brief  De-Initialize MAC.
  * @param  None
- * @retval An en_result_t enumeration value:
- *           - Ok: De-Initialize success
- *           - ErrorTimeout: De-Initialize timeout
+ * @retval None
  */
-en_result_t ETH_MAC_DeInit(void)
+void ETH_MAC_DeInit(void)
 {
-    en_result_t enRet = Ok;
-
     WRITE_REG32(M4_ETH->MAC_IFCONFR,  0UL);
     WRITE_REG32(M4_ETH->MAC_CONFIGR,  0x00008000UL);
     WRITE_REG32(M4_ETH->MAC_FLTCTLR,  0UL);
@@ -1365,8 +1394,6 @@ en_result_t ETH_MAC_DeInit(void)
     WRITE_REG32(M4_ETH->MAC_L3ADDRR1, 0UL);
     WRITE_REG32(M4_ETH->MAC_L3ADDRR2, 0UL);
     WRITE_REG32(M4_ETH->MAC_L3ADDRR3, 0UL);
-
-    return enRet;
 }
 
 /**
@@ -1477,10 +1504,10 @@ en_result_t ETH_MAC_Init(stc_eth_handle_t *pstcEthHandle, const stc_eth_mac_init
                          pstcMacInit->u32L4PortFilterProtocol | pstcMacInit->u32L3Ipv6AddrFilterMask |
                          pstcMacInit->u32L3DAFilter           | pstcMacInit->u32L3SAFilter           |
                          pstcMacInit->u32L3AddrFilterProtocol));
-            WRITE_REG32(M4_ETH->MAC_L3ADDRR0, pstcMacInit->u32L3Ipv6AddrFilterValue[0]);
-            WRITE_REG32(M4_ETH->MAC_L3ADDRR1, pstcMacInit->u32L3Ipv6AddrFilterValue[1]);
-            WRITE_REG32(M4_ETH->MAC_L3ADDRR2, pstcMacInit->u32L3Ipv6AddrFilterValue[2]);
-            WRITE_REG32(M4_ETH->MAC_L3ADDRR3, pstcMacInit->u32L3Ipv6AddrFilterValue[3]);
+            WRITE_REG32(M4_ETH->MAC_L3ADDRR0, pstcMacInit->au32L3Ipv6AddrFilterValue[0]);
+            WRITE_REG32(M4_ETH->MAC_L3ADDRR1, pstcMacInit->au32L3Ipv6AddrFilterValue[1]);
+            WRITE_REG32(M4_ETH->MAC_L3ADDRR2, pstcMacInit->au32L3Ipv6AddrFilterValue[2]);
+            WRITE_REG32(M4_ETH->MAC_L3ADDRR3, pstcMacInit->au32L3Ipv6AddrFilterValue[3]);
         }
         /* IPv4 protocol*/
         else
@@ -1493,11 +1520,11 @@ en_result_t ETH_MAC_Init(stc_eth_handle_t *pstcEthHandle, const stc_eth_mac_init
             WRITE_REG32(M4_ETH->MAC_L3ADDRR0, pstcMacInit->u32L3Ipv4SAFilterValue);
             WRITE_REG32(M4_ETH->MAC_L3ADDRR1, pstcMacInit->u32L3Ipv4DAFilterValue);
         }
-        WRITE_REG32(M4_ETH->MAC_L4PORTR, ((((uint32_t)pstcMacInit->u16L4DestProtFilterValue) << 16U) |
+        WRITE_REG32(M4_ETH->MAC_L4PORTR, ((((uint32_t)pstcMacInit->u16L4DestProtFilterValue) << ETH_MAC_L4PORTR_L4DPVAL_POS) |
                     pstcMacInit->u16L4SourceProtFilterValue));
 
         /* Config MAC address in ETH MAC0 */
-        ETH_MACADDR_SetAddress(ETH_MAC_ADDRESS0, pstcEthHandle->stcCommInit.u8MACAddr);
+        ETH_MACADDR_SetAddress(ETH_MAC_ADDRESS0, pstcEthHandle->stcCommInit.au8MACAddr);
     }
 
     return enRet;
@@ -1576,7 +1603,7 @@ en_result_t ETH_MAC_StructInit(stc_eth_mac_init_t *pstcMacInit)
         pstcMacInit->u32L3Ipv4SAFilterValue     = 0UL;
         for (i=0U; i<4U; i++)
         {
-            pstcMacInit->u32L3Ipv6AddrFilterValue[i] = 0UL;
+            pstcMacInit->au32L3Ipv6AddrFilterValue[i] = 0UL;
         }
     }
 
@@ -1689,25 +1716,25 @@ void ETH_MAC_SetIpv4SrcAddrFilterVal(uint32_t u32Addr)
 
 /**
  * @brief  Set L3 Destination/Source Address filter value of IPv6.
- * @param  [in] pu32Addr                    Pointer to Destination/Source Address buffer(4 words).
+ * @param  [in] au32Addr                    Pointer to Destination/Source Address buffer(4 words).
  * @retval An en_result_t enumeration value:
  *           - Ok: Set Address filter value success
- *           - ErrorInvalidParameter: pu32Addr == NULL
+ *           - ErrorInvalidParameter: au32Addr == NULL
  */
-en_result_t ETH_MAC_SetIpv6AddrFilterVal(const uint32_t pu32Addr[])
+en_result_t ETH_MAC_SetIpv6AddrFilterVal(const uint32_t au32Addr[])
 {
     en_result_t enRet = Ok;
 
-    if (NULL == pu32Addr)
+    if (NULL == au32Addr)
     {
         enRet = ErrorInvalidParameter;
     }
     else
     {
-        WRITE_REG32(M4_ETH->MAC_L3ADDRR0, pu32Addr[0]);
-        WRITE_REG32(M4_ETH->MAC_L3ADDRR1, pu32Addr[1]);
-        WRITE_REG32(M4_ETH->MAC_L3ADDRR2, pu32Addr[2]);
-        WRITE_REG32(M4_ETH->MAC_L3ADDRR3, pu32Addr[3]);
+        WRITE_REG32(M4_ETH->MAC_L3ADDRR0, au32Addr[0]);
+        WRITE_REG32(M4_ETH->MAC_L3ADDRR1, au32Addr[1]);
+        WRITE_REG32(M4_ETH->MAC_L3ADDRR2, au32Addr[2]);
+        WRITE_REG32(M4_ETH->MAC_L3ADDRR3, au32Addr[3]);
     }
 
     return enRet;
@@ -1724,18 +1751,7 @@ void ETH_MAC_LoopBackCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->MAC_CONFIGR_b.LM = enNewSta;
-}
-
-/**
- * @brief  Generate MAC pause control frame.
- * @param  [in] enNewSta                    The function new state.
- *           @arg This parameter can be: Enable or Disable.
- * @retval None
- */
-void ETH_MAC_GeneratePauseCtrlFrame(void)
-{
-    bM4_ETH->MAC_FLOCTLR_b.FCA_BPA = Enable;
+    WRITE_REG32(bM4_ETH->MAC_CONFIGR_b.LM, enNewSta);
 }
 
 /**
@@ -1749,7 +1765,7 @@ void ETH_MAC_BackPressureCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->MAC_FLOCTLR_b.FCA_BPA = enNewSta;
+    WRITE_REG32(bM4_ETH->MAC_FLOCTLR_b.FCA_BPA, enNewSta);
 }
 
 /**
@@ -1763,7 +1779,7 @@ void ETH_MAC_TransmitCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->MAC_CONFIGR_b.TE = enNewSta;
+    WRITE_REG32(bM4_ETH->MAC_CONFIGR_b.TE, enNewSta);
 }
 
 /**
@@ -1777,7 +1793,7 @@ void ETH_MAC_ReceiveCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->MAC_CONFIGR_b.RE = enNewSta;
+    WRITE_REG32(bM4_ETH->MAC_CONFIGR_b.RE, enNewSta);
 }
 
 /**
@@ -1834,18 +1850,6 @@ en_flag_status_t ETH_MAC_GetIntStatus(uint32_t u32Flag)
     return enFlagSta;
 }
 
-/**
- * @brief  Get MAC flow control status.
- * @param  None
- * @retval An en_flag_status_t enumeration value:
- *           - Set: Flag is set
- *           - Reset: Flag is reset
- */
-en_flag_status_t ETH_MAC_GetFlowCtrlStatus(void)
-{
-    return ((en_flag_status_t)bM4_ETH->MAC_FLOCTLR_b.FCA_BPA);
-}
-
 /******************************************************************************/
 /*                          MAC Address Functions                             */
 /******************************************************************************/
@@ -1858,12 +1862,10 @@ en_flag_status_t ETH_MAC_GetFlowCtrlStatus(void)
  *           @arg ETH_MAC_ADDRESS2:         MAC address 2
  *           @arg ETH_MAC_ADDRESS3:         MAC address 3
  *           @arg ETH_MAC_ADDRESS4:         MAC address 4
- * @retval An en_result_t enumeration value:
- *           - Ok: MAC Address De-Initialize success
+ * @retval None
  */
-en_result_t ETH_MACADDR_DeInit(uint32_t u32Index)
+void ETH_MACADDR_DeInit(uint32_t u32Index)
 {
-    en_result_t enRet = Ok;
     __IO uint32_t *MACADHR;
     __IO uint32_t *MACADLR;
     uint32_t u32MacHigh = 0x0000FFFFUL;
@@ -1878,8 +1880,6 @@ en_result_t ETH_MACADDR_DeInit(uint32_t u32Index)
     }
     WRITE_REG32(*MACADHR, u32MacHigh);
     WRITE_REG32(*MACADLR, 0xFFFFFFFFUL);
-
-    return enRet;
 }
 
 /**
@@ -1902,6 +1902,7 @@ en_result_t ETH_MACADDR_Init(uint32_t u32Index, const stc_eth_mac_addr_config_t 
     __IO uint32_t *MACADHR;
     __IO uint32_t *MACADLR;
     uint32_t u32TempReg = 0UL;
+    uint32_t *pu32AddrLow = NULL;
 
     if (NULL == pstcMacAddrInit)
     {
@@ -1917,18 +1918,15 @@ en_result_t ETH_MACADDR_Init(uint32_t u32Index, const stc_eth_mac_addr_config_t 
         MACADHR = (__IO uint32_t *)ETH_MAC_MACADHRx(u32Index);
         MACADLR = (__IO uint32_t *)ETH_MAC_MACADLRx(u32Index);
         /* Set MAC address high register */
-        u32TempReg = ((uint32_t)pstcMacAddrInit->u8MacAddr[5] << 8U) | (uint32_t)pstcMacAddrInit->u8MacAddr[4];
+        u32TempReg = ((uint32_t)pstcMacAddrInit->au8MACAddr[5] << 8U) | (uint32_t)pstcMacAddrInit->au8MACAddr[4];
         if (ETH_MAC_ADDRESS0 != u32Index)
         {
             u32TempReg |= pstcMacAddrInit->u32MacAddrFilter | pstcMacAddrInit->u32MacAddrMask;
         }
         WRITE_REG32(*MACADHR, u32TempReg);
         /* Set MAC address low register */
-        u32TempReg = ((uint32_t)pstcMacAddrInit->u8MacAddr[3] << 24U) |
-                     ((uint32_t)pstcMacAddrInit->u8MacAddr[2] << 16U) |
-                     ((uint32_t)pstcMacAddrInit->u8MacAddr[1] << 8U)  |
-                     (uint32_t)pstcMacAddrInit->u8MacAddr[0];
-        WRITE_REG32(*MACADLR, u32TempReg);
+        pu32AddrLow = (uint32_t *)((uint32_t)&(pstcMacAddrInit->au8MACAddr[0]));
+        WRITE_REG32(*MACADLR, *pu32AddrLow);
     }
 
     return enRet;
@@ -1956,7 +1954,7 @@ en_result_t ETH_MACADDR_StructInit(stc_eth_mac_addr_config_t *pstcMacAddrInit)
         pstcMacAddrInit->u32MacAddrMask = ETH_MAC_ADDRESS_MASK_DISABLE;
         for (i=0U; i<ETH_MAC_ADDRESS_BYTE_LENGTH; i++)
         {
-            pstcMacAddrInit->u8MacAddr[i] = 0x00U;
+            pstcMacAddrInit->au8MACAddr[i] = 0x00U;
         }
     }
 
@@ -1972,19 +1970,20 @@ en_result_t ETH_MACADDR_StructInit(stc_eth_mac_addr_config_t *pstcMacAddrInit)
  *           @arg ETH_MAC_ADDRESS2:         MAC address 2
  *           @arg ETH_MAC_ADDRESS3:         MAC address 3
  *           @arg ETH_MAC_ADDRESS4:         MAC address 4
- * @param  [in] pu8Addr                     Pointer to MAC address buffer(6 bytes).
+ * @param  [in] au8Addr                     Pointer to MAC address buffer(6 bytes).
  * @retval An en_result_t enumeration value:
  *           - Ok: Set address success
- *           - ErrorInvalidParameter: pu8Addr == NULL
+ *           - ErrorInvalidParameter: au8Addr == NULL
  */
-en_result_t ETH_MACADDR_SetAddress(uint32_t u32Index, const uint8_t pu8Addr[])
+en_result_t ETH_MACADDR_SetAddress(uint32_t u32Index, uint8_t au8Addr[])
 {
     en_result_t enRet = Ok;
     __IO uint32_t *MACADHR;
     __IO uint32_t *MACADLR;
     uint32_t u32TempReg = 0UL;
+    uint32_t *pu32AddrLow = NULL;
 
-    if (NULL == pu8Addr)
+    if (NULL == au8Addr)
     {
         enRet = ErrorInvalidParameter;
     }
@@ -1996,12 +1995,11 @@ en_result_t ETH_MACADDR_SetAddress(uint32_t u32Index, const uint8_t pu8Addr[])
         MACADHR = (__IO uint32_t *)ETH_MAC_MACADHRx(u32Index);
         MACADLR = (__IO uint32_t *)ETH_MAC_MACADLRx(u32Index);
         /* Set MAC address high register */
-        u32TempReg = ((uint32_t)pu8Addr[5] << 8U) | (uint32_t)pu8Addr[4];
+        u32TempReg = ((uint32_t)au8Addr[5] << 8U) | (uint32_t)au8Addr[4];
         WRITE_REG32(*MACADHR, u32TempReg);
         /* Set MAC address low register */
-        u32TempReg = ((uint32_t)pu8Addr[3] << 24U) | ((uint32_t)pu8Addr[2] << 16U) |
-                     ((uint32_t)pu8Addr[1] << 8U)  | (uint32_t)pu8Addr[0];
-        WRITE_REG32(*MACADLR, u32TempReg);
+        pu32AddrLow = (uint32_t *)((uint32_t)&(au8Addr[0]));
+        WRITE_REG32(*MACADLR, *pu32AddrLow);
     }
 
     return enRet;
@@ -2016,19 +2014,20 @@ en_result_t ETH_MACADDR_SetAddress(uint32_t u32Index, const uint8_t pu8Addr[])
  *           @arg ETH_MAC_ADDRESS2:         MAC address 2
  *           @arg ETH_MAC_ADDRESS3:         MAC address 3
  *           @arg ETH_MAC_ADDRESS4:         MAC address 4
- * @param  [out] pu8Addr                    Pointer to MAC address buffer(6 bytes).
+ * @param  [out] au8Addr                    Pointer to MAC address buffer(6 bytes).
  * @retval An en_result_t enumeration value:
  *           - Ok: Set address success
- *           - ErrorInvalidParameter: pu8Addr == NULL
+ *           - ErrorInvalidParameter: au8Addr == NULL
  */
-en_result_t ETH_MACADDR_GetAddress(uint32_t u32Index, uint8_t pu8Addr[])
+en_result_t ETH_MACADDR_GetAddress(uint32_t u32Index, uint8_t au8Addr[])
 {
     en_result_t enRet = Ok;
     __IO uint32_t *MACADHR;
     __IO uint32_t *MACADLR;
     uint32_t u32TempReg = 0UL;
+    uint32_t *pu32AddrLow = NULL;
 
-    if (NULL == pu8Addr)
+    if (NULL == au8Addr)
     {
         enRet = ErrorInvalidParameter;
     }
@@ -2041,14 +2040,11 @@ en_result_t ETH_MACADDR_GetAddress(uint32_t u32Index, uint8_t pu8Addr[])
         MACADLR    = (__IO uint32_t *)ETH_MAC_MACADLRx(u32Index);
         /* Get MAC address high */
         u32TempReg = READ_REG32(*MACADHR);
-        pu8Addr[5] = (uint8_t)((u32TempReg >> 8U) & 0x000000FFUL);
-        pu8Addr[4] = (uint8_t)(u32TempReg & 0x000000FFUL);
+        au8Addr[5] = (uint8_t)((u32TempReg >> 8U) & 0x000000FFUL);
+        au8Addr[4] = (uint8_t)(u32TempReg & 0x000000FFUL);
         /* Get MAC address low */
-        u32TempReg = READ_REG32(*MACADLR);
-        pu8Addr[3] = (uint8_t)((u32TempReg >> 24U) & 0x000000FFUL);
-        pu8Addr[2] = (uint8_t)((u32TempReg >> 16U) & 0x000000FFUL);
-        pu8Addr[1] = (uint8_t)((u32TempReg >> 8U)  & 0x000000FFUL);
-        pu8Addr[0] = (uint8_t)(u32TempReg & 0x000000FFUL);
+        pu32AddrLow = (uint32_t *)((uint32_t)&(au8Addr[0]));
+        *pu32AddrLow = READ_REG32(*MACADLR);
     }
 
     return enRet;
@@ -2120,21 +2116,16 @@ void ETH_MACADDR_SetFilterMask(uint32_t u32Index, uint32_t u32Mask)
 /**
  * @brief  De-Initialize DMA.
  * @param  None
- * @retval An en_result_t enumeration value:
- *           - Ok: DMA De-Initialize success
+ * @retval None
  */
-en_result_t ETH_DMA_DeInit(void)
+void ETH_DMA_DeInit(void)
 {
-    en_result_t enRet = Ok;
-
-    WRITE_REG32(M4_ETH->DMA_BUSMODR, 0x00020101U);
+    WRITE_REG32(M4_ETH->DMA_BUSMODR, 0x00020101UL);
     WRITE_REG32(M4_ETH->DMA_OPRMODR, 0U);
     WRITE_REG32(M4_ETH->DMA_INTENAR, 0U);
     WRITE_REG32(M4_ETH->DMA_REVWDTR, 0U);
     WRITE_REG32(M4_ETH->DMA_TXDLADR, 0U);
     WRITE_REG32(M4_ETH->DMA_RXDLADR, 0U);
-
-    return enRet;
 }
 
 /**
@@ -2207,7 +2198,7 @@ en_result_t ETH_DMA_StructInit(stc_eth_dma_init_t *pstcDmaInit)
     else
     {
         pstcDmaInit->u32BurstMode                 = ETH_DMA_BURST_MODE_FIXED;
-        pstcDmaInit->u32AddressAlign              = ETH_DMA_ADDRESS_ALIGN_ENABLE;
+        pstcDmaInit->u32AddressAlign              = ETH_DMA_ADDRESS_ALIGN_DISABLE;
         pstcDmaInit->u32RxDMABurstLength          = ETH_DMA_RX_BURST_LENGTH_32BEAT;
         pstcDmaInit->u32TxDMABurstLength          = ETH_DMA_TX_BURST_LENGTH_32BEAT;
         pstcDmaInit->u32EnhanceDescriptor         = ETH_DMA_ENHANCE_DESCRIPTOR_ENABLE;
@@ -2237,44 +2228,21 @@ en_result_t ETH_DMA_StructInit(stc_eth_dma_init_t *pstcDmaInit)
  */
 en_result_t ETH_DMA_SoftwareReset(void)
 {
-    __IO uint32_t u32RegSta;
-    uint32_t u32TickStart = 0UL;
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
-    bM4_ETH->DMA_BUSMODR_b.SWR = 1U;
-    u32TickStart = SysTick_GetTick();
+    WRITE_REG32(bM4_ETH->DMA_BUSMODR_b.SWR, 1U);
+    u32Count = ETH_TIMEOUT_SOFTWARE_RESET * (HCLK_VALUE / 20000UL);
     do
     {
-        u32RegSta = bM4_ETH->DMA_BUSMODR_b.SWR;
-    } while ((0UL != u32RegSta) &&
-             ((SysTick_GetTick() - u32TickStart) <= ETH_TIMEOUT_SOFTWARE_RESET));
-
-    if (0UL != u32RegSta)
-    {
-        enRet = ErrorTimeout;
-    }
+        if (--u32Count == 0UL)
+        {
+            enRet = ErrorTimeout;
+            break;
+        }
+    } while (0UL != READ_REG32(bM4_ETH->DMA_BUSMODR_b.SWR));
 
     return enRet;
-}
-
-/**
- * @brief  Resume the DMA Transmit.
- * @param  None
- * @retval None
- */
-void ETH_DMA_ResumeTransmit(void)
-{
-    WRITE_REG32(M4_ETH->DMA_TXPOLLR, 0U);
-}
-
-/**
- * @brief  Resume the DMA Receive.
- * @param  None
- * @retval None
- */
-void ETH_DMA_ResumeReceive(void)
-{
-    WRITE_REG32(M4_ETH->DMA_RXPOLLR, 0U);
 }
 
 /**
@@ -2322,22 +2290,19 @@ void ETH_DMA_SetRxWatchdogCounter(uint8_t u8Value)
  */
 en_result_t ETH_DMA_FlushTransmitFIFO(void)
 {
-    __IO uint32_t u32RegSta;
-    uint32_t u32TickStart = 0UL;
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
-    bM4_ETH->DMA_OPRMODR_b.FTF = 1U;
-    u32TickStart = SysTick_GetTick();
+    WRITE_REG32(bM4_ETH->DMA_OPRMODR_b.FTF, 1U);
+    u32Count = ETH_TIMEOUT_WRITE_REGISTER * (HCLK_VALUE / 20000UL);
     do
     {
-        u32RegSta = bM4_ETH->DMA_OPRMODR_b.FTF;
-    } while ((0UL != u32RegSta) &&
-             ((SysTick_GetTick() - u32TickStart) <= ETH_TIMEOUT_WRITE_REGISTER));
-
-    if (0UL != u32RegSta)
-    {
-        enRet = ErrorTimeout;
-    }
+        if (--u32Count == 0UL)
+        {
+            enRet = ErrorTimeout;
+            break;
+        }
+    } while (0UL != READ_REG32(bM4_ETH->DMA_OPRMODR_b.FTF));
 
     return enRet;
 }
@@ -2353,7 +2318,7 @@ void ETH_DMA_TransmitCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->DMA_OPRMODR_b.STT = enNewSta;
+    WRITE_REG32(bM4_ETH->DMA_OPRMODR_b.STT, enNewSta);
 }
 
 /**
@@ -2367,7 +2332,7 @@ void ETH_DMA_ReceiveCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->DMA_OPRMODR_b.STR = enNewSta;
+    WRITE_REG32(bM4_ETH->DMA_OPRMODR_b.STR, enNewSta);
 }
 
 /**
@@ -2451,59 +2416,6 @@ en_flag_status_t ETH_DMA_GetStatus(uint32_t u32Flag)
 }
 
 /**
- * @brief  Get DMA error status.
- * @param  None
- * @retval uint32_t                         The new DMA error status
- *         The error status may be one of the following values:
- *           - ETH_DMA_ERRORSTATE_RX_WRITEDATA:   TxDMA generates error while reading descriptor
- *           - ETH_DMA_ERRORSTATE_TX_READDATA:    TxDMA generates error while reading descriptor
- *           - ETH_DMA_ERRORSTATE_RX_WRITEDESC:   TxDMA generates error while reading descriptor
- *           - ETH_DMA_ERRORSTATE_TX_WRITEDESC:   TxDMA generates error while reading descriptor
- *           - ETH_DMA_ERRORSTATE_RX_READDESC:    TxDMA generates error while reading descriptor
- *           - ETH_DMA_ERRORSTATE_TX_READDESC:    TxDMA generates error while reading descriptor
- */
-uint32_t ETH_DMA_GetErrorStatus(void)
-{
-    return (READ_REG32_BIT(M4_ETH->DMA_DMASTSR, ETH_DMA_DMASTSR_EBUS));
-}
-
-/**
- * @brief  Get DMA transmit status.
- * @param  None
- * @retval uint32_t                         The new DMA transmit status
- *           The transmit status may be one of the following values:
- *           - ETH_DMA_TRANSMITSTATE_STOPPED:     Stopped - Reset or Stop Tx Command issued
- *           - ETH_DMA_TRANSMITSTATE_FETCHING:    Running - Fetching the Tx descriptor
- *           - ETH_DMA_TRANSMITSTATE_WAITING:     Running - Waiting for status
- *           - ETH_DMA_TRANSMITSTATE_READING:     Running - Reading the data from host memory
- *           - ETH_DMA_TRANSMITSTATE_WRITING:     Running - Writing the time stamp
- *           - ETH_DMA_TRANSMITSTATE_SUSPENDED:   Suspended - Tx Descriptor unavailable
- *           - ETH_DMA_TRANSMITSTATE_CLOSING:     Running - Closing Rx descriptor
- */
-uint32_t ETH_DMA_GetTransmitStatus(void)
-{
-    return (READ_REG32_BIT(M4_ETH->DMA_DMASTSR, ETH_DMA_DMASTSR_TSTS));
-}
-
-/**
- * @brief  Get DMA receive status.
- * @param  None
- * @retval uint32_t                         The new DMA receive status
- *           The receive status may be one of the following values:
- *           - ETH_DMA_RECEIVESTATE_STOPPED:      Stopped - Reset or Stop Rx Command issued
- *           - ETH_DMA_RECEIVESTATE_FETCHING:     Running - Fetching the Rx descriptor
- *           - ETH_DMA_RECEIVESTATE_WAITING:      Running - Waiting for packet
- *           - ETH_DMA_RECEIVESTATE_SUSPENDED:    Suspended - Rx Descriptor unavailable
- *           - ETH_DMA_RECEIVESTATE_CLOSING:      Running - Closing descriptor
- *           - ETH_DMA_RECEIVESTATE_WRITING:      Running - Writing the time stamp
- *           - ETH_DMA_RECEIVESTATE_QUEUING:      Running - Queuing the receive frame into host memory
- */
-uint32_t ETH_DMA_GetReceiveStatus(void)
-{
-    return (READ_REG32_BIT(M4_ETH->DMA_DMASTSR, ETH_DMA_DMASTSR_RSTS));
-}
-
-/**
  * @brief  Get DMA overflow flag status.
  * @param  [in] u32Flag                     DMA overflow flag type
  *         This parameter can be one of the following values:
@@ -2528,102 +2440,43 @@ en_flag_status_t ETH_DMA_GetOvfStatus(uint32_t u32Flag)
     return enFlagSta;
 }
 
-/**
- * @brief  Get DMA Rx Overflow Missed Frame Counter value.
- * @param  None
- * @retval uint32_t                         Rx Overflow Missed Frame Counter value
- */
-uint32_t ETH_DMA_GetRxOvfMissFrameCnt(void)
-{
-    return ((READ_REG32_BIT(M4_ETH->DMA_RFRCNTR, ETH_DMA_RFRCNTR_OVFCNT)) >> ETH_DMA_RX_OVERFLOW_MISSEDFRAME_COUNTERSHIFT);
-}
-
-/**
- * @brief  Get DMA Buffer Unavailable Missed Frame Counter value.
- * @param  None
- * @retval uint32_t                         Buffer Unavailable Missed Frame Counter value
- */
-uint32_t ETH_DMA_GetBufferUnavaiMissFrameCnt(void)
-{
-    return (READ_REG32_BIT(M4_ETH->DMA_RFRCNTR, ETH_DMA_RFRCNTR_UNACNT));
-}
-
-/**
- * @brief  Get DMA current Tx descriptor start address.
- * @param  None
- * @retval uint32_t                         Transmit descriptor start address
- */
-uint32_t ETH_DMA_GetCurTxDescAddr(void)
-{
-    return (READ_REG32(M4_ETH->DMA_CHTXDER));
-}
-
-/**
- * @brief  Get DMA current Rx descriptor start address.
- * @param  None
- * @retval uint32_t                         Receive descriptor start address
- */
-uint32_t ETH_DMA_GetCurRxDescAddr(void)
-{
-    return (READ_REG32(M4_ETH->DMA_CHRXDER));
-}
-
-/**
- * @brief  Get DMA current Tx buffer address.
- * @param  None
- * @retval uint32_t                         Transmit buffer address
- */
-uint32_t ETH_DMA_GetCurTxBufferAddr(void)
-{
-    return (READ_REG32(M4_ETH->DMA_CHTXBFR));
-}
-
-/**
- * @brief  Get DMA current Rx buffer address.
- * @param  None
- * @retval uint32_t                         Receive buffer address
- */
-uint32_t ETH_DMA_GetCurRxBufferAddr(void)
-{
-    return (READ_REG32(M4_ETH->DMA_CHRXBFR));
-}
-
 /******************************************************************************/
 /*                          DMA descriptor Functions                          */
 /******************************************************************************/
 /**
  * @brief  Initializes DMA Tx descriptor in chain mode.
  * @param  [in] pstcEthHandle               Pointer to a @ref stc_eth_handle_t structure
- * @param  [in] pstcTxDescTab               Pointer to the first Tx desc list
- * @param  [in] pu8TxBuffer                 Pointer to the first TxBuffer list
+ * @param  [in] astcTxDescTab               Pointer to the first Tx desc list
+ * @param  [in] au8TxBuffer                 Pointer to the first TxBuffer list
  * @param  [in] u32TxBufferCnt              Number of the Tx desc in the list
  * @retval An en_result_t enumeration value:
  *           - Ok: Initializes Tx chain mode success
- *           - ErrorInvalidParameter: pstcEthHandle == NULL or pstcTxDescTab == NULL or pu8TxBuffer == NULL
+ *           - ErrorInvalidParameter: pstcEthHandle == NULL or astcTxDescTab == NULL or
+ *                                    au8TxBuffer == NULL or u32TxBufferCnt == 0
  */
-en_result_t ETH_DMA_TxDescListInit(stc_eth_handle_t *pstcEthHandle, stc_eth_dma_desc_t *pstcTxDescTab, const uint8_t *pu8TxBuffer, uint32_t u32TxBufferCnt)
+en_result_t ETH_DMA_TxDescListInit(stc_eth_handle_t *pstcEthHandle, stc_eth_dma_desc_t astcTxDescTab[], const uint8_t au8TxBuffer[], uint32_t u32TxBufferCnt)
 {
     uint32_t i = 0U;
     stc_eth_dma_desc_t *pstcTxDesc;
     en_result_t enRet = Ok;
 
-    if ((NULL == pstcEthHandle) || (NULL == pstcTxDescTab) || (NULL == pu8TxBuffer))
+    if ((NULL == pstcEthHandle) || (NULL == astcTxDescTab) || (NULL == au8TxBuffer) || (0UL== u32TxBufferCnt))
     {
         enRet = ErrorInvalidParameter;
     }
     else
     {
-        /* Set the DMATxDesc pointer with the first in the pstcTxDescTab list */
-        pstcEthHandle->stcTxDesc = pstcTxDescTab;
+        /* Set the DMATxDesc pointer with the first in the astcTxDescTab list */
+        pstcEthHandle->stcTxDesc = astcTxDescTab;
 
         /* Fill each DMATxDesc descriptor */
         for (i=0U; i<u32TxBufferCnt; i++)
         {
-            pstcTxDesc = pstcTxDescTab + i;
+            pstcTxDesc = &astcTxDescTab[i];
             /* Set Second Address Chained */
             pstcTxDesc->u32ControlStatus = ETH_DMATXDESC_TSAC;
             /* Set Buffer1 address pointer */
-            pstcTxDesc->u32Buffer1Addr = (uint32_t)(&pu8TxBuffer[i * ETH_TXBUF_SIZE]);
+            pstcTxDesc->u32Buffer1Addr = (uint32_t)(&au8TxBuffer[i * ETH_TXBUF_SIZE]);
             /* Set the DMA Tx descriptors checksum insertion */
             if (ETH_MAC_CHECKSUM_MODE_HARDWARE == pstcEthHandle->stcCommInit.u32ChecksumMode)
             {
@@ -2633,16 +2486,16 @@ en_result_t ETH_DMA_TxDescListInit(stc_eth_handle_t *pstcEthHandle, stc_eth_dma_
             /* Initialize the next descriptor with the Next Descriptor Polling */
             if (i < (u32TxBufferCnt - 1U))
             {
-                pstcTxDesc->u32Buffer2NextDescAddr = (uint32_t)(pstcTxDescTab + i + 1U);
+                pstcTxDesc->u32Buffer2NextDescAddr = (uint32_t)(&astcTxDescTab[i + 1U]);
             }
             else
             {
-                pstcTxDesc->u32Buffer2NextDescAddr = (uint32_t)pstcTxDescTab;
+                pstcTxDesc->u32Buffer2NextDescAddr = (uint32_t)astcTxDescTab;
             }
         }
 
         /* Set Transmit Descriptor List Address Register */
-        WRITE_REG32(M4_ETH->DMA_TXDLADR, (uint32_t)pstcTxDescTab);
+        WRITE_REG32(M4_ETH->DMA_TXDLADR, (uint32_t)astcTxDescTab);
     }
 
     return enRet;
@@ -2651,38 +2504,39 @@ en_result_t ETH_DMA_TxDescListInit(stc_eth_handle_t *pstcEthHandle, stc_eth_dma_
 /**
  * @brief  Initializes DMA Rx descriptor in chain mode.
  * @param  [in] pstcEthHandle               Pointer to a @ref stc_eth_handle_t structure
- * @param  [in] pstcRxDescTab               Pointer to the first Rx desc list
- * @param  [in] pu8RxBuffer                 Pointer to the first RxBuffer list
+ * @param  [in] astcRxDescTab               Pointer to the first Rx desc list
+ * @param  [in] au8RxBuffer                 Pointer to the first RxBuffer list
  * @param  [in] u32RxBufferCnt              Number of the Rx desc in the list
  * @retval An en_result_t enumeration value:
  *           - Ok: Initializes Rx chain mode success
- *           - ErrorInvalidParameter: pstcEthHandle == NULL or pstcRxDescTab == NULL or pu8RxBuffer == NULL
+ *           - ErrorInvalidParameter: pstcEthHandle == NULL or astcRxDescTab == NULL or
+ *                                    au8RxBuffer == NULL or u32RxBufferCnt == 0
  */
-en_result_t ETH_DMA_RxDescListInit(stc_eth_handle_t *pstcEthHandle, stc_eth_dma_desc_t *pstcRxDescTab, const uint8_t *pu8RxBuffer, uint32_t u32RxBufferCnt)
+en_result_t ETH_DMA_RxDescListInit(stc_eth_handle_t *pstcEthHandle, stc_eth_dma_desc_t astcRxDescTab[], const uint8_t au8RxBuffer[], uint32_t u32RxBufferCnt)
 {
-    uint32_t i = 0U;
+    uint32_t i = 0UL;
     stc_eth_dma_desc_t *pstcRxDesc;
     en_result_t enRet = Ok;
 
-    if ((NULL == pstcEthHandle) || (NULL == pstcRxDescTab) || (NULL == pu8RxBuffer))
+    if ((NULL == pstcEthHandle) || (NULL == astcRxDescTab) || (NULL == au8RxBuffer) || (0UL == u32RxBufferCnt))
     {
         enRet = ErrorInvalidParameter;
     }
     else
     {
-        /* Set the DMARxDesc pointer with the first in the pstcRxDescTab list */
-        pstcEthHandle->stcRxDesc = pstcRxDescTab;
+        /* Set the DMARxDesc pointer with the first in the astcRxDescTab list */
+        pstcEthHandle->stcRxDesc = astcRxDescTab;
 
         /* Fill each DMARxDesc descriptor */
-        for (i=0U; i<u32RxBufferCnt; i++)
+        for (i=0UL; i<u32RxBufferCnt; i++)
         {
-            pstcRxDesc = pstcRxDescTab + i;
+            pstcRxDesc = &astcRxDescTab[i];
             /* Set Own bit of the Rx descriptor */
             pstcRxDesc->u32ControlStatus     = ETH_DMARXDESC_OWN;
             /* Set Buffer1 size and Second Address Chained */
             pstcRxDesc->u32ControlBufferSize = ETH_RXBUF_SIZE | ETH_DMARXDESC_RSAC;
             /* Set Buffer1 address pointer */
-            pstcRxDesc->u32Buffer1Addr       = (uint32_t)(&pu8RxBuffer[i * ETH_RXBUF_SIZE]);
+            pstcRxDesc->u32Buffer1Addr       = (uint32_t)(&au8RxBuffer[i * ETH_RXBUF_SIZE]);
             /* Set the DMA Rx Descriptor interrupt */
             if (ETH_RX_MODE_INTERRUPT == pstcEthHandle->stcCommInit.u32RxMode)
             {
@@ -2692,16 +2546,16 @@ en_result_t ETH_DMA_RxDescListInit(stc_eth_handle_t *pstcEthHandle, stc_eth_dma_
             /* Initialize the next descriptor with the Next Descriptor Polling */
             if (i < (u32RxBufferCnt - 1U))
             {
-                pstcRxDesc->u32Buffer2NextDescAddr = (uint32_t)(pstcRxDescTab + i + 1U);
+                pstcRxDesc->u32Buffer2NextDescAddr = (uint32_t)(&astcRxDescTab[i + 1U]);
             }
             else
             {
-                pstcRxDesc->u32Buffer2NextDescAddr = (uint32_t)pstcRxDescTab;
+                pstcRxDesc->u32Buffer2NextDescAddr = (uint32_t)astcRxDescTab;
             }
         }
 
         /* Set Receive Descriptor List Address Register */
-        WRITE_REG32(M4_ETH->DMA_RXDLADR, (uint32_t)pstcRxDescTab);
+        WRITE_REG32(M4_ETH->DMA_RXDLADR, (uint32_t)astcRxDescTab);
     }
 
     return enRet;
@@ -2749,7 +2603,7 @@ en_result_t ETH_DMA_SetTransmitFrame(stc_eth_handle_t *pstcEthHandle, uint32_t u
                 u32BufCnt = 1U;
             }
 
-            if (1u == u32BufCnt)
+            if (1U == u32BufCnt)
             {
                 /* Set FIRST and LAST segment */
                 SET_REG32_BIT(pstcEthHandle->stcTxDesc->u32ControlStatus, (ETH_DMATXDESC_TFS | ETH_DMATXDESC_TLS));
@@ -3360,24 +3214,24 @@ en_result_t ETH_DMA_GetTxDescCollisionCnt(const stc_eth_dma_desc_t *pstcTxDesc, 
 /**
  * @brief  Get DMA Tx descriptor timestamp.
  * @param  [in] pstcTxDesc                  Pointer to a DMA Tx descriptor @ref stc_eth_dma_desc_t
- * @param  [out] u32High                    Timestamp high bit time
- * @param  [out] u32Low                     Timestamp low bit time
+ * @param  [out] pu32High                   Timestamp high bit time
+ * @param  [out] pu32Low                    Timestamp low bit time
  * @retval An en_result_t enumeration value:
  *           - Ok: Get timestamp success
- *           - ErrorInvalidParameter: pstcTxDesc == NULL or u32High == NULL or u32Low == NULL
+ *           - ErrorInvalidParameter: pstcTxDesc == NULL or pu32High == NULL or pu32Low == NULL
  */
-en_result_t ETH_DMA_GetTxDescTimeStamp(const stc_eth_dma_desc_t *pstcTxDesc, uint32_t *u32High, uint32_t *u32Low)
+en_result_t ETH_DMA_GetTxDescTimeStamp(const stc_eth_dma_desc_t *pstcTxDesc, uint32_t *pu32High, uint32_t *pu32Low)
 {
     en_result_t enRet = Ok;
 
-    if ((NULL == pstcTxDesc) || (NULL == u32High) || (NULL == u32Low))
+    if ((NULL == pstcTxDesc) || (NULL == pu32High) || (NULL == pu32Low))
     {
         enRet = ErrorInvalidParameter;
     }
     else
     {
-        *u32Low  = pstcTxDesc->u32TimeStampLow;
-        *u32High = pstcTxDesc->u32TimeStampHigh;
+        *pu32Low  = pstcTxDesc->u32TimeStampLow;
+        *pu32High = pstcTxDesc->u32TimeStampHigh;
     }
 
     return enRet;
@@ -3667,24 +3521,24 @@ en_result_t ETH_DMA_GetRxDescBufferSize(const stc_eth_dma_desc_t *pstcRxDesc, ui
 /**
  * @brief  Get DMA Rx descriptor timestamp.
  * @param  [in] pstcRxDesc                  Pointer to a DMA Rx descriptor @ref stc_eth_dma_desc_t
- * @param  [out] u32High                    Timestamp high bit time
- * @param  [out] u32Low                     Timestamp low bit time
+ * @param  [out] pu32High                   Timestamp high bit time
+ * @param  [out] pu32Low                    Timestamp low bit time
  * @retval An en_result_t enumeration value:
  *           - Ok: Get timestamp success
- *           - ErrorInvalidParameter: pstcRxDesc == NULL or u32High == NULL or u32Low == NULL
+ *           - ErrorInvalidParameter: pstcRxDesc == NULL or pu32High == NULL or pu32Low == NULL
  */
-en_result_t ETH_DMA_GetRxDescTimeStamp(const stc_eth_dma_desc_t *pstcRxDesc, uint32_t *u32High, uint32_t *u32Low)
+en_result_t ETH_DMA_GetRxDescTimeStamp(const stc_eth_dma_desc_t *pstcRxDesc, uint32_t *pu32High, uint32_t *pu32Low)
 {
     en_result_t enRet = Ok;
 
-    if ((NULL == pstcRxDesc) || (NULL == u32High) || (NULL == u32Low))
+    if ((NULL == pstcRxDesc) || (NULL == pu32High) || (NULL == pu32Low))
     {
         enRet = ErrorInvalidParameter;
     }
     else
     {
-        *u32Low  = pstcRxDesc->u32TimeStampLow;
-        *u32High = pstcRxDesc->u32TimeStampHigh;
+        *pu32Low  = pstcRxDesc->u32TimeStampLow;
+        *pu32High = pstcRxDesc->u32TimeStampHigh;
     }
 
     return enRet;
@@ -3702,38 +3556,35 @@ en_result_t ETH_DMA_GetRxDescTimeStamp(const stc_eth_dma_desc_t *pstcRxDesc, uin
  */
 en_result_t ETH_PMT_ResetWakeupFramePointer(void)
 {
-    __IO uint32_t u32RegSta;
-    uint32_t u32TickStart = 0UL;
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
-    bM4_ETH->MAC_PMTCTLR_b.RTWKFR = 1U;
-    u32TickStart = SysTick_GetTick();
+    WRITE_REG32(bM4_ETH->MAC_PMTCTLR_b.RTWKFR, 1U);
+    u32Count = ETH_TIMEOUT_WRITE_REGISTER * (HCLK_VALUE / 20000UL);
     do
     {
-        u32RegSta = bM4_ETH->MAC_PMTCTLR_b.RTWKFR;
-    } while ((0UL != u32RegSta) &&
-             ((SysTick_GetTick() - u32TickStart) <= ETH_TIMEOUT_WRITE_REGISTER));
-
-    if (0UL != u32RegSta)
-    {
-        enRet = ErrorTimeout;
-    }
+        if (--u32Count == 0UL)
+        {
+            enRet = ErrorTimeout;
+            break;
+        }
+    } while (0UL != READ_REG32(bM4_ETH->MAC_PMTCTLR_b.RTWKFR));
 
     return enRet;
 }
 /**
  * @brief  Write PMT wakeup frame register.
- * @param  [in] pu32RegBuffer                Pointer to wakeup frame filter register buffer(8 words).
+ * @param  [in] au32RegBuffer                Pointer to wakeup frame filter register buffer(8 words).
  * @retval An en_result_t enumeration value:
  *           - Ok: Write register success
- *           - ErrorInvalidParameter: pu32RegBuffer == NULL
+ *           - ErrorInvalidParameter: au32RegBuffer == NULL
  */
-en_result_t ETH_PMT_WriteWakeupFrameRegister(const uint32_t pu32RegBuffer[])
+en_result_t ETH_PMT_WriteWakeupFrameRegister(const uint32_t au32RegBuffer[])
 {
     uint32_t i = 0U;
     en_result_t enRet = Ok;
 
-    if (NULL == pu32RegBuffer)
+    if (NULL == au32RegBuffer)
     {
         enRet = ErrorInvalidParameter;
     }
@@ -3741,7 +3592,7 @@ en_result_t ETH_PMT_WriteWakeupFrameRegister(const uint32_t pu32RegBuffer[])
     {
         for (i=0U; i<ETH_WAKEUP_REGISTER_LENGTH; i++)
         {
-            WRITE_REG32(M4_ETH->MAC_RTWKFFR, pu32RegBuffer[i]);
+            WRITE_REG32(M4_ETH->MAC_RTWKFFR, au32RegBuffer[i]);
         }
     }
 
@@ -3759,7 +3610,7 @@ void ETH_PMT_ForwardWakeupFrameCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->MAC_PMTCTLR_b.RTWKTR = enNewSta;
+    WRITE_REG32(bM4_ETH->MAC_PMTCTLR_b.RTWKTR, enNewSta);
 }
 
 /**
@@ -3799,11 +3650,11 @@ en_result_t ETH_PMT_EnterPowerDown(void)
 {
     en_result_t enRet = Error;
 
-    if (0UL != bM4_ETH->MAC_PMTCTLR_b.MPEN)
+    if (0UL != READ_REG32(bM4_ETH->MAC_PMTCTLR_b.MPEN))
     {
-        if (0UL != bM4_ETH->MAC_PMTCTLR_b.WKEN)
+        if (0UL != READ_REG32(bM4_ETH->MAC_PMTCTLR_b.WKEN))
         {
-            bM4_ETH->MAC_PMTCTLR_b.PWDN = Enable;
+            WRITE_REG32(bM4_ETH->MAC_PMTCTLR_b.PWDN, Enable);
             enRet = Ok;
         }
     }
@@ -3835,16 +3686,6 @@ en_flag_status_t ETH_PMT_GetStatus(uint32_t u32Flag)
     }
 
     return enFlagSta;
-}
-
-/**
- * @brief  Get PMT wakeup frame filter register pointer index.
- * @param  None
- * @retval uint8_t                          Filter register pointer index.
- */
-uint8_t ETH_PMT_GetWakeupFramePointerIndex(void)
-{
-    return ((uint8_t)(READ_REG32_BIT(M4_ETH->MAC_PMTCTLR, ETH_MAC_PMTCTLR_RTWKPT) >> ETH_MAC_PMTCTLR_RTWKPT_POS));
 }
 
 /******************************************************************************/
@@ -3932,38 +3773,35 @@ en_result_t ETH_MMC_StructInit(stc_eth_mmc_init_t *pstcMmcInit)
  */
 en_result_t ETH_MMC_CounterReset(void)
 {
-    __IO uint32_t u32RegSta;
-    uint32_t u32TickStart = 0UL;
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
-    bM4_ETH->MMC_MMCCTLR_b.CRST = 1U;
-    u32TickStart = SysTick_GetTick();
+    WRITE_REG32(bM4_ETH->MMC_MMCCTLR_b.CRST, 1U);
+    u32Count = ETH_TIMEOUT_WRITE_REGISTER * (HCLK_VALUE / 20000UL);
     do
     {
-        u32RegSta = bM4_ETH->MMC_MMCCTLR_b.CRST;
-    } while ((0UL != u32RegSta) &&
-             ((SysTick_GetTick() - u32TickStart) <= ETH_TIMEOUT_WRITE_REGISTER));
-
-    if (0UL != u32RegSta)
-    {
-        enRet = ErrorTimeout;
-    }
+        if (--u32Count == 0UL)
+        {
+            enRet = ErrorTimeout;
+            break;
+        }
+    } while (0UL != READ_REG32(bM4_ETH->MMC_MMCCTLR_b.CRST));
 
     return enRet;
 }
 
 /**
- * @brief  Enable or disable MMC counter reset on read.
+ * @brief  Enable or disable the reset of all MMC counter after reading.
  * @param  [in] enNewSta                    The function new state.
  *           @arg This parameter can be: Enable or Disable.
  * @retval None
  */
-void ETH_MMC_ReadResetCmd(en_functional_state_t enNewSta)
+void ETH_MMC_ResetAfterReadCmd(en_functional_state_t enNewSta)
 {
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->MMC_MMCCTLR_b.ROR = enNewSta;
+    WRITE_REG32(bM4_ETH->MMC_MMCCTLR_b.ROR, enNewSta);
 }
 
 /**
@@ -3977,7 +3815,7 @@ void ETH_MMC_Cmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->MMC_MMCCTLR_b.MCF = !enNewSta;
+    WRITE_REG32(bM4_ETH->MMC_MMCCTLR_b.MCF, !enNewSta);
 }
 
 /**
@@ -4142,20 +3980,15 @@ uint32_t ETH_MMC_GetRegister(uint32_t u32Reg)
 /**
  * @brief  De-Initialize PTP.
  * @param  None
- * @retval An en_result_t enumeration value:
- *           - Ok: PTP De-Initialize success
+ * @retval None
  */
-en_result_t ETH_PTP_DeInit(void)
+void ETH_PTP_DeInit(void)
 {
-    en_result_t enRet = Ok;
-
     WRITE_REG32(M4_ETH->PTP_TSPCTLR, 0x00002000UL);
     WRITE_REG32(M4_ETH->PTP_TSPADDR, 0UL);
     WRITE_REG32(M4_ETH->PTP_TSPNSAR, 0UL);
     WRITE_REG32(M4_ETH->PTP_TMUSECR, 0UL);
     WRITE_REG32(M4_ETH->PTP_TMUNSER, 0UL);
-
-    return enRet;
 }
 
 /**
@@ -4289,18 +4122,6 @@ void ETH_PTP_SetSnapFrameType(uint32_t u32FrameType)
 }
 
 /**
- * @brief  Get PTP snapshot frame type.
- * @param  None
- * @retval uint32_t                         Receive frame type
- */
-uint32_t ETH_PTP_GetSnapFrameType(void)
-{
-    return (READ_REG32_BIT(M4_ETH->PTP_TSPCTLR,
-                           (ETH_PTP_TSPCTLR_TSPOVIPV4 | ETH_PTP_TSPCTLR_TSPOVIPV6 |
-                            ETH_PTP_TSPCTLR_TSPOVETH  | ETH_PTP_TSPCTLR_TSPEALL)));
-}
-
-/**
  * @brief  Set PTP timestamp calibration mode.
  * @param  [in] u32CalibMode                Timestamp calibration mode
  *         This parameter can be one of the following values:
@@ -4313,7 +4134,7 @@ void ETH_PTP_SetCalibMode(uint32_t u32CalibMode)
     /* Check parameters */
     DDL_ASSERT(IS_ETH_PTP_CALIBRATION_MODE(u32CalibMode));
 
-    bM4_ETH->PTP_TSPCTLR_b.TSPUPSEL = u32CalibMode >> ETH_PTP_TSPCTLR_TSPUPSEL_POS;
+    WRITE_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPUPSEL, u32CalibMode >> ETH_PTP_TSPCTLR_TSPUPSEL_POS);
 }
 
 /**
@@ -4327,25 +4148,23 @@ void ETH_PTP_SetCalibMode(uint32_t u32CalibMode)
  */
 en_result_t ETH_PTP_UpdateBasicIncValue(void)
 {
-    __IO uint32_t u32RegSta;
-    uint32_t u32TickStart = 0UL;
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Error;
 
-    if (0UL == bM4_ETH->PTP_TSPCTLR_b.TSPADUP)
+    if (0UL == READ_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPADUP))
     {
-        bM4_ETH->MMC_MMCCTLR_b.CRST = 1U;
-        u32TickStart = SysTick_GetTick();
+        WRITE_REG32(bM4_ETH->MMC_MMCCTLR_b.CRST, 1U);
+        u32Count = ETH_TIMEOUT_WRITE_REGISTER * (HCLK_VALUE / 20000UL);
         do
         {
-            u32RegSta = bM4_ETH->MMC_MMCCTLR_b.CRST;
-        } while ((0UL != u32RegSta) &&
-                 ((SysTick_GetTick() - u32TickStart) <= ETH_TIMEOUT_WRITE_REGISTER));
+            if (--u32Count == 0UL)
+            {
+                enRet = ErrorTimeout;
+                break;
+            }
+        } while (0UL != READ_REG32(bM4_ETH->MMC_MMCCTLR_b.CRST));
 
-        if (0UL != u32RegSta)
-        {
-            enRet = ErrorTimeout;
-        }
-        else
+        if (ErrorTimeout != enRet)
         {
             enRet = Ok;
         }
@@ -4365,27 +4184,25 @@ en_result_t ETH_PTP_UpdateBasicIncValue(void)
  */
 en_result_t ETH_PTP_UpdateSystemTime(void)
 {
-    __IO uint32_t u32RegSta;
-    uint32_t u32TickStart = 0UL;
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Error;
 
-    if (0UL == bM4_ETH->PTP_TSPCTLR_b.TSPINI)
+    if (0UL == READ_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPINI))
     {
-        if (0UL == bM4_ETH->PTP_TSPCTLR_b.TSPUP)
+        if (0UL == READ_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPUP))
         {
-            bM4_ETH->PTP_TSPCTLR_b.TSPUP = 1U;
-            u32TickStart = SysTick_GetTick();
+            WRITE_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPUP, 1U);
+            u32Count = ETH_TIMEOUT_WRITE_REGISTER * (HCLK_VALUE / 20000UL);
             do
             {
-                u32RegSta = bM4_ETH->PTP_TSPCTLR_b.TSPUP;
-            } while ((0UL != u32RegSta) &&
-                     ((SysTick_GetTick() - u32TickStart) <= ETH_TIMEOUT_WRITE_REGISTER));
+                if (--u32Count == 0UL)
+                {
+                    enRet = ErrorTimeout;
+                    break;
+                }
+            } while (0UL != READ_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPUP));
 
-            if (0UL != u32RegSta)
-            {
-                enRet = ErrorTimeout;
-            }
-            else
+            if (ErrorTimeout != enRet)
             {
                 enRet = Ok;
             }
@@ -4406,25 +4223,23 @@ en_result_t ETH_PTP_UpdateSystemTime(void)
  */
 en_result_t ETH_PTP_SystemTimeInit(void)
 {
-    __IO uint32_t u32RegSta;
-    uint32_t u32TickStart = 0UL;
+    __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Error;
 
-    if (0UL == bM4_ETH->PTP_TSPCTLR_b.TSPINI)
+    if (0UL == READ_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPINI))
     {
-        bM4_ETH->PTP_TSPCTLR_b.TSPINI = 1U;
-        u32TickStart = SysTick_GetTick();
+        WRITE_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPINI, 1U);
+        u32Count = ETH_TIMEOUT_WRITE_REGISTER * (HCLK_VALUE / 20000UL);
         do
         {
-            u32RegSta = bM4_ETH->PTP_TSPCTLR_b.TSPINI;
-        } while ((0UL != u32RegSta) &&
-                 ((SysTick_GetTick() - u32TickStart) <= ETH_TIMEOUT_WRITE_REGISTER));
+            if (--u32Count == 0UL)
+            {
+                enRet = ErrorTimeout;
+                break;
+            }
+        } while (0UL != READ_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPINI));
 
-        if (0UL != u32RegSta)
-        {
-            enRet = ErrorTimeout;
-        }
-        else
+        if (ErrorTimeout != enRet)
         {
             enRet = Ok;
         }
@@ -4525,7 +4340,7 @@ void ETH_PTP_Cmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->PTP_TSPCTLR_b.TSPEN = enNewSta;
+    WRITE_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPEN, enNewSta);
 }
 
 /**
@@ -4539,7 +4354,7 @@ void ETH_PTP_IntCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_ETH->PTP_TSPCTLR_b.TSPINT = enNewSta;
+    WRITE_REG32(bM4_ETH->PTP_TSPCTLR_b.TSPINT, enNewSta);
 }
 
 /**
@@ -4579,12 +4394,10 @@ en_flag_status_t ETH_PTP_GetStatus(uint32_t u32Flag)
  *         This parameter can be one of the following values:
  *           @arg ETH_PPS_TARGET_CH0:       PPS Channel 0
  *           @arg ETH_PPS_TARGET_CH1:       PPS Channel 1
- * @retval An en_result_t enumeration value:
- *           - Ok: PPS De-Initialize success
+ * @retval None
  */
-en_result_t ETH_PPS_DeInit(uint8_t u8Ch)
+void ETH_PPS_DeInit(uint8_t u8Ch)
 {
-    en_result_t enRet = Ok;
     uint32_t u32ShiftStep = 0UL;
     uint32_t u32ShiftBit = 0UL;
     __IO uint32_t *PTP_TMTSECR;
@@ -4595,7 +4408,7 @@ en_result_t ETH_PPS_DeInit(uint8_t u8Ch)
 
     if (ETH_PPS_TARGET_CH1 == u8Ch)
     {
-        u32ShiftBit  = ETH_PTP_PPS1_FUNCTION_SELECTSHIFT;
+        u32ShiftBit  = ETH_PTP_PPSCTLR_PPSFRE1_POS;
         u32ShiftStep = ETH_PTP_PPS1_TIME_REG_ADDRSHIFT;
     }
     CLEAR_REG32_BIT(M4_ETH->PTP_PPSCTLR,
@@ -4606,8 +4419,6 @@ en_result_t ETH_PPS_DeInit(uint8_t u8Ch)
     PTP_TMTNSER = (__IO uint32_t *)ETH_PTP_TMTNSERx(u32ShiftStep);
     WRITE_REG32(*PTP_TMTSECR, 0UL);
     WRITE_REG32(*PTP_TMTNSER, 0UL);
-
-    return enRet;
 }
 
 /**
@@ -4646,7 +4457,7 @@ en_result_t ETH_PPS_Init(uint8_t u8Ch, const stc_eth_pps_config_t *pstcPpsInit)
         u32RegVal = pstcPpsInit->u32OutputFreq | pstcPpsInit->u32TargetTimeFunc;
         if (ETH_PPS_TARGET_CH1 == u8Ch)
         {
-            u32ShiftBit  = ETH_PTP_PPS1_FUNCTION_SELECTSHIFT;
+            u32ShiftBit  = ETH_PTP_PPSCTLR_PPSFRE1_POS;
             u32ShiftStep = ETH_PTP_PPS1_TIME_REG_ADDRSHIFT;
         }
         else
@@ -4747,7 +4558,7 @@ void ETH_PPS_SetTargetTimeFunc(uint8_t u8Ch, uint32_t u32Func)
 
     if (ETH_PPS_TARGET_CH1 == u8Ch)
     {
-        u32ShiftBit = ETH_PTP_PPS1_FUNCTION_SELECTSHIFT;
+        u32ShiftBit = ETH_PTP_PPSCTLR_PPSFRE1_POS;
     }
     MODIFY_REG32(M4_ETH->PTP_PPSCTLR, (ETH_PTP_PPSCTLR_TT0SEL << u32ShiftBit), (u32Func << u32ShiftBit));
 }
@@ -4765,7 +4576,7 @@ void ETH_PPS_SetPps0OutputMode(uint32_t u32OutputMode)
     /* Check parameters */
     DDL_ASSERT(IS_ETH_PPS_OUTPUT_MODE(u32OutputMode));
 
-    bM4_ETH->PTP_PPSCTLR_b.PPSOMD = u32OutputMode >> ETH_PTP_PPSCTLR_PPSOMD_POS;
+    WRITE_REG32(bM4_ETH->PTP_PPSCTLR_b.PPSOMD, u32OutputMode >> ETH_PTP_PPSCTLR_PPSOMD_POS);
 }
 
 /**

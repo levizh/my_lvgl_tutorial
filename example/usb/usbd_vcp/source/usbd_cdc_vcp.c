@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_vcp\source\usbd_cdc_vcp.c
+ * @brief Generic media access Layer.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,24 +48,28 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_cdc_vcp.c
- **
- ** \brief  Generic media access Layer.
- **
- **   - 2019-6-3  1.0  zhangxl First version for USB CDC VCP demo.
- **
- ******************************************************************************/
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-#pragma     data_alignment = 4
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbd_cdc_vcp.h"
 #include "usb_conf.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_VCP
+ * @{
+ */
+
+#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
+#pragma     data_alignment = 4
+#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -134,6 +148,7 @@ CDC_IF_Prop_TypeDef VCP_fops =
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
 /**
   * @brief  VCP_Init
   *         Initializes the Media
@@ -163,7 +178,7 @@ static uint16_t VCP_Init(void)
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);
 
     /* Initialize UART function. */
-    if (Ok != USART_UartInit(CDC_COMM, &stcUartInit))
+    if (Ok == USART_UartInit(CDC_COMM, &stcUartInit))
     {
         /* Register error IRQ handler && configure NVIC. */
         stcIrqSigninCfg.enIRQn = USART_UNIT_ERR_IRQn;
@@ -492,14 +507,10 @@ static uint16_t VCP_COMConfig(void)
 }
 
 /**
- *******************************************************************************
- ** \brief USART RX irq callback function.
- **
- ** \param [in] None
- **
- ** \retval None
- **
- ******************************************************************************/
+ * @brief USART RX irq callback function.
+ * @param [in] None
+ * @retval None
+ */
 static void UsartRxIrqCallback(void)
 {
     if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_RXNE))
@@ -510,14 +521,10 @@ static void UsartRxIrqCallback(void)
 }
 
 /**
- *******************************************************************************
- ** \brief USART RX error irq callback function.
- **
- ** \param [in] None
- **
- ** \retval None
- **
- ******************************************************************************/
+ * @brief USART RX error irq callback function.
+ * @param [in] None
+ * @retval None
+ */
 static void UsartErrIrqCallback(void)
 {
     if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_FE))
@@ -563,6 +570,13 @@ static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
     }
 }
 
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

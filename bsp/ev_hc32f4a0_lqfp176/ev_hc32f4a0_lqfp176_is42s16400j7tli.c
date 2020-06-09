@@ -99,9 +99,9 @@
  * @note SRAM address:[0x80000000, 0x807FFFFF] / size: 8M bytes
  * @{
  */
-#define SDRAM_IS42S_START_ADDR                  (EXMC_DMC_ChipStartAddress(IS42S16400J_MAP_DMC_CHIP))
-#define SDRAM_IS42S_SIZE                        (8UL * 1024UL * 1024UL)     /* 8MBytes*/
-#define SDRAM_IS42S_END_ADDR                    (SDRAM_IS42S_START_ADDR + SDRAM_IS42S_SIZE - 1UL)
+#define SDRAM_IS42S16400J7TLI_START_ADDR        (EXMC_DMC_ChipStartAddress(IS42S16400J_MAP_DMC_CHIP))
+#define SDRAM_IS42S16400J7TLI_SIZE              (8UL * 1024UL * 1024UL)     /* 8MBytes*/
+#define SDRAM_IS42S16400J7TLI_END_ADDR          (SDRAM_IS42S16400J7TLI_START_ADDR + SDRAM_IS42S16400J7TLI_SIZE - 1UL)
 /**
  * @}
  */
@@ -205,23 +205,23 @@
  */
 
 /* IS42S16400J7TLI burst length definition */
-#define IS42S16400J7TLI_MR_BURST_LEN_1                  ((uint32_t)0UL)
-#define IS42S16400J7TLI_MR_BURST_LEN_2                  ((uint32_t)1UL)
-#define IS42S16400J7TLI_MR_BURST_LEN_4                  ((uint32_t)2UL)
-#define IS42S16400J7TLI_MR_BURST_LEN_8                  ((uint32_t)3UL)
-#define IS42S16400J7TLI_MR_BURST_LEN_FULLPAGE           ((uint32_t)7UL)
+#define IS42S16400J7TLI_MR_BURST_LEN_1                  (0UL)
+#define IS42S16400J7TLI_MR_BURST_LEN_2                  (1UL)
+#define IS42S16400J7TLI_MR_BURST_LEN_4                  (2UL)
+#define IS42S16400J7TLI_MR_BURST_LEN_8                  (3UL)
+#define IS42S16400J7TLI_MR_BURST_LEN_FULLPAGE           (7UL)
 
 /* IS42S16400J7TLI burst type definition */
-#define IS42S16400J7TLI_MR_BURST_TYPE_SEQUENTIAL        ((uint32_t)0UL)
-#define IS42S16400J7TLI_MR_BURST_TYPE_INTERLEAVED       ((uint32_t)(1UL << 3)
+#define IS42S16400J7TLI_MR_BURST_TYPE_SEQUENTIAL        (0UL)
+#define IS42S16400J7TLI_MR_BURST_TYPE_INTERLEAVED       (1UL << 3)
 
 /* IS42S16400J7TLI CAS latency definition */
-#define IS42S16400J7TLI_MR_CAS_LATENCY_2                ((uint32_t)(2UL << 4))
-#define IS42S16400J7TLI_MR_CAS_LATENCY_3                ((uint32_t)(3UL << 4))
+#define IS42S16400J7TLI_MR_CAS_LATENCY_2                (2UL << 4)
+#define IS42S16400J7TLI_MR_CAS_LATENCY_3                (3UL << 4)
 
 /* IS42S16400J7TLI write burst mode definition */
-#define IS42S16400J7TLI_MR_WRITEBURST_MODE_PROGRAMMED   ((uint32_t)0UL)
-#define IS42S16400J7TLI_MR_WRITEBURST_MODE_SINGLE       ((uint32_t)(1UL << 9))
+#define IS42S16400J7TLI_MR_WRITEBURST_MODE_PROGRAMMED   (0UL)
+#define IS42S16400J7TLI_MR_WRITEBURST_MODE_SINGLE       (1UL << 9)
 
 /**
  * @}
@@ -282,7 +282,7 @@ static void EV_EXMC_DMC_InitSequence(uint32_t u32Chip,
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  */
-en_result_t EV_DMC_IS42S_Init(void)
+en_result_t BSP_DMC_IS42S16400J7TLI_Init(void)
 {
     uint32_t u32MdRegVal = 0UL;
     stc_exmc_dmc_init_t stcDmcInit;
@@ -383,185 +383,18 @@ en_result_t EV_DMC_IS42S_Init(void)
  *   @arg  ErrorInvalidParameter:       The pointer pu32MemStartAddr and pu32MemByteSize is NULL.
 
  */
-void EV_DMC_IS42S_GetMemInfo(uint32_t *pu32MemStartAddr,
-                                        uint32_t *pu32MemByteSize)
+void BSP_DMC_IS42S16400J7TLI_GetMemInfo(uint32_t *pu32MemStartAddr,
+                                                uint32_t *pu32MemByteSize)
 {
     if (NULL != pu32MemStartAddr)
     {
-        *pu32MemStartAddr = SDRAM_IS42S_START_ADDR;
+        *pu32MemStartAddr = SDRAM_IS42S16400J7TLI_START_ADDR;
     }
 
     if (NULL != pu32MemByteSize)
     {
-        *pu32MemByteSize = SDRAM_IS42S_SIZE;
+        *pu32MemByteSize = SDRAM_IS42S16400J7TLI_SIZE;
     }
-}
-
-/**
- * @brief  Write memory for byte.
- * @param  [in] au8Buf                  Data buffer to write
- * @param  [in] u32Addr                 Memory address to write
- * @param  [in] u32NumBytes             Number bytes to write
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
-
- */
-en_result_t EV_DMC_IS42S_WriteMem8(const uint8_t au8Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32NumBytes)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au8Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumBytes; i++)
-        {
-            *(uint8_t *)(u32Addr + i) = au8Buf[i];
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Read memory for byte.
- * @param  [in] au8Buf                  Data buffer to read
- * @param  [in] u32Addr                 Memory address to read
- * @param  [in] u32NumBytes             Number bytes to read
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
- */
-en_result_t EV_DMC_IS42S_ReadMem8(uint8_t au8Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32NumBytes)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au8Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumBytes; i++)
-        {
-            au8Buf[i] = *(uint8_t *)(u32Addr + i);
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Write memory for half-word.
- * @param  [in] au16Buf                 Data buffer to write
- * @param  [in] u32Addr                 Memory address to write
- * @param  [in] u32NumHalfWords         Number half-word to write
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au16Buf value is NULL.
- */
-en_result_t EV_DMC_IS42S_WriteMem16(const uint16_t au16Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32NumHalfWords)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au16Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumHalfWords; i++)
-        {
-            *((uint16_t *)u32Addr) = au16Buf[i];
-            u32Addr += 2UL;
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Read memory for half-word.
- * @param  [in] au16Buf                 Data buffer to read
- * @param  [in] u32Addr                 Memory address to read
- * @param  [in] u32NumHalfWords         Number half-word to read
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au16Buf value is NULL.
- */
-en_result_t EV_DMC_IS42S_ReadMem16(uint16_t au16Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32NumHalfWords)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au16Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumHalfWords; i++)
-        {
-            au16Buf[i] = *((uint16_t *)u32Addr);
-            u32Addr += 2UL;
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Write memory for word.
- * @param  [in] au32Buf                 Data buffer to write
- * @param  [in] u32Addr                 Memory address to write
- * @param  [in] u32NumWords             Number word to write
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au32Buf value is NULL.
- */
-en_result_t EV_DMC_IS42S_WriteMem32(const uint32_t au32Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32NumWords)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au32Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumWords; i++)
-        {
-            *((uint32_t *)u32Addr) = au32Buf[i];
-            u32Addr += 4UL;
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Read memory for word.
- * @param  [in] au2Buf                  Data buffer to read
- * @param  [in] u32Addr                 Memory address to read
- * @param  [in] u32NumWords             Number word to read
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au32Buf value is NULL.
- */
-en_result_t EV_DMC_IS42S_ReadMem32(uint32_t au32Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32NumWords)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au32Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumWords; i++)
-        {
-            au32Buf[i] = *((uint32_t *)u32Addr);
-            u32Addr += 4UL;
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
 }
 
 /**
@@ -582,9 +415,11 @@ static void EV_EXMC_DMC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
+    GPIO_Unlock();
+
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDrv = PIN_MID_DRV;
+    stcGpioInit.u16PinDrv = PIN_DRV_MID;
 
     /* DMC_CKE */
     GPIO_Init(DMC_CKE_PORT, DMC_CKE_PIN, &stcGpioInit);
@@ -695,6 +530,8 @@ static void EV_EXMC_DMC_PortInit(void)
     GPIO_SetFunc(DMC_ADD9_PORT, DMC_ADD9_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(DMC_ADD10_PORT, DMC_ADD10_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(DMC_ADD11_PORT, DMC_ADD11_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
+
+    GPIO_Lock();
 }
 
 /**

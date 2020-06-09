@@ -109,7 +109,7 @@
  * 
  * 'APP_TMR2_USE_INTERRUPT': Interrupt function control.
  * 'APP_TMR2_USE_HW_TRIG': Hardware trigger conditions control. The conditions that can start TIMER2, \
- *    stop TIMER2 or clear counting register of TIMER2
+ *                         stop TIMER2 or clear counting register of TIMER2
  */
 #define APP_TMR2_USE_INTERRUPT              (1U)
 #define APP_TMR2_USE_HW_TRIG                (0U)
@@ -146,9 +146,9 @@
     /*
      * APP_TMR2_CLK_SRC can also be defined as TMR2_CLK_SYNC_TRIGF.
      * 'APP_TMR2_FILTER_ENABLE': Filter function control. Enable or disable the filter of pin TIM2_<t>_PWMAx. \
-     *    If there is a pin TIM2_<t>_PWMx is used and in input mode, the filter can be used if needed.
+     *                           If there is a pin TIM2_<t>_PWMx is used and in input mode, the filter can be used if needed.
      * 'APP_TMR2_FILTER_CLK_DIV': The clock divider of filter of each channel depends on the signal that \
-     *    input from pin TIM2_<t>_PWMx.
+     *                            input from pin TIM2_<t>_PWMx.
      */
     #define APP_TMR2_CLK_SRC                (TMR2_CLK_SYNC_TRIGR)
     #define APP_TMR2_CMP_VAL                (APP_TMR2_CNT_VAL - 1U)
@@ -167,11 +167,11 @@
  * TIMER2 independent IRQn: [Int000_IRQn, Int031_IRQn], [Int050_IRQn, Int055_IRQn].
  * TIMER2 share IRQn: [Int131_IRQn].
  * 
- * NOTE!!! 'APP_TMR2_INT_TYPE' can only be defined as 'TMR2_INT_CNT_MATCH' for this example.
+ * NOTE!!! 'APP_TMR2_INT_TYPE' can only be defined as 'TMR2_INT_CMP' for this example.
  */
 #if (APP_TMR2_USE_INTERRUPT > 0U)
     #define TMR2_SHARE_IRQn                 (Int131_IRQn)
-    #define APP_TMR2_INT_TYPE               (TMR2_INT_CNT_MATCH)
+    #define APP_TMR2_INT_TYPE               (TMR2_INT_CMP)
     #define APP_TMR2_INT_PRIO               (DDL_IRQ_PRIORITY_03)
     #define APP_TMR2_INT_SRC                (INT_TMR2_1_CMPA)
     #define APP_TMR2_IRQ_CB                 TMR2_1_CmpA_IrqHandler
@@ -183,9 +183,9 @@
  * 'APP_TMR2_START_COND' specifies the condition of starting TIMER2.
  * 'APP_TMR2_STOP_COND' specifies the condition of stoping TIMER2.
  * 'APP_TMR2_FILTER_ENABLE': Filter function control. Enable or disable the filter of pin TIM2_<t>_PWMAx. \
- *    If there is a pin TIM2_<t>_PWMx is used and in input mode, the filter can be used if needed.
+ *                           If there is a pin TIM2_<t>_PWMx is used and in input mode, the filter can be used if needed.
  * 'APP_TMR2_FILTER_CLK_DIV': The clock divider of filter of each channel depends on the signal that \
- *    input from pin TIM2_<t>_PWMx.
+ *                            input from pin TIM2_<t>_PWMx.
  * NOTE:
  *   1. CANNOT specify a condition as the start condition and the stop condition at the same time.
  *   2. Pin TIM2_<t>_PWMAx CANNOT be a trigger condition while it's edge is used as the synchronous clock.
@@ -290,9 +290,9 @@ int32_t main(void)
         /* See APP_TMR2_IRQ_CB in this file. */
 #else
         /* Call TMR2_GetStatus to check the flag state. */
-        if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH) == Set)
+        if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP) == Set)
         {
-            TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH);
+            TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP);
         }
 #endif /* #if (APP_TMR2_USE_INTERRUPT > 0U) */
     }
@@ -359,7 +359,7 @@ void EventKeyConfig(void)
 static void Tmr2CntPeripConfig(void)
 {
 #if (APP_TMR2_FUNC == APP_FUNC_CNT_PERIP_EVENT)
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     TMR2_SetTrigEvent(APP_TMR2_CNT_EVENT);
     EventKeyConfig();
 
@@ -478,9 +478,9 @@ static void Tmr2IrqConfig(void)
  */
 void APP_TMR2_IRQ_CB(void)
 {
-    if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH) == Set)
+    if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP) == Set)
     {
-        TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH);
+        TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP);
     }
 }
 #endif /* #if (APP_TMR2_USE_INTERRUPT > 0U) */
@@ -515,12 +515,12 @@ static void Tmr2TrigCondConfig(void)
     #endif
     GPIO_SetFunc(APP_TMR2_TRIG_PORT, APP_TMR2_TRIG_PIN, APP_TMR2_TRIG_PIN_FUNC, PIN_SUBFUNC_DISABLE);
 
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     TMR2_SetTrigEvent(APP_TMR2_TRIG_EVENT);
     EventKeyConfig();
 
 #elif (APP_TMR2_FUNC == APP_FUNC_CNT_PIN_EDGE)
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     TMR2_SetTrigEvent(APP_TMR2_TRIG_EVENT);
     EventKeyConfig();
 

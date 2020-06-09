@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  hc32f4a0_usb_otg_regs.h
+ * @brief A detailed description is available at hardware registers
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,17 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.h
- **
- ** A detailed description is available at
- ** @link hardware registers @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
-#ifndef __USB_OTG_REGS_H__
-#define __USB_OTG_REGS_H__
+
+#ifndef __HC32F4A0_USB_OTG_REGS_H__
+#define __HC32F4A0_USB_OTG_REGS_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
@@ -57,41 +66,64 @@
 #include <stdint.h>
 #include "usb_conf.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Driver
+ * @{
+ */
+
+/**
+ * @addtogroup DDL_USB_OTG
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
+
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/**
+ * @defgroup USB_OTG_REGS_Global_Macros USB OTG REGS Global Macros
+ * @{
+ */
+
 #ifndef __IO
     #define     __IO    volatile
 #endif
 
-#define USB_OTG_HS_BASE_ADDR                 (0x400C0000ul)
-#define USB_OTG_FS_BASE_ADDR                 (0x40080000ul)
+#define USB_OTG_HS_BASE_ADDR                 (0x400C0000UL)
+#define USB_OTG_FS_BASE_ADDR                 (0x40080000UL)
 
-#define USB_OTG_CORE_GLOBAL_REGS_OFFSET      (0x000u)
-#define USB_OTG_DEV_GLOBAL_REG_OFFSET        (0x800u)
-#define USB_OTG_DEV_IN_EP_REG_OFFSET         (0x900u)
-#define USB_OTG_EP_REG_OFFSET                (0x20u)
-#define USB_OTG_DEV_OUT_EP_REG_OFFSET        (0xB00u)
-#define USB_OTG_HOST_GLOBAL_REG_OFFSET       (0x400u)
-#define USB_OTG_HOST_PORT_REGS_OFFSET        (0x440u)
-#define USB_OTG_HOST_CHAN_REGS_OFFSET        (0x500u)
-#define USB_OTG_CHAN_REGS_OFFSET             (0x20u)
-#define USB_OTG_PCGCCTL_OFFSET               (0xE00u)
-#define USB_OTG_DATA_FIFO_OFFSET             (0x1000)
-#define USB_OTG_DATA_FIFO_SIZE               (0x1000)
+#define USB_OTG_CORE_GLOBAL_REGS_OFFSET      (0x000U)
+#define USB_OTG_DEV_GLOBAL_REG_OFFSET        (0x800U)
+#define USB_OTG_DEV_IN_EP_REG_OFFSET         (0x900U)
+#define USB_OTG_EP_REG_OFFSET                (0x20U)
+#define USB_OTG_DEV_OUT_EP_REG_OFFSET        (0xB00U)
+#define USB_OTG_HOST_GLOBAL_REG_OFFSET       (0x400U)
+#define USB_OTG_HOST_PORT_REGS_OFFSET        (0x440U)
+#define USB_OTG_HOST_CHAN_REGS_OFFSET        (0x500U)
+#define USB_OTG_CHAN_REGS_OFFSET             (0x20U)
+#define USB_OTG_PCGCCTL_OFFSET               (0xE00U)
+#define USB_OTG_DATA_FIFO_OFFSET             (0x1000U)
+#define USB_OTG_DATA_FIFO_SIZE               (0x1000U)
 
 
-#define USB_OTG_MAX_TX_FIFOS                 (12u)
+#define USB_OTG_MAX_TX_FIFOS                 (16U)
 
-#define USB_OTG_HS_MAX_PACKET_SIZE           (512u)
-#define USB_OTG_FS_MAX_PACKET_SIZE           (64u)
-#define USB_OTG_MAX_EP0_SIZE                 (64u)
+#define USB_OTG_HS_MAX_PACKET_SIZE           (512U)
+#define USB_OTG_FS_MAX_PACKET_SIZE           (64U)
+#define USB_OTG_MAX_EP0_SIZE                 (64U)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-
-typedef struct _USB_OTG_GREGS  //000h
+/**
+ * @defgroup USB_OTG_REGS_Global_Types USB OTG REGS Global Types
+ * @{
+ */
+typedef struct//000h
 {
     __IO uint32_t GOTGCTL;      /* USB_OTG Control and Status Register    000h*/
     __IO uint32_t GOTGINT;      /* USB_OTG Interrupt Register             004h*/
@@ -103,72 +135,72 @@ typedef struct _USB_OTG_GREGS  //000h
     __IO uint32_t GRXSTSR;      /* Receive Sts Q Read Register        01Ch*/
     __IO uint32_t GRXSTSP;      /* Receive Sts Q Read & POP Register  020h*/
     __IO uint32_t GRXFSIZ;      /* Receive FIFO Size Register         024h*/
-    __IO uint32_t GNPTXFSIZ;   /* EP0 / Non Periodic Tx FIFO Size Register 028h*/
+    __IO uint32_t GNPTXFSIZ;    /* EP0 / Non Periodic Tx FIFO Size Register 028h*/
     __IO uint32_t GNPTXSTS;     /* Non Periodic Tx FIFO/Queue Sts reg 02Ch*/
-    __IO uint32_t GI2CCTL;     /*  reg 030h*/
+    __IO uint32_t GI2CCTL;      /*  reg 030h*/
     __IO uint32_t GPVNDCTL;     /*  reg 034h*/
     __IO uint32_t GGPIO;        /* General Purpose IO Register        038h*/
-    __IO uint32_t GUID;          /* User ID Register                   03Ch*/
+    __IO uint32_t GUID;         /* User ID Register                   03Ch*/
     uint32_t  Reserved40[48];   /* Reserved                      040h-0FFh*/
-    __IO uint32_t HPTXFSIZ; /* Host Periodic Tx FIFO Size Reg     100h*/
+    __IO uint32_t HPTXFSIZ;     /* Host Periodic Tx FIFO Size Reg     100h*/
     __IO uint32_t DPTXFSIZ[USB_OTG_MAX_TX_FIFOS];/* dev Periodic Transmit FIFO */
 }USB_OTG_GREGS;
 
-typedef struct _USB_OTG_DREGS // 800h
+typedef struct// 800h
 {
-    volatile uint32_t DCFG;         /* dev Configuration Register   800h*/
-    volatile uint32_t DCTL;         /* dev Control Register         804h*/
-    volatile uint32_t DSTS;         /* dev Status Register (RO)     808h*/
-    uint32_t Reserved0C;           /* Reserved                     80Ch*/
+    volatile uint32_t DCFG;      /* dev Configuration Register   800h*/
+    volatile uint32_t DCTL;      /* dev Control Register         804h*/
+    volatile uint32_t DSTS;      /* dev Status Register (RO)     808h*/
+    uint32_t Reserved0C;         /* Reserved                     80Ch*/
     volatile uint32_t DIEPMSK;   /* dev IN Endpoint Mask         810h*/
-    volatile uint32_t DOEPMSK;  /* dev OUT Endpoint Mask        814h*/
+    volatile uint32_t DOEPMSK;   /* dev OUT Endpoint Mask        814h*/
     volatile uint32_t DAINT;     /* dev All Endpoints Itr Reg    818h*/
-    volatile uint32_t DAINTMSK; /* dev All Endpoints Itr Mask   81Ch*/
-    uint32_t  Reserved20;          /* Reserved                     820h*/
-    uint32_t Reserved9;       /* Reserved                     824h*/
-    volatile uint32_t DVBUSDIS;    /* dev VBUS discharge Register  828h*/
-    volatile uint32_t DVBUSPULSE;  /* dev VBUS Pulse Register      82Ch*/
-    volatile uint32_t DTHRCTL;     /* dev thr                      830h*/
-    volatile uint32_t DIEPEMPMSK; /* dev empty msk             834h*/
-    volatile uint32_t DEACHINT;    /* dedicated EP interrupt       838h*/
-    volatile uint32_t DEACHMSK;    /* dedicated EP msk             83Ch*/
+    volatile uint32_t DAINTMSK;  /* dev All Endpoints Itr Mask   81Ch*/
+    uint32_t  Reserved20;        /* Reserved                     820h*/
+    uint32_t Reserved9;          /* Reserved                     824h*/
+    volatile uint32_t DVBUSDIS;  /* dev VBUS discharge Register  828h*/
+    volatile uint32_t DVBUSPULSE;/* dev VBUS Pulse Register      82Ch*/
+    volatile uint32_t DTHRCTL;   /* dev thr                      830h*/
+    volatile uint32_t DIEPEMPMSK;/* dev empty msk                834h*/
+    volatile uint32_t DEACHINT;  /* dedicated EP interrupt       838h*/
+    volatile uint32_t DEACHMSK;  /* dedicated EP msk             83Ch*/
 }USB_OTG_DREGS;
 
-typedef struct _USB_OTG_INEPREGS
+typedef struct
 {
     volatile uint32_t DIEPCTL; /* dev IN Endpoint Control Reg 900h + (ep_num * 20h) + 00h*/
-    uint32_t Reserved04;             /* Reserved                       900h + (ep_num * 20h) + 04h*/
+    uint32_t Reserved04;       /* Reserved                       900h + (ep_num * 20h) + 04h*/
     volatile uint32_t DIEPINT; /* dev IN Endpoint Itr Reg     900h + (ep_num * 20h) + 08h*/
-    uint32_t Reserved0C;             /* Reserved                       900h + (ep_num * 20h) + 0Ch*/
-    volatile uint32_t DIEPTSIZ; /* IN Endpoint Txfer Size   900h + (ep_num * 20h) + 10h*/
+    uint32_t Reserved0C;       /* Reserved                       900h + (ep_num * 20h) + 0Ch*/
+    volatile uint32_t DIEPTSIZ;/* IN Endpoint Txfer Size   900h + (ep_num * 20h) + 10h*/
     volatile uint32_t DIEPDMA; /* IN Endpoint DMA Address Reg    900h + (ep_num * 20h) + 14h*/
-    volatile uint32_t DTXFSTS;/*IN Endpoint Tx FIFO Status Reg 900h + (ep_num * 20h) + 18h*/
-    uint32_t Reserved18;             /* Reserved  900h+(ep_num*20h)+1Ch-900h+ (ep_num * 20h) + 1Ch*/
+    volatile uint32_t DTXFSTS; /* IN Endpoint Tx FIFO Status Reg 900h + (ep_num * 20h) + 18h*/
+    uint32_t Reserved18;       /* Reserved  900h+(ep_num*20h)+1Ch-900h+ (ep_num * 20h) + 1Ch*/
 }USB_OTG_INEPREGS;
 
-typedef struct _USB_OTG_OUTEPREGS
+typedef struct
 {
-    volatile uint32_t DOEPCTL;       /* dev OUT Endpoint Control Reg  B00h + (ep_num * 20h) + 00h*/
+    volatile uint32_t DOEPCTL;   /* dev OUT Endpoint Control Reg  B00h + (ep_num * 20h) + 00h*/
     uint32_t Reserved04;         /* Reserved                      B00h + (ep_num * 20h) + 04h*/
-    volatile uint32_t DOEPINT;       /* dev OUT Endpoint Itr Reg      B00h + (ep_num * 20h) + 08h*/
+    volatile uint32_t DOEPINT;   /* dev OUT Endpoint Itr Reg      B00h + (ep_num * 20h) + 08h*/
     uint32_t Reserved0C;         /* Reserved                      B00h + (ep_num * 20h) + 0Ch*/
-    volatile uint32_t DOEPTSIZ;      /* dev OUT Endpoint Txfer Size   B00h + (ep_num * 20h) + 10h*/
-    volatile uint32_t DOEPDMA;       /* dev OUT Endpoint DMA Address  B00h + (ep_num * 20h) + 14h*/
+    volatile uint32_t DOEPTSIZ;  /* dev OUT Endpoint Txfer Size   B00h + (ep_num * 20h) + 10h*/
+    volatile uint32_t DOEPDMA;   /* dev OUT Endpoint DMA Address  B00h + (ep_num * 20h) + 14h*/
     uint32_t Reserved18[2];      /* Reserved B00h + (ep_num * 20h) + 18h - B00h + (ep_num * 20h) + 1Ch*/
 }USB_OTG_OUTEPREGS;
 
-typedef struct _USB_OTG_HREGS
+typedef struct
 {
-    volatile uint32_t HCFG;             /* Host Configuration Register    400h*/
+    volatile uint32_t HCFG;      /* Host Configuration Register    400h*/
     volatile uint32_t HFIR;      /* Host Frame Interval Register   404h*/
-    volatile uint32_t HFNUM;         /* Host Frame Nbr/Frame Remaining 408h*/
-    uint32_t Reserved40C;                   /* Reserved                       40Ch*/
+    volatile uint32_t HFNUM;     /* Host Frame Nbr/Frame Remaining 408h*/
+    uint32_t Reserved40C;        /* Reserved                       40Ch*/
     volatile uint32_t HPTXSTS;   /* Host Periodic Tx FIFO/ Queue Status 410h*/
-    volatile uint32_t HAINT;   /* Host All Channels Interrupt Register 414h*/
-    volatile uint32_t HAINTMSK;   /* Host All Channels Interrupt Mask 418h*/
+    volatile uint32_t HAINT;     /* Host All Channels Interrupt Register 414h*/
+    volatile uint32_t HAINTMSK;  /* Host All Channels Interrupt Mask 418h*/
 }USB_OTG_HREGS;
 
-typedef struct _USB_OTG_HC_REGS
+typedef struct
 {
     volatile uint32_t HCCHAR;
     volatile uint32_t HCSPLT;
@@ -179,7 +211,7 @@ typedef struct _USB_OTG_HC_REGS
     uint32_t Reserved[2];
 }USB_OTG_HC_REGS;
 
-typedef struct USB_OTG_core_regs //000h
+typedef struct//000h
 {
     USB_OTG_GREGS         *GREGS;
     USB_OTG_DREGS         *DREGS;
@@ -262,22 +294,22 @@ typedef union _USB_OTG_GAHBCFG_TypeDef
     struct
     {
         unsigned glblintrmsk:1;
-#define DWC_GAHBCFG_GLBINT_ENABLE           (1u)
+#define DWC_GAHBCFG_GLBINT_ENABLE           (1U)
 
         unsigned hburstlen:4;
-#define DWC_GAHBCFG_INT_DMA_BURST_SINGLE    (0u)
-#define DWC_GAHBCFG_INT_DMA_BURST_INCR      (1u)
-#define DWC_GAHBCFG_INT_DMA_BURST_INCR4     (3u)
-#define DWC_GAHBCFG_INT_DMA_BURST_INCR8     (5u)
-#define DWC_GAHBCFG_INT_DMA_BURST_INCR16    (7u)
+#define DWC_GAHBCFG_INT_DMA_BURST_SINGLE    (0U)
+#define DWC_GAHBCFG_INT_DMA_BURST_INCR      (1U)
+#define DWC_GAHBCFG_INT_DMA_BURST_INCR4     (3U)
+#define DWC_GAHBCFG_INT_DMA_BURST_INCR8     (5U)
+#define DWC_GAHBCFG_INT_DMA_BURST_INCR16    (7U)
 
         unsigned dmaenable:1;
-#define DWC_GAHBCFG_DMAENABLE               (1u)
+#define DWC_GAHBCFG_DMAENABLE               (1U)
         unsigned reserved:1;
         unsigned nptxfemplvl_txfemplvl:1;
         unsigned ptxfemplvl:1;
-#define DWC_GAHBCFG_TXFEMPTYLVL_EMPTY       (1u)
-#define DWC_GAHBCFG_TXFEMPTYLVL_HALFEMPTY   (0u)
+#define DWC_GAHBCFG_TXFEMPTYLVL_EMPTY       (1U)
+#define DWC_GAHBCFG_TXFEMPTYLVL_HALFEMPTY   (0U)
         unsigned reserved9_20:12;
         unsigned remmemsupp:1;
         unsigned notialldmawrit:1;
@@ -323,7 +355,7 @@ typedef union _USB_OTG_GUSBCFG_TypeDef
     b;
 } USB_OTG_GUSBCFG_TypeDef ;
 
-typedef struct stc_bUSB_OTG_GRSTCTL
+typedef struct
 {
     /** Core Soft Reset (CSftRst) (Device and Host)
     *
@@ -484,7 +516,7 @@ typedef union _USB_OTG_GINTMSK_TypeDef
     b;
 } USB_OTG_GINTMSK_TypeDef;
 
-typedef struct stc_bUSB_OTG_GINTSTS
+typedef struct
 {
     unsigned curmode:1;
     unsigned modemismatch:1;
@@ -525,18 +557,18 @@ typedef union _USB_OTG_GINTSTS_TypeDef
     stc_bUSB_OTG_GINTSTS_t b;  /* C-STAT */
 } USB_OTG_GINTSTS_TypeDef ;
 
-typedef struct stc_bUSB_OTG_DRXSTS
+typedef struct
 {
     unsigned epnum:4;
     unsigned bcnt:11;
     unsigned dpid:2;
 
-#define DWC_STS_DATA_UPDT       (0x2) // OUT Data Packet
-#define DWC_STS_XFER_COMP       (0x3) // OUT Data Transfer Complete
+#define DWC_STS_DATA_UPDT       (0x2U) /* OUT Data Packet */
+#define DWC_STS_XFER_COMP       (0x3U) /* OUT Data Transfer Complete */
 
-#define DWC_DSTS_GOUT_NAK       (0x1) // Global OUT NAK
-#define DWC_DSTS_SETUP_COMP     (0x4) // Setup Phase Complete
-#define DWC_DSTS_SETUP_UPDT     (0x6) // SETUP Packet
+#define DWC_DSTS_GOUT_NAK       (0x1U) /* Global OUT NAK */
+#define DWC_DSTS_SETUP_COMP     (0x4U) /* Setup Phase Complete */
+#define DWC_DSTS_SETUP_UPDT     (0x6U) /* SETUP Packet */
     unsigned pktsts:4;
     unsigned fn:4;
     unsigned reserved25_31:7;
@@ -547,17 +579,17 @@ typedef union _USB_OTG_DRXSTS_TypeDef
     stc_bUSB_OTG_DRXSTS_t b;  /* C-STAT */
 } USB_OTG_DRXSTS_TypeDef;
 
-typedef struct stc_bUSB_OTG_GRXSTS
+typedef struct
 {
     unsigned chnum:4;
     unsigned bcnt:11;
     unsigned dpid:2;
 
     unsigned pktsts:4;
-#define DWC_GRXSTS_PKTSTS_IN                (0x2)
-#define DWC_GRXSTS_PKTSTS_IN_XFER_COMP      (0x3)
-#define DWC_GRXSTS_PKTSTS_DATA_TOGGLE_ERR   (0x5)
-#define DWC_GRXSTS_PKTSTS_CH_HALTED         (0x7)
+#define DWC_GRXSTS_PKTSTS_IN                (0x2U)
+#define DWC_GRXSTS_PKTSTS_IN_XFER_COMP      (0x3U)
+#define DWC_GRXSTS_PKTSTS_DATA_TOGGLE_ERR   (0x5U)
+#define DWC_GRXSTS_PKTSTS_CH_HALTED         (0x7U)
 
     unsigned reserved21_31:11;
 }stc_bUSB_OTG_GRXSTS_t;  /* C-STAT */
@@ -567,7 +599,7 @@ typedef union _USB_OTG_GRXSTS_TypeDef
     stc_bUSB_OTG_GRXSTS_t b;  /* C-STAT */
 } USB_OTG_GRXFSTS_TypeDef ;
 
-typedef struct stc_bUSB_OTG_FSIZ
+typedef struct
 {
     unsigned startaddr:16;
     unsigned depth:16;
@@ -578,7 +610,7 @@ typedef union _USB_OTG_FSIZ_TypeDef
     stc_bUSB_OTG_FSIZ_t b;  /* C-STAT */
 } USB_OTG_FSIZ_TypeDef;
 
-typedef struct stc_bUSB_OTG_HNPTXSTS
+typedef struct
 {
     unsigned nptxfspcavail:16;
     unsigned nptxqspcavail:8;
@@ -603,7 +635,7 @@ typedef union _USB_OTG_HNPTXSTS_TypeDef
     stc_bUSB_OTG_HNPTXSTS_t b;  /* C-STAT */
 } USB_OTG_HNPTXSTS_TypeDef;
 
-typedef struct stc_bUSB_OTG_DTXFSTSn
+typedef struct
 {
     unsigned txfspcavail:16;
     unsigned reserved:16;
@@ -670,10 +702,10 @@ typedef union _USB_OTG_DCFG_TypeDef
         unsigned devaddr:7;
         /** Periodic Frame Interval */
         unsigned perfrint:2;
-#define DWC_DCFG_FRAME_INTERVAL_80 (0u)
-#define DWC_DCFG_FRAME_INTERVAL_85 (1u)
-#define DWC_DCFG_FRAME_INTERVAL_90 (2u)
-#define DWC_DCFG_FRAME_INTERVAL_95 (3u)
+#define DWC_DCFG_FRAME_INTERVAL_80 (0U)
+#define DWC_DCFG_FRAME_INTERVAL_85 (1U)
+#define DWC_DCFG_FRAME_INTERVAL_90 (2U)
+#define DWC_DCFG_FRAME_INTERVAL_95 (3U)
 
         /** Enable Device OUT NAK for bulk in DDMA mode */
         unsigned endevoutnak:1;
@@ -732,16 +764,16 @@ typedef union _USB_OTG_DCTL_TypeDef
     b;
 } USB_OTG_DCTL_TypeDef;
 
-typedef struct stc_bUSB_OTG_DSTS
+typedef struct
 {
             /** Suspend Status */
             unsigned suspsts:1;
             /** Enumerated Speed */
             unsigned enumspd:2;
-#define DWC_DSTS_ENUMSPD_HS_PHY_30MHZ_OR_60MHZ (0u)
-#define DWC_DSTS_ENUMSPD_FS_PHY_30MHZ_OR_60MHZ (1u)
-#define DWC_DSTS_ENUMSPD_LS_PHY_6MHZ           (2u)
-#define DWC_DSTS_ENUMSPD_FS_PHY_48MHZ          (3u)
+#define DWC_DSTS_ENUMSPD_HS_PHY_30MHZ_OR_60MHZ (0U)
+#define DWC_DSTS_ENUMSPD_FS_PHY_30MHZ_OR_60MHZ (1U)
+#define DWC_DSTS_ENUMSPD_LS_PHY_6MHZ           (2U)
+#define DWC_DSTS_ENUMSPD_FS_PHY_48MHZ          (3U)
             /** Erratic Error */
             unsigned errticerr:1;
             unsigned reserved4_7:4;
@@ -755,7 +787,7 @@ typedef union _USB_OTG_DSTS_TypeDef
     stc_bUSB_OTG_DSTS_t b;
 } USB_OTG_DSTS_TypeDef;
 
-typedef struct stc_bUSB_OTG_DIEPINTn
+typedef struct
 {
             /** Transfer complete mask */
             unsigned xfercompl:1;
@@ -794,34 +826,34 @@ typedef union _USB_OTG_DIEPINTn_TypeDef
 typedef union _USB_OTG_DIEPINTn_TypeDef   USB_OTG_DIEPMSK_TypeDef ;
 
 /* Define bit band for C-STAT */
-#define  in_xfercompl         (0x00000001ul)
-#define  in_epdisabled        (0x00000002ul)
-#define  in_ahberr            (0x00000004ul)
-#define  in_timeout           (0x00000008ul)
-#define  in_intktxfemp        (0x00000010ul)
-#define  in_intknepmis        (0x00000020ul)
-#define  in_inepnakeff        (0x00000040ul)
-#define  in_emptyintr         (0x00000080ul)
-#define  in_txfifoundrn       (0x00000100ul)
-#define  in_bna               (0x00000200ul)
-#define  in_nak               (0x00002000ul)
+#define  in_xfercompl         (0x00000001UL)
+#define  in_epdisabled        (0x00000002UL)
+#define  in_ahberr            (0x00000004UL)
+#define  in_timeout           (0x00000008UL)
+#define  in_intktxfemp        (0x00000010UL)
+#define  in_intknepmis        (0x00000020UL)
+#define  in_inepnakeff        (0x00000040UL)
+#define  in_emptyintr         (0x00000080UL)
+#define  in_txfifoundrn       (0x00000100UL)
+#define  in_bna               (0x00000200UL)
+#define  in_nak               (0x00002000UL)
 
-#define  out_xfercompl        (0x00000001ul)
-#define  out_epdisabled       (0x00000002ul)
-#define  out_ahberr           (0x00000004ul)
-#define  out_setup            (0x00000008ul)
-#define  out_outtknepdis      (0x00000010ul)
-#define  out_stsphsercvd      (0x00000020ul)
-#define  out_back2backsetup   (0x00000040ul)
-#define  out_outpkterr        (0x00000100ul)
-#define  out_bna              (0x00000200ul)
-#define  out_pktdrpsts        (0x00000800ul)
-#define  out_babble           (0x00001000ul)
-#define  out_nak              (0x00002000ul)
-#define  out_nyet             (0x00004000ul)
-#define  out_sr               (0x00008000ul)
+#define  out_xfercompl        (0x00000001UL)
+#define  out_epdisabled       (0x00000002UL)
+#define  out_ahberr           (0x00000004UL)
+#define  out_setup            (0x00000008UL)
+#define  out_outtknepdis      (0x00000010UL)
+#define  out_stsphsercvd      (0x00000020UL)
+#define  out_back2backsetup   (0x00000040UL)
+#define  out_outpkterr        (0x00000100UL)
+#define  out_bna              (0x00000200UL)
+#define  out_pktdrpsts        (0x00000800UL)
+#define  out_babble           (0x00001000UL)
+#define  out_nak              (0x00002000UL)
+#define  out_nyet             (0x00004000UL)
+#define  out_sr               (0x00008000UL)
 
-typedef struct stc_bUSB_OTG_DOEPINTn
+typedef struct
 {
             /** Transfer complete */
             unsigned xfercompl:1;
@@ -941,7 +973,7 @@ typedef union _USB_OTG_DTHRCTL_TypeDef
     b;
 } USB_OTG_DTHRCTL_TypeDef;
 
-typedef struct stc_bUSB_OTG_DEPCTL
+typedef struct
 {
             /** Maximum Packet Size
              * IN/OUT EPn
@@ -951,10 +983,10 @@ typedef struct stc_bUSB_OTG_DEPCTL
              *   2'b10: 16
              *   2'b11: 8 */
             unsigned mps:11;
-#define DWC_DEP0CTL_MPS_64   (0u)
-#define DWC_DEP0CTL_MPS_32   (1u)
-#define DWC_DEP0CTL_MPS_16   (2u)
-#define DWC_DEP0CTL_MPS_8    (3u)
+#define DWC_DEP0CTL_MPS_64   (0U)
+#define DWC_DEP0CTL_MPS_32   (1U)
+#define DWC_DEP0CTL_MPS_16   (2U)
+#define DWC_DEP0CTL_MPS_8    (3U)
 
             /** Next Endpoint
              * IN EPn/IN EP0
@@ -1036,12 +1068,12 @@ typedef union _USB_OTG_DEPCTL_TypeDef
     stc_bUSB_OTG_DEPCTL_t b;  /* C-STAT */
 } USB_OTG_DEPCTL_TypeDef;
 
-typedef struct stc_bUSB_OTG_DEPXFRSIZ
+typedef struct
 {
             /** Transfer size */
             unsigned xfersize:19;
 /** Max packet count for EP (pow(2,10)-1) */
-#define MAX_PKT_CNT 1023
+#define MAX_PKT_CNT 1023U
             /** Packet Count */
             unsigned pktcnt:10;
             /** Multi Count - Periodic IN endpoints */
@@ -1073,7 +1105,7 @@ typedef union _USB_OTG_DEP0XFRSIZ_TypeDef
     b;
 } USB_OTG_DEP0XFRSIZ_TypeDef ;
 
-typedef struct stc_bUSB_OTG_HCFG
+typedef struct
 {
     uint32_t fslspclksel :
         2;
@@ -1112,7 +1144,7 @@ typedef union _USB_OTG_HFNUM_TypeDef
     b;
 } USB_OTG_HFNUM_TypeDef ;
 
-typedef struct stc_bUSB_OTG_HPTXSTS
+typedef struct
 {
     uint32_t ptxfspcavail :
         16;
@@ -1136,7 +1168,7 @@ typedef union _USB_OTG_HPTXSTS_TypeDef
     stc_bUSB_OTG_HPTXSTS_t b;  /* C-STAT */
 } USB_OTG_HPTXSTS_TypeDef ;
 
-typedef struct stc_bUSB_OTG_HPRT0
+typedef struct
 {
     uint32_t prtconnsts :
         1;
@@ -1175,7 +1207,7 @@ typedef union _USB_OTG_HPRT0_TypeDef
     stc_bUSB_OTG_HPRT0_t b;  /* C-STAT */
 } USB_OTG_HPRT0_TypeDef ;
 
-typedef struct stc_bUSB_OTG_HAINT
+typedef struct
 {
     uint32_t chint :
         16;
@@ -1201,7 +1233,7 @@ typedef union _USB_OTG_HAINTMSK_TypeDef
     b;
 } USB_OTG_HAINTMSK_TypeDef ;
 
-typedef struct stc_bUSB_OTG_HCCHAR
+typedef struct
 {
     uint32_t mps :
         11;
@@ -1255,19 +1287,19 @@ typedef union _USB_OTG_HCSPLT_TypeDef
 
 
 /* Bit define for C-STAT */
-#define hc_xfercompl    (0x000000001ul)
-#define hc_chhltd       (0x000000002ul)
-#define hc_ahberr       (0x000000004ul)
-#define hc_stall        (0x000000008ul)
-#define hc_nak          (0x000000010ul)
-#define hc_ack          (0x000000020ul)
-#define hc_nyet         (0x000000040ul)
-#define hc_xacterr      (0x000000080ul)
-#define hc_bblerr       (0x000000100ul)
-#define hc_frmovrun     (0x000000200ul)
-#define hc_datatglerr   (0x000000400ul)
+#define hc_xfercompl    (0x000000001UL)
+#define hc_chhltd       (0x000000002UL)
+#define hc_ahberr       (0x000000004UL)
+#define hc_stall        (0x000000008UL)
+#define hc_nak          (0x000000010UL)
+#define hc_ack          (0x000000020UL)
+#define hc_nyet         (0x000000040UL)
+#define hc_xacterr      (0x000000080UL)
+#define hc_bblerr       (0x000000100UL)
+#define hc_frmovrun     (0x000000200UL)
+#define hc_datatglerr   (0x000000400UL)
 
-typedef struct stc_bUSB_OTG_HCINTn
+typedef struct
 {
     uint32_t xfercompl :
         1;
@@ -1300,7 +1332,7 @@ typedef union _USB_OTG_HCINTn_TypeDef
     stc_bUSB_OTG_HCINTn_t b; /* C-STAT */
 } USB_OTG_HCINTn_TypeDef ;
 
-typedef struct stc_bUSB_OTG_HCTSIZn
+typedef struct
 {
     uint32_t xfersize :
         19;
@@ -1388,6 +1420,9 @@ typedef union _USB_OTG_PCGCCTL_TypeDef
     }
     b;
 } USB_OTG_PCGCCTL_TypeDef ;
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -1397,7 +1432,22 @@ typedef union _USB_OTG_PCGCCTL_TypeDef
   Global function prototypes (definition in C source)
  ******************************************************************************/
 
-#endif //__USB_OTG_REGS_H__
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif /* __HC32F4A0_USB_OTG_REGS_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)

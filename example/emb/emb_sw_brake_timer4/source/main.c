@@ -88,7 +88,7 @@
  * Local function prototypes ('static')
  ******************************************************************************/
 static uint32_t Tmr4PclkFreq(void);
-static void Timer4PwmConfig(void);
+static void Tmr4PwmConfig(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -116,7 +116,7 @@ static uint32_t Tmr4PclkFreq(void)
  * @param  None
  * @retval None
  */
-static void Timer4PwmConfig(void)
+static void Tmr4PwmConfig(void)
 {
     stc_tmr4_cnt_init_t stcTmr4CntInit;
     stc_tmr4_oco_init_t stcTmr4OcoInit;
@@ -176,8 +176,10 @@ static void Timer4PwmConfig(void)
     TMR4_OCO_SetLowChCompareMode(M4_TMR4_1, TMR4_OCO_UL, &stcLowChCmpMode);  /* Set OCO low channel compare mode */
 
     /* Initialize PWM I/O */
+    GPIO_Unlock();
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_09, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_08, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Initialize Timer4 PWM */
     TMR4_PWM_StructInit(&stcTmr4PwmInit);
@@ -210,7 +212,7 @@ int32_t main(void)
     BSP_KEY_Init();
 
     /* Configure Timer4 PWM. */
-    Timer4PwmConfig();
+    Tmr4PwmConfig();
 
     /* Enable peripheral clock */
     PWC_Fcg2PeriphClockCmd(EMB_FUNCTION_CLK_GATE, Enable);

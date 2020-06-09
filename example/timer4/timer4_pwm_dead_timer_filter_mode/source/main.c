@@ -144,7 +144,7 @@ static void TMR4_OcoMatch_IrqCallback(void)
         u8CntOcoMatchIrq = 0U;
     }
 
-    TMR4_OCO_ClearFlag(TMR4_UNIT, TMR4_OCO_LOW_CH, TMR4_OCO_FLAG_MATCH);
+    TMR4_OCO_ClearFlag(TMR4_UNIT, TMR4_OCO_LOW_CH);
     TMR4_OCO_SetCompareVal(TMR4_UNIT, TMR4_OCO_LOW_CH, m_au16OcoCmpVal[u8CntOcoMatchIrq]);
 }
 
@@ -185,7 +185,7 @@ int32_t main(void)
     TMR4_OCO_StructInit(&stcTmr4OcoInit);
     stcTmr4OcoInit.u16CompareVal = m_au16OcoCmpVal[0];
     TMR4_OCO_Init(TMR4_UNIT, TMR4_OCO_LOW_CH, &stcTmr4OcoInit);
-    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_LOW_CH, TMR4_OCO_INT_MATCH, Enable);
+    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_LOW_CH, Enable);
 
     if (TMR4_OCO_LOW_CH % 2UL)
     {
@@ -223,8 +223,10 @@ int32_t main(void)
     NVIC_EnableIRQ(stcIrqSigninCfg.enIRQn);
 
     /* Initialize PWM I/O */
+    GPIO_Unlock();
     GPIO_SetFunc(TIM4_OXH_PORT, TIM4_OXH_PIN, TIM4_OXH_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(TIM4_OXL_PORT, TIM4_OXL_PIN, TIM4_OXL_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Timer4 PWM: Get pwm couple channel */
     u32PwmCh = TMR4_PWM_CH(TMR4_OCO_LOW_CH);

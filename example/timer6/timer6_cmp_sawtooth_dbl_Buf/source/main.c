@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * @file  template/source/main.c
+ * @file  timer6\timer6_cmp_sawtooth_dbl_buf\source\main.c
  * @brief Main program template for the Device Driver Library.
  @verbatim
    Change Logs:

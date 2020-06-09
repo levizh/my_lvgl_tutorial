@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_hid_msc\source\usbd_storage_msd.c
+ * @brief This file includes the user MSC application layer.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_storage_msd.c
- **
- ** A detailed description is available at
- ** @link
-        This file includes the user MSC application layer.
-    @endlink
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -59,13 +59,23 @@
 #include "usbd_msc_mem.h"
 #include "usb_conf.h"
 #include "w25qxx.h"
-//#include "sdio_sdcard.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_HID_MSC
+ * @{
+ */
+
 
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
 /* User callback functions */
-USBD_STORAGE_cb_TypeDef USBD_MICRO_SDIO_fops =
+USBD_STORAGE_cb_TypeDef USBD_MEM_SPI_fops =
 {
     &STORAGE_Init,
     &STORAGE_GetCapacity,
@@ -137,40 +147,31 @@ const int8_t STORAGE_Inquirydata[] =
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/* Pointer to USBD_MICRO_SDIO_fops */
-USBD_STORAGE_cb_TypeDef *USBD_STORAGE_fops = &USBD_MICRO_SDIO_fops;
-
+/* Pointer to USBD_MEM_SPI_fops */
+USBD_STORAGE_cb_TypeDef *USBD_STORAGE_fops = &USBD_MEM_SPI_fops;
+stc_w25qxx_t stcW25qxx;
 /**
- *******************************************************************************
- ** \brief Storage initialize
- **
- ** \param lun: logic number
- **   \@arg: 0, SD card
- **   \@arg: 1, SPI flash
- **
- ** \retval Ok
- **
- ******************************************************************************/
+ * @brief Storage initialize
+ * @param lun: logic number
+ *   \@arg: 0, SD card
+ *   \@arg: 1, SPI flash
+ * @retval Ok
+ */
 int8_t STORAGE_Init(uint8_t lun)
 {
-//    SD_Init();
-    W25QXX_Init();
+    W25QXX_Init(&stcW25qxx);
     return Ok;
 }
 
 /**
- *******************************************************************************
- ** \brief Get Storage capacity
- **
- ** \param lun: logic number
- **   \@arg: 0, SD card
- **   \@arg: 1, SPI flash
- ** \param block_num: sector number
- ** \param block_size: sector size
- **
- ** \retval Ok
- **
- ******************************************************************************/
+ * @brief Get Storage capacity
+ * @param lun: logic number
+ *   \@arg: 0, SD card
+ *   \@arg: 1, SPI flash
+ * @param block_num: sector number
+ * @param block_size: sector size
+ * @retval Ok
+ */
 int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint32_t *block_size)
 {
     if (lun == 1u)
@@ -180,22 +181,18 @@ int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint32_t *block_siz
     }else
     {
         *block_size = 512u;
-        *block_num  = 1024u * 1024u * 8u / 512u;
+        *block_num  = stcW25qxx.u32CapacityInBytes / 512u;
     }
     return Ok;
 }
 
 /**
- *******************************************************************************
- ** \brief Check storage if ready
- **
- ** \param lun: logic number
- **   \@arg: 0, SD card
- **   \@arg: 1, SPI flash
- **
- ** \retval Ok
- **
- ******************************************************************************/
+ * @brief Check storage if ready
+ * @param lun: logic number
+ *   \@arg: 0, SD card
+ *   \@arg: 1, SPI flash
+ * @retval Ok
+ */
 int8_t  STORAGE_IsReady(uint8_t lun)
 {
     USB_STATUS_REG |= (uint8_t)0X10;
@@ -203,16 +200,13 @@ int8_t  STORAGE_IsReady(uint8_t lun)
 }
 
 /**
- *******************************************************************************
- ** \brief Check storage if write protected
- **
- ** \param lun: logic number
- **   \@arg: 0, SD card
- **   \@arg: 1, SPI flash
- **
- ** \retval Ok
- **
- ******************************************************************************/
+ * @brief Check storage if write protected
+ * @param lun: logic number
+ *   \@arg: 0, SD card
+ *   \@arg: 1, SPI flash
+ * @retval Ok
+ *
+ */
 int8_t  STORAGE_IsWriteProtected(uint8_t lun)
 {
     // todo
@@ -220,20 +214,18 @@ int8_t  STORAGE_IsWriteProtected(uint8_t lun)
 }
 
 /**
- *******************************************************************************
- ** \brief Read data from storage devices
- **
- ** \param [in] lun: logic number
- **   \@arg: 0, SD card
- **   \@arg: 1, SPI flash
- ** \param [in] blk_addr: sector address
- ** \param [in] blk_len: sector count
- ** \param [out] buf: data buffer be read
- **
- ** \retval Ok: read successful
- **         Other: read fail
- **
- ******************************************************************************/
+ * @brief Read data from storage devices
+ *
+ * @param [in] lun: logic number
+ *   \@arg: 0, SD card
+ *   \@arg: 1, SPI flash
+ * @param [in] blk_addr: sector address
+ * @param [in] blk_len: sector count
+ * @param [out] buf: data buffer be read
+ *
+ * @retval Ok: read successful
+ *         Other: read fail
+ */
 int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
     int8_t res = (int8_t)0;
@@ -247,26 +239,23 @@ int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_l
         }
     }else
     {
-        W25QXX_Read(buf, blk_addr * 512u, blk_len * 512u);
+        W25QXX_ReadData(blk_addr * 512u, buf, blk_len * 512u);
     }
     return res;
 }
 
 /**
- *******************************************************************************
- ** \brief Write data to storage devices
- **
- ** \param [in] lun: logic number
- **   \@arg: 0, SD card
- **   \@arg: 1, SPI flash
- ** \param [in] blk_addr: sector address
- ** \param [in] blk_len: sector count
- ** \param [out] buf: data buffer be written
- **
- ** \retval Ok: write successful
- **         Other: write fail
- **
- ******************************************************************************/
+ * @brief Write data to storage devices
+ * @param [in] lun: logic number
+ *   \@arg: 0, SD card
+ *   \@arg: 1, SPI flash
+ * @param [in] blk_addr: sector address
+ * @param [in] blk_len: sector count
+ * @param [out] buf: data buffer be written
+ *
+ * @retval Ok: write successful
+ *         Other: write fail
+ */
 int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
     int8_t res = (int8_t)0;
@@ -280,24 +269,28 @@ int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_
         }
     }else
     {
-        W25QXX_Write(buf, blk_addr * 512u, blk_len * 512u);
+        W25QXX_WriteData(blk_addr * 512u, buf, blk_len * 512u);
     }
     return res;
 }
 
 /**
- *******************************************************************************
- ** \brief Get supported logic number
- **
- ** \param None
- **
- ** \retval STORAGE_LUN_NBR-1
- **
- ******************************************************************************/
+ * @brief Get supported logic number
+ * @param None
+ * @retval STORAGE_LUN_NBR-1
+ */
 int8_t STORAGE_GetMaxLun(void)
 {
     return (int8_t)(STORAGE_LUN_NBR - 1u);
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

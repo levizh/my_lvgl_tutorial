@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_msc\source\usb_bsp.h
+ * @brief Headfile for usb_bsp_template.c.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,24 +48,34 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usb_bsp.h
- **
- ** A detailed description is available at
- ** @link Specific api's relative to the used hardware platform @endlink
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
+
 #ifndef __USB_BSP_H__
 #define __USB_BSP_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
-#include "usb_core.h"
+//#include "usb_core.h"
 #include "usb_conf.h"
+#include "hc32_ddl.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_MSC
+ * @{
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -83,7 +103,20 @@ void USB_OTG_BSP_ConfigVBUS(USB_OTG_CORE_HANDLE *pdev);
 void USB_OTG_BSP_DriveVBUS(USB_OTG_CORE_HANDLE *pdev,uint8_t state);
 #endif
 
-#endif //__USB_BSP_H__
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __USB_BSP__H__ */
 
 /*******************************************************************************
  * EOF (not truncated)

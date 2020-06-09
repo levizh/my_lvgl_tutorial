@@ -122,7 +122,7 @@ typedef struct
  * @defgroup WDT_Counter_Cycle WDT Counter Cycle
  * @{
  */
-#define WDT_COUNTER_CYCLE_256                   (0x00000000UL)    /*!< 256 clock cycle   */
+#define WDT_COUNTER_CYCLE_256                   (0UL)             /*!< 256 clock cycle   */
 #define WDT_COUNTER_CYCLE_4096                  (WDT_CR_PERI_0)   /*!< 4096 clock cycle  */
 #define WDT_COUNTER_CYCLE_16384                 (WDT_CR_PERI_1)   /*!< 16384 clock cycle */
 #define WDT_COUNTER_CYCLE_65536                 (WDT_CR_PERI)     /*!< 65536 clock cycle */
@@ -150,7 +150,7 @@ typedef struct
  * @defgroup WDT_Refresh_Percent_Range WDT Refresh Percent Range
  * @{
  */
-#define WDT_RANGE_100PCT                        (0x00000000UL)                                    /*!< 100%               */
+#define WDT_RANGE_0TO100PCT                     (0UL)                                             /*!< 0%~100%            */
 #define WDT_RANGE_0TO25PCT                      (WDT_CR_WDPT_0)                                   /*!< 0%~25%             */
 #define WDT_RANGE_25TO50PCT                     (WDT_CR_WDPT_1)                                   /*!< 25%~50%            */
 #define WDT_RANGE_0TO50PCT                      (WDT_CR_WDPT_1 | WDT_CR_WDPT_0)                   /*!< 0%~50%             */
@@ -165,7 +165,6 @@ typedef struct
 #define WDT_RANGE_50TO100PCT                    (WDT_CR_WDPT_3 | WDT_CR_WDPT_2)                   /*!< 50%~100%           */
 #define WDT_RANGE_0TO25PCT_50TO100PCT           (WDT_CR_WDPT_3 | WDT_CR_WDPT_2 | WDT_CR_WDPT_0)   /*!< 0%~25% & 50%~100%  */
 #define WDT_RANGE_25TO100PCT                    (WDT_CR_WDPT_3 | WDT_CR_WDPT_2 | WDT_CR_WDPT_1)   /*!< 25%~100%           */
-#define WDT_RANGE_0TO100PCT                     (WDT_CR_WDPT)                                     /*!< 0%~100%            */
 /**
  * @}
  */
@@ -175,7 +174,7 @@ typedef struct
  * @brief WDT count control in the sleep mode
  * @{
  */
-#define WDT_LPW_MODE_COUNT_CONTINUE             (0x00000000UL)    /*!< WDT count continue in the sleep mode */
+#define WDT_LPW_MODE_COUNT_CONTINUE             (0UL)             /*!< WDT count continue in the sleep mode */
 #define WDT_LPW_MODE_COUNT_STOP                 (WDT_CR_SLPOFF)   /*!< WDT count stop in the sleep mode     */
 /**
  * @}
@@ -185,7 +184,7 @@ typedef struct
 * @defgroup WDT_Trigger_Event_Type WDT Trigger Event Type
 * @{
 */
-#define WDT_TRIG_EVENT_INT                      (0x00000000UL)  /*!< WDT trigger interrupt */
+#define WDT_TRIG_EVENT_INT                      (0UL)           /*!< WDT trigger interrupt */
 #define WDT_TRIG_EVENT_RESET                    (WDT_CR_ITS)    /*!< WDT trigger reset     */
 /**
  * @}
@@ -217,10 +216,20 @@ typedef struct
  * @{
  */
 
+/**
+ * @brief  Get WDT count value.
+ * @param  None
+ * @retval Count value
+ */
+__STATIC_INLINE uint16_t WDT_GetCountValue(void)
+{
+    return (uint16_t)(READ_REG32(M4_WDT->SR) & WDT_SR_CNT);
+}
+
 /* Initialization and configuration functions */
-en_result_t WDT_Init(const stc_wdt_init_t *pstcWdtInit);
-void        WDT_ReloadCounter(void);
-uint16_t    WDT_GetCountValue(void);
+en_result_t      WDT_Init(const stc_wdt_init_t *pstcWdtInit);
+void             WDT_ReloadCounter(void);
+uint16_t         WDT_GetCountValue(void);
 
 /* Flags management functions */
 en_flag_status_t WDT_GetStatus(uint32_t u32Flag);

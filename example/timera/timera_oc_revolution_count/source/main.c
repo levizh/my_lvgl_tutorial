@@ -96,7 +96,7 @@
 
 #define APP_TMRA_POS_CH                     (TMRA_CH_1)
 
-#define APP_TMRA_Z_CNT_OVF_EVENT            (EVT_TMRA_10_OVF)
+#define APP_TMRA_Z_OVF_EVENT                (EVT_TMRA_10_OVF)
 
 /* Definitions about interrupt. */
 #define TMRA_SHARE_IRQn_BASE                (Int135_IRQn)
@@ -127,9 +127,9 @@
 /* Define the configuration values according to the function that selected. */
 #if (APP_FUNC == APP_FUNC_PHASE_Z_COUNT)
     #define APP_TMRA_POS_UNIT_CLR_COND      (TMRA_CLR_COND_EVENT)
-    #define APP_TMRA_POS_UNIT_CLR_EVENT     (APP_TMRA_Z_CNT_OVF_EVENT)
+    #define APP_TMRA_POS_UNIT_CLR_EVENT     (APP_TMRA_Z_OVF_EVENT)
     #define APP_TMRA_POS_UNIT_CAPT_COND     (TMRA_CAPT_COND_EVENT)
-    #define APP_TMRA_POS_UNIT_CAPT_EVENT    (APP_TMRA_Z_CNT_OVF_EVENT)
+    #define APP_TMRA_POS_UNIT_CAPT_EVENT    (APP_TMRA_Z_OVF_EVENT)
 
     #define APP_TMRA_Z_UNIT_CLK             (TMRA_CLK_HW_UP_TRIGR)
     /* Counts 1 revolution */
@@ -252,11 +252,11 @@ static void TmrAConfig(void)
     TMRA_TrigCondStructInit(&stcCfg);
     stcCfg.u32ClrCond = APP_TMRA_POS_UNIT_CLR_COND;
     TMRA_SetTrigCond(APP_TMRA_POS_UNIT, &stcCfg);
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     TMRA_SetCntEvent(APP_TMRA_POS_UNIT, APP_TMRA_POS_UNIT_CLR_EVENT);
 
     /* 3.3 Configures the capture-condition of position-count unit if needed. */
-    /* PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable); */
+    /* PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable); */
     TMRA_SetCaptEvent(APP_TMRA_POS_UNIT, APP_TMRA_POS_UNIT_CAPT_EVENT);
     TMRA_SetCaptCond(APP_TMRA_POS_UNIT, APP_TMRA_POS_CH, APP_TMRA_POS_UNIT_CAPT_COND);
     TMRA_SetFuncMode(APP_TMRA_POS_UNIT, APP_TMRA_POS_CH, TMRA_FUNC_CAPTURE);

@@ -73,7 +73,7 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /* Define slave device address for example */
-#define DEVICE_ADDRESS                  0x06U
+#define DEVICE_ADDRESS                  (0x06U)
 
 /* Define port and pin for SDA and SCL */
 #define I2C_SCL_PORT                    (GPIO_PORT_D)
@@ -81,21 +81,21 @@
 #define I2C_SDA_PORT                    (GPIO_PORT_F)
 #define I2C_SDA_PIN                     (GPIO_PIN_10)
 
-#define TIMEOUT                         (0x10000U)
+#define TIMEOUT                         (0x14000U)
 
-#define I2C_RET_OK                      0U
-#define I2C_RET_ERROR                   1U
+#define I2C_RET_OK                      (0U)
+#define I2C_RET_ERROR                   (1U)
 
-#define GENERATE_START                  0x00U
-#define GENERATE_RESTART                0x01U
+#define GENERATE_START                  (0x00U)
+#define GENERATE_RESTART                (0x01U)
 
-#define ADDRESS_W                       0x00U
-#define ADDRESS_R                       0x01U
+#define ADDRESS_W                       (0x00U)
+#define ADDRESS_R                       (0x01U)
 
 /* Define Write and read data length for the example */
-#define TEST_DATA_LEN                   128U
+#define TEST_DATA_LEN                   (128U)
 /* Define i2c baudrate */
-#define I2C_BAUDRATE                    400000UL
+#define I2C_BAUDRATE                    (400000UL)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -112,54 +112,6 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_pllh_init_t stcPLLHInit;
-    
-    /* HCLK  Max 240MHz */
-    CLK_ClkDiv(CLK_CATE_ALL,                                                    \
-               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV2 | CLK_PCLK2_DIV4 |                \
-                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 |                \
-                CLK_HCLK_DIV1));
-
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
-    EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_6);
-    EFM_Unlock();
-    
-    /* PLLH config */
-    CLK_PLLHStrucInit(&stcPLLHInit);
-    /*
-    16MHz/M*N/P = 16/1*60/4 =240MHz
-    */
-    stcPLLHInit.u8PLLState = CLK_PLLH_ON;
-    stcPLLHInit.PLLCFGR = 0UL;
-    stcPLLHInit.PLLCFGR_f.PLLM = (1UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLN = (60UL - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLP = (4UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLR = (4UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLQ = (4UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_HRC;
-    CLK_PLLHInit(&stcPLLHInit);
-    CLK_PLLHCmd(Enable);
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
-
-    /* Config clock output system clock */
-    CLK_MCO1Config(CLK_MCOSOURCCE_SYSCLK, CLK_MCODIV_128);
-    /* Config clock output pin */
-    GPIO_SetFunc(GPIO_PORT_A, GPIO_PIN_08, GPIO_FUNC_1_MCO, Disable);
-    /* MCO1 output enable */
-    CLK_MCO1Cmd(Enable);
-}
-
-
 /**
  * @brief   Slave send data to master
  * @param   [in]  pTxData    The data buffer to be send.
@@ -260,7 +212,7 @@ static uint8_t Slave_Initialize(void)
 int32_t main(void)
 {
     /* Configure system clock. */
-    SystemClockConfig();
+    BSP_CLK_Init();
 
     /* Initialize I2C port*/
     stc_gpio_init_t stcGpioInit;

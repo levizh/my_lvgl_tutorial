@@ -73,8 +73,8 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define KEY10_PORT      (GPIO_PORT_I)
-#define KEY10_PIN       (GPIO_PIN_08)
+#define KEY10_PORT      (GPIO_PORT_A)
+#define KEY10_PIN       (GPIO_PIN_00)
 
 #define WKTM_IRQn       (Int131_IRQn)
 
@@ -105,6 +105,7 @@ void PWC_WakeupTimer_IrqHandler(void)
 {
     if (Set == PWC_WKT_GetFlag())
     {
+        printf("Wake-up timer ovweflow.\n");
         PWC_WKT_ClearFlag();
     }
 }
@@ -132,7 +133,7 @@ void PowerDownModeConfig(void)
     /* Disable WKTM inadvance */
     PWC_WKT_Cmd(Disable);
     /* RTCLRC for WKTM */
-    CLK_RtcLrcCmd(Enable);
+    RTC_LrcCmd(Enable);
     /* WKTM init */
     PWC_WKT_Init(PWC_WKT_CLK_SRC_RTCLRC, 0xFFFU);
 
@@ -174,7 +175,10 @@ void ResetCausePrint(void)
 int32_t main(void)
 {
     uint8_t u8Cnt = 0U;
-    
+
+    /* unlock GPIO register in advance */
+    GPIO_Unlock();
+
     BSP_CLK_Init();
     BSP_IO_Init();
     BSP_LED_Init();
@@ -186,7 +190,7 @@ int32_t main(void)
     ResetCausePrint();
 
     /* KEY10 */
-    while(Pin_Reset != GPIO_ReadInputPortPin(KEY10_PORT, KEY10_PIN))
+    while(Pin_Reset != GPIO_ReadInputPins(KEY10_PORT, KEY10_PIN))
     {
         ;
     }
@@ -199,6 +203,9 @@ int32_t main(void)
             BSP_LED_Toggle(LED_BLUE);
             DDL_Delay1ms(DLY_MS);
         } while(--u8Cnt);
+        printf("MCU will entry power down mode...\n");
+        DDL_Delay1ms(DLY_MS);
+
         PWC_WKT_Cmd(Enable);
         PWC_EnterPowerDownMode();
     }

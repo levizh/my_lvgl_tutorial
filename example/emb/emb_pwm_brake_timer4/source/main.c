@@ -90,7 +90,7 @@
  * Local function prototypes ('static')
  ******************************************************************************/
 static uint32_t Tmr4PclkFreq(void);
-static void Timer4PwmConfig(void);
+static void Tmr4PwmConfig(void);
 static void EMB_IrqCallback(void);
 
 /*******************************************************************************
@@ -120,7 +120,7 @@ static uint32_t Tmr4PclkFreq(void)
  * @param  None
  * @retval None
  */
-static void Timer4PwmConfig(void)
+static void Tmr4PwmConfig(void)
 {
     stc_tmr4_cnt_init_t stcTmr4CntInit;
     stc_tmr4_oco_init_t stcTmr4OcoInit;
@@ -180,8 +180,10 @@ static void Timer4PwmConfig(void)
     TMR4_OCO_SetLowChCompareMode(M4_TMR4_1, TMR4_OCO_UL, &stcLowChCmpMode);  /* Set OCO low channel compare mode */
 
     /* Initialize PWM I/O */
+    GPIO_Unlock();
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_09, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_08, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Initialize Timer4 PWM */
     TMR4_PWM_StructInit(&stcTmr4PwmInit);
@@ -241,17 +243,17 @@ int32_t main(void)
     BSP_KEY_Init();
 
     /* Configure Timer4 PWM. */
-    Timer4PwmConfig();
+    Tmr4PwmConfig();
 
     /* Configure EMB. */
     PWC_Fcg2PeriphClockCmd(EMB_FUNCTION_CLK_GATE, Enable);
-    EMB_Timer4StructInit(&stcEmbInit);
-    stcEmbInit.stcTimer4PmwU.u32Timer4PwmSel = EMB_TMR4_PWM_U_ENABLE;
-    stcEmbInit.stcTimer4PmwU.u32Timer4PwmLvl = EMB_DETECT_TMR4_PWM_U_BOTH_HIGH;
-    EMB_Timer4Init(EMB_UNIT, &stcEmbInit);
+    EMB_Tmr4StructInit(&stcEmbInit);
+    stcEmbInit.stcTmr4PwmU.u32PwmSel = EMB_TMR4_PWM_U_ENABLE;
+    stcEmbInit.stcTmr4PwmU.u32PwmLevel = EMB_DETECT_TMR4_PWM_U_BOTH_HIGH;
+    EMB_Tmr4Init(EMB_UNIT, &stcEmbInit);
 
     EMB_IntCmd(EMB_UNIT, EMB_INT_PWMS, Enable);
-    EMB_SetReleasePwmMode(EMB_UNIT, EMB_EVENT_PWMS, EMB_RELEALSE_PWM_SEL_FLAG_ZERO);
+    EMB_SetReleasePwmMode(EMB_UNIT, EMB_EVENT_PWMS, EMB_RELEASE_PWM_SEL_FLAG_ZERO);
 
     /* Register IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = EMB_INT_IRQn;

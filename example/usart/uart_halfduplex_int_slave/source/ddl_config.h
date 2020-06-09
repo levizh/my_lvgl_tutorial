@@ -144,7 +144,6 @@ extern "C"
  * @brief This is the list of midware modules to be used.
  * Select the modules you need to use to MW_ON.
  */
-#define MW_FS_ENABLE                                (MW_OFF)
 
 /* BSP on-off define */
 #define BSP_ON                                      (1U)

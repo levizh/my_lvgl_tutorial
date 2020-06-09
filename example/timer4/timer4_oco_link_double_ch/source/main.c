@@ -122,10 +122,12 @@ static void WaveIoConfig(void)
 {
     stc_gpio_init_t stcGpioInit;
 
+    GPIO_Unlock();
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinDir = PIN_DIR_OUT;
     stcGpioInit.u16PinState = PIN_STATE_RESET;
     GPIO_Init(WAVE_IO_PORT, WAVE_IO_PIN, &stcGpioInit);
+    GPIO_Lock();
 }
 
 /**
@@ -157,8 +159,8 @@ static void TMR4_OcoMatch_IrqCallback(void)
         m_u16OcoOp = u16OcoOp;
     }
 
-    TMR4_OCO_ClearFlag(TMR4_UNIT, TMR4_OCO_LOW_CH, TMR4_OCO_FLAG_MATCH);
-    TMR4_OCO_ClearFlag(TMR4_UNIT, TMR4_OCO_LOW_CH - 1UL, TMR4_OCO_FLAG_MATCH);
+    TMR4_OCO_ClearFlag(TMR4_UNIT, TMR4_OCO_LOW_CH);
+    TMR4_OCO_ClearFlag(TMR4_UNIT, TMR4_OCO_LOW_CH - 1UL);
 }
 
 /**
@@ -215,12 +217,12 @@ int32_t main(void)
     /* Initialize TIMER4 OCO high channel */
     stcTmr4OcoInit.u16CompareVal = stcTmr4CntInit.u16CycleVal / 4U;
     TMR4_OCO_Init(TMR4_UNIT, TMR4_OCO_HIGH_CH, &stcTmr4OcoInit);
-    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_HIGH_CH, TMR4_OCO_INT_MATCH, Enable);
+    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_HIGH_CH, Enable);
 
     /* Initialize TIMER4 OCO low channel */
     stcTmr4OcoInit.u16CompareVal = (stcTmr4CntInit.u16CycleVal / 4U) * 3U;
     TMR4_OCO_Init(TMR4_UNIT, TMR4_OCO_LOW_CH, &stcTmr4OcoInit);
-    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_LOW_CH, TMR4_OCO_INT_MATCH, Enable);
+    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_LOW_CH, Enable);
 
     if (!(TMR4_OCO_HIGH_CH%2UL))
     {

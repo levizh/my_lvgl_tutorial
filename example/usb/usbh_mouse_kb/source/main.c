@@ -1,8 +1,17 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbh_mouse_kb\source\main.c
+ * @brief Main program of USBH HID(Mouse+Key Board) example.
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +47,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file main.c
- **
- ** A detailed description is available at
- ** @link
-        This file provides all the Application firmware functions.
-    @endlink
- **
- **   - 2018-11-11  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -58,9 +57,31 @@
 #include "usbh_usr.h"
 #include "usbh_hid_core.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
 
+/**
+ * @addtogroup USBH_MOUSE_KB
+ * @{
+ */
 
-extern void USB_OTG_PRTSUSP(USB_OTG_CORE_HANDLE *pdev);
+/*******************************************************************************
+ * Local type definitions ('typedef')
+ ******************************************************************************/
+
+/*******************************************************************************
+ * Local pre-processor symbols/macros ('#define')
+ ******************************************************************************/
+
+/*******************************************************************************
+ * Global variable definitions (declared in header file with 'extern')
+ ******************************************************************************/
+
+/*******************************************************************************
+ * Local function prototypes ('static')
+ ******************************************************************************/
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -79,19 +100,23 @@ __USB_ALIGN_BEGIN USB_OTG_CORE_HANDLE      USB_OTG_Core __USB_ALIGN_END;
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 __USB_ALIGN_BEGIN USBH_HOST                USB_Host __USB_ALIGN_END;
 
-/**
- *******************************************************************************
- ** \brief  main function for mouse function
- **
- ** \param [in]  None
- **
- ** \return int32_t Return value, if needed
- **
+extern void USB_OTG_PRTSUSP(USB_OTG_CORE_HANDLE *pdev);
+extern void USB_OTG_ACTIVE_WAKEUP(USB_OTG_CORE_HANDLE *pdev);
+__IO uint32_t suspend_test = 0UL;
+__IO uint32_t resume_test = 0UL;
+
+/*******************************************************************************
+ * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-int main (void)
+
+/**
+ * @brief  main function
+ * @param [in]  None
+ * @retval int32_t Return value, if needed
+ */
+int32_t main (void)
 {
-    __IO uint32_t i = 0ul;
-    __IO uint32_t test = 0ul;
+    __IO uint32_t i = 0UL;
 
     /* Init Host Library */
     USBH_Init(&USB_OTG_Core,
@@ -110,17 +135,30 @@ int main (void)
         USBH_Process(&USB_OTG_Core, &USB_Host);
         if (i++ == 0x20000ul)
         {
-            i = 0ul;
-            LED0_TOGGLE();
+            i = 0UL;
+            BSP_LED_Toggle(LED_BLUE);
         }
 
-        if (test == 1ul){
+        if (suspend_test == 1UL){
             USB_OTG_PRTSUSP(&USB_OTG_Core);
-            test =0ul;
+            suspend_test =0ul;
+        }
+
+        if (resume_test == 1UL){
+            USB_OTG_ACTIVE_WAKEUP(&USB_OTG_Core);
+            resume_test =0UL;
         }
     }
 
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

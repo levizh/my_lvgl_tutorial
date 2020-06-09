@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_msc_scsi.h
+ * @brief Header for the usbd_msc_scsi.c file
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-05-15       Zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,28 +48,52 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_msc_scsi.h
- **
- ** A detailed description is available at
- ** @link header file for the usbd_msc_scsi.c @endlink
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 #ifndef __USBD_MSC_SCSI_H__
 #define __USBD_MSC_SCSI_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbd_def.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @addtogroup USBD_MSC_SCSI
+ * @{
+ */
+
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-typedef struct _SENSE_ITEM
+
+/**
+ * @defgroup USBD_MSC_SCSI_Global_Types USBD MSC SCSI Global Types
+ * @{
+ */
+
+typedef struct
 {
     char Skey;
     union
@@ -73,94 +107,140 @@ typedef struct _SENSE_ITEM
         char *       pData;
     } w;
 } SCSI_Sense_TypeDef;
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define SENSE_LIST_DEEPTH                           (4u)
+/**
+ * @defgroup USBD_MSC_SCSI_Global_Macros USBD MSC SCSI Global Macros
+ * @{
+ */
+
+#define SENSE_LIST_DEEPTH                           (4U)
 
 /* SCSI Commands */
-#define SCSI_FORMAT_UNIT                            (0x04u)
-#define SCSI_INQUIRY                                (0x12u)
-#define SCSI_MODE_SELECT6                           (0x15u)
-#define SCSI_MODE_SELECT10                          (0x55u)
-#define SCSI_MODE_SENSE6                            (0x1Au)
-#define SCSI_MODE_SENSE10                           (0x5Au)
-#define SCSI_ALLOW_MEDIUM_REMOVAL                   (0x1Eu)
-#define SCSI_READ6                                  (0x08u)
-#define SCSI_READ10                                 (0x28u)
-#define SCSI_READ12                                 (0xA8u)
-#define SCSI_READ16                                 (0x88u)
+#define SCSI_FORMAT_UNIT                            (0x04U)
+#define SCSI_INQUIRY                                (0x12U)
+#define SCSI_MODE_SELECT6                           (0x15U)
+#define SCSI_MODE_SELECT10                          (0x55U)
+#define SCSI_MODE_SENSE6                            (0x1AU)
+#define SCSI_MODE_SENSE10                           (0x5AU)
+#define SCSI_ALLOW_MEDIUM_REMOVAL                   (0x1EU)
+#define SCSI_READ6                                  (0x08U)
+#define SCSI_READ10                                 (0x28U)
+#define SCSI_READ12                                 (0xA8U)
+#define SCSI_READ16                                 (0x88U)
 
-#define SCSI_READ_CAPACITY10                        (0x25u)
-#define SCSI_READ_CAPACITY16                        (0x9Eu)
+#define SCSI_READ_CAPACITY10                        (0x25U)
+#define SCSI_READ_CAPACITY16                        (0x9EU)
 
-#define SCSI_REQUEST_SENSE                          (0x03u)
-#define SCSI_START_STOP_UNIT                        (0x1Bu)
-#define SCSI_TEST_UNIT_READY                        (0x00u)
-#define SCSI_WRITE6                                 (0x0Au)
-#define SCSI_WRITE10                                (0x2Au)
-#define SCSI_WRITE12                                (0xAAu)
-#define SCSI_WRITE16                                (0x8Au)
+#define SCSI_REQUEST_SENSE                          (0x03U)
+#define SCSI_START_STOP_UNIT                        (0x1BU)
+#define SCSI_TEST_UNIT_READY                        (0x00U)
+#define SCSI_WRITE6                                 (0x0AU)
+#define SCSI_WRITE10                                (0x2AU)
+#define SCSI_WRITE12                                (0xAAU)
+#define SCSI_WRITE16                                (0x8AU)
 
-#define SCSI_VERIFY10                               (0x2Fu)
-#define SCSI_VERIFY12                               (0xAFu)
-#define SCSI_VERIFY16                               (0x8Fu)
+#define SCSI_VERIFY10                               (0x2FU)
+#define SCSI_VERIFY12                               (0xAFU)
+#define SCSI_VERIFY16                               (0x8FU)
 
-#define SCSI_SEND_DIAGNOSTIC                        (0x1Du)
-#define SCSI_READ_FORMAT_CAPACITIES                 (0x23u)
+#define SCSI_SEND_DIAGNOSTIC                        (0x1DU)
+#define SCSI_READ_FORMAT_CAPACITIES                 (0x23U)
 
-#define NO_SENSE                                    (0u)
-#define RECOVERED_ERROR                             (1u)
-#define NOT_READY                                   (2u)
-#define MEDIUM_ERROR                                (3u)
-#define HARDWARE_ERROR                              (4u)
-#define ILLEGAL_REQUEST                             (5u)
-#define UNIT_ATTENTION                              (6u)
-#define DATA_PROTECT                                (7u)
-#define BLANK_CHECK                                 (8u)
-#define VENDOR_SPECIFIC                             (9u)
-#define COPY_ABORTED                                (10u)
-#define ABORTED_COMMAND                             (11u)
-#define VOLUME_OVERFLOW                             (13u)
-#define MISCOMPARE                                  (14u)
+#define NO_SENSE                                    (0U)
+#define RECOVERED_ERROR                             (1U)
+#define NOT_READY                                   (2U)
+#define MEDIUM_ERROR                                (3U)
+#define HARDWARE_ERROR                              (4U)
+#define ILLEGAL_REQUEST                             (5U)
+#define UNIT_ATTENTION                              (6U)
+#define DATA_PROTECT                                (7U)
+#define BLANK_CHECK                                 (8U)
+#define VENDOR_SPECIFIC                             (9U)
+#define COPY_ABORTED                                (10U)
+#define ABORTED_COMMAND                             (11U)
+#define VOLUME_OVERFLOW                             (13U)
+#define MISCOMPARE                                  (14U)
 
-#define INVALID_CDB                                 (0x20u)
-#define INVALID_FIELED_IN_COMMAND                   (0x24u)
-#define PARAMETER_LIST_LENGTH_ERROR                 (0x1Au)
-#define INVALID_FIELD_IN_PARAMETER_LIST             (0x26u)
-#define ADDRESS_OUT_OF_RANGE                        (0x21u)
-#define MEDIUM_NOT_PRESENT                          (0x3Au)
-#define MEDIUM_HAVE_CHANGED                         (0x28u)
-#define WRITE_PROTECTED                             (0x27u)
-#define UNRECOVERED_READ_ERROR                      (0x11u)
-#define WRITE_FAULT                                 (0x03u)
+#define INVALID_CDB                                 (0x20U)
+#define INVALID_FIELED_IN_COMMAND                   (0x24U)
+#define PARAMETER_LIST_LENGTH_ERROR                 (0x1AU)
+#define INVALID_FIELD_IN_PARAMETER_LIST             (0x26U)
+#define ADDRESS_OUT_OF_RANGE                        (0x21U)
+#define MEDIUM_NOT_PRESENT                          (0x3AU)
+#define MEDIUM_HAVE_CHANGED                         (0x28U)
+#define WRITE_PROTECTED                             (0x27U)
+#define UNRECOVERED_READ_ERROR                      (0x11U)
+#define WRITE_FAULT                                 (0x03U)
 
-#define READ_FORMAT_CAPACITY_DATA_LEN               (0x0Cu)
-#define READ_CAPACITY10_DATA_LEN                    (0x08u)
-#define MODE_SENSE10_DATA_LEN                       (0x08u)
-#define MODE_SENSE6_DATA_LEN                        (0x04u)
-#define REQUEST_SENSE_DATA_LEN                      (0x12u)
-#define STANDARD_INQUIRY_DATA_LEN                   (0x24u)
-#define BLKVFY                                      (0x04u)
+#define READ_FORMAT_CAPACITY_DATA_LEN               (0x0CU)
+#define READ_CAPACITY10_DATA_LEN                    (0x08U)
+#define MODE_SENSE10_DATA_LEN                       (0x08U)
+#define MODE_SENSE6_DATA_LEN                        (0x04U)
+#define REQUEST_SENSE_DATA_LEN                      (0x12U)
+#define STANDARD_INQUIRY_DATA_LEN                   (0x24U)
+#define BLKVFY                                      (0x04U)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+/**
+ * @addtogroup USBD_MSC_SCSI_Global_Variables
+ * @{
+ */
+
 extern SCSI_Sense_TypeDef SCSI_Sense [SENSE_LIST_DEEPTH];
 extern uint8_t SCSI_Sense_Head;
 extern uint8_t SCSI_Sense_Tail;
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBD_MSC_SCSI_Global_Functions
+ * @{
+ */
 int8_t SCSI_ProcessCmd(USB_OTG_CORE_HANDLE  *pdev,
                        uint8_t lun,
                        uint8_t *cmd);
 
-void   SCSI_SenseCode(uint8_t lun,
+void SCSI_SenseCode(uint8_t lun,
                       uint8_t sKey,
                       uint8_t ASC);
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBD_MSC_SCSI_H__ */
 

@@ -89,7 +89,7 @@ extern "C"
  * @brief CAN bit timing configuration structure.
  * @note 1. Restrictions: u32SEG1 >= u32SEG2 + 1, u32SEG2 >= u32SJW.
  * @note 2. TQ = u32Prescaler / CANClock.
- * @note 3. Bit time = (u32SEG2 + u32SEG2) × TQ.
+ * @note 3. Bit time = (u32SEG2 + u32SEG2) x TQ.
  * @note 4. Baudrate = CANClock/(u32Prescaler*(u32SEG1 + u32SEG2))
  */
 typedef struct
@@ -107,14 +107,47 @@ typedef struct
 } stc_can_bt_cfg_t;
 
 /**
- * @brief CAN identifier structure.
+ * @brief CAN acceptance filter structure.
  */
 typedef struct
 {
     uint32_t u32ID;                         /*!< 11 bits standard ID or 29 bits extended ID, depending on IDE. */
     uint32_t u32IDMsk;                      /*!< ID mask. The mask bits of ID will be ignored by the acceptance filter. */
     uint32_t u32MskType;                    /*!< Acceptance filter mask type. This parameter can be a value of @ref CAN_AF_Mask_Type */
-} stc_can_af_id_t;
+} stc_can_af_cfg_t;
+
+/**
+ * @brief CAN FD configuration structure.
+ */
+typedef struct
+{
+    uint8_t u8CANFDMode;                    /*!< CAN-FD mode, Bosch CAN-FD or 11898-1:2015 CAN-FD.
+                                                 This parameter can be a value of @ref CAN_FD_Mode */
+    stc_can_bt_cfg_t stcFBT;                /*!< Bit timing configuration of fast bit timing. */
+    uint8_t u8TDCCmd;                       /*!< Transmiter delay compensation function control.
+                                                 This parameter can be a value of @ref CAN_FD_TDC_Command */
+    uint8_t u8TDCSSP;                       /*!< Specify secondary sample point(SSP) of transmitter delay compensatin(TDC). Number of TQ. */
+} stc_can_fd_cfg_t;
+
+/**
+ * @brief CAN time-triggered communication configuration structure.
+ */
+typedef struct
+{
+    uint8_t u8TransBufMode;                 /*!< TTCAN Transmit Buffer Mode.
+                                                 This parameter can be a value of @ref CAN_TTC_Transmit_Buffer_Mode */
+    uint8_t u8NTUPrescaler;                 /*!< Prescaler of NTU(network time unit). The source is the bit time which is defined by SBT.
+                                                 This parameter can be a value of @ref CAN_TTC_NTU_Prescaler */
+    uint32_t u32RefMsgIDE;                  /*!< Reference message identifier extension bit.
+                                                 '1' to set the ID which is specified by parameter 'u32RefMsgID' as an extended ID while \
+                                                 '0' to set it as a standard ID. */
+    uint32_t u32RefMsgID;                   /*!< Reference message identifier. */
+    uint16_t u16TrigType;                   /*!< Trigger type of TTC.
+                                                 This parameter can be a value of @ref CAN_TTC_Trigger_Type */
+    uint16_t u16TxEnWindow;                 /*!< Tx_Enable window. Time period within which the transmission of a message may be started. Range is [1, 16U] */
+    uint16_t u16TxTrigTime;                 /*!< Specifies for the referred message the time window of the matrix cycle at which it is to be transmitted. */
+    uint16_t u16WatchTrigTime;              /*!< Time mark used to check whether the time since the last valid reference message has been too long. */
+} stc_can_ttc_cfg_t;
 
 /**
  * @brief CAN initialization structure.
@@ -124,6 +157,11 @@ typedef struct
     uint8_t u8WorkMode;                     /*!< Specify the work mode of CAN.
                                                  This parameter can be a value of @ref CAN_Work_Mode */
     stc_can_bt_cfg_t stcSBT;                /*!< Bit timing configuration of slow bit timing. */
+
+    en_functional_state_t enCANFDCmd;       /*!< Enable or Disable CAN-FD. If Disable, the following configuration valuse will not \
+                                                 be written to the registers. */
+
+    stc_can_fd_cfg_t stcFDCfg;              /*!< CAN-FD configuration structure. */
 
     uint8_t u8TransMode;                    /*!< Transmission mode of PTB and STB.
                                                  This parameter can be a value of @ref CAN_Trans_Mode */
@@ -136,8 +174,8 @@ typedef struct
                                                  if it was enabled. */
     uint8_t u8ErrWarnLimit;                 /*!< Specify programmable error warning limit. Range is [0, 15]. \
                                                  Error warning limit = (u8ErrWarnLimit + 1) * 8. */
-    stc_can_af_id_t *pstcID;                /*!< Points to a stc_can_af_id_t structure type pointer value that
-                                                 contains the ID informations for the acceptance filters. */
+    stc_can_af_cfg_t *pstcAFCfg;            /*!< Points to a stc_can_af_cfg_t structure type pointer value that
+                                                 contains the configuration informations for the acceptance filters. */
     uint16_t u16AFSel;                      /*!< Specify acceptance filter for receive buffer.
                                                  This parameter can be values of @ref CAN_AF */
     uint8_t u8RBStoreSel;                   /*!< Receive buffer stores all data frames, includes error data.
@@ -147,38 +185,6 @@ typedef struct
     uint8_t u8SelfACKCmd;                   /*!< Self ACK. Only for external loopback mode.
                                                  This parameter can be a value of @ref CAN_Self_ACK_Command */
 } stc_can_init_t;
-
-/**
- * @brief CAN FD configuration structure.
- */
-typedef struct
-{
-    uint8_t u8CANFDISO;                     /*!< CAN FD ISO mode, Bosch CAN FD or 11898-1:2015 CAN FD.
-                                                 This parameter can be a value of @ref CAN_FD_ISO_Mode */
-    stc_can_bt_cfg_t stcFBT;                /*!< Bit timing configuration of fast bit timing. */
-    uint8_t u8TDCCmd;                       /*!< Transmiter delay compensation function control.
-                                                 This parameter can be a value of @ref CAN_TDC_Command */
-    uint8_t u8TDCSSP;                       /*!< Specify secondary sample point(SSP) of transmitter delay compensatin(TDC). */
-} stc_can_fd_cfg_t;
-
-/**
- * @brief CAN time-triggered communication configuration structure.
- */
-typedef struct
-{
-    uint8_t u8TmrPresc;                     /*!< Prescale the SBT prescaled clock, used as the timer clock of TTC. */
-    uint32_t u32RefIDE;                     /*!< Reference message identifier extension bit. 1 to enable IDE and 0 to disable IDE. */
-    uint32_t u32RefID;                      /*!< Reference message identifier. */
-    uint8_t u8TBS;                          /*!< Specify transmit buffer slot pointer for initialization.
-                                                 This parameter can be a value of @ref CAN_TTC_TBS_Pointer */
-    uint16_t u16TxTrigTBS;                  /*!< Specify transmit buffer slot pointer of transmit trigger for initialization.
-                                                 This parameter can be a value of @ref CAN_TTC_TBS_Pointer */
-    uint16_t u16TrigType;                   /*!< Trigger type of TTC.
-                                                 This parameter can be a value of @ref CAN_TTC_Trigger_Type */
-    uint16_t u16TxEnWindow;                 /*!< Transmission enable window. */
-    uint16_t u16TxTrigTime;                 /*!< Specifies for the referred message the time window of the matrix cycle at which it is to be transmitted. */
-    uint16_t u16WatchTrigTime;              /*!< Time mark used to check whether the time since the last valid reference message has been too long. */
-} stc_can_ttc_cfg_t;
 
 /**
  * @brief CAN transmit data structure.
@@ -267,31 +273,8 @@ typedef struct
  * @defgroup CAN_Transmit_Buffer_Type CAN Transmit Buffer Type
  * @{
  */
-#define CAN_PTB                         (0U)                    /*!< Primary transmit buffer. */
-#define CAN_STB                         (1U)                    /*!< Secondary transmit buffer. */
-/**
- * @}
- */
-
-/**
- * @defgroup CAN_Node_Set_State CAN Node Set State
- * @{
- */
-#define CAN_SET_NORMAL_COMM             (0U)                    /*!< Set the CAN node to enter the normal communication mode. \
-                                                                     When this state is set, it takes 11 CAN bit time for this node \
-                                                                     to participate in communication. */
-#define CAN_SET_SW_RESET                (1U)                    /*!< Set the CAN node software reset. Software reset is a partial reset \
-                                                                     and CANNOT reset all registers. */
-/**
- * @}
- */
-
-/**
- * @defgroup CAN_ID_Type CAN Identifier Type
- * @{
- */
-#define CAN_IDS                         (0x0U)                  /*!< Identifier is 11 bits standard format. */
-#define CAN_IDE                         (0x1U)                  /*!< Identifier is 29 bits extended format. */
+#define CAN_BUF_PTB                     (0U)                    /*!< Primary transmit buffer. */
+#define CAN_BUF_STB                     (1U)                    /*!< Secondary transmit buffer. */
 /**
  * @}
  */
@@ -324,23 +307,11 @@ typedef struct
  * @defgroup CAN_Trans_Mode CAN Transmission Mode
  * @{
  */
-#define CAN_TRANS_NORMAL                (0x0U)                  /*!< Normal transmission mode. Both PTB and STB automatically retransmit. */
+#define CAN_TRANS_PTB_STB_AUTO_RETX     (0x0U)                  /*!< Both PTB and STB automatically retransmit. */
 #define CAN_TRANS_PTB_SSHOT             (CAN_CFG_STAT_TPSS)     /*!< PTB single shot transmission mode. */
 #define CAN_TRANS_STB_SSHOT             (CAN_CFG_STAT_TSSS)     /*!< STB single shot transmission mode. */
 #define CAN_TRANS_PTB_STB_SSHOT         (CAN_CFG_STAT_TPSS | \
                                          CAN_CFG_STAT_TSSS)     /*!< STB single shot, PTB single shot. */
-/**
- * @}
- */
-
-/**
- * @defgroup CAN_Abort_Transmit_Buffer CAN Abort Transmit Buffer
- * @{
- */
-#define CAN_ABORT_PTB                   (CAN_TCMD_TPA)          /*!< Cancel PTB transmission that ready but not started. */
-#define CAN_ABORT_STB                   (CAN_TCMD_TSA)          /*!< Cancel STB transmission that ready but not started. */
-#define CAN_ABORT_PTB_STB               (CAN_TCMD_TSA | \
-                                         CAN_TCMD_TPA)          /*!< Cancel STB transmission and PTB transmission that ready but not started. */
 /**
  * @}
  */
@@ -356,10 +327,10 @@ typedef struct
  */
 
 /**
- * @defgroup CAN_STB_Priority_Mode CAN Secondary Transmit Buffer Priority Mode
+ * @defgroup CAN_STB_Priority_Mode CAN STB Priority Mode
  * @{
  */
-#define CAN_STB_PRIO_FIFO               (0x0U)                  /*!< Data first in first be transmitted. */
+#define CAN_STB_PRIO_FIFO               (0x0U)                  /*!< Data first in and first be transmitted. */
 #define CAN_STB_PRIO_ID                 (CAN_TCTRL_TSMODE)      /*!< Data with smallest ID first be transmitted. */
 /**
  * @}
@@ -395,11 +366,11 @@ typedef struct
  */
 
 /**
- * @defgroup CAN_FD_ISO_Mode CAN FD ISO Mode
+ * @defgroup CAN_FD_Mode CAN FD Mode
  * @{
  */
-#define CAN_FD_ISO_BOSCH                (0x0U)
-#define CAN_FD_ISO_11898                (CAN_TCTRL_FD_ISO)
+#define CAN_FD_MODE_BOSCH               (0x0U)
+#define CAN_FD_MODE_ISO_11898           (CAN_TCTRL_FD_ISO)
 /**
  * @}
  */
@@ -435,11 +406,11 @@ typedef struct
  */
 
 /**
- * @defgroup CAN_TDC_Command CAN Transmiter Delay Compensation Command
+ * @defgroup CAN_FD_TDC_Command CAN-FD Transmiter Delay Compensation Command
  * @{
  */
-#define CAN_TDC_DISABLE                 (0x0U)
-#define CAN_TDC_ENABLE                  (CAN_TDC_TDCEN)
+#define CAN_FD_TDC_DISABLE              (0x0U)
+#define CAN_FD_TDC_ENABLE               (CAN_TDC_TDCEN)
 /**
  * @}
  */
@@ -458,6 +429,17 @@ typedef struct
 #define CAN_INT_BUS_ERR                 (1UL << 9U)             /*!< Register bit ERRINT.BEIE. Arbitration lost caused bus error */
 #define CAN_INT_ARB_LOST                (1UL << 11U)            /*!< Register bit ERRINT.ALIE. Arbitration lost. */
 #define CAN_INT_ERR_PASSIVE             (1UL << 13U)            /*!< Register bit ERRINT.EPIE. A change from error-passive to error-active or error-active to error-passive has occurred. */
+
+#define CAN_INT_ALL                     (CAN_INT_ERR_INT        | \
+                                         CAN_INT_STB_TRANS_OK   | \
+                                         CAN_INT_PTB_TRANS_OK   | \
+                                         CAN_INT_RB_ALMOST_FULL | \
+                                         CAN_INT_RB_FIFO_FULL   | \
+                                         CAN_INT_RX_OVERRUN     | \
+                                         CAN_INT_RX             | \
+                                         CAN_INT_BUS_ERR        | \
+                                         CAN_INT_ARB_LOST       | \
+                                         CAN_INT_ERR_PASSIVE)
 /**
  * @}
  */
@@ -482,12 +464,56 @@ typedef struct
 #define CAN_FLAG_RB_ALMOST_FULL         (1UL << 20U)            /*!< Register bit RTIF.RAFIF. The number of filled RB slot is greater than or equal to the LIMIT.AFWL setting value. */
 #define CAN_FLAG_RB_FIFO_FULL           (1UL << 21U)            /*!< Register bit RTIF.RFIF. The FIFO of receive buffer is full. */
 #define CAN_FLAG_RX_OVERRUN             (1UL << 22U)            /*!< Register bit RTIF.ROIF. Receive buffers are all full and there is a further message to be stored. */
-#define CAN_FLAG_RX                     (1UL << 23U)            /*!< Register bit RTIF.RIF. Received a valid data frame or remote frame. */
+#define CAN_FLAG_RX_OK                  (1UL << 23U)            /*!< Register bit RTIF.RIF. Received a valid data frame or remote frame. */
 #define CAN_FLAG_BUS_ERR                (1UL << 24U)            /*!< Register bit ERRINT.BEIF. Arbitration lost caused bus error. */
 #define CAN_FLAG_ARB_LOST               (1UL << 26U)            /*!< Register bit ERRINT.ALIF. Arbitration lost. */
 #define CAN_FLAG_ERR_PASSIVE            (1UL << 28U)            /*!< Register bit ERRINT.EPIF. A change from error-passive to error-active or error-active to error-passive has occurred. */
 #define CAN_FLAG_ERR_PASSIVE_NODE       (1UL << 30U)            /*!< Register bit ERRINT.EPASS. The node is an error-passive node. */
 #define CAN_FLAG_REACH_WARN_LIMIT       (1UL << 31U)            /*!< Register bit ERRINT.EWARN. REC or TEC is greater than or equal to the LIMIT.EWL setting value. */
+
+#define CAN_FLAG_ALL                    (CAN_FLAG_BUS_OFF          | \
+                                         CAN_FLAG_BUS_TX           | \
+                                         CAN_FLAG_BUS_RX           | \
+                                         CAN_FLAG_RB_OVF           | \
+                                         CAN_FLAG_TB_FULL          | \
+                                         CAN_FLAG_TRANS_ABORTED    | \
+                                         CAN_FLAG_ERR_INT          | \
+                                         CAN_FLAG_STB_TRANS_OK     | \
+                                         CAN_FLAG_PTB_TRANS_OK     | \
+                                         CAN_FLAG_RB_ALMOST_FULL   | \
+                                         CAN_FLAG_RB_FIFO_FULL     | \
+                                         CAN_FLAG_RX_OVERRUN       | \
+                                         CAN_FLAG_RX_OK            | \
+                                         CAN_FLAG_BUS_ERR          | \
+                                         CAN_FLAG_ARB_LOST         | \
+                                         CAN_FLAG_ERR_PASSIVE      | \
+                                         CAN_FLAG_ERR_PASSIVE_NODE | \
+                                         CAN_FLAG_REACH_WARN_LIMIT)
+
+#define CAN_FLAG_CLR_MSK                (CAN_FLAG_RB_OVF           | \
+                                         CAN_FLAG_TRANS_ABORTED    | \
+                                         CAN_FLAG_ERR_INT          | \
+                                         CAN_FLAG_STB_TRANS_OK     | \
+                                         CAN_FLAG_PTB_TRANS_OK     | \
+                                         CAN_FLAG_RB_ALMOST_FULL   | \
+                                         CAN_FLAG_RB_FIFO_FULL     | \
+                                         CAN_FLAG_RX_OVERRUN       | \
+                                         CAN_FLAG_RX_OK            | \
+                                         CAN_FLAG_BUS_ERR          | \
+                                         CAN_FLAG_ARB_LOST         | \
+                                         CAN_FLAG_ERR_PASSIVE      | \
+                                         CAN_FLAG_ERR_PASSIVE_NODE | \
+                                         CAN_FLAG_REACH_WARN_LIMIT)
+
+#define CAN_FLAG_TX_ERR_MSK             (CAN_FLAG_BUS_OFF          | \
+                                         CAN_FLAG_TB_FULL          | \
+                                         CAN_FLAG_ERR_INT          | \
+                                         CAN_FLAG_BUS_ERR          | \
+                                         CAN_FLAG_ARB_LOST         | \
+                                         CAN_FLAG_ERR_PASSIVE      | \
+                                         CAN_FLAG_ERR_PASSIVE_NODE | \
+                                         CAN_FLAG_REACH_WARN_LIMIT)
+
 /**
  * @}
  */
@@ -526,23 +552,34 @@ typedef struct
  * @defgroup CAN_AF CAN Acceptance Filter
  * @{
  */
-#define CAN_AF1                         (CAN_ACFEN_AE_1)
-#define CAN_AF2                         (CAN_ACFEN_AE_2)
-#define CAN_AF3                         (CAN_ACFEN_AE_3)
-#define CAN_AF4                         (CAN_ACFEN_AE_4)
-#define CAN_AF5                         (CAN_ACFEN_AE_5)
-#define CAN_AF6                         (CAN_ACFEN_AE_6)
-#define CAN_AF7                         (CAN_ACFEN_AE_7)
-#define CAN_AF8                         (CAN_ACFEN_AE_8)
-#define CAN_AF9                         (CAN_ACFEN_AE_9)
-#define CAN_AF10                        (CAN_ACFEN_AE_10)
-#define CAN_AF11                        (CAN_ACFEN_AE_11)
-#define CAN_AF12                        (CAN_ACFEN_AE_12)
-#define CAN_AF13                        (CAN_ACFEN_AE_13)
-#define CAN_AF14                        (CAN_ACFEN_AE_14)
-#define CAN_AF15                        (CAN_ACFEN_AE_15)
-#define CAN_AF16                        (CAN_ACFEN_AE_16)
+#define CAN_AF1                         (CAN_ACFEN_AE_1)        /*!< Acceptance filter 1 select bit. */
+#define CAN_AF2                         (CAN_ACFEN_AE_2)        /*!< Acceptance filter 2 select bit. */
+#define CAN_AF3                         (CAN_ACFEN_AE_3)        /*!< Acceptance filter 3 select bit. */
+#define CAN_AF4                         (CAN_ACFEN_AE_4)        /*!< Acceptance filter 4 select bit. */
+#define CAN_AF5                         (CAN_ACFEN_AE_5)        /*!< Acceptance filter 5 select bit. */
+#define CAN_AF6                         (CAN_ACFEN_AE_6)        /*!< Acceptance filter 6 select bit. */
+#define CAN_AF7                         (CAN_ACFEN_AE_7)        /*!< Acceptance filter 7 select bit. */
+#define CAN_AF8                         (CAN_ACFEN_AE_8)        /*!< Acceptance filter 8 select bit. */
+#define CAN_AF9                         (CAN_ACFEN_AE_9)        /*!< Acceptance filter 9 select bit. */
+#define CAN_AF10                        (CAN_ACFEN_AE_10)       /*!< Acceptance filter 10 select bit. */
+#define CAN_AF11                        (CAN_ACFEN_AE_11)       /*!< Acceptance filter 11 select bit. */
+#define CAN_AF12                        (CAN_ACFEN_AE_12)       /*!< Acceptance filter 12 select bit. */
+#define CAN_AF13                        (CAN_ACFEN_AE_13)       /*!< Acceptance filter 13 select bit. */
+#define CAN_AF14                        (CAN_ACFEN_AE_14)       /*!< Acceptance filter 14 select bit. */
+#define CAN_AF15                        (CAN_ACFEN_AE_15)       /*!< Acceptance filter 15 select bit. */
+#define CAN_AF16                        (CAN_ACFEN_AE_16)       /*!< Acceptance filter 16 select bit. */
 #define CAN_AF_ALL                      (0xFFFFU)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup CAN_TTC_Transmit_Buffer_Mode CAN Time-triggered Communication Transmit Buffer Mode
+ * @{
+ */
+#define CAN_TTC_TB_MODE_NORMAL          (0x0U)                      /*!< TTC transmit buffer depends on the priority of STB which is defined by @ref CAN_STB_Priority_Mode */
+#define CAN_TTC_TB_MODE_PTR             (CAN_TCTRL_TTTBM)           /*!< TTC transmit buffer is pointed by TBSLOT.TBPTR(for data filling) and \
+                                                                         TRG_CFG.TTPTR(for data transmission). */
 /**
  * @}
  */
@@ -551,30 +588,10 @@ typedef struct
  * @defgroup CAN_TTC_TBS_Pointer CAN Time-triggered Communication Transmit Buffer Slot Pointer
  * @{
  */
-#define CAN_TTC_TBS_PTB                  (0x0U)                 /*!< Point to PTB. */
-#define CAN_TTC_TBS_STB_S1               (0x1U)                 /*!< Point to STB slot 1. */
-#define CAN_TTC_TBS_STB_S2               (0x2U)                 /*!< Point to STB slot 2. */
-#define CAN_TTC_TBS_STB_S3               (0x3U)                 /*!< Point to STB slot 3. */
-/**
- * @}
- */
-
-/**
- * @defgroup CAN_TTC_Set_TB_State CAN Time-triggered Communication Set Transmit Buffer State
- * @{
- */
-#define CAN_TTC_SET_TB_FILLED           (CAN_TBSLOT_TBF)        /*!< Set TB slot that pointed by TB slot pointer to "filled". */
-#define CAN_TTC_SET_TB_EMPTY            (CAN_TBSLOT_TBE)        /*!< Set TB slot that pointed by TB slot pointer to "empty". */
-/**
- * @}
- */
-
-/**
- * @defgroup CAN_TTC_Function_Command CAN Time-triggered Communication Function Command
- * @{
- */
-#define CAN_TTC_DISABLE                 (0x0U)
-#define CAN_TTC_ENABLE                  (CAN_TTCFG_TTEN)
+#define CAN_TTC_TBS_PTB                 (0x0U)                      /*!< Point to PTB. */
+#define CAN_TTC_TBS_STB1                (0x1U)                      /*!< Point to STB slot 1. */
+#define CAN_TTC_TBS_STB2                (0x2U)                      /*!< Point to STB slot 2. */
+#define CAN_TTC_TBS_STB3                (0x3U)                      /*!< Point to STB slot 3. */
 /**
  * @}
  */
@@ -583,9 +600,13 @@ typedef struct
  * @defgroup CAN_TTC_Status_Flag CAN Time-triggered Communication Status Flag
  * @{
  */
-#define CAN_TTC_FLAG_TTI                (CAN_TTCFG_TTIF)        /*!< Time trigger interrupt flag. */
-#define CAN_TTC_FLAG_TEI                (CAN_TTCFG_TEIF)        /*!< Trigger error interrupt flag. */
-#define CAN_TTC_FLAG_WTI                (CAN_TTCFG_WTIF)        /*!< Watch trigger interrupt flag. */
+#define CAN_TTC_FLAG_TTI                (CAN_TTCFG_TTIF)            /*!< Time trigger interrupt flag. */
+#define CAN_TTC_FLAG_TEI                (CAN_TTCFG_TEIF)            /*!< Trigger error interrupt flag. */
+#define CAN_TTC_FLAG_WTI                (CAN_TTCFG_WTIF)            /*!< Watch trigger interrupt flag. */
+
+#define CAN_TTC_FLAG_ALL                (CAN_TTC_FLAG_TTI | \
+                                         CAN_TTC_FLAG_TEI | \
+                                         CAN_TTC_FLAG_WTI)
 /**
  * @}
  */
@@ -594,31 +615,22 @@ typedef struct
  * @defgroup CAN_TTC_Interrupt_Type CAN Time-triggered Communication Interrupt Type
  * @{
  */
-#define CAN_TTC_INT_TTI                 (CAN_TTCFG_TTIE)        /*!< Time trigger interrupt. */
-#define CAN_TTC_INT_WTI                 (CAN_TTCFG_WTIE)        /*!< Watch trigger interrupt. */
+#define CAN_TTC_INT_TTI                 (CAN_TTCFG_TTIE)            /*!< Time trigger interrupt. */
+#define CAN_TTC_INT_WTI                 (CAN_TTCFG_WTIE)            /*!< Watch trigger interrupt. */
+#define CAN_TTC_INT_ALL                 (CAN_TTC_INT_TTI | CAN_TTC_INT_WTI)
 /**
  * @}
  */
 
 /**
- * @defgroup CAN_TTC_Timer_Prescaler CAN Time-triggered Communication Timer Prescaler
+ * @defgroup CAN_TTC_NTU_Prescaler CAN Time-triggered Communication Network Time Unit Prescaler
  * @{
  */
-#define CAN_TTC_TMR_PRESC_1             (0x0U)                  /*!< SBT prescaled clock / 1. */
-#define CAN_TTC_TMR_PRESC_2             (CAN_TTCFG_T_PRESC_0)   /*!< SBT prescaled clock / 2. */
-#define CAN_TTC_TMR_PRESC_4             (CAN_TTCFG_T_PRESC_1)   /*!< SBT prescaled clock / 4. */
-#define CAN_TTC_TMR_PRESC_8             (CAN_TTCFG_T_PRESC_1 | \
-                                         CAN_TTCFG_T_PRESC_0)   /*!< SBT prescaled clock / 8. */
-/**
- * @}
- */
-
-/**
- * @defgroup CAN_TTC_Ref_IDE CAN Time-triggered Communication Reference Message ID Extension
- * @{
- */
-#define CAN_TTC_ID_STD                  (0x0U)
-#define CAN_TTC_ID_EXT                  (CAN_REF_MSG_REF_IDE)
+#define CAN_TTC_NTU_PRESC_1             (0x0U)                      /*!< NTU is SBT bit time * 1. */
+#define CAN_TTC_NTU_PRESC_2             (CAN_TTCFG_T_PRESC_0)       /*!< NTU is SBT bit time * 2. */
+#define CAN_TTC_NTU_PRESC_4             (CAN_TTCFG_T_PRESC_1)       /*!< NTU is SBT bit time * 4. */
+#define CAN_TTC_NTU_PRESC_8             (CAN_TTCFG_T_PRESC_1 | \
+                                         CAN_TTCFG_T_PRESC_0)       /*!< NTU is SBT bit time * 8. */
 /**
  * @}
  */
@@ -627,12 +639,12 @@ typedef struct
  * @defgroup CAN_TTC_Trigger_Type CAN Time-triggered Communication Trigger Type
  * @{
  */
-#define CAN_TTC_TRIG_IMMED              (0x0U)                      /*!< Immediate trigger for immediate transmission. */
-#define CAN_TTC_TRIG_TIME               (CAN_TRG_CFG_TTYPE_0)       /*!< Time trigger for receive triggers. */
-#define CAN_TTC_TRIG_SSHOT_TRANS        (CAN_TRG_CFG_TTYPE_1)       /*!< Single shot transmit trigger for exclusive time windows. */
-#define CAN_TTC_TRIG_TRANS_START        (CAN_TRG_CFG_TTYPE_1 | \
+#define CAN_TTC_TRIG_IMMED_TRIG         (0x0U)                      /*!< Immediate trigger for immediate transmission. */
+#define CAN_TTC_TRIG_TIME_TRIG          (CAN_TRG_CFG_TTYPE_0)       /*!< Time trigger for receive triggers. */
+#define CAN_TTC_TRIG_SSHOT_TRANS_TRIG   (CAN_TRG_CFG_TTYPE_1)       /*!< Single shot transmit trigger for exclusive time windows. */
+#define CAN_TTC_TRIG_TRANS_START_TRIG   (CAN_TRG_CFG_TTYPE_1 | \
                                          CAN_TRG_CFG_TTYPE_0)       /*!< Transmit start trigger for merged arbitrating time windows. */
-#define CAN_TTC_TRIG_TRANS_STOP         (CAN_TRG_CFG_TTYPE_2)       /*!< Transmit stop trigger for merged arbitrating time windows. */
+#define CAN_TTC_TRIG_TRANS_STOP_TRIG    (CAN_TRG_CFG_TTYPE_2)       /*!< Transmit stop trigger for merged arbitrating time windows. */
 /**
  * @}
  */
@@ -652,82 +664,76 @@ typedef struct
  * @addtogroup CAN_Global_Functions
  * @{
  */
-///////////////////////////////////////////////////////////////////////////////
-
      en_result_t CAN_Init(M4_CAN_TypeDef *CANx, const stc_can_init_t *pstcInit);
      en_result_t CAN_StructInit(stc_can_init_t *pstcInit);
-     en_result_t CAN_DeInit(M4_CAN_TypeDef *CANx);
+            void CAN_DeInit(M4_CAN_TypeDef *CANx);
 
-     //TODO: review (CAN_SWReset && CAN_EnterNormalComm) or CAN_SetNodeState?
-     en_result_t CAN_SWReset(M4_CAN_TypeDef *CANx);
-     en_result_t CAN_EnterNormalComm(M4_CAN_TypeDef *CANx);
-     en_result_t CAN_SetNodeState(M4_CAN_TypeDef *CANx, uint8_t u8NodeState);
+            void CAN_SWReset(M4_CAN_TypeDef *CANx);
+            void CAN_EnterNormalComm(M4_CAN_TypeDef *CANx);
 
-     en_result_t CAN_SetWorkMode(M4_CAN_TypeDef *CANx, uint8_t u8WorkMode);
-     en_result_t CAN_SetTransMode(M4_CAN_TypeDef *CANx, uint8_t u8TransMode);
-     en_result_t CAN_SetSTBPrioMode(M4_CAN_TypeDef *CANx, uint8_t u8STBPrioMode);
-     en_result_t CAN_SetRBStoreSel(M4_CAN_TypeDef *CANx, uint8_t u8RBStoreSel);
-     en_result_t CAN_SetRBOvfOp(M4_CAN_TypeDef *CANx, uint8_t u8RBOvfOp);
+            void CAN_SetWorkMode(M4_CAN_TypeDef *CANx, uint8_t u8WorkMode);
+            void CAN_SetTransMode(M4_CAN_TypeDef *CANx, uint8_t u8TransMode);
+            void CAN_SetSTBPrioMode(M4_CAN_TypeDef *CANx, uint8_t u8STBPrioMode);
+            void CAN_SetRBStoreSel(M4_CAN_TypeDef *CANx, uint8_t u8RBStoreSel);
+            void CAN_SetRBOvfOp(M4_CAN_TypeDef *CANx, uint8_t u8RBOvfOperation);
 
-     en_result_t CAN_IntCmd(M4_CAN_TypeDef *CANx, uint32_t u32IntType, en_functional_state_t enNewState);
+            void CAN_IntCmd(M4_CAN_TypeDef *CANx, uint32_t u32IntType, en_functional_state_t enNewState);
      en_result_t CAN_SBTConfig(M4_CAN_TypeDef *CANx, const stc_can_bt_cfg_t *pstcCfg);
          uint8_t CAN_GetArbLostPos(const M4_CAN_TypeDef *CANx);
          uint8_t CAN_GetErrType(const M4_CAN_TypeDef *CANx);
-     en_result_t CAN_SetRBSWarnLimit(M4_CAN_TypeDef *CANx, uint8_t u8RBSWarnLimit);
-     en_result_t CAN_SetErrWarnLimit(M4_CAN_TypeDef *CANx, uint8_t u8ErrWarnLimit);
+            void CAN_SetRBSWarnLimit(M4_CAN_TypeDef *CANx, uint8_t u8RBSWarnLimit);
+            void CAN_SetErrWarnLimit(M4_CAN_TypeDef *CANx, uint8_t u8ErrWarnLimit);
          uint8_t CAN_GetREC(const M4_CAN_TypeDef *CANx);
-     en_result_t CAN_ClrREC(M4_CAN_TypeDef *CANx);
          uint8_t CAN_GetTEC(const M4_CAN_TypeDef *CANx);
-     en_result_t CAN_ClrTEC(M4_CAN_TypeDef *CANx);
-     en_result_t CAN_AFConfig(M4_CAN_TypeDef *CANx, uint16_t u16AFSel, const stc_can_af_id_t pstcID[]);
-     en_result_t CAN_AFCmd(M4_CAN_TypeDef *CANx, uint16_t u16AFSel, en_functional_state_t enNewState);
-     en_result_t CAN_AFSetType(M4_CAN_TypeDef *CANx, uint8_t u8AFType);
-     en_result_t CAN_AbortTrans(M4_CAN_TypeDef *CANx, uint8_t u8AbortTB);
+            void CAN_ClrErrCount(M4_CAN_TypeDef *CANx);
+     en_result_t CAN_AFConfig(M4_CAN_TypeDef *CANx, uint16_t u16AFSel, const stc_can_af_cfg_t pstcAFCfg[]);
+            void CAN_AFCmd(M4_CAN_TypeDef *CANx, uint16_t u16AFSel, en_functional_state_t enNewState);
+            void CAN_AFSetType(M4_CAN_TypeDef *CANx, uint8_t u8AFType);
+
+         uint8_t CAN_GetTBType(const M4_CAN_TypeDef *CANx);
+            void CAN_AbortTrans(M4_CAN_TypeDef *CANx, uint8_t u8TBType);
 
 en_flag_status_t CAN_GetStatus(const M4_CAN_TypeDef *CANx, uint32_t u32Flag);
-     en_result_t CAN_ClrStatus(M4_CAN_TypeDef *CANx, uint32_t u32Flag);
+            void CAN_ClrStatus(M4_CAN_TypeDef *CANx, uint32_t u32Flag);
+        uint32_t CAN_GetStatusVal(const M4_CAN_TypeDef *CANx);
          uint8_t CAN_GetTBFullStatus(const M4_CAN_TypeDef *CANx);
          uint8_t CAN_GetRBFullStatus(const M4_CAN_TypeDef *CANx);
 
-///////////////////////////////////////////////////////////////////////////////
-
      en_result_t CAN_FD_Config(M4_CAN_TypeDef *CANx, const stc_can_fd_cfg_t *pstcCfg);
      en_result_t CAN_FD_StructInit(stc_can_fd_cfg_t *pstcCfg);
+            void CAN_FD_Cmd(const M4_CAN_TypeDef *CANx, en_functional_state_t enNewState);
 
-     en_result_t CAN_FD_FBTConfig(M4_CAN_TypeDef *CANx, const stc_can_bt_cfg_t *pstcCfg);
-     en_result_t CAN_FD_TDCSetSSP(M4_CAN_TypeDef *CANx, uint8_t u8TDCSSP);
-     en_result_t CAN_FD_TDCCmd(M4_CAN_TypeDef *CANx, en_functional_state_t enNewState);
-     en_result_t CAN_FD_Cmd(const M4_CAN_TypeDef *CANx, en_functional_state_t enNewState);
-
-///////////////////////////////////////////////////////////////////////////////
-
-     en_result_t CAN_TTC_Config(M4_CAN_TypeDef *CANx, const stc_can_ttc_cfg_t *pstcCfg);
      en_result_t CAN_TTC_StructInit(stc_can_ttc_cfg_t *pstcCfg);
+     en_result_t CAN_TTC_Config(M4_CAN_TypeDef *CANx, const stc_can_ttc_cfg_t *pstcCfg);
+            void CAN_TTC_Cmd(M4_CAN_TypeDef *CANx, en_functional_state_t enNewState);
 
-     en_result_t CAN_TTC_SetTBS(M4_CAN_TypeDef *CANx, uint8_t u8SlotPtr);
-         uint8_t CAN_TTC_GetTBS(const M4_CAN_TypeDef *CANx);
-     en_result_t CAN_TTC_SetTBState(M4_CAN_TypeDef *CANx, uint8_t u8TBSetState);
-     en_result_t CAN_TTC_Cmd(M4_CAN_TypeDef *CANx, en_functional_state_t enNewState);
-     en_result_t CAN_TTC_SetTmrPresc(M4_CAN_TypeDef *CANx, uint8_t u8TmrPresc);
-     en_result_t CAN_TTC_IntCmd(M4_CAN_TypeDef *CANx, uint8_t u8IntType, en_functional_state_t enNewState);
+            void CAN_TTC_SetTBSToBeFilled(M4_CAN_TypeDef *CANx, uint8_t u8SlotPtr);
+            void CAN_TTC_SetTBSFilled(M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetNTUPrescaler(M4_CAN_TypeDef *CANx, uint8_t u8NTUPrescaler);
+            void CAN_TTC_IntCmd(M4_CAN_TypeDef *CANx, uint8_t u8IntType, en_functional_state_t enNewState);
 en_flag_status_t CAN_TTC_GetStatus(const M4_CAN_TypeDef *CANx, uint8_t u8Flag);
-     en_result_t CAN_TTC_ClrStatus(M4_CAN_TypeDef *CANx, uint8_t u8Flag);
-     en_result_t CAN_TTC_SetRefID(M4_CAN_TypeDef *CANx, uint32_t u32ID);
-     en_result_t CAN_TTC_SetRefIDE(M4_CAN_TypeDef *CANx, uint32_t u32IDE);
-        uint32_t CAN_TTC_GetID(const M4_CAN_TypeDef *CANx);
-     en_result_t CAN_TTC_SetTransTrigTBS(M4_CAN_TypeDef *CANx, uint8_t u8SlotPtr);
-         uint8_t CAN_TTC_GetTransTrigTBS(const M4_CAN_TypeDef *CANx);
-     en_result_t CAN_TTC_SetTrigType(M4_CAN_TypeDef *CANx, uint16_t u16TrigType);
-        uint16_t CAN_TTC_GetTrigType(const M4_CAN_TypeDef *CANx);
-     en_result_t CAN_TTC_SetTransEnWindow(M4_CAN_TypeDef *CANx, uint16_t u16Time);
-     en_result_t CAN_TTC_SetTransTrigTime(M4_CAN_TypeDef *CANx, uint16_t u16Time);
-        uint16_t CAN_TTC_GetTransTrigTime(const M4_CAN_TypeDef *CANx);
-     en_result_t CAN_TTC_SetWatchTrigTime(M4_CAN_TypeDef *CANx, uint16_t u16Time);
-        uint16_t CAN_TTC_GetWatchTrigTime(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_ClrStatus(M4_CAN_TypeDef *CANx, uint8_t u8Flag);
+         uint8_t CAN_TTC_GetStatusVal(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetRefMsgID(M4_CAN_TypeDef *CANx, uint32_t u32ID);
+            void CAN_TTC_SetRefMsgIDE(M4_CAN_TypeDef *CANx, uint32_t u32IDE);
+        uint32_t CAN_TTC_GetRefMsgID(const M4_CAN_TypeDef *CANx);
+        uint32_t CAN_TTC_GetRefMsgIDE(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetTxTriggerTBS(M4_CAN_TypeDef *CANx, uint8_t u8TBSlotPtr);
+         uint8_t CAN_TTC_GetTxTriggerTBS(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetTriggerType(M4_CAN_TypeDef *CANx, uint16_t u16TriggerType);
+        uint16_t CAN_TTC_GetTriggerType(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetTxEnableWindow(M4_CAN_TypeDef *CANx, uint16_t u16TxEnableWindow);
+        uint16_t CAN_TTC_GetTxEnableWindow(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetTxTriggerTime(M4_CAN_TypeDef *CANx, uint16_t u16TxTriggerTime);
+        uint16_t CAN_TTC_GetTxTriggerTime(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetWatchTriggerTime(M4_CAN_TypeDef *CANx, uint16_t u16WatchTriggerTime);
+        uint16_t CAN_TTC_GetWatchTriggerTime(const M4_CAN_TypeDef *CANx);
 
      en_result_t CAN_TransData(M4_CAN_TypeDef *CANx, const stc_can_tx_t *pstcTx,
-                               uint8_t u8TBType, uint8_t u8STBTxCtrl, uint32_t u32Timeout);
-     en_result_t CAN_ReceiveData(M4_CAN_TypeDef *CANx, stc_can_rx_t *pstcRx, uint32_t *pu32RxFrameCnt);
+                               uint8_t u8TxBufType, uint8_t u8STBTxCtrl, uint32_t u32Timeout);
+     en_result_t CAN_TTC_TransData(M4_CAN_TypeDef *CANx, const stc_can_tx_t *pstcTx, uint8_t u8TBSlot);
+
+     en_result_t CAN_ReceiveData(M4_CAN_TypeDef *CANx, stc_can_rx_t *pstcRx, uint8_t *pu8RxFrameCnt, uint8_t u8RxFrameBufLength);
 
 /**
  * @}

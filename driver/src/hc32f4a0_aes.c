@@ -81,7 +81,20 @@
  * @defgroup AES_Local_Macros AES Local Macros
  * @{
  */
+/* Delay count for timeout */
+#define AES_TIMEOUT                       (0x1000UL)
 
+/**
+ * @defgroup AES_Check_Parameters_Validity AES Check Parameters Validity
+ * @{
+ */
+#define IS_AES_KEYLENGTH(x)                                                    \
+(   ((x) == AES_KEY_LEN_128)                     ||                            \
+    ((x) == AES_KEY_LEN_192)                     ||                            \
+    ((x) == AES_KEY_LEN_256))
+/**
+ * @}
+ */
 /**
  * @}
  */
@@ -117,9 +130,9 @@ static void AES_WriteKey(const uint8_t *pu8Key, uint8_t u8KeyLength);
  * @param  [in] u8KeyLength        Length of key in bytes.
  * @param  [in] pu8Ciphertext      The destination address to store the result of the encryption.
  * @retval An en_result_t enumeration value:
- *         Ok: program successfully.
+ *         Ok: Encryption successfully.
  *         ErrorInvalidParameter: Invalid parameter
- *         ErrorTimeout: program error timeout
+ *         ErrorTimeout: Encryption error timeout
  */
 en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
                         uint32_t u32PlaintextSize,
@@ -135,15 +148,17 @@ en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
           && (pu8Key != NULL) && (u8KeyLength != 0U)        \
           && (pu8Ciphertext != NULL))
     {
+        DDL_ASSERT(IS_AES_KEYLENGTH(u8KeyLength));
         enRet = Ok;
         while(u32PlaintextSize)
         {
             /* Wait for AES to stop */
-            while(bM4_AES->CR_b.START == 1U)
+            while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1U)
             {
-                if(u32TimeCount++ >= TIMEOUT)
+                if(u32TimeCount++ >= AES_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
+                    break;
                 }
             }
             Temp = (uint32_t)&pu8Plaintext[u32Index];
@@ -151,15 +166,15 @@ en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
             AES_WriteKey(pu8Key, u8KeyLength);
             switch (u8KeyLength)
             {
-            case 16U:
+            case AES_KEY_LEN_128:
                 MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_128);
                 break;
 
-            case 24U:
+            case AES_KEY_LEN_192:
                 MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_192);
                 break;
 
-            case 32U:
+            case AES_KEY_LEN_256:
                 MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_256);
                 break;
 
@@ -167,15 +182,16 @@ en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
                 break;
             }
             /* Set AES encrypt. */
-            bM4_AES->CR_b.MODE = 0U;
+            CLEAR_REG32_BIT(M4_AES->CR, AES_CR_MODE);
             /* Start AES calculating. */
-            bM4_AES->CR_b.START = 1U;
+            SET_REG32_BIT(M4_AES->CR, AES_CR_START);
             /* Wait for AES to stop */
-            while(bM4_AES->CR_b.START == 1U)
+            while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1U)
             {
-                if(u32TimeCount++ > TIMEOUT)
+                if(u32TimeCount++ > AES_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
+                    break;
                 }
             }
             Temp = (uint32_t)&pu8Ciphertext[u32Index];
@@ -196,9 +212,9 @@ en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
  * @param  [in] u8KeyLength         Length of key in bytes.
  * @param  [in] pu8Plaintext        The destination address to store the result of the decryption.
  * @retval An en_result_t enumeration value:
- *         Ok: program successfully.
+ *         Ok: Decryption successfully.
  *         ErrorInvalidParameter: Invalid parameter
- *         ErrorTimeout: program error timeout
+ *         ErrorTimeout: Decryption error timeout
  */
 en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
                         uint32_t u32CiphertextSize,
@@ -214,15 +230,17 @@ en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
           && (pu8Key != NULL) && (u8KeyLength != 0U)         \
           && (pu8Ciphertext != NULL))
     {
+        DDL_ASSERT(IS_AES_KEYLENGTH(u8KeyLength));
         enRet = Ok;
         while(u32CiphertextSize)
         {
             /* Wait for AES to stop */
-            while(bM4_AES->CR_b.START == 1U)
+            while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1U)
             {
-                if(u32TimeCount++ > TIMEOUT)
+                if(u32TimeCount++ > AES_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
+                    break;
                 }
             }
             u32Temp = (uint32_t)&pu8Ciphertext[u32Index];
@@ -230,15 +248,15 @@ en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
             AES_WriteKey(pu8Key, u8KeyLength);
             switch (u8KeyLength)
             {
-            case 16U:
+            case AES_KEY_LEN_128:
                 MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_128);
                 break;
 
-            case 24U:
+            case AES_KEY_LEN_192:
                 MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_192);
                 break;
 
-            case 32U:
+            case AES_KEY_LEN_256:
                 MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_256);
                 break;
 
@@ -246,15 +264,16 @@ en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
                 break;
             }
             /* Set AES decrypt. */
-            bM4_AES->CR_b.MODE  = 1U;
+            SET_REG32_BIT(M4_AES->CR, AES_CR_MODE);
             /* Start AES calculating. */
-            bM4_AES->CR_b.START = 1U;
+            SET_REG32_BIT(M4_AES->CR, AES_CR_START);
             /* Wait for AES to stop */
-            while(bM4_AES->CR_b.START == 1U)
+            while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1U)
             {
-                if(u32TimeCount++ > TIMEOUT)
+                if(u32TimeCount++ > AES_TIMEOUT)
                 {
                     enRet = ErrorTimeout;
+                    break;
                 }
             }
             u32Temp = pu8Plaintext[u32Index];
@@ -307,7 +326,7 @@ static void AES_ReadData(uint32_t u32Addr)
 /**
  * @brief  Write the input buffer in key register.
  * @param  [in] pu8Key        Pointer to the kry buffer.
- * @param  [in] u8KeyLength    Length of key in bytes.
+ * @param  [in] u8KeyLength   Length of key in bytes.
  * @retval None
  */
 static void AES_WriteKey(const uint8_t *pu8Key, uint8_t u8KeyLength)

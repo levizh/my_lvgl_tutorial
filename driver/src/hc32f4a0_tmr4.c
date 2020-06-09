@@ -117,7 +117,7 @@
 (   (TMR4_CNT_PCLK == (x))                      ||                             \
     (TMR4_CNT_EXTCLK == (x)))
 
-#define IS_VALID_TMR4_CNT_INT_MSK(x)                                           \
+#define IS_VALID_TMR4_CNT_INT_MASKTIMES(x)                                     \
 (   (TMR4_CNT_INT_MASK_0 == (x))                ||                             \
     (TMR4_CNT_INT_MASK_1 == (x))                ||                             \
     (TMR4_CNT_INT_MASK_2 == (x))                ||                             \
@@ -136,12 +136,12 @@
     (TMR4_CNT_INT_MASK_15 == (x)))
 
 #define IS_VALID_TMR4_CNT_INT(x)                                               \
-(   (TMR4_CNT_INT_ZERO == (x))                  ||                             \
-    (TMR4_CNT_INT_PEAK == (x)))
+(   (x)                                         &&                             \
+    (!((x) & ((uint16_t)(~(TMR4_CNT_INT_PEAK | TMR4_CNT_INT_ZERO))))))
 
 #define IS_VALID_TMR4_CNT_FLAG(x)                                              \
-(   (TMR4_CNT_FLAG_ZERO == (x))                 ||                             \
-    (TMR4_CNT_FLAG_PEAK == (x)))
+(   (x)                                         &&                             \
+    (!((x) & ((uint16_t)(~(TMR4_CNT_FLAG_PEAK | TMR4_CNT_FLAG_ZERO))))))
 
 #define IS_VALID_TMR4_OCO_CH(x)                                                \
 (   (TMR4_OCO_UH == (x))                        ||                             \
@@ -206,10 +206,6 @@
     (TMR4_OCO_OP_HIGH == (x))                   ||                             \
     (TMR4_OCO_OP_LOW == (x))                    ||                             \
     (TMR4_OCO_OP_INVERT == (x)))
-
-#define IS_VALID_TMR4_OCO_INT(x)                (TMR4_OCO_INT_MATCH == (x))
-
-#define IS_VALID_TMR4_OCO_FLAG(x)               (TMR4_OCO_FLAG_MATCH == (x))
 
 #define IS_VALID_TMR4_PWM_CH(x)                                                \
 (   (TMR4_PWM_U == (x))                         ||                             \
@@ -358,14 +354,11 @@
  */
 
 /**
- * @defgroup Get register bit offset for TIMER4 OCO/PWM/SEVT channel
+ * @defgroup Get register value shift bit
  * @{
  */
-#define REG_xBIT_OFS(__CH__, __BITWIDTH__)  ((((__CH__) % 2UL) * (__BITWIDTH__)))
-#define REG16_1BIT_OFS(__CH__)              ((uint16_t)REG_xBIT_OFS((__CH__), 1UL))
-#define REG16_2BIT_OFS(__CH__)              ((uint16_t)REG_xBIT_OFS((__CH__), 2UL))
-#define REG32_1BIT_OFS(__CH__)              ((uint32_t)REG_xBIT_OFS((__CH__), 1UL))
-#define REG32_2BIT_OFS(__CH__)              ((uint32_t)REG_xBIT_OFS((__CH__), 2UL))
+#define SHIFT_1BIT(__CH__)                  ((uint16_t)((__CH__) % 2UL))
+#define SHIFT_2BIT(__CH__)                  ((uint16_t)(((__CH__) % 2UL) << 1UL))
 /**
  * @}
  */
@@ -376,10 +369,26 @@
  * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
  * @{
  */
-#define TMR4_OCCRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->OCCRUH) + ((uint32_t)(__CH__))*4UL))
-#define TMR4_OCMRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->OCMRHUH) + ((uint32_t)(__CH__))*4UL))
-#define TMR4_OCERx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->OCERU) + (((uint32_t)(__CH__))/2UL)*4UL))
-#define TMR4_OCSRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->OCSRU) + (((uint32_t)(__CH__))/2UL)*4UL))
+#define TMR4_OCCRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->OCCRUH) + (((uint32_t)(__CH__)) << 2UL)))
+#define TMR4_OCMRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->OCMRHUH) + (((uint32_t)(__CH__)) << 2UL)))
+#define TMR4_OCERx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->OCERU) + ((((uint32_t)(__CH__)) & 0x06UL) << 1UL)))
+#define TMR4_OCSRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->OCSRU) + ((((uint32_t)(__CH__)) & 0x06UL) << 1UL)))
+/**
+ * @}
+ */
+
+/**
+ * @defgroup TMR4_OCSR_Bit_Mask TMR4_OCSR Bit Mask
+ * @brief Get the specified TMR4_OCSR register bis value of the specified Timer4 Oco channel
+ * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
+ * @{
+ */
+#define TMR4_OCSR_OCEx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_OCSR_OCEH) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCSR_OCPx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_OCSR_OCPH) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCSR_OCIEx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_OCSR_OCIEH) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCSR_OCFx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_OCSR_OCFH) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCSR_MASK(__CH__)                                                 \
+(   (uint16_t)((uint16_t)(TMR4_OCSR_OCEH | TMR4_OCSR_OCPH | TMR4_OCSR_OCIEH | TMR4_OCSR_OCFH)) << SHIFT_1BIT(__CH__))
 /**
  * @}
  */
@@ -390,12 +399,28 @@
  * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
  * @{
  */
-#define TMR4_OCSR_OCEx_MASK(__CH__)         ((uint16_t)((uint16_t)TMR4_OCSR_OCEH << REG16_1BIT_OFS(__CH__)))
-#define TMR4_OCSR_OCPx_MASK(__CH__)         ((uint16_t)((uint16_t)TMR4_OCSR_OCPH << REG16_1BIT_OFS(__CH__)))
-#define TMR4_OCSR_OCIEx_MASK(__CH__)        ((uint16_t)((uint16_t)TMR4_OCSR_OCIEH << REG16_1BIT_OFS(__CH__)))
-#define TMR4_OCSR_OCFx_MASK(__CH__)         ((uint16_t)((uint16_t)TMR4_OCSR_OCFH << REG16_1BIT_OFS(__CH__)))
-#define TMR4_OCSR_MASK(__CH__)                                                 \
-(   (uint16_t)((uint16_t)TMR4_OCSR_OCEH | (uint16_t)TMR4_OCSR_OCPH | (uint16_t)TMR4_OCSR_OCIEH | (uint16_t)TMR4_OCSR_OCFH) << REG16_1BIT_OFS(__CH__))
+#define TMR4_OCSR_OCEx(__CH__,__OCEx__)     ((uint16_t)(((uint16_t)__OCEx__) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCSR_OCPx(__CH__,__OCPx__)     ((uint16_t)(((uint16_t)__OCPx__) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCSR_OCIEx(__CH__,__OCIEx__)   ((uint16_t)(((uint16_t)__OCIEx__) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCSR_OCFx(__CH__,__OCFx__)     ((uint16_t)(((uint16_t)__OCFx__) << SHIFT_1BIT(__CH__)))
+/**
+ * @}
+ */
+
+/**
+ * @defgroup TMR4_OCER_Bit_Mask TMR4_OCER Bit Mask
+ * @brief Get the specified TMR4_OCER register bis value of the specified Timer4 Oco channel
+ * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
+ * @{
+ */
+#define TMR4_OCER_CxBUFEN_MASK(__CH__)      ((uint16_t)(((uint16_t)TMR4_OCER_CHBUFEN) << SHIFT_2BIT(__CH__)))
+#define TMR4_OCER_MxBUFEN_MASK(__CH__)      ((uint16_t)(((uint16_t)TMR4_OCER_MHBUFEN) << SHIFT_2BIT(__CH__)))
+#define TMR4_OCER_LMCx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_OCER_LMCH) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCER_LMMx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_OCER_LMMH) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCER_MCECx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_OCER_MCECH) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCER_MASK(__CH__)                                                 \
+(   (uint16_t)(((uint16_t)(TMR4_OCER_CHBUFEN | TMR4_OCER_MHBUFEN)) << SHIFT_2BIT(__CH__)) | \
+    (uint16_t)(((uint16_t)(TMR4_OCER_LMCH | TMR4_OCER_LMMH | TMR4_OCER_MCECH)) << SHIFT_2BIT(__CH__)))
 /**
  * @}
  */
@@ -406,14 +431,11 @@
  * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
  * @{
  */
-#define TMR4_OCER_CxBUFEN_MASK(__CH__)      ((uint16_t)((uint16_t)TMR4_OCER_CHBUFEN << REG16_2BIT_OFS(__CH__)))
-#define TMR4_OCER_MxBUFEN_MASK(__CH__)      ((uint16_t)((uint16_t)TMR4_OCER_MHBUFEN << REG16_2BIT_OFS(__CH__)))
-#define TMR4_OCER_LMCx_MASK(__CH__)         ((uint16_t)((uint16_t)TMR4_OCER_LMCH << REG16_1BIT_OFS(__CH__)))
-#define TMR4_OCER_LMMx_MASK(__CH__)         ((uint16_t)((uint16_t)TMR4_OCER_LMMH << REG16_1BIT_OFS(__CH__)))
-#define TMR4_OCER_MCECx_MASK(__CH__)        ((uint16_t)((uint16_t)TMR4_OCER_MCECH << REG16_1BIT_OFS(__CH__)))
-#define TMR4_OCER_MASK(__CH__)                                                 \
-(   (uint16_t)(((uint16_t)TMR4_OCER_CHBUFEN | (uint16_t)TMR4_OCER_MHBUFEN) << REG16_2BIT_OFS(__CH__)) | \
-    (uint16_t)(((uint16_t)TMR4_OCER_LMCH | (uint16_t)TMR4_OCER_LMMH | (uint16_t)TMR4_OCER_MCECH) << REG16_2BIT_OFS(__CH__)))
+#define TMR4_OCER_CxBUFEN(__CH__,__CxBUFEN__)   ((uint16_t)(__CxBUFEN__ << SHIFT_2BIT(__CH__)))
+#define TMR4_OCER_MxBUFEN(__CH__,__MxBUFEN__)   ((uint16_t)(__MxBUFEN__ << SHIFT_2BIT(__CH__)))
+#define TMR4_OCER_LMCx(__CH__,__LMCx__)         ((uint16_t)(__LMCx__ << SHIFT_1BIT(__CH__)))
+#define TMR4_OCER_LMMx(__CH__,__LMMx__)         ((uint16_t)(__LMMx__ << SHIFT_1BIT(__CH__)))
+#define TMR4_OCER_MCECx(__CH__,__MCECx__)       ((uint16_t)(__MCECx__ << SHIFT_1BIT(__CH__)))
 /**
  * @}
  */
@@ -425,25 +447,37 @@
  * @{
  */
 #define TMR4_RCSRx(__TMR4x__)               ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->RCSR)))
-#define TMR4_POCRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->POCRU) + ((uint32_t)(__CH__))*4UL))
-#define TMR4_PDARx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->PDARU) + ((uint32_t)(__CH__))*8UL))
-#define TMR4_PDBRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->PDBRU) + ((uint32_t)(__CH__))*8UL))
-#define TMR4_PFSRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->PFSRU) + ((uint32_t)(__CH__))*8UL))
+#define TMR4_POCRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->POCRU) + (((uint32_t)(__CH__)) << 2UL)))
+#define TMR4_PDARx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->PDARU) + (((uint32_t)(__CH__)) << 3UL)))
+#define TMR4_PDBRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->PDBRU) + (((uint32_t)(__CH__)) << 3UL)))
+#define TMR4_PFSRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->PFSRU) + (((uint32_t)(__CH__)) << 3UL)))
 /**
  * @}
  */
 
 /**
- * @defgroup TMR4_RCSR_Bit TMR4_RCSR Bit
+ * @defgroup TMR4_RCSR_Bit_Mask TMR4_RCSR Bit Mask
  * @brief Get the specified TMR4_RCSR register bis value of the specified Timer4 PWM channel
  * @note __CH__ value is TMR4_PWM_x (x=U/V/W)
  * @{
  */
-#define TMR4_RCSR_RTIDx_MASK(__CH__)        ((uint16_t)((uint16_t)TMR4_RCSR_RTIDU << (__CH__)))
-#define TMR4_RCSR_RTIFx_MASK(__CH__)        ((uint16_t)((uint16_t)TMR4_RCSR_RTIFU << ((__CH__)*4U)))
-#define TMR4_RCSR_RTICx_MASK(__CH__)        ((uint16_t)((uint16_t)TMR4_RCSR_RTICU << ((__CH__)*4U)))
-#define TMR4_RCSR_RTEx_MASK(__CH__)         ((uint16_t)((uint16_t)TMR4_RCSR_RTEU << ((__CH__)*4U)))
-#define TMR4_RCSR_RTSx_MASK(__CH__)         ((uint16_t)((uint16_t)TMR4_RCSR_RTSU << ((__CH__)*4U)))
+#define TMR4_RCSR_RTIDx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_RCSR_RTIDU) << (__CH__)))
+#define TMR4_RCSR_RTIFx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_RCSR_RTIFU) << (((__CH__) << 2UL))))
+#define TMR4_RCSR_RTICx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_RCSR_RTICU) << (((__CH__) << 2UL))))
+#define TMR4_RCSR_RTEx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_RCSR_RTEU) << (((__CH__) << 2UL))))
+#define TMR4_RCSR_RTSx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_RCSR_RTSU) << (((__CH__) << 2UL))))
+/**
+ * @}
+ */
+
+/**
+ * @defgroup TMR4_PSCR_Bit_Mask TMR4_PSCR Bit Mask
+ * @brief Get the specified TMR4_PSCR register bis value of the specified Timer4 PWM port channel
+ * @note __PORT__ value is TMR4_PWM_PORT_Oxy (x=U/V/W, y=H/L)
+ * @{
+ */
+#define TMR4_PSCR_OExy_MASK(__PORT__)       (TMR4_PSCR_OEUH << (__PORT__))
+#define TMR4_PSCR_OSxy_MASK(__PORT__)       (TMR4_PSCR_OSUH << ((__PORT__) * 2UL))
 /**
  * @}
  */
@@ -451,11 +485,11 @@
 /**
  * @defgroup TMR4_PSCR_Bit TMR4_PSCR Bit
  * @brief Get the specified TMR4_PSCR register bis value of the specified Timer4 PWM port channel
- * @note __CH__ value is TMR4_PWM_PORT_Oxy (x=U/V/W, y=H/L)
+ * @note __PORT__ value is TMR4_PWM_PORT_Oxy (x=U/V/W, y=H/L)
  * @{
  */
-#define TMR4_PSCR_OExy_MASK(__PORT__)       ((uint32_t)TMR4_PSCR_OEUH << (__PORT__))
-#define TMR4_PSCR_OSxy_MASK(__PORT__)       ((uint32_t)TMR4_PSCR_OSUH << ((__PORT__) * 2UL))
+#define TMR4_PSCR_OExy(__PORT__, __OExy__)  (__OExy__ << (__PORT__))
+#define TMR4_PSCR_OSxy(__PORT__, __OSxy__)  (__OSxy__ << ((__PORT__) * 2UL))
 /**
  * @}
  */
@@ -466,9 +500,9 @@
  * @note __CH__ value is TMR4_SEVT_xy (x=U/V/W, y=H/L)
  * @{
  */
-#define TMR4_SCCRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCCRUH) + ((uint32_t)(__CH__))*4UL))
-#define TMR4_SCSRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCSRUH) + ((uint32_t)(__CH__))*4UL))
-#define TMR4_SCMRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCMRUH) + ((uint32_t)(__CH__))*4UL))
+#define TMR4_SCCRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCCRUH) + (((__CH__)) << 2UL)))
+#define TMR4_SCSRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCSRUH) + (((__CH__)) << 2UL)))
+#define TMR4_SCMRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCMRUH) + (((__CH__)) << 2UL)))
 /**
  * @}
  */
@@ -504,7 +538,7 @@
  */
 
 /**
- * @brief  Initialize Timer4 CNT.
+ * @brief  Initialize Timer4 counter.
  * @param  [in] TMR4x                   Pointer to Timer4 instance register base
  *         This parameter can be one of the following values:
  *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
@@ -518,7 +552,7 @@
 en_result_t TMR4_CNT_Init(M4_TMR4_TypeDef *TMR4x,
                                 const stc_tmr4_cnt_init_t *pstcInit)
 {
-    uint16_t u16Val = 0U;
+    uint16_t u16Val;
     en_result_t enRet = ErrorInvalidParameter;
 
     /* Check structure pointer */
@@ -530,8 +564,8 @@ en_result_t TMR4_CNT_Init(M4_TMR4_TypeDef *TMR4x,
         DDL_ASSERT(IS_VALID_TMR4_CNT_MODE(pstcInit->u16CntMode));
         DDL_ASSERT(IS_VALID_TMR4_CNT_CLK_DIV(pstcInit->u16ClkDiv));
         DDL_ASSERT(IS_VALID_TMR4_CNT_CLK_SRC(pstcInit->u16ClkSrc));
-        DDL_ASSERT(IS_VALID_TMR4_CNT_INT_MSK(pstcInit->u16ZeroIntMask));
-        DDL_ASSERT(IS_VALID_TMR4_CNT_INT_MSK(pstcInit->u16PeakIntMask));
+        DDL_ASSERT(IS_VALID_TMR4_CNT_INT_MASKTIMES(pstcInit->u16ZeroIntMask));
+        DDL_ASSERT(IS_VALID_TMR4_CNT_INT_MASKTIMES(pstcInit->u16PeakIntMask));
 
         /* Set default value */
         WRITE_REG16(TMR4x->CCSR, 0x0050U);
@@ -587,7 +621,7 @@ en_result_t TMR4_CNT_StructInit(stc_tmr4_cnt_init_t *pstcInit)
 }
 
 /**
- * @brief  De-Initialize Timer4 count function
+ * @brief  De-Initialize Timer4 counter function
  * @param  [in] TMR4x                   Pointer to Timer4 instance register base
  *         This parameter can be one of the following values:
  *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
@@ -607,7 +641,7 @@ void TMR4_CNT_DeInit(M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief Set Timer4 CNT clock source
+ * @brief Set Timer4 counter clock source
  * @param  [in] TMR4x                   Pointer to Timer4 instance register base
  *         This parameter can be one of the following values:
  *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
@@ -615,8 +649,8 @@ void TMR4_CNT_DeInit(M4_TMR4_TypeDef *TMR4x)
  *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
  * @param  [in] u16ClkSrc               Timer4 CNT clock source
  *         This parameter can be one of the following values:
- *           @arg TMR4_CNT_PCLK:      Uses the internal clock (PCLK) as CNT's count clock
- *           @arg TMR4_CNT_EXTCLK:    Uses an external input clock (EXCK) as CNT's count clock
+ *           @arg TMR4_CNT_PCLK:      Uses the internal clock (PCLK) as counter's count clock
+ *           @arg TMR4_CNT_EXTCLK:    Uses an external input clock (EXCK) as counter's count clock
  * @retval None
  */
 void TMR4_CNT_SetClock(M4_TMR4_TypeDef *TMR4x, uint16_t u16ClkSrc)
@@ -630,15 +664,15 @@ void TMR4_CNT_SetClock(M4_TMR4_TypeDef *TMR4x, uint16_t u16ClkSrc)
 }
 
 /**
- * @brief Get Timer4 CNT clock source
+ * @brief Get Timer4 counter clock source
  * @param  [in] TMR4x                   Pointer to Timer4 instance register base
  *         This parameter can be one of the following values:
  *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
  *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
  *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
  * @retval Returned value can be one of the following values:
- *           @arg TMR4_CNT_PCLK:      Uses the internal clock (PCLK) as CNT's count clock
- *           @arg TMR4_CNT_EXTCLK:    Uses an external input clock (EXCK) as CNT's count clock
+ *           @arg TMR4_CNT_PCLK:      Uses the internal clock (PCLK) as counter's count clock
+ *           @arg TMR4_CNT_EXTCLK:    Uses an external input clock (EXCK) as counter's count clock
  */
 uint16_t TMR4_CNT_GetClock(const M4_TMR4_TypeDef *TMR4x)
 {
@@ -709,13 +743,13 @@ uint16_t TMR4_CNT_GetClkDiv(const M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief Set Timer4 CNT mode
+ * @brief Set Timer4 counter mode
  * @param  [in] TMR4x                   Pointer to Timer4 instance register base
  *         This parameter can be one of the following values:
  *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
  *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
  *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16Mode                 Timer4 CNT mode
+ * @param  [in] u16Mode                 Timer4 counter mode
  *         This parameter can be one of the following values:
  *           @arg TMR4_CNT_MODE_SAWTOOTH_WAVE: Timer4 count mode:sawtooth wave
  *           @arg TMR4_CNT_MODE_TRIANGLE_WAVE: Timer4 count mode:triangular wave
@@ -732,7 +766,7 @@ void TMR4_CNT_SetMode(M4_TMR4_TypeDef *TMR4x, uint16_t u16Mode)
 }
 
 /**
- * @brief Get Timer4 CNT mode
+ * @brief Get Timer4 counter mode
  * @param  [in] TMR4x                   Pointer to Timer4 instance register base
  *         This parameter can be one of the following values:
  *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
@@ -752,37 +786,39 @@ uint16_t TMR4_CNT_GetMode(const M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief  Get Timer4 CNT interrupt flag
+ * @brief  Get Timer4 counter flag
  * @param  [in] TMR4x                   Pointer to Timer4 instance register base
  *         This parameter can be one of the following values:
  *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
  *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
  *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
  * @param  [in] u16Flag                 Timer4 flag
- *         This parameter can be one of the following values:
+ *         This parameter can be any composed value of the following values:
  *           @arg TMR4_CNT_FLAG_PEAK: Overflow interrupt
  *           @arg TMR4_CNT_FLAG_ZERO: Underflow interrupt
  * @retval An en_flag_status_t enumeration value:
  *           - Set: Flag is set
  *           - Reset: Flag is reset
  */
-en_flag_status_t TMR4_CNT_GetFlag(const M4_TMR4_TypeDef *TMR4x, uint16_t u16Flag)
+en_flag_status_t TMR4_CNT_GetFlag(const M4_TMR4_TypeDef *TMR4x, 
+                                        uint16_t u16Flag)
 {
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+    DDL_ASSERT(IS_VALID_TMR4_CNT_FLAG(u16Flag));
 
     return READ_REG16_BIT(TMR4x->CCSR, u16Flag) ? Set : Reset;
 }
 
 /**
- * @brief  Clear Timer4 CNT interrupt flag
+ * @brief  Clear Timer4 counter flag
  * @param  [in] TMR4x                   Pointer to Timer4 instance register base
  *         This parameter can be one of the following values:
  *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
  *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
  *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16Flag                 Timer4 flag
- *         This parameter can be one of the following values:
+ * @param  [in] u16Flag                 Timer4 counter flag
+ *         This parameter can be any composed value of the following values:
  *           @arg TMR4_CNT_FLAG_PEAK:   Overflow interrupt
  *           @arg TMR4_CNT_FLAG_ZERO:   Underflow interrupt
  * @retval None
@@ -791,6 +827,7 @@ void TMR4_CNT_ClearFlag(M4_TMR4_TypeDef *TMR4x, uint16_t u16Flag)
 {
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+    DDL_ASSERT(IS_VALID_TMR4_CNT_FLAG(u16Flag));
 
     CLEAR_REG16_BIT(TMR4x->CCSR, u16Flag);
 }
@@ -803,7 +840,7 @@ void TMR4_CNT_ClearFlag(M4_TMR4_TypeDef *TMR4x, uint16_t u16Flag)
  *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
  *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
  * @param  [in] u16IntSource            Timer4 interrupt source
- *         This parameter can be one of the following values:
+ *         This parameter can be any composed value of the following values:
  *           @arg TMR4_CNT_INT_PEAK:    Overflow interrupt
  *           @arg TMR4_CNT_INT_ZERO:    Underflow interrupt
  * @param  [in] enNewState              The function new state
@@ -830,7 +867,130 @@ void TMR4_CNT_IntCmd(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 CNT interrupt mask times
+ * @brief Start Timer4 counter
+ * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ * @retval None
+ */
+void TMR4_CNT_Start(M4_TMR4_TypeDef *TMR4x)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+
+    CLEAR_REG16_BIT(TMR4x->CCSR, TMR4_CCSR_STOP);
+}
+
+/**
+ * @brief Stop Timer4 counter
+ * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ * @retval None
+ */
+void TMR4_CNT_Stop(M4_TMR4_TypeDef *TMR4x)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+
+    SET_REG16_BIT(TMR4x->CCSR, TMR4_CCSR_STOP);
+}
+
+/**
+ * @brief  Set Timer4 counter cycle value
+ * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ * @param  [in] u16CycleVal             The Timer4 counter cycle value
+ *           @arg number of 16bit
+ * @retval None
+ */
+void TMR4_CNT_SetCycleVal(M4_TMR4_TypeDef *TMR4x, uint16_t u16CycleVal)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+
+    WRITE_REG16(TMR4x->CPSR, u16CycleVal);
+}
+
+/**
+ * @brief  Get Timer4 counter cycle value
+ * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ * @retval The cycle value of the Timer4 counter
+ */
+uint16_t TMR4_CNT_GetCycleVal(const M4_TMR4_TypeDef *TMR4x)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+
+    return READ_REG16(TMR4x->CPSR);
+}
+
+/**
+ * @brief  Clear Timer4 counter count value
+ * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ * @retval None
+ */
+void TMR4_CNT_ClearCountVal(M4_TMR4_TypeDef *TMR4x)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+
+    SET_REG16_BIT(TMR4x->CCSR, TMR4_CCSR_CLEAR);
+}
+
+/**
+ * @brief  Set Timer4 counter count value
+ * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ * @param  [in] u16CountVal             The Timer4 counter count value
+ *           @arg number of 16bit
+ * @retval None
+ */
+void TMR4_CNT_SetCountVal(M4_TMR4_TypeDef *TMR4x, uint16_t u16CountVal)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+
+    WRITE_REG16(TMR4x->CNTR, u16CountVal);
+}
+
+/**
+ * @brief  Get Timer4 counter count value
+ * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ * @retval The count value of the Timer4 counter
+ */
+uint16_t TMR4_CNT_GetCountVal(const M4_TMR4_TypeDef *TMR4x)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+
+    return READ_REG16(TMR4x->CNTR);
+}
+
+/**
+ * @brief  Set Timer4 counter interrupt mask times
  * @param  [in] TMR4x                   Pointer to Timer4 instance register base
  *         This parameter can be one of the following values:
  *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
@@ -840,33 +1000,37 @@ void TMR4_CNT_IntCmd(M4_TMR4_TypeDef *TMR4x,
  *         This parameter can be one of the following values:
  *           @arg TMR4_CNT_INT_PEAK:    Overflow interrupt
  *           @arg TMR4_CNT_INT_ZERO:    Underflow interrupt
- * @param [in] u16MaskTimes             Timer4 CNT interrupt mask times
- *           @arg TMR4_CNT_INT_MASK_0:  CNT interrupt flag is always set(not masked) for every CNT count at "0x0000" or peak
- *           @arg TMR4_CNT_INT_MASK_1:  CNT interrupt flag is set once for 2 every CNT counts at "0x0000" or peak (skiping 1 count)
- *           @arg TMR4_CNT_INT_MASK_2:  CNT interrupt flag is set once for 3 every CNT counts at "0x0000" or peak (skiping 2 count)
- *           @arg TMR4_CNT_INT_MASK_3:  CNT interrupt flag is set once for 4 every CNT counts at "0x0000" or peak (skiping 3 count)
- *           @arg TMR4_CNT_INT_MASK_4:  CNT interrupt flag is set once for 5 every CNT counts at "0x0000" or peak (skiping 4 count)
- *           @arg TMR4_CNT_INT_MASK_5:  CNT interrupt flag is set once for 6 every CNT counts at "0x0000" or peak (skiping 5 count)
- *           @arg TMR4_CNT_INT_MASK_6:  CNT interrupt flag is set once for 7 every CNT counts at "0x0000" or peak (skiping 6 count)
- *           @arg TMR4_CNT_INT_MASK_7:  CNT interrupt flag is set once for 8 every CNT counts at "0x0000" or peak (skiping 7 count)
- *           @arg TMR4_CNT_INT_MASK_8:  CNT interrupt flag is set once for 9 every CNT counts at "0x0000" or peak (skiping 8 count)
- *           @arg TMR4_CNT_INT_MASK_9:  CNT interrupt flag is set once for 10 every CNT counts at "0x0000" or peak (skiping 9 count)
- *           @arg TMR4_CNT_INT_MASK_10: CNT interrupt flag is set once for 11 every CNT counts at "0x0000" or peak (skiping 10 count)
- *           @arg TMR4_CNT_INT_MASK_11: CNT interrupt flag is set once for 12 every CNT counts at "0x0000" or peak (skiping 11 count)
- *           @arg TMR4_CNT_INT_MASK_12: CNT interrupt flag is set once for 13 every CNT counts at "0x0000" or peak (skiping 12 count)
- *           @arg TMR4_CNT_INT_MASK_13: CNT interrupt flag is set once for 14 every CNT counts at "0x0000" or peak (skiping 13 count)
- *           @arg TMR4_CNT_INT_MASK_14: CNT interrupt flag is set once for 15 every CNT counts at "0x0000" or peak (skiping 14 count)
- *           @arg TMR4_CNT_INT_MASK_15: CNT interrupt flag is set once for 16 every CNT counts at "0x0000" or peak (skiping 15 count)
- * @retval None
+ * @param [in] u16MaskTimes             Timer4 counter interrupt mask times
+ *         This parameter can be one of the following values:
+ *           @arg TMR4_CNT_INT_MASK_0:  Counter interrupt flag is always set(not masked) for every counter count at "0x0000" or peak
+ *           @arg TMR4_CNT_INT_MASK_1:  Counter interrupt flag is set once for 2 every counter counts at "0x0000" or peak (skiping 1 count)
+ *           @arg TMR4_CNT_INT_MASK_2:  Counter interrupt flag is set once for 3 every counter counts at "0x0000" or peak (skiping 2 count)
+ *           @arg TMR4_CNT_INT_MASK_3:  Counter interrupt flag is set once for 4 every counter counts at "0x0000" or peak (skiping 3 count)
+ *           @arg TMR4_CNT_INT_MASK_4:  Counter interrupt flag is set once for 5 every counter counts at "0x0000" or peak (skiping 4 count)
+ *           @arg TMR4_CNT_INT_MASK_5:  Counter interrupt flag is set once for 6 every counter counts at "0x0000" or peak (skiping 5 count)
+ *           @arg TMR4_CNT_INT_MASK_6:  Counter interrupt flag is set once for 7 every counter counts at "0x0000" or peak (skiping 6 count)
+ *           @arg TMR4_CNT_INT_MASK_7:  Counter interrupt flag is set once for 8 every counter counts at "0x0000" or peak (skiping 7 count)
+ *           @arg TMR4_CNT_INT_MASK_8:  Counter interrupt flag is set once for 9 every counter counts at "0x0000" or peak (skiping 8 count)
+ *           @arg TMR4_CNT_INT_MASK_9:  Counter interrupt flag is set once for 10 every counter counts at "0x0000" or peak (skiping 9 count)
+ *           @arg TMR4_CNT_INT_MASK_10: Counter interrupt flag is set once for 11 every counter counts at "0x0000" or peak (skiping 10 count)
+ *           @arg TMR4_CNT_INT_MASK_11: Counter interrupt flag is set once for 12 every counter counts at "0x0000" or peak (skiping 11 count)
+ *           @arg TMR4_CNT_INT_MASK_12: Counter interrupt flag is set once for 13 every counter counts at "0x0000" or peak (skiping 12 count)
+ *           @arg TMR4_CNT_INT_MASK_13: Counter interrupt flag is set once for 14 every counter counts at "0x0000" or peak (skiping 13 count)
+ *           @arg TMR4_CNT_INT_MASK_14: Counter interrupt flag is set once for 15 every counter counts at "0x0000" or peak (skiping 14 count)
+ *           @arg TMR4_CNT_INT_MASK_15: Counter interrupt flag is set once for 16 every counter counts at "0x0000" or peak (skiping 15 count)
+ * @retval An en_result_t enumeration value:
+ *           - Ok: Set successfully
+ *           - ErrorInvalidParameter: u16IntSource value is invalid
  */
-void TMR4_CNT_SetIntMaskTimes(M4_TMR4_TypeDef *TMR4x,
+en_result_t TMR4_CNT_SetIntMaskTimes(M4_TMR4_TypeDef *TMR4x,
                                         uint16_t u16IntSource,
                                         uint16_t u16MaskTimes)
 {
+    en_result_t enRet = Ok;
+
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
-    DDL_ASSERT(IS_VALID_TMR4_CNT_INT(u16IntSource));
-    DDL_ASSERT(IS_VALID_TMR4_CNT_INT_MSK(u16MaskTimes));
+    DDL_ASSERT(IS_VALID_TMR4_CNT_INT_MASKTIMES(u16MaskTimes));
 
     switch (u16IntSource)
     {
@@ -877,8 +1041,12 @@ void TMR4_CNT_SetIntMaskTimes(M4_TMR4_TypeDef *TMR4x,
             MODIFY_REG16(TMR4x->CVPR, TMR4_CVPR_PIM, (uint16_t)(u16MaskTimes << TMR4_CVPR_PIM_POS));
             break;
         default:
+            DDL_ASSERT(NULL);
+            enRet = ErrorInvalidParameter;
             break;
     }
+
+    return enRet;
 }
 
 /**
@@ -892,47 +1060,59 @@ void TMR4_CNT_SetIntMaskTimes(M4_TMR4_TypeDef *TMR4x,
  *         This parameter can be one of the following values:
  *           @arg TMR4_CNT_INT_PEAK:    Overflow interrupt
  *           @arg TMR4_CNT_INT_ZERO:    Underflow interrupt
- * @retval Returned value can be one of thfollowing values:
- *           @arg TMR4_CNT_INT_MASK_0:  CNT interrupt flag is always set(not masked) for every CNT count at "0x0000" or peak
- *           @arg TMR4_CNT_INT_MASK_1:  CNT interrupt flag is set once for 2 every CNT counts at "0x0000" or peak (skiping 1 count)
- *           @arg TMR4_CNT_INT_MASK_2:  CNT interrupt flag is set once for 3 every CNT counts at "0x0000" or peak (skiping 2 count)
- *           @arg TMR4_CNT_INT_MASK_3:  CNT interrupt flag is set once for 4 every CNT counts at "0x0000" or peak (skiping 3 count)
- *           @arg TMR4_CNT_INT_MASK_4:  CNT interrupt flag is set once for 5 every CNT counts at "0x0000" or peak (skiping 4 count)
- *           @arg TMR4_CNT_INT_MASK_5:  CNT interrupt flag is set once for 6 every CNT counts at "0x0000" or peak (skiping 5 count)
- *           @arg TMR4_CNT_INT_MASK_6:  CNT interrupt flag is set once for 7 every CNT counts at "0x0000" or peak (skiping 6 count)
- *           @arg TMR4_CNT_INT_MASK_7:  CNT interrupt flag is set once for 8 every CNT counts at "0x0000" or peak (skiping 7 count)
- *           @arg TMR4_CNT_INT_MASK_8:  CNT interrupt flag is set once for 9 every CNT counts at "0x0000" or peak (skiping 8 count)
- *           @arg TMR4_CNT_INT_MASK_9:  CNT interrupt flag is set once for 10 every CNT counts at "0x0000" or peak (skiping 9 count)
- *           @arg TMR4_CNT_INT_MASK_10: CNT interrupt flag is set once for 11 every CNT counts at "0x0000" or peak (skiping 10 count)
- *           @arg TMR4_CNT_INT_MASK_11: CNT interrupt flag is set once for 12 every CNT counts at "0x0000" or peak (skiping 11 count)
- *           @arg TMR4_CNT_INT_MASK_12: CNT interrupt flag is set once for 13 every CNT counts at "0x0000" or peak (skiping 12 count)
- *           @arg TMR4_CNT_INT_MASK_13: CNT interrupt flag is set once for 14 every CNT counts at "0x0000" or peak (skiping 13 count)
- *           @arg TMR4_CNT_INT_MASK_14: CNT interrupt flag is set once for 15 every CNT counts at "0x0000" or peak (skiping 14 count)
- *           @arg TMR4_CNT_INT_MASK_15: CNT interrupt flag is set once for 16 every CNT counts at "0x0000" or peak (skiping 15 count)
- *           @arg TMR4_RESULT_ERROR:    Timer4 interrupt source is invalid
+ * @param  [out] pu16MaskTimes          The pointer for mask times
+ *         This parameter can be one of the following values:
+ *           @arg TMR4_CNT_INT_MASK_0:  Counter interrupt flag is always set(not masked) for every counter count at "0x0000" or peak
+ *           @arg TMR4_CNT_INT_MASK_1:  Counter interrupt flag is set once for 2 every counter counts at "0x0000" or peak (skiping 1 count)
+ *           @arg TMR4_CNT_INT_MASK_2:  Counter interrupt flag is set once for 3 every counter counts at "0x0000" or peak (skiping 2 count)
+ *           @arg TMR4_CNT_INT_MASK_3:  Counter interrupt flag is set once for 4 every counter counts at "0x0000" or peak (skiping 3 count)
+ *           @arg TMR4_CNT_INT_MASK_4:  Counter interrupt flag is set once for 5 every counter counts at "0x0000" or peak (skiping 4 count)
+ *           @arg TMR4_CNT_INT_MASK_5:  Counter interrupt flag is set once for 6 every counter counts at "0x0000" or peak (skiping 5 count)
+ *           @arg TMR4_CNT_INT_MASK_6:  Counter interrupt flag is set once for 7 every counter counts at "0x0000" or peak (skiping 6 count)
+ *           @arg TMR4_CNT_INT_MASK_7:  Counter interrupt flag is set once for 8 every counter counts at "0x0000" or peak (skiping 7 count)
+ *           @arg TMR4_CNT_INT_MASK_8:  Counter interrupt flag is set once for 9 every counter counts at "0x0000" or peak (skiping 8 count)
+ *           @arg TMR4_CNT_INT_MASK_9:  Counter interrupt flag is set once for 10 every counter counts at "0x0000" or peak (skiping 9 count)
+ *           @arg TMR4_CNT_INT_MASK_10: Counter interrupt flag is set once for 11 every counter counts at "0x0000" or peak (skiping 10 count)
+ *           @arg TMR4_CNT_INT_MASK_11: Counter interrupt flag is set once for 12 every counter counts at "0x0000" or peak (skiping 11 count)
+ *           @arg TMR4_CNT_INT_MASK_12: Counter interrupt flag is set once for 13 every counter counts at "0x0000" or peak (skiping 12 count)
+ *           @arg TMR4_CNT_INT_MASK_13: Counter interrupt flag is set once for 14 every counter counts at "0x0000" or peak (skiping 13 count)
+ *           @arg TMR4_CNT_INT_MASK_14: Counter interrupt flag is set once for 15 every counter counts at "0x0000" or peak (skiping 14 count)
+ *           @arg TMR4_CNT_INT_MASK_15: Counter interrupt flag is set once for 16 every counter counts at "0x0000" or peak (skiping 15 count)
+ @retval An en_result_t enumeration value:
+ *           - Ok: Set successfully
+ *           - ErrorInvalidParameter: pu16MaskTimes = NULL or u16IntSource value is invalid
  */
-uint16_t TMR4_CNT_GetIntMaskTimes(const M4_TMR4_TypeDef *TMR4x,
-                                            uint16_t u16IntSource)
+en_result_t TMR4_CNT_GetIntMaskTimes(const M4_TMR4_TypeDef *TMR4x,
+                                            uint16_t u16IntSource,
+                                            uint16_t *pu16MaskTimes)
 {
-    uint16_t u16MaskTimes = TMR4_RESULT_ERROR;
+    en_result_t enRet = Ok;
 
-    /* Check parameters */
-    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
-    DDL_ASSERT(IS_VALID_TMR4_CNT_INT(u16IntSource));
-
-    switch (u16IntSource)
+    if (NULL == pu16MaskTimes)
     {
-        case TMR4_CNT_INT_ZERO:
-            u16MaskTimes = (uint16_t)(READ_REG16_BIT(TMR4x->CVPR, TMR4_CVPR_ZIM) >> TMR4_CVPR_ZIM_POS);
-            break;
-        case TMR4_CNT_INT_PEAK:
-            u16MaskTimes = (uint16_t)(READ_REG16_BIT(TMR4x->CVPR, TMR4_CVPR_PIM) >> TMR4_CVPR_PIM_POS);
-            break;
-        default:
-            break;
+        enRet = ErrorInvalidParameter;
+    }
+    else
+    {
+        /* Check parameters */
+        DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+
+        switch (u16IntSource)
+        {
+            case TMR4_CNT_INT_ZERO:
+                *pu16MaskTimes = (uint16_t)(READ_REG16_BIT(TMR4x->CVPR, TMR4_CVPR_ZIM)  >> TMR4_CVPR_ZIM_POS);
+                break;
+            case TMR4_CNT_INT_PEAK:
+                *pu16MaskTimes = (uint16_t)(READ_REG16_BIT(TMR4x->CVPR, TMR4_CVPR_PIM) >> TMR4_CVPR_PIM_POS);
+                break;
+            default:
+                DDL_ASSERT(NULL);
+                enRet = ErrorInvalidParameter;
+                break;
+        }
     }
 
-    return u16MaskTimes;
+    return enRet;
 }
 
 /**
@@ -946,47 +1126,59 @@ uint16_t TMR4_CNT_GetIntMaskTimes(const M4_TMR4_TypeDef *TMR4x,
  *         This parameter can be one of the following values:
  *           @arg TMR4_CNT_INT_PEAK:    Overflow interrupt
  *           @arg TMR4_CNT_INT_ZERO:    Underflow interrupt
- * @retval Returned value can be one of thfollowing values:
- *           @arg TMR4_CNT_INT_MASK_0:  CNT interrupt flag is always set(not masked) for every CNT count at "0x0000" or peak
- *           @arg TMR4_CNT_INT_MASK_1:  CNT interrupt flag is set once for 2 every CNT counts at "0x0000" or peak (skiping 1 count)
- *           @arg TMR4_CNT_INT_MASK_2:  CNT interrupt flag is set once for 3 every CNT counts at "0x0000" or peak (skiping 2 count)
- *           @arg TMR4_CNT_INT_MASK_3:  CNT interrupt flag is set once for 4 every CNT counts at "0x0000" or peak (skiping 3 count)
- *           @arg TMR4_CNT_INT_MASK_4:  CNT interrupt flag is set once for 5 every CNT counts at "0x0000" or peak (skiping 4 count)
- *           @arg TMR4_CNT_INT_MASK_5:  CNT interrupt flag is set once for 6 every CNT counts at "0x0000" or peak (skiping 5 count)
- *           @arg TMR4_CNT_INT_MASK_6:  CNT interrupt flag is set once for 7 every CNT counts at "0x0000" or peak (skiping 6 count)
- *           @arg TMR4_CNT_INT_MASK_7:  CNT interrupt flag is set once for 8 every CNT counts at "0x0000" or peak (skiping 7 count)
- *           @arg TMR4_CNT_INT_MASK_8:  CNT interrupt flag is set once for 9 every CNT counts at "0x0000" or peak (skiping 8 count)
- *           @arg TMR4_CNT_INT_MASK_9:  CNT interrupt flag is set once for 10 every CNT counts at "0x0000" or peak (skiping 9 count)
- *           @arg TMR4_CNT_INT_MASK_10: CNT interrupt flag is set once for 11 every CNT counts at "0x0000" or peak (skiping 10 count)
- *           @arg TMR4_CNT_INT_MASK_11: CNT interrupt flag is set once for 12 every CNT counts at "0x0000" or peak (skiping 11 count)
- *           @arg TMR4_CNT_INT_MASK_12: CNT interrupt flag is set once for 13 every CNT counts at "0x0000" or peak (skiping 12 count)
- *           @arg TMR4_CNT_INT_MASK_13: CNT interrupt flag is set once for 14 every CNT counts at "0x0000" or peak (skiping 13 count)
- *           @arg TMR4_CNT_INT_MASK_14: CNT interrupt flag is set once for 15 every CNT counts at "0x0000" or peak (skiping 14 count)
- *           @arg TMR4_CNT_INT_MASK_15: CNT interrupt flag is set once for 16 every CNT counts at "0x0000" or peak (skiping 15 count)
- *           @arg TMR4_RESULT_ERROR:    Timer4 interrupt source is invalid
+ * @param  [out] pu16MaskTimes          The pointer for mask times
+ *         This parameter can be one of the following values:
+ *           @arg TMR4_CNT_INT_MASK_0:  Counter interrupt flag is always set(not masked) for every counter count at "0x0000" or peak
+ *           @arg TMR4_CNT_INT_MASK_1:  Counter interrupt flag is set once for 2 every counter counts at "0x0000" or peak (skiping 1 count)
+ *           @arg TMR4_CNT_INT_MASK_2:  Counter interrupt flag is set once for 3 every counter counts at "0x0000" or peak (skiping 2 count)
+ *           @arg TMR4_CNT_INT_MASK_3:  Counter interrupt flag is set once for 4 every counter counts at "0x0000" or peak (skiping 3 count)
+ *           @arg TMR4_CNT_INT_MASK_4:  Counter interrupt flag is set once for 5 every counter counts at "0x0000" or peak (skiping 4 count)
+ *           @arg TMR4_CNT_INT_MASK_5:  Counter interrupt flag is set once for 6 every counter counts at "0x0000" or peak (skiping 5 count)
+ *           @arg TMR4_CNT_INT_MASK_6:  Counter interrupt flag is set once for 7 every counter counts at "0x0000" or peak (skiping 6 count)
+ *           @arg TMR4_CNT_INT_MASK_7:  Counter interrupt flag is set once for 8 every counter counts at "0x0000" or peak (skiping 7 count)
+ *           @arg TMR4_CNT_INT_MASK_8:  Counter interrupt flag is set once for 9 every counter counts at "0x0000" or peak (skiping 8 count)
+ *           @arg TMR4_CNT_INT_MASK_9:  Counter interrupt flag is set once for 10 every counter counts at "0x0000" or peak (skiping 9 count)
+ *           @arg TMR4_CNT_INT_MASK_10: Counter interrupt flag is set once for 11 every counter counts at "0x0000" or peak (skiping 10 count)
+ *           @arg TMR4_CNT_INT_MASK_11: Counter interrupt flag is set once for 12 every counter counts at "0x0000" or peak (skiping 11 count)
+ *           @arg TMR4_CNT_INT_MASK_12: Counter interrupt flag is set once for 13 every counter counts at "0x0000" or peak (skiping 12 count)
+ *           @arg TMR4_CNT_INT_MASK_13: Counter interrupt flag is set once for 14 every counter counts at "0x0000" or peak (skiping 13 count)
+ *           @arg TMR4_CNT_INT_MASK_14: Counter interrupt flag is set once for 15 every counter counts at "0x0000" or peak (skiping 14 count)
+ *           @arg TMR4_CNT_INT_MASK_15: Counter interrupt flag is set once for 16 every counter counts at "0x0000" or peak (skiping 15 count)
+ * @retval An en_result_t enumeration value:
+ *           - Ok: Set successfully
+ *           - ErrorInvalidParameter: pu16MaskTimes = NULL or u16IntSource value is invalid
  */
-uint16_t TMR4_CNT_GetIntMaskCurrentTimes(const M4_TMR4_TypeDef *TMR4x,
-                                                        uint16_t u16IntSource)
+en_result_t TMR4_CNT_GetIntMaskCurrentTimes(const M4_TMR4_TypeDef *TMR4x,
+                                                    uint16_t u16IntSource,
+                                                    uint16_t *pu16MaskTimes)
 {
-    uint16_t u16MaskTimes = TMR4_RESULT_ERROR;
+    en_result_t enRet = Ok;
 
-    /* Check parameters */
-    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
-    DDL_ASSERT(IS_VALID_TMR4_CNT_INT(u16IntSource));
-
-    switch (u16IntSource)
+    if (NULL == pu16MaskTimes)
     {
-        case TMR4_CNT_INT_ZERO:
-            u16MaskTimes = (uint16_t)(READ_REG16_BIT(TMR4x->CVPR, TMR4_CVPR_ZIC) >> TMR4_CVPR_ZIC_POS);
-            break;
-        case TMR4_CNT_INT_PEAK:
-            u16MaskTimes = (uint16_t)(READ_REG16_BIT(TMR4x->CVPR, TMR4_CVPR_PIC) >> TMR4_CVPR_PIC_POS);
-            break;
-        default:
-            break;
+        enRet = ErrorInvalidParameter;
+    }
+    else
+    {
+        /* Check parameters */
+        DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+
+        switch (u16IntSource)
+        {
+            case TMR4_CNT_INT_ZERO:
+                *pu16MaskTimes = (uint16_t)(READ_REG16_BIT(TMR4x->CVPR, TMR4_CVPR_ZIC) >> TMR4_CVPR_ZIC_POS);
+                break;
+            case TMR4_CNT_INT_PEAK:
+                *pu16MaskTimes = (uint16_t)(READ_REG16_BIT(TMR4x->CVPR, TMR4_CVPR_PIC) >> TMR4_CVPR_PIC_POS);
+                break;
+            default:
+                DDL_ASSERT(NULL);
+                enRet = ErrorInvalidParameter;
+                break;
+        }
     }
 
-    return u16MaskTimes;
+    return enRet;
 }
 
 /**
@@ -1050,7 +1242,7 @@ en_result_t TMR4_OCO_Init(M4_TMR4_TypeDef *TMR4x,
                                 uint32_t u32Ch,
                                 const stc_tmr4_oco_init_t *pstcInit)
 {
-    uint16_t u16Val = 0U;
+    uint16_t u16Val;
     __IO uint16_t *TMR4_OCER;
     __IO uint16_t *TMR4_OCSR;
     __IO uint16_t *TMR4_OCCR;
@@ -1075,15 +1267,15 @@ en_result_t TMR4_OCO_Init(M4_TMR4_TypeDef *TMR4x,
         TMR4_OCCR = TMR4_OCCRx(TMR4x, u32Ch);
 
         /* Set port output valid && OP level && interrupt */
-        u16Val = ((uint16_t)(pstcInit->u16OcoCmd << REG16_1BIT_OFS(u32Ch))  | \
-                  (uint16_t)(pstcInit->u16OcoInvalidOp << REG16_1BIT_OFS(u32Ch)));
+        u16Val = ((uint16_t)(pstcInit->u16OcoCmd << SHIFT_1BIT(u32Ch))  | \
+                  (uint16_t)(pstcInit->u16OcoInvalidOp << SHIFT_1BIT(u32Ch)));
         MODIFY_REG16(*TMR4_OCSR, TMR4_OCSR_MASK(u32Ch), u16Val);
 
         /* Set OCMR&&OCCR buffer */
-        u16Val = ((uint16_t)(pstcInit->u16OccrBufMode << REG16_2BIT_OFS(u32Ch)) | \
-                  (uint16_t)(pstcInit->u16OcmrBufMode << REG16_2BIT_OFS(u32Ch)) | \
-                  (uint16_t)(pstcInit->u16OccrLinkTransfer << REG16_1BIT_OFS(u32Ch)) | \
-                  (uint16_t)(pstcInit->u16OcmrLinkTransfer << REG16_1BIT_OFS(u32Ch)));
+        u16Val = (TMR4_OCER_CxBUFEN(u32Ch, pstcInit->u16OccrBufMode) | \
+                  TMR4_OCER_MxBUFEN(u32Ch, pstcInit->u16OcmrBufMode) | \
+                  TMR4_OCER_LMCx(u32Ch, pstcInit->u16OccrLinkTransfer) | \
+                  TMR4_OCER_LMMx(u32Ch, pstcInit->u16OcmrLinkTransfer));
         MODIFY_REG16(*TMR4_OCER, TMR4_OCER_MASK(u32Ch), u16Val);
 
         /* Set OCO compare match value */
@@ -1202,7 +1394,7 @@ void TMR4_OCO_SetOccrBufMode(M4_TMR4_TypeDef *TMR4x,
     /* Set OCER register: OCCR buffer mode */
     MODIFY_REG16(*TMR4_OCER, \
                  TMR4_OCER_CxBUFEN_MASK(u32Ch), \
-                 (u16OccrBufMode << REG16_2BIT_OFS(u32Ch)));
+                 TMR4_OCER_CxBUFEN(u32Ch, u16OccrBufMode));
 }
 
 /**
@@ -1242,7 +1434,7 @@ uint16_t TMR4_OCO_GetOccrBufMode(const M4_TMR4_TypeDef *TMR4x,
     /* Get OCCR buffer mode */
     OccrBufMode = READ_REG16_BIT(*TMR4_OCER, TMR4_OCER_CxBUFEN_MASK(u32Ch));
 
-    return (uint16_t)(OccrBufMode >> REG16_2BIT_OFS(u32Ch));
+    return (uint16_t)(OccrBufMode >> SHIFT_2BIT(u32Ch));
 }
 
 /**
@@ -1282,7 +1474,7 @@ void TMR4_OCO_SetOccrLinkTransfer(M4_TMR4_TypeDef *TMR4x,
     /* Set OCER register: OCCR link transfer function */
     MODIFY_REG16(*TMR4_OCER, \
                  TMR4_OCER_LMCx_MASK(u32Ch), \
-                 (u16TransferState << REG16_1BIT_OFS(u32Ch)));
+                 TMR4_OCER_LMCx(u32Ch, u16TransferState));
 }
 
 /**
@@ -1325,7 +1517,7 @@ void TMR4_OCO_SetOcmrBufMode(M4_TMR4_TypeDef *TMR4x,
     /* Set OCER register: OCMR buffer mode */
     MODIFY_REG16(*TMR4_OCER, \
                  TMR4_OCER_MxBUFEN_MASK(u32Ch), \
-                 (u16OcmrBufMode << REG16_2BIT_OFS(u32Ch)));
+                 TMR4_OCER_MxBUFEN(u32Ch, u16OcmrBufMode));
 }
 
 /**
@@ -1366,7 +1558,7 @@ uint16_t TMR4_OCO_GetOcmrBufMode(const M4_TMR4_TypeDef *TMR4x,
     /* Get OCCR buffer mode */
     u16OcmrBufMode = READ_REG16_BIT(*TMR4_OCER, TMR4_OCER_MxBUFEN_MASK(u32Ch));
 
-    return (uint16_t)(u16OcmrBufMode >> REG16_2BIT_OFS(u32Ch));
+    return (uint16_t)(u16OcmrBufMode >> SHIFT_2BIT(u32Ch));
 }
 
 /**
@@ -1406,7 +1598,7 @@ void TMR4_OCO_SetOcmrLinkTransfer(M4_TMR4_TypeDef *TMR4x,
     /* Set OCER register: OCMR link transfer function */
     MODIFY_REG16(*TMR4_OCER, \
                  TMR4_OCER_LMMx_MASK(u32Ch), \
-                 (u16TransferState << REG16_1BIT_OFS(u32Ch)));
+                 TMR4_OCER_LMMx(u32Ch, u16TransferState));
 }
 
 /**
@@ -1446,7 +1638,7 @@ void TMR4_OCO_SetExtMatchCond(M4_TMR4_TypeDef *TMR4x,
     /* Set OCER register: Extend match function */
     MODIFY_REG16(*TMR4_OCER, \
                  TMR4_OCER_MCECx_MASK(u32Ch), \
-                 (u16ExtMatch << REG16_1BIT_OFS(u32Ch)));
+                 TMR4_OCER_MCECx(u32Ch, u16ExtMatch));
 }
 
 /**
@@ -1487,7 +1679,9 @@ en_result_t TMR4_OCO_SetHighChCompareMode(M4_TMR4_TypeDef *TMR4x,
         TMR4_OCMR = TMR4_OCMRx(TMR4x, u32Ch);
 
         WRITE_REG16(*TMR4_OCMR, pstcMode->OCMRx);
-        MODIFY_REG16(*TMR4_OCER, TMR4_OCER_MCECx_MASK(u32Ch), pstcMode->u16ExtendMatch);
+        MODIFY_REG16(*TMR4_OCER, \
+                     TMR4_OCER_MCECx_MASK(u32Ch), \
+                     TMR4_OCER_MCECx(u32Ch, pstcMode->u16ExtendMatch));
         enRet = Ok;
     }
 
@@ -1534,7 +1728,7 @@ en_result_t TMR4_OCO_SetLowChCompareMode(M4_TMR4_TypeDef *TMR4x,
         WRITE_REG32(*TMR4_OCMR, pstcMode->OCMRx);
         MODIFY_REG16(*TMR4_OCER, \
                      TMR4_OCER_MCECx_MASK(u32Ch), \
-                     (pstcMode->u16ExtendMatch << REG16_1BIT_OFS(u32Ch)));
+                     TMR4_OCER_MCECx(u32Ch, pstcMode->u16ExtendMatch));
         enRet = Ok;
     }
 
@@ -1578,7 +1772,7 @@ void TMR4_OCO_SetOutputCompare(M4_TMR4_TypeDef *TMR4x,
     /* Set OCSR port output compare */
     MODIFY_REG16(*TMR4_OCSR, \
                  TMR4_OCSR_OCEx_MASK(u32Ch), \
-                 (u16OcoCmd << REG16_1BIT_OFS(u32Ch)));
+                 TMR4_OCSR_OCEx(u32Ch, u16OcoCmd));
 }
 
 /**
@@ -1596,16 +1790,12 @@ void TMR4_OCO_SetOutputCompare(M4_TMR4_TypeDef *TMR4x,
  *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
  *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
  *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
- * @param  [in] u16IntSource        The OCO interrupt source
- *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_INT_MATCH  TIMER4 OCO count match interrupt
  * @param  [in] enNewState          The function new state
  *           @arg  This parameter can be: Enable or Disable
  * @retval None
  */
 void TMR4_OCO_IntCmd(M4_TMR4_TypeDef *TMR4x,
                             uint32_t u32Ch,
-                            uint16_t u16IntSource,
                             en_functional_state_t enNewState)
 {
     __IO uint16_t *TMR4_OCSR;
@@ -1613,7 +1803,6 @@ void TMR4_OCO_IntCmd(M4_TMR4_TypeDef *TMR4x,
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
     DDL_ASSERT(IS_VALID_TMR4_OCO_CH(u32Ch));
-    DDL_ASSERT(IS_VALID_TMR4_OCO_INT(u16IntSource));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     /* Get pointer of current channel OCO register address */
@@ -1621,11 +1810,11 @@ void TMR4_OCO_IntCmd(M4_TMR4_TypeDef *TMR4x,
 
     if (Enable == enNewState)
     {
-        SET_REG16_BIT(*TMR4_OCSR, (u16IntSource << REG16_1BIT_OFS(u32Ch)));
+        SET_REG16_BIT(*TMR4_OCSR, TMR4_OCSR_OCIEx(u32Ch, TMR4_OCSR_OCIEH));
     }
     else
     {
-        CLEAR_REG16_BIT(*TMR4_OCSR, (u16IntSource << REG16_1BIT_OFS(u32Ch)));
+        CLEAR_REG16_BIT(*TMR4_OCSR, TMR4_OCSR_OCIEx(u32Ch, TMR4_OCSR_OCIEH));
     }
 }
 
@@ -1644,16 +1833,12 @@ void TMR4_OCO_IntCmd(M4_TMR4_TypeDef *TMR4x,
  *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
  *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
  *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
- * @param  [in] u16Flag             The OCO flag
- *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_FLAG_MATCH  TIMER4 OCO count match flag
  * @retval An en_flag_status_t enumeration value:
  *           - Reset:               None interrupt request flag is set on Timer4 OCO
  *           - Set:                 Detection interrupt request on Timer4 OCO
  */
 en_flag_status_t TMR4_OCO_GetFlag(const M4_TMR4_TypeDef *TMR4x,
-                                            uint32_t u32Ch,
-                                            uint16_t u16Flag)
+                                        uint32_t u32Ch)
 {
     __IO uint16_t *TMR4_OCSR;
 
@@ -1664,7 +1849,7 @@ en_flag_status_t TMR4_OCO_GetFlag(const M4_TMR4_TypeDef *TMR4x,
     /* Get pointer of current channel OCO register address */
     TMR4_OCSR = TMR4_OCSRx(TMR4x, u32Ch);
 
-    return (READ_REG16_BIT(*TMR4_OCSR, (u16Flag << REG16_1BIT_OFS(u32Ch))) ? Set : Reset);
+    return (READ_REG16_BIT(*TMR4_OCSR, TMR4_OCSR_OCFx(u32Ch, TMR4_OCSR_OCFH)) ? Set : Reset);
 }
 
 /**
@@ -1682,14 +1867,9 @@ en_flag_status_t TMR4_OCO_GetFlag(const M4_TMR4_TypeDef *TMR4x,
  *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
  *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
  *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
- * @param  [in] u16Flag             The OCO flag
- *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_FLAG_MATCH  TIMER4 OCO count match flag
  * @retval None
  */
-void TMR4_OCO_ClearFlag(M4_TMR4_TypeDef *TMR4x,
-                                uint32_t u32Ch,
-                                uint16_t u16Flag)
+void TMR4_OCO_ClearFlag(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 {
     __IO uint16_t *TMR4_OCSR;
 
@@ -1701,7 +1881,7 @@ void TMR4_OCO_ClearFlag(M4_TMR4_TypeDef *TMR4x,
     TMR4_OCSR = TMR4_OCSRx(TMR4x, u32Ch);
 
     /* Clear OCSR count compare flag */
-    CLEAR_REG16_BIT(*TMR4_OCSR, (u16Flag << REG16_1BIT_OFS(u32Ch)));
+    CLEAR_REG16_BIT(*TMR4_OCSR, TMR4_OCSR_OCFx(u32Ch, TMR4_OCSR_OCFH));
 }
 
 /**
@@ -1742,8 +1922,7 @@ void TMR4_OCO_SetOcoInvalidOp(M4_TMR4_TypeDef *TMR4x,
     /* Set OCSR register: OCO invalid output polarity */
     MODIFY_REG16(*TMR4_OCSR, \
                  TMR4_OCSR_OCPx_MASK(u32Ch), \
-                 (u16OutputPolarity << REG16_1BIT_OFS(u32Ch)));
-
+                 TMR4_OCSR_OCPx(u32Ch, u16OutputPolarity));
 }
 
 /**
@@ -1764,7 +1943,6 @@ void TMR4_OCO_SetOcoInvalidOp(M4_TMR4_TypeDef *TMR4x,
  * @retval Returned value can be one of the following values:
  *           @arg TMR4_OCO_INVAILD_OP_LOW:    TIM4_<t>_OxH/TIM4_<t>_OxL output low level when OCO is invalid
  *           @arg TMR4_OCO_INVAILD_OP_HIGH:   TIM4_<t>_OxH/TIM4_<t>_OxL output high level when OCO is invalid
- *           @arg TMR4_RESULT_ERROR:          Timer4 OCO channel is invalid
  */
 uint16_t TMR4_OCO_GetOutputPolarity(const M4_TMR4_TypeDef *TMR4x,
                                                 uint32_t u32Ch)
@@ -1782,7 +1960,7 @@ uint16_t TMR4_OCO_GetOutputPolarity(const M4_TMR4_TypeDef *TMR4x,
     /* Get OCSR register: OCO output polarity */
     u16OutputPolarity = READ_REG16_BIT(*TMR4_OCSR, TMR4_OCSR_OCPx_MASK(u32Ch));
 
-    return (u16OutputPolarity >> REG16_1BIT_OFS(u32Ch));
+    return (u16OutputPolarity >> SHIFT_1BIT(u32Ch));
 }
 
 /**
@@ -1912,8 +2090,8 @@ en_result_t TMR4_PWM_Init(M4_TMR4_TypeDef *TMR4x,
 
         /* Set PSCR register: PWM port state */
         MODIFY_REG32(TMR4x->PSCR, \
-                     (((uint32_t)TMR4_PSCR_OEUH | (uint32_t)TMR4_PSCR_OEUL) << (u32Ch * 2UL) | \
-                      ((uint32_t)TMR4_PSCR_OSUH | (uint32_t)TMR4_PSCR_OSUL) << (u32Ch * 4UL)), \
+                     ((TMR4_PSCR_OEUH | TMR4_PSCR_OEUL) << (u32Ch * 2UL) | \
+                      (TMR4_PSCR_OSUH | TMR4_PSCR_OSUL) << (u32Ch * 4UL)), \
                      ((pstcInit->u32OxHPortOutMode << (u32Ch * 2UL)) | \
                       (pstcInit->u32OxLPortOutMode << (u32Ch * 2UL + 1UL)) | \
                       (pstcInit->u32EmbOxHPortState << (u32Ch * 4UL)) | \
@@ -2390,7 +2568,7 @@ void TMR4_PWM_PortOutputMode(M4_TMR4_TypeDef *TMR4x,
 
     MODIFY_REG32(TMR4x->PSCR, \
                  TMR4_PSCR_OExy_MASK(u32PwmPort), \
-                 (u32Mode << u32PwmPort));
+                 TMR4_PSCR_OExy(u32PwmPort, u32Mode));
 }
 
 /**
@@ -2471,7 +2649,7 @@ void TMR4_PWM_EmbPwmPortOutputState(M4_TMR4_TypeDef *TMR4x,
 
     MODIFY_REG32(TMR4x->PSCR, \
                  TMR4_PSCR_OSxy_MASK(u32PwmPort), \
-                 (u32State << (u32PwmPort * 2UL)));
+                 TMR4_PSCR_OSxy(u32PwmPort, u32State));
 }
 
 /**

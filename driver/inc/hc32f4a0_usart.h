@@ -263,7 +263,7 @@ typedef struct
  * @{
  */
 #define USART_TRANSMISSION_ID               (USART_DR_MPID)
-#define USART_TRANSMISSION_DATA             ((uint32_t)0UL)
+#define USART_TRANSMISSION_DATA             (0UL)
 /**
  * @}
  */
@@ -316,7 +316,7 @@ typedef struct
  * @defgroup USART_Parity_Control USART Parity Control
  * @{
  */
-#define USART_PARITY_NONE                   ((uint32_t)0UL)     /*!< Parity control disabled */
+#define USART_PARITY_NONE                   (0UL)               /*!< Parity control disabled */
 #define USART_PARITY_EVEN                   (USART_CR1_PCE)     /*!< Parity control enabled and Even Parity is selected */
 #define USART_PARITY_ODD                    (USART_CR1_PCE | \
                                              USART_CR1_PS)      /*!< Parity control enabled and Odd Parity is selected */
@@ -328,8 +328,8 @@ typedef struct
  * @defgroup USART_Data_Width_Bits Data Width Bits
  * @{
  */
-#define USART_DATA_WIDTH_BITS_9             (USART_CR1_M)       /*!< 9 bits word length : Start bit, 9 data bits, n stop bits */
-#define USART_DATA_WIDTH_BITS_8             ((uint32_t)0UL)     /*!< 8 bits word length : Start bit, 8 data bits, n stop bits */
+#define USART_DATA_WIDTH_BITS_8             (0UL)           /*!< 8 bits word length : Start bit, 8 data bits, n stop bits */
+#define USART_DATA_WIDTH_BITS_9             (USART_CR1_M)   /*!< 9 bits word length : Start bit, 9 data bits, n stop bits */
 /**
  * @}
  */
@@ -339,7 +339,7 @@ typedef struct
  * @{
  */
 #define USART_OVERSAMPLING_BITS_8           (USART_CR1_OVER8)   /*!< Oversampling by 8 bits */
-#define USART_OVERSAMPLING_BITS_16          ((uint32_t)0UL)     /*!< Oversampling by 16 bits */
+#define USART_OVERSAMPLING_BITS_16          (0UL)               /*!< Oversampling by 16 bits */
 /**
  * @}
  */
@@ -348,8 +348,8 @@ typedef struct
  * @defgroup USART_Significant_Bit USART Significant Bit
  * @{
  */
+#define USART_LSB                           (0UL)               /*!< LSB(Least Significant Bit) */
 #define USART_MSB                           (USART_CR1_ML)      /*!< MSB(Most Significant Bit) */
-#define USART_LSB                           ((uint32_t)0UL)     /*!< LSB(Least Significant Bit) */
 /**
  * @}
  */
@@ -358,8 +358,8 @@ typedef struct
  * @defgroup USART_Noise_Filter_State USART Noise Filter State
  * @{
  */
+#define USART_NOISE_FILTER_DISABLE          (0UL)               /*!< Disable noise filter */
 #define USART_NOISE_FILTER_ENABLE           (USART_CR1_NFE)     /*!< Enable noise filter */
-#define USART_NOISE_FILTER_DISABLE          ((uint32_t)0UL)     /*!< Disable noise filter */
 /**
  * @}
  */
@@ -368,8 +368,8 @@ typedef struct
  * @defgroup USART_Start_Bit_Detect_Polarity USART Start Bit Detect Polarity
  * @{
  */
+#define USART_SB_DETECT_LOW                 (0UL)               /*!< Detect RX pin low level */
 #define USART_SB_DETECT_FALLING             (USART_CR1_SBS)     /*!< Detect RX pin falling edge */
-#define USART_SB_DETECT_LOW                 ((uint32_t)0UL)     /*!< Detect RX pin low level */
 /**
  * @}
  */
@@ -378,7 +378,7 @@ typedef struct
  * @defgroup USART_LIN_Send_Break_Mode USART LIN Send Break Mode
  * @{
  */
-#define USART_LIN_SEND_BREAK_MODE_SBK       ((uint32_t)0UL)     /*!< Start send break after USART_CR2 SBK bit set 1 value */
+#define USART_LIN_SEND_BREAK_MODE_SBK       (0UL)               /*!< Start send break after USART_CR2 SBK bit set 1 value */
 #define USART_LIN_SEND_BREAK_MODE_TDR       (USART_CR2_SBKM)    /*!< Start send break after USART_DR TDR wrtie 0x00 value */
 /**
  * @}
@@ -388,8 +388,8 @@ typedef struct
  * @defgroup USART_Multiple_Processor_State USART Multiple Processor State
  * @{
  */
+#define USART_MULTIPLE_PROCESSOR_DISABLE    (0UL)               /*!< Disable multiple processor function */
 #define USART_MULTIPLE_PROCESSOR_ENABLE     (USART_CR2_MPE)     /*!< Enable multiple processor function */
-#define USART_MULTIPLE_PROCESSOR_DISABLE    ((uint32_t)0UL)     /*!< Disable multiple processor function */
 /**
  * @}
  */
@@ -398,7 +398,7 @@ typedef struct
  * @defgroup USART_LIN_Detect_Break_Length USART LIN Detect Break Length
  * @{
  */
-#define USART_LIN_DETECT_BREAK_10B          ((uint32_t)0UL)     /*!< Detect break 10-bit */
+#define USART_LIN_DETECT_BREAK_10B          (0UL)               /*!< Detect break 10-bit */
 #define USART_LIN_DETECT_BREAK_11B          (USART_CR2_LBDL)    /*!< Detect break 11-bit */
 /**
  * @}
@@ -408,7 +408,7 @@ typedef struct
  * @defgroup USART_LIN_Send_Break_Length USART LIN Send Break Length
  * @{
  */
-#define USART_LIN_SEND_BREAK_10B            ((uint32_t)0UL)     /*!< Send break 10-bit */
+#define USART_LIN_SEND_BREAK_10B            (0UL)               /*!< Send break 10-bit */
 #define USART_LIN_SEND_BREAK_11B            (USART_CR2_SBKL_0)  /*!< Send break 11-bit */
 #define USART_LIN_SEND_BREAK_13B            (USART_CR2_SBKL_1)  /*!< Send break 13-bit */
 #define USART_LIN_SEND_BREAK_14B            (USART_CR2_SBKL)    /*!< Send break 14-bit */
@@ -422,7 +422,7 @@ typedef struct
  */
 #define USART_EXTCLK                        (USART_CR2_CLKC_1)  /*!< Select external clock source. */
 #define USART_INTCLK_OUTPUT                 (USART_CR2_CLKC_0)  /*!< Select internal clock source and output clock. */
-#define USART_INTCLK_NONE_OUTPUT            ((uint32_t)0UL)     /*!< Select internal clock source and don't output clock */
+#define USART_INTCLK_NONE_OUTPUT            (0UL)               /*!< Select internal clock source and don't output clock */
 /**
  * @}
  */
@@ -431,7 +431,7 @@ typedef struct
  * @defgroup USART_Stop_Bits USART Stop Bits
  * @{
  */
-#define USART_STOP_BITS_1                   ((uint32_t)0UL)     /*!< 1 stop bit */
+#define USART_STOP_BITS_1                   (0UL)               /*!< 1 stop bit */
 #define USART_STOP_BITS_2                   (USART_CR2_STOP)    /*!< 2 stop bit */
 /**
  * @}
@@ -441,7 +441,7 @@ typedef struct
  * @defgroup USART_DUPLEX_SEL USART Half-duplex/Full-duplex Selection
  * @{
  */
-#define USART_FULLDUPLEX_MODE               ((uint32_t)0UL)     /*!< USART full-duplex mode */
+#define USART_FULLDUPLEX_MODE               (0UL)               /*!< USART full-duplex mode */
 #define USART_HALFDUPLEX_MODE               (USART_CR3_HDSEL)   /*!< USART half-duplex mode */
 /**
  * @}
@@ -451,7 +451,7 @@ typedef struct
  * @defgroup USART_Hardware_Flow_Control USART Hardware Flow Control RTS/CTS
  * @{
  */
-#define USART_HWFLOWCTRL_NONE               ((uint32_t)0UL)     /*!< Disable USART hardware flow controle */
+#define USART_HWFLOWCTRL_NONE               (0UL)               /*!< Disable USART hardware flow controle */
 #define USART_HWFLOWCTRL_RTS                (USART_CR3_RTSE)    /*!< USART hardware flow control RTS mode */
 #define USART_HWFLOWCTRL_CTS                (USART_CR3_CTSE)    /*!< USART hardware flow control CTS mode */
 #define USART_HWFLOWCTRL_RTS_CTS            (USART_CR3_RTSE | \
@@ -464,7 +464,7 @@ typedef struct
  * @defgroup USART_Smartcard_ETU_Clock USART Smartcard ETU Clock
  * @{
  */
-#define USART_SC_ETU_CLK_32                 ((uint32_t)0UL)     /*!< 1 etu = 32/f */
+#define USART_SC_ETU_CLK_32                 (0UL)               /*!< 1 etu = 32/f */
 #define USART_SC_ETU_CLK_64                 (USART_CR3_BCN_0)   /*!< 1 etu = 64/f */
 #define USART_SC_ETU_CLK_128                (USART_CR3_BCN_1 | \
                                              USART_CR3_BCN_0)   /*!< 1 etu = 128/f */
@@ -480,7 +480,7 @@ typedef struct
  * @defgroup USART_Clock_Prescaler_Division USART Clock Prescaler Division
  * @{
  */
-#define USART_CLK_PRESCALER_DIV1            ((uint32_t)0UL)     /*!< PCLK */
+#define USART_CLK_PRESCALER_DIV1            (0UL)               /*!< PCLK */
 #define USART_CLK_PRESCALER_DIV4            (USART_PR_PSC_0)    /*!< PCLK/4 */
 #define USART_CLK_PRESCALER_DIV16           (USART_PR_PSC_1)    /*!< PCLK/16 */
 #define USART_CLK_PRESCALER_DIV64           (USART_PR_PSC)      /*!< PCLK/64 */
@@ -493,7 +493,7 @@ typedef struct
  *           LIN Baudrate Measure Counter Clock Prescaler Division
  * @{
  */
-#define USART_LIN_BMC_CLK_PRESCALER_DIV1    ((uint32_t)0UL)     /*!< PCLK */
+#define USART_LIN_BMC_CLK_PRESCALER_DIV1    (0UL)               /*!< PCLK */
 #define USART_LIN_BMC_CLK_PRESCALER_DIV2    (USART_PR_LBMPSC_0) /*!< PCLK/2 */
 #define USART_LIN_BMC_CLK_PRESCALER_DIV4    (USART_PR_LBMPSC_1) /*!< PCLK/4 */
 #define USART_LIN_BMC_CLK_PRESCALER_DIV8    (USART_PR_LBMPSC)   /*!< PCLK/8 */
@@ -505,7 +505,7 @@ typedef struct
  * @defgroup USART_Stop_Mode_Noise_Filter USART Stop Mode Noise_Filter
  * @{
  */
-#define USART_STOP_MODE_FILTER_NONE         ((uint32_t)0UL)             /*!< Disable noise filter */
+#define USART_STOP_MODE_FILTER_NONE         (0UL)                       /*!< Disable noise filter */
 #define USART_STOP_MODE_FILTER_WIDTH_0P5_US (PERIC_USART1_NFC_NFE)      /*!< Filter range less 0.5uS */
 #define USART_STOP_MODE_FILTER_WIDTH_1P0_US (PERIC_USART1_NFC_NFE | \
                                              PERIC_USART1_NFC_NFS_0)    /*!< Filter range less 1.0uS */
@@ -532,192 +532,6 @@ typedef struct
  * @addtogroup USART_Global_Functions
  * @{
  */
-
-/**
- * @brief  Enable USART silence mode.
- * @param  [in] USARTx                  Pointer to USART instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_USART1:            USART unit 1 instance register base
- *           @arg M4_USART2:            USART unit 2 instance register base
- *           @arg M4_USART3:            USART unit 3 instance register base
- *           @arg M4_USART4:            USART unit 4 instance register base
- *           @arg M4_USART5:            USART unit 5 instance register base
- *           @arg M4_USART6:            USART unit 6 instance register base
- *           @arg M4_USART7:            USART unit 7 instance register base
- *           @arg M4_USART8:            USART unit 8 instance register base
- *           @arg M4_USART9:            USART unit 9 instance register base
- *           @arg M4_USART10:           USART unit 10 instance register base
- * @param  [in] enNewSta                The function new state.
- *           @arg  This parameter can be: Enable or Disable.
- * @retval None
- */
-__STATIC_INLINE void USART_EnableSilenceMode(M4_USART_TypeDef *USARTx)
-{
-    SET_REG32_BIT(USARTx->CR1, USART_CR1_SLME);
-}
-
-/**
- * @brief  Disable USART silence mode.
- * @param  [in] USARTx                  Pointer to USART instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_USART1:            USART unit 1 instance register base
- *           @arg M4_USART2:            USART unit 2 instance register base
- *           @arg M4_USART3:            USART unit 3 instance register base
- *           @arg M4_USART4:            USART unit 4 instance register base
- *           @arg M4_USART5:            USART unit 5 instance register base
- *           @arg M4_USART6:            USART unit 6 instance register base
- *           @arg M4_USART7:            USART unit 7 instance register base
- *           @arg M4_USART8:            USART unit 8 instance register base
- *           @arg M4_USART9:            USART unit 9 instance register base
- *           @arg M4_USART10:           USART unit 10 instance register base
- * @retval None
- */
-__STATIC_INLINE void USART_DisableSilenceMode(M4_USART_TypeDef *USARTx)
-{
-    CLEAR_REG32_BIT(USARTx->CR1, USART_CR1_SLME);
-}
-
-/**
- * @brief  Enable USART loop function.
- * @param  [in] USARTx                  Pointer to USART instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_USART1:            USART unit 1 instance register base
- *           @arg M4_USART2:            USART unit 2 instance register base
- *           @arg M4_USART3:            USART unit 3 instance register base
- *           @arg M4_USART4:            USART unit 4 instance register base
- *           @arg M4_USART5:            USART unit 5 instance register base
- *           @arg M4_USART6:            USART unit 6 instance register base
- *           @arg M4_USART7:            USART unit 7 instance register base
- *           @arg M4_USART8:            USART unit 8 instance register base
- *           @arg M4_USART9:            USART unit 9 instance register base
- *           @arg M4_USART10:           USART unit 10 instance register base
- * @param  [in] enNewSta                The function new state.
- *           @arg  This parameter can be: Enable or Disable.
- * @retval None
- */
-__STATIC_INLINE void USART_EnableLoop(M4_USART_TypeDef *USARTx)
-{
-    SET_REG32_BIT(USARTx->CR3, USART_CR3_LOOP);
-}
-
-/**
- * @brief  Disable USART loop function.
- * @param  [in] USARTx                  Pointer to USART instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_USART1:            USART unit 1 instance register base
- *           @arg M4_USART2:            USART unit 2 instance register base
- *           @arg M4_USART3:            USART unit 3 instance register base
- *           @arg M4_USART4:            USART unit 4 instance register base
- *           @arg M4_USART5:            USART unit 5 instance register base
- *           @arg M4_USART6:            USART unit 6 instance register base
- *           @arg M4_USART7:            USART unit 7 instance register base
- *           @arg M4_USART8:            USART unit 8 instance register base
- *           @arg M4_USART9:            USART unit 9 instance register base
- *           @arg M4_USART10:           USART unit 10 instance register base
- * @retval None
- */
-__STATIC_INLINE void USART_DisableLoop(M4_USART_TypeDef *USARTx)
-{
-    CLEAR_REG32_BIT(USARTx->CR1, USART_CR3_LOOP);
-}
-
-/**
- * @brief  Request break sending
- * @param  [in] USARTx                  Pointer to USART instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_USART5:            USART unit 5 instance register base
- *           @arg M4_USART10:           USART unit 10 instance register base
- * @retval None
- * @note   LIN feature is supported by M4_USART5/M4_USART10
- */
-__STATIC_INLINE void USART_RequestBreakSending(M4_USART_TypeDef *USARTx)
-{
-    SET_REG32_BIT(USARTx->CR2, USART_CR2_SBK);
-}
-
-/**
- * @brief  Get request break sending status
- * @param  [in] USARTx                  Pointer to USART instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_USART5:            USART unit 5 instance register base
- *           @arg M4_USART10:           USART unit 10 instance register base
- * @retval An en_flag_status_t enumeration value:
- *           - Set: Sending break
- *           - Reset: Send break completely
- * @note   LIN feature is supported by M4_USART5/M4_USART10
- */
-__STATIC_INLINE en_flag_status_t USART_GetRequestBreakStatus(const M4_USART_TypeDef *USARTx)
-{
-    return READ_REG32_BIT(USARTx->CR2, USART_CR2_SBK) ? Set : Reset;
-}
-
-/**
- * @brief  USART receive data.
- * @param  [in] USARTx                  Pointer to USART instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_USART1:            USART unit 1 instance register base
- *           @arg M4_USART2:            USART unit 2 instance register base
- *           @arg M4_USART3:            USART unit 3 instance register base
- *           @arg M4_USART4:            USART unit 4 instance register base
- *           @arg M4_USART5:            USART unit 5 instance register base
- *           @arg M4_USART6:            USART unit 6 instance register base
- *           @arg M4_USART7:            USART unit 7 instance register base
- *           @arg M4_USART8:            USART unit 8 instance register base
- *           @arg M4_USART9:            USART unit 9 instance register base
- *           @arg M4_USART10:           USART unit 10 instance register base
- * @retval Receive data
- */
-__STATIC_INLINE uint16_t USART_RecData(const M4_USART_TypeDef *USARTx)
-{
-    return (uint16_t)(READ_REG32(USARTx->DR) >> USART_DR_RDR_POS);
-}
-
-/**
- * @brief  USART send data.
- * @param  [in] USARTx                  Pointer to USART instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_USART1:            USART unit 1 instance register base
- *           @arg M4_USART2:            USART unit 2 instance register base
- *           @arg M4_USART3:            USART unit 3 instance register base
- *           @arg M4_USART4:            USART unit 4 instance register base
- *           @arg M4_USART5:            USART unit 5 instance register base
- *           @arg M4_USART6:            USART unit 6 instance register base
- *           @arg M4_USART7:            USART unit 7 instance register base
- *           @arg M4_USART8:            USART unit 8 instance register base
- *           @arg M4_USART9:            USART unit 9 instance register base
- *           @arg M4_USART10:           USART unit 10 instance register base
- ** \param [in] u16Data                 Transmit data
- * @retval None
- */
-__STATIC_INLINE void USART_SendData(M4_USART_TypeDef *USARTx,
-                                            uint16_t u16Data)
-{
-    WRITE_REG32(USARTx->DR, ((uint32_t)u16Data & 0x01FFUL));
-}
-
-/**
- * @brief  USART send processor ID.
- * @param  [in] USARTx                  Pointer to USART instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_USART1:            USART unit 1 instance register base
- *           @arg M4_USART2:            USART unit 2 instance register base
- *           @arg M4_USART3:            USART unit 3 instance register base
- *           @arg M4_USART4:            USART unit 4 instance register base
- *           @arg M4_USART5:            USART unit 5 instance register base
- *           @arg M4_USART6:            USART unit 6 instance register base
- *           @arg M4_USART7:            USART unit 7 instance register base
- *           @arg M4_USART8:            USART unit 8 instance register base
- *           @arg M4_USART9:            USART unit 9 instance register base
- *           @arg M4_USART10:           USART unit 10 instance register base
- ** \param [in] u16ID                   Processor ID
- * @retval None
- */
-__STATIC_INLINE void USART_SendId(M4_USART_TypeDef *USARTx,
-                                        uint16_t u16ID)
-{
-    WRITE_REG32(USARTx->DR, (USART_DR_MPID | ((uint32_t)u16ID & 0x01FFUL)));
-}
-
 en_result_t USART_UartInit(M4_USART_TypeDef *USARTx,
                             const stc_usart_uart_init_t *pstcInit);
 en_result_t USART_HalfduplexInit(M4_USART_TypeDef *USARTx,
@@ -762,6 +576,15 @@ void USART_SetClockMode(M4_USART_TypeDef *USARTx, uint32_t u32ClkMode);
 uint32_t USART_GetClockMode(const M4_USART_TypeDef *USARTx);
 void USART_SetStopBits(M4_USART_TypeDef *USARTx, uint32_t u32StopBits);
 uint32_t USART_GetStopBits(const M4_USART_TypeDef *USARTx);
+uint16_t USART_RecData(const M4_USART_TypeDef *USARTx);
+void USART_SendData(M4_USART_TypeDef *USARTx, uint16_t u16Data);
+void USART_SendId(M4_USART_TypeDef *USARTx, uint16_t u16ID);
+void USART_SilenceCmd(M4_USART_TypeDef *USARTx,
+                            en_functional_state_t enNewState);
+void USART_LoopCmd(M4_USART_TypeDef *USARTx,
+                        en_functional_state_t enNewState);
+void USART_LinRequestBreakSending(M4_USART_TypeDef *USARTx);
+en_flag_status_t USART_GetLinRequestBreakStatus(const M4_USART_TypeDef *USARTx);
 void USART_SetLinBreakMode(M4_USART_TypeDef *USARTx, uint32_t u32Mode);
 uint32_t USART_GetLinBreakMode(const M4_USART_TypeDef *USARTx);
 void USART_SetDuplexMode(M4_USART_TypeDef *USARTx, uint32_t u32Mode);

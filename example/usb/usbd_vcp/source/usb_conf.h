@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_vcp\source\usb_conf.h
+ * @brief USB peripheral configuration for example.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,22 +48,30 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usb_conf.h
- **
- ** A detailed description is available at
- ** @link General low level driver configuration @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
-#ifndef __USB_CONF__H__
-#define __USB_CONF__H__
+#ifndef __USB_CONF_H__
+#define __USB_CONF_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_VCP
+ * @{
+ */
 
 /* USB Core and PHY interface configuration.
    Tip: To avoid modifying these defines each time you need to change the USB
@@ -258,8 +276,19 @@
   #define __packed    __unaligned
 #endif /* __CC_ARM */
 
+/**
+ * @}
+ */
 
-#endif //__USB_CONF__H__
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __USB_CONF__H__ */
 
 /*******************************************************************************
  * EOF (not truncated)

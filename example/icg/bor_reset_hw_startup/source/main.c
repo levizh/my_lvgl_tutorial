@@ -110,8 +110,6 @@ int32_t main(void)
     uint8_t u8ResetSource;
     stc_rmu_rstcause_t stRstCause;
 
-    /* Configure clock */
-    BSP_CLK_Init();
     /* Configure BSP */
     BSP_IO_Init();
     BSP_LED_Init();

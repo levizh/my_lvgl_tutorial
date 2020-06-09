@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_msc_bot.c
+ * @brief Provides all the BOT protocol core functions.
+ *
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-05-15       zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_msc_bot.c
- **
- ** A detailed description is available at
- ** @link
-        This file provides the USBD bulk only transfer functions.
-    @endlink
- **
- **   - 2019-05-15  1.0  zhangxl First version for USB bulk only transfer.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -58,6 +58,27 @@
 #include "usbd_msc_scsi.h"
 #include "usbd_ioreq.h"
 #include "usbd_msc_mem.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @defgroup USBD_MSC_BOT
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -70,6 +91,10 @@
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
+/**
+ * @defgroup USBD_MSC_BOT_Global_Variables USBD MSC BOT Global Variables
+ * @{
+ */
 uint16_t MSC_BOT_DataLen;
 uint8_t MSC_BOT_State;
 uint8_t MSC_BOT_Status;
@@ -95,15 +120,26 @@ __USB_ALIGN_BEGIN MSC_BOT_CBW_TypeDef MSC_BOT_cbw __USB_ALIGN_END;
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 __USB_ALIGN_BEGIN MSC_BOT_CSW_TypeDef MSC_BOT_csw __USB_ALIGN_END;
 
+/**
+ * @}
+ */
+
+
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-/* MSC BOT Private Function Prototype */
+/**
+ * @defgroup USBD_MSC_BOT_Local_Functions USBD MSC BOT Local Functions
+ * @{
+ */
 static void MSC_BOT_CBW_Decode(USB_OTG_CORE_HANDLE  *pdev);
 static void MSC_BOT_SendData(USB_OTG_CORE_HANDLE  *pdev,
                              uint8_t* pbuf,
                              uint16_t len);
 static void MSC_BOT_Abort(USB_OTG_CORE_HANDLE  *pdev);
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -112,13 +148,16 @@ static void MSC_BOT_Abort(USB_OTG_CORE_HANDLE  *pdev);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @defgroup USBD_MSC_BOT_Global_Functions USBD MSC BOT Global Functions
+ * @{
+ */
 
 /**
- *******************************************************************************
- ** \brief Initialize the BOT Process
- ** \param pdev: device instance
- ** \retval None
- ******************************************************************************/
+ * @brief Initialize the BOT Process
+ * @param pdev: device instance
+ * @retval None
+ */
 void MSC_BOT_Init(USB_OTG_CORE_HANDLE  *pdev)
 {
     MSC_BOT_State  = BOT_IDLE;
@@ -135,11 +174,10 @@ void MSC_BOT_Init(USB_OTG_CORE_HANDLE  *pdev)
 }
 
 /**
- *******************************************************************************
- ** \brief Reset the BOT Machine
- ** \param pdev: device instance
- ** \retval None
- ******************************************************************************/
+ * @brief Reset the BOT Machine
+ * @param pdev: device instance
+ * @retval None
+ */
 void MSC_BOT_Reset(USB_OTG_CORE_HANDLE  *pdev)
 {
     MSC_BOT_State  = BOT_IDLE;
@@ -152,23 +190,21 @@ void MSC_BOT_Reset(USB_OTG_CORE_HANDLE  *pdev)
 }
 
 /**
- *******************************************************************************
- ** \brief Uninitialize the BOT Machine
- ** \param pdev: device instance
- ** \retval None
- ******************************************************************************/
+ * @brief Uninitialize the BOT Machine
+ * @param pdev: device instance
+ * @retval None
+ */
 void MSC_BOT_DeInit(USB_OTG_CORE_HANDLE  *pdev)
 {
     MSC_BOT_State = BOT_IDLE;
 }
 
 /**
- *******************************************************************************
- ** \brief Handle BOT IN data stage
- ** \param pdev: device instance
- ** \param epnum: endpoint index
- ** \retval None
- ******************************************************************************/
+ * @brief Handle BOT IN data stage
+ * @param pdev: device instance
+ * @param epnum: endpoint index
+ * @retval None
+ */
 void MSC_BOT_DataIn(USB_OTG_CORE_HANDLE  *pdev,
                     uint8_t epnum)
 {
@@ -178,7 +214,7 @@ void MSC_BOT_DataIn(USB_OTG_CORE_HANDLE  *pdev,
         case BOT_DATA_IN:
             if (SCSI_ProcessCmd(pdev,
                                 MSC_BOT_cbw.bLUN,
-                                &MSC_BOT_cbw.CB[0]) < 0)
+                                &MSC_BOT_cbw.CB[0U]) < (uint8_t)0)
             {
                 MSC_BOT_SendCSW(pdev, CSW_CMD_FAILED);
             }
@@ -196,12 +232,11 @@ void MSC_BOT_DataIn(USB_OTG_CORE_HANDLE  *pdev,
 }
 
 /**
- *******************************************************************************
- ** \brief Proccess MSC OUT data
- ** \param pdev: device instance
- ** \param epnum: endpoint index
- ** \retval None
- ******************************************************************************/
+ * @brief Proccess MSC OUT data
+ * @param pdev: device instance
+ * @param epnum: endpoint index
+ * @retval None
+ */
 void MSC_BOT_DataOut(USB_OTG_CORE_HANDLE  *pdev,
                      uint8_t epnum)
 {
@@ -215,7 +250,7 @@ void MSC_BOT_DataOut(USB_OTG_CORE_HANDLE  *pdev,
 
             if (SCSI_ProcessCmd(pdev,
                                 MSC_BOT_cbw.bLUN,
-                                &MSC_BOT_cbw.CB[0]) < 0)
+                                &MSC_BOT_cbw.CB[0U]) < (uint8_t)0)
             {
                 MSC_BOT_SendCSW(pdev, CSW_CMD_FAILED);
             }
@@ -229,91 +264,11 @@ void MSC_BOT_DataOut(USB_OTG_CORE_HANDLE  *pdev,
 }
 
 /**
- *******************************************************************************
- ** \brief Decode the CBW command and set the BOT state machine accordingtly
- ** \param pdev: device instance
- ** \retval None
- ******************************************************************************/
-static void  MSC_BOT_CBW_Decode(USB_OTG_CORE_HANDLE  *pdev)
-{
-
-    MSC_BOT_csw.dTag         = MSC_BOT_cbw.dTag;
-    MSC_BOT_csw.dDataResidue = MSC_BOT_cbw.dDataLength;
-
-    if ((USBD_GetRxCount(pdev, MSC_OUT_EP) != BOT_CBW_LENGTH) ||
-        (MSC_BOT_cbw.dSignature != BOT_CBW_SIGNATURE) ||
-        (MSC_BOT_cbw.bLUN > 1u) ||
-        (MSC_BOT_cbw.bCBLength < 1u) ||
-        (MSC_BOT_cbw.bCBLength > 16u))
-    {
-
-        SCSI_SenseCode(MSC_BOT_cbw.bLUN,
-                       ILLEGAL_REQUEST,
-                       INVALID_CDB);
-        MSC_BOT_Status = BOT_STATE_ERROR;
-        MSC_BOT_Abort(pdev);
-
-    }else
-    {
-        if (SCSI_ProcessCmd(pdev,
-                            MSC_BOT_cbw.bLUN,
-                            &MSC_BOT_cbw.CB[0]) < 0)
-        {
-            MSC_BOT_Abort(pdev);
-        }
-        /*Burst xfer handled internally*/
-        else if ((MSC_BOT_State != BOT_DATA_IN) &&
-                 (MSC_BOT_State != BOT_DATA_OUT) &&
-                 (MSC_BOT_State != BOT_LAST_DATA_IN))
-        {
-            if (MSC_BOT_DataLen > (uint16_t)0)
-            {
-                MSC_BOT_SendData(pdev,
-                                 MSC_BOT_Data,
-                                 MSC_BOT_DataLen);
-            }
-            //else if (MSC_BOT_DataLen == (uint16_t)0)  /* MISRAC */
-            else
-            {
-                MSC_BOT_SendCSW(pdev,
-                                CSW_CMD_PASSED);
-            }
-        }
-        else
-        {
-            //
-        }
-    }
-}
-
-/**
- *******************************************************************************
- ** \brief Send the requested data
- ** \param pdev: device instance
- ** \param buf: pointer to data buffer
- ** \param len: Data Length
- ** \retval None
- ******************************************************************************/
-static void  MSC_BOT_SendData(USB_OTG_CORE_HANDLE  *pdev,
-                              uint8_t* buf,
-                              uint16_t len)
-{
-
-    len                       = (uint16_t)MIN(MSC_BOT_cbw.dDataLength, len);
-    MSC_BOT_csw.dDataResidue -= len;
-    MSC_BOT_csw.bStatus       = CSW_CMD_PASSED;
-    MSC_BOT_State             = BOT_SEND_DATA;
-
-    DCD_EP_Tx(pdev, MSC_IN_EP, buf, (uint32_t)len);
-}
-
-/**
- *******************************************************************************
- ** \brief Send the Command Status Wrapper
- ** \param pdev: device instance
- ** \param status : CSW status
- ** \retval None
- ******************************************************************************/
+ * @brief Send the Command Status Wrapper
+ * @param pdev: device instance
+ * @param status : CSW status
+ * @retval None
+ */
 void  MSC_BOT_SendCSW(USB_OTG_CORE_HANDLE  *pdev,
                       uint8_t CSW_Status)
 {
@@ -335,16 +290,123 @@ void  MSC_BOT_SendCSW(USB_OTG_CORE_HANDLE  *pdev,
 }
 
 /**
- *******************************************************************************
- ** \brief Abort the current transfer
- ** \param pdev: device instance
- ** \retval status
- ******************************************************************************/
+ * @brief Complete the clear feature request
+ * @param pdev: device instance
+ * @param epnum: endpoint index
+ * @retval None
+ */
+void  MSC_BOT_CplClrFeature(USB_OTG_CORE_HANDLE  *pdev, uint8_t epnum)
+{
+    if (MSC_BOT_Status == BOT_STATE_ERROR)/* Bad CBW Signature */
+    {
+        DCD_EP_Stall(pdev, MSC_IN_EP);
+        MSC_BOT_Status = BOT_STATE_NORMAL;
+    }else if (((epnum & 0x80U) == 0x80U) && (MSC_BOT_Status != BOT_STATE_RECOVERY))
+    {
+        MSC_BOT_SendCSW(pdev, CSW_CMD_FAILED);
+    }
+    else
+    {
+        //
+    }
+}
+
+/**
+ * @}
+ */
+
+/**
+ * @addtogroup USBD_MSC_BOT_Local_Functions USBD MSC BOT Local Functions
+ * @{
+ */
+
+/**
+ * @brief Decode the CBW command and set the BOT state machine accordingtly
+ * @param pdev: device instance
+ * @retval None
+ */
+static void  MSC_BOT_CBW_Decode(USB_OTG_CORE_HANDLE  *pdev)
+{
+
+    MSC_BOT_csw.dTag         = MSC_BOT_cbw.dTag;
+    MSC_BOT_csw.dDataResidue = MSC_BOT_cbw.dDataLength;
+
+    if ((USBD_GetRxCount(pdev, MSC_OUT_EP) != BOT_CBW_LENGTH) ||
+        (MSC_BOT_cbw.dSignature != BOT_CBW_SIGNATURE) ||
+        (MSC_BOT_cbw.bLUN > 1U) ||
+        (MSC_BOT_cbw.bCBLength < 1U) ||
+        (MSC_BOT_cbw.bCBLength > 16U))
+    {
+
+        SCSI_SenseCode(MSC_BOT_cbw.bLUN,
+                       ILLEGAL_REQUEST,
+                       INVALID_CDB);
+        MSC_BOT_Status = BOT_STATE_ERROR;
+        MSC_BOT_Abort(pdev);
+
+    }else
+    {
+        if (SCSI_ProcessCmd(pdev,
+                            MSC_BOT_cbw.bLUN,
+                            &MSC_BOT_cbw.CB[0]) < 0)
+        {
+            MSC_BOT_Abort(pdev);
+        }
+        /*Burst xfer handled internally*/
+        else if ((MSC_BOT_State != BOT_DATA_IN) &&
+                 (MSC_BOT_State != BOT_DATA_OUT) &&
+                 (MSC_BOT_State != BOT_LAST_DATA_IN))
+        {
+            if (MSC_BOT_DataLen > 0U)
+            {
+                MSC_BOT_SendData(pdev,
+                                 MSC_BOT_Data,
+                                 MSC_BOT_DataLen);
+            }
+            //else if (MSC_BOT_DataLen == 0U)  /* MISRAC */
+            else
+            {
+                MSC_BOT_SendCSW(pdev,
+                                CSW_CMD_PASSED);
+            }
+        }
+        else
+        {
+            //
+        }
+    }
+}
+
+/**
+ * @brief Send the requested data
+ * @param pdev: device instance
+ * @param buf: pointer to data buffer
+ * @param len: Data Length
+ * @retval None
+ */
+static void  MSC_BOT_SendData(USB_OTG_CORE_HANDLE  *pdev,
+                              uint8_t* buf,
+                              uint16_t len)
+{
+
+    len                       = (uint16_t)__MIN(MSC_BOT_cbw.dDataLength, len);
+    MSC_BOT_csw.dDataResidue -= len;
+    MSC_BOT_csw.bStatus       = CSW_CMD_PASSED;
+    MSC_BOT_State             = BOT_SEND_DATA;
+
+    DCD_EP_Tx(pdev, MSC_IN_EP, buf, (uint32_t)len);
+}
+
+/**
+ * @brief Abort the current transfer
+ * @param pdev: device instance
+ * @retval status
+ */
 static void  MSC_BOT_Abort(USB_OTG_CORE_HANDLE  *pdev)
 {
 
-    if ((MSC_BOT_cbw.bmFlags == (uint8_t)0) &&
-        (MSC_BOT_cbw.dDataLength != (uint32_t)0) &&
+    if ((MSC_BOT_cbw.bmFlags == 0U) &&
+        (MSC_BOT_cbw.dDataLength != 0UL) &&
         (MSC_BOT_Status == BOT_STATE_NORMAL))
     {
         DCD_EP_Stall(pdev, MSC_OUT_EP);
@@ -361,27 +423,26 @@ static void  MSC_BOT_Abort(USB_OTG_CORE_HANDLE  *pdev)
 }
 
 /**
- *******************************************************************************
- ** \brief Complete the clear feature request
- ** \param pdev: device instance
- ** \param epnum: endpoint index
- ** \retval None
- ******************************************************************************/
-void  MSC_BOT_CplClrFeature(USB_OTG_CORE_HANDLE  *pdev, uint8_t epnum)
-{
-    if (MSC_BOT_Status == BOT_STATE_ERROR)/* Bad CBW Signature */
-    {
-        DCD_EP_Stall(pdev, MSC_IN_EP);
-        MSC_BOT_Status = BOT_STATE_NORMAL;
-    }else if (((epnum & (uint8_t)0x80) == (uint8_t)0x80) && (MSC_BOT_Status != BOT_STATE_RECOVERY))
-    {
-        MSC_BOT_SendCSW(pdev, CSW_CMD_FAILED);
-    }
-    else
-    {
-        //
-    }
-}
+ * @}
+ */
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

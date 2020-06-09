@@ -111,7 +111,6 @@ typedef struct
 #define USART_UNIT_TXCOMPLETE_INT_IRQn  (Int003_IRQn)
 
 /* Ring buffer size */
-#define RING_BUFFER_SIZE                (500U)
 #define IS_RING_BUFFER_EMPYT(x)         (0U == ((x)->u16UsedSize))
 
 /*******************************************************************************
@@ -137,7 +136,7 @@ static stc_ring_buffer_t m_stcRingBuf = {
     .u16InIdx = 0,
     .u16OutIdx = 0,
     .u16UsedSize = 0,
-    .u16Capacity = RING_BUFFER_SIZE,
+    .u16Capacity = sizeof (m_stcRingBuf.au8Buf),
 };
 
 /*******************************************************************************
@@ -306,8 +305,10 @@ int32_t main(void)
     BSP_LED_Init();
 
     /* Configure USART RX/TX pin. */
+    GPIO_Unlock();
     GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(USART_TX_PORT, USART_TX_PIN, USART_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Enable peripheral clock */
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);

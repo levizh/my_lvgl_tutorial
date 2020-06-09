@@ -115,7 +115,6 @@ typedef struct
 #define UART_SLAVE_STATION_ID           (0x21U)
 
 /* Ring buffer size */
-#define RING_BUFFER_SIZE                (50U)
 #define IS_RING_BUFFER_EMPYT(x)         (0U == ((x)->u16UsedSize))
 
 /* Multi-processor silence mode */
@@ -149,7 +148,7 @@ static stc_ring_buffer_t m_stcRingBuf = {
     .u16InIdx = 0,
     .u16OutIdx = 0,
     .u16UsedSize = 0,
-    .u16Capacity = RING_BUFFER_SIZE,
+    .u16Capacity = sizeof (m_stcRingBuf.au8Buf),
 };
 
 /*******************************************************************************
@@ -232,7 +231,7 @@ static void USART_Rx_IrqCallback(void)
         {
             if (UART_SLAVE_STATION_ID != u8RxData)
             {
-                USART_EnableSilenceMode(USART_UNIT);
+                USART_SilenceCmd(USART_UNIT, Enable);
                 UsartSetSilenceMode(USART_UART_SILENCE_MODE);
             }
             else
@@ -369,8 +368,10 @@ int32_t main(void)
                               CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Configure USART RX/TX pin. */
+    GPIO_Unlock();
     GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(USART_TX_PORT, USART_TX_PIN, USART_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Enable peripheral clock */
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);

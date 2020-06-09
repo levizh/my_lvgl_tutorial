@@ -236,52 +236,52 @@
  */
 
 /* Constants to define address to set to write a command */
-#define NOR_CMD_ADDRESS_FIRST                   ((uint16_t)0x0555U)
-#define NOR_CMD_ADDRESS_FIRST_CFI               ((uint16_t)0x0055U)
-#define NOR_CMD_ADDRESS_SECOND                  ((uint16_t)0x02AAU)
-#define NOR_CMD_ADDRESS_THIRD                   ((uint16_t)0x0555U)
-#define NOR_CMD_ADDRESS_FOURTH                  ((uint16_t)0x0555U)
-#define NOR_CMD_ADDRESS_FIFTH                   ((uint16_t)0x02AAU)
-#define NOR_CMD_ADDRESS_SIXTH                   ((uint16_t)0x0555U)
+#define NOR_CMD_ADDRESS_FIRST                   (0x0555U)
+#define NOR_CMD_ADDRESS_FIRST_CFI               (0x0055U)
+#define NOR_CMD_ADDRESS_SECOND                  (0x02AAU)
+#define NOR_CMD_ADDRESS_THIRD                   (0x0555U)
+#define NOR_CMD_ADDRESS_FOURTH                  (0x0555U)
+#define NOR_CMD_ADDRESS_FIFTH                   (0x02AAU)
+#define NOR_CMD_ADDRESS_SIXTH                   (0x0555U)
 
 /* Constants to define data to program a command */
-#define NOR_CMD_DATA_READ_RESET                 ((uint16_t)0x00F0U)
-#define NOR_CMD_DATA_FIRST                      ((uint16_t)0x00AAU)
-#define NOR_CMD_DATA_SECOND                     ((uint16_t)0x0055U)
-#define NOR_CMD_DATA_AUTO_SELECT                ((uint16_t)0x0090U)
-#define NOR_CMD_DATA_PROGRAM                    ((uint16_t)0x00A0U)
-#define NOR_CMD_DATA_CHIP_BLOCK_ERASE_THIRD     ((uint16_t)0x0080U)
-#define NOR_CMD_DATA_CHIP_BLOCK_ERASE_FOURTH    ((uint16_t)0x00AAU)
-#define NOR_CMD_DATA_CHIP_BLOCK_ERASE_FIFTH     ((uint16_t)0x0055U)
-#define NOR_CMD_DATA_CHIP_ERASE                 ((uint16_t)0x0010U)
-#define NOR_CMD_DATA_CFI                        ((uint16_t)0x0098U)
+#define NOR_CMD_DATA_READ_RESET                 (0x00F0U)
+#define NOR_CMD_DATA_FIRST                      (0x00AAU)
+#define NOR_CMD_DATA_SECOND                     (0x0055U)
+#define NOR_CMD_DATA_AUTO_SELECT                (0x0090U)
+#define NOR_CMD_DATA_PROGRAM                    (0x00A0U)
+#define NOR_CMD_DATA_CHIP_BLOCK_ERASE_THIRD     (0x0080U)
+#define NOR_CMD_DATA_CHIP_BLOCK_ERASE_FOURTH    (0x00AAU)
+#define NOR_CMD_DATA_CHIP_BLOCK_ERASE_FIFTH     (0x0055U)
+#define NOR_CMD_DATA_CHIP_ERASE                 (0x0010U)
+#define NOR_CMD_DATA_CFI                        (0x0098U)
 
-#define NOR_CMD_DATA_WRITE_TO_BUFFER_PROGRAM            ((uint16_t)0x25U)
-#define NOR_CMD_DATA_WRITE_TO_BUFFER_PROGRAM_CONFIRM    ((uint16_t)0x29U)
+#define NOR_CMD_DATA_WRITE_TO_BUFFER_PROGRAM            (0x25U)
+#define NOR_CMD_DATA_WRITE_TO_BUFFER_PROGRAM_CONFIRM    (0x29U)
 
-#define NOR_CMD_DATA_BLOCK_ERASE                ((uint8_t)0x30U)
+#define NOR_CMD_DATA_BLOCK_ERASE                (0x30U)
 
 /* Mask on NOR STATUS REGISTER */
-#define NOR_MASK_STATUS_DQ5                     ((uint16_t)0x0020U)
-#define NOR_MASK_STATUS_DQ6                     ((uint16_t)0x0040U)
+#define NOR_MASK_STATUS_DQ5                     (0x0020U)
+#define NOR_MASK_STATUS_DQ6                     (0x0040U)
 
 /* NOR device IDs addresses */
-#define DEVICE_MANUFACTURER_ID_ADDRESS          ((uint16_t)0x0000U)
-#define DEVICE_ID1_ADDRESS                      ((uint16_t)0x0001U)
-#define DEVICE_ID2_ADDRESS                      ((uint16_t)0x000EU)
-#define DEVICE_ID3_ADDRESS                      ((uint16_t)0x000FU)
+#define DEVICE_MANUFACTURER_ID_ADDRESS          (0x0000U)
+#define DEVICE_ID1_ADDRESS                      (0x0001U)
+#define DEVICE_ID2_ADDRESS                      (0x000EU)
+#define DEVICE_ID3_ADDRESS                      (0x000FU)
 
 /* NOR CFI IDs addresses */
-#define DEVICE_CFI1_ADDRESS                     ((uint16_t)0x0061U)
-#define DEVICE_CFI2_ADDRESS                     ((uint16_t)0x0062U)
-#define DEVICE_CFI3_ADDRESS                     ((uint32_t)0x0063U)
-#define DEVICE_CFI4_ADDRESS                     ((uint16_t)0x0064U)
+#define DEVICE_CFI1_ADDRESS                     (0x0061U)
+#define DEVICE_CFI2_ADDRESS                     (0x0062U)
+#define DEVICE_CFI3_ADDRESS                     (0x0063U)
+#define DEVICE_CFI4_ADDRESS                     (0x0064U)
 
-#define NOR_MAX_DELAY                           ((uint32_t)0xFFFFFFFFUL)
+#define NOR_MAX_DELAY                           (0xFFFFFFFFUL)
 
 #define S29GL064N90TFI03_DEVICE_SECTORS             (128UL)
 #define S29GL064N90TFI03_BYTES_PER_SECTOR           (64UL * 1024UL)
-#define S29GL064N90TFI03_BYTES_PER_BUFFER_PROGRAM   (32U)
+#define S29GL064N90TFI03_BYTES_PER_BUFFER_PROGRAM   (32UL)
 /**
  * @}
  */
@@ -298,7 +298,7 @@
  * Local variable definitions ('static')
  ******************************************************************************/
 static void EV_EXMC_SMC_PortInit(void);
-static en_result_t EV_SMC_S29GL064_WaitReadySinnal(uint32_t u32Timeout);
+static en_result_t BSP_SMC_S29GL064_WaitReadySignal(uint32_t u32Timeout);
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -314,7 +314,7 @@ static en_result_t EV_SMC_S29GL064_WaitReadySinnal(uint32_t u32Timeout);
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  */
-en_result_t EV_SMC_S29GL064_Init(void)
+en_result_t BSP_SMC_S29GL064_Init(void)
 {
     en_result_t enRet;
     stc_exmc_smc_init_t stcSmcInit;
@@ -375,7 +375,7 @@ en_result_t EV_SMC_S29GL064_Init(void)
  * @param  [out] pu32BytesPerBufProgram The pointer for bytes per buffer program(unit: Byte)
  * @retval None
  */
-void EV_SMC_S29GL064_GetMemInfo(uint32_t *pu32MemStartAddr,
+void BSP_SMC_S29GL064_GetMemInfo(uint32_t *pu32MemStartAddr,
                                         uint32_t *pu32SectorsNumber,
                                         uint32_t *pu32BytesPerSector,
                                         uint32_t *pu32BytesPerBufProgram)
@@ -410,7 +410,7 @@ void EV_SMC_S29GL064_GetMemInfo(uint32_t *pu32MemStartAddr,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorInvalidParameter:       The pointer au16Id value is NULL.
  */
-en_result_t EV_SMC_S29GL064_ReadId(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_ReadId(uint32_t u32DevicBaseAddress,
                                         uint16_t au16Id[],
                                         uint32_t u32Length)
 {
@@ -450,7 +450,7 @@ en_result_t EV_SMC_S29GL064_ReadId(uint32_t u32DevicBaseAddress,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorInvalidParameter:       The pointer au16Id value is NULL.
  */
-en_result_t EV_SMC_S29GL064_ReadCfiId(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_ReadCfiId(uint32_t u32DevicBaseAddress,
                                             uint16_t au16Id[],
                                             uint32_t u32Length)
 {
@@ -488,7 +488,7 @@ en_result_t EV_SMC_S29GL064_ReadCfiId(uint32_t u32DevicBaseAddress,
  *   @arg  Error:                       Errors occurred
  *   @arg  ErrorTimeout:                Timeout
  */
-en_result_t EV_SMC_S29GL064_GetStatus(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_GetStatus(uint32_t u32DevicBaseAddress,
                                             uint32_t u32Timeout)
 {
     uint16_t u16TmpSr1 = 0U;
@@ -497,7 +497,7 @@ en_result_t EV_SMC_S29GL064_GetStatus(uint32_t u32DevicBaseAddress,
     en_result_t enStatus = ErrorOperationInProgress;
 
     /* Poll on NOR memory Ready/Busy signal */
-    EV_SMC_S29GL064_WaitReadySinnal(u32Timeout);
+    BSP_SMC_S29GL064_WaitReadySignal(u32Timeout);
 
     while (enStatus == ErrorOperationInProgress)
     {
@@ -550,7 +550,7 @@ en_result_t EV_SMC_S29GL064_GetStatus(uint32_t u32DevicBaseAddress,
  * @param  [in] u32DevicBaseAddress     S29GL064 base address
  * @retval None
  */
-void EV_SMC_S29GL064_Reset(uint32_t u32DevicBaseAddress)
+void BSP_SMC_S29GL064_Reset(uint32_t u32DevicBaseAddress)
 {
     RW_MEM16(u32DevicBaseAddress) = NOR_CMD_DATA_READ_RESET;
 }
@@ -561,7 +561,7 @@ void EV_SMC_S29GL064_Reset(uint32_t u32DevicBaseAddress)
   * @retval An en_result_t enumeration value:
   *   @arg  Ok:                          No errors occurred.
   */
-en_result_t EV_SMC_S29GL064_EraseChip(uint32_t u32DevicBaseAddress)
+en_result_t BSP_SMC_S29GL064_EraseChip(uint32_t u32DevicBaseAddress)
 {
     /* Send NOR chip erase command sequence */
     RW_MEM16(SMC_ADDR_SHIFT(u32DevicBaseAddress, S29GL064N90TFI03_MEM_WIDTH, NOR_CMD_ADDRESS_FIRST)) = NOR_CMD_DATA_FIRST;
@@ -580,7 +580,7 @@ en_result_t EV_SMC_S29GL064_EraseChip(uint32_t u32DevicBaseAddress)
  * @param  [in] u32SectorAddress        sector address
  * @retval None
  */
-void EV_SMC_S29GL064_EraseSector(uint32_t u32DevicBaseAddress,
+void BSP_SMC_S29GL064_EraseSector(uint32_t u32DevicBaseAddress,
                                         uint32_t u32SectorAddress)
 {
     /* Send block erase command sequence */
@@ -601,7 +601,7 @@ void EV_SMC_S29GL064_EraseSector(uint32_t u32DevicBaseAddress,
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  */
-en_result_t EV_SMC_S29GL064_Program(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_Program(uint32_t u32DevicBaseAddress,
                                             uint32_t u32ProgramAddress,
                                             uint16_t u16Data)
 {
@@ -622,7 +622,7 @@ en_result_t EV_SMC_S29GL064_Program(uint32_t u32DevicBaseAddress,
  * @param  [in] u32ReadAddress          Memory address to read
  * @retval Data of the specified address
  */
-uint16_t EV_SMC_S29GL064_Read(uint32_t u32DevicBaseAddress,
+uint16_t BSP_SMC_S29GL064_Read(uint32_t u32DevicBaseAddress,
                                     uint32_t u32ReadAddress)
 {
     return RW_MEM16(u32ReadAddress);
@@ -638,7 +638,7 @@ uint16_t EV_SMC_S29GL064_Read(uint32_t u32DevicBaseAddress,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorInvalidParameter:       The pointer au16Buf value is NULL.
  */
-en_result_t EV_SMC_S29GL064_ProgramBuffer(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_ProgramBuffer(uint32_t u32DevicBaseAddress,
                                                   uint32_t u32ProgramAddress,
                                                   const uint16_t au16Data[],
                                                   uint32_t u32NumHalfWords)
@@ -683,7 +683,7 @@ en_result_t EV_SMC_S29GL064_ProgramBuffer(uint32_t u32DevicBaseAddress,
  * @param  [in] u32NumHalfWords         Number half-word to write
  * @retval Data of the specified address
  */
-en_result_t EV_SMC_S29GL064_ReadBuffer(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_ReadBuffer(uint32_t u32DevicBaseAddress,
                                             uint32_t u32ReadAddress,
                                             uint16_t au16Data[],
                                             uint32_t u32NumHalfWords)
@@ -720,9 +720,11 @@ static void EV_EXMC_SMC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
+    GPIO_Unlock();
+
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDrv = PIN_MID_DRV;
+    stcGpioInit.u16PinDrv = PIN_DRV_MID;
     stcGpioInit.u16PinDir = PIN_DIR_OUT;
     GPIO_Init(SMC_IO3_PORT, SMC_IO3_PIN, &stcGpioInit);
 
@@ -859,6 +861,8 @@ static void EV_EXMC_SMC_PortInit(void)
     DDL_Delay1ms(10UL);
     GPIO_SetPins(SMC_RST0_PORT, SMC_RST0_PIN);
     GPIO_SetPins(SMC_RST1_PORT, SMC_RST1_PIN);
+
+    GPIO_Lock();
 }
 
 /**
@@ -868,7 +872,7 @@ static void EV_EXMC_SMC_PortInit(void)
  *   @arg  Ok:                  Ready.
  *   @arg  ErrorTimeout:        Wait ready signal timeout.
  */
-static en_result_t EV_SMC_S29GL064_WaitReadySinnal(uint32_t u32Timeout)
+static en_result_t BSP_SMC_S29GL064_WaitReadySignal(uint32_t u32Timeout)
 {
     en_pin_state_t enPinState;
     __IO uint32_t u32To = u32Timeout;
@@ -876,7 +880,7 @@ static en_result_t EV_SMC_S29GL064_WaitReadySinnal(uint32_t u32Timeout)
     /* Polling on Ready/nBusy signal */
     do {
         u32To--;
-        enPinState = GPIO_ReadInputPortPin(SMC_RB_PORT, SMC_RB_PIN);
+        enPinState = GPIO_ReadInputPins(SMC_RB_PORT, SMC_RB_PIN);
     } while ((u32To > 0UL) && (Pin_Reset != enPinState));
 
     if (u32To)
@@ -886,7 +890,7 @@ static en_result_t EV_SMC_S29GL064_WaitReadySinnal(uint32_t u32Timeout)
         /* Polling on Ready/nBusy signal */
         do {
             u32To--;
-            enPinState = GPIO_ReadInputPortPin(SMC_RB_PORT, SMC_RB_PIN);
+            enPinState = GPIO_ReadInputPins(SMC_RB_PORT, SMC_RB_PIN);
         } while ((u32To > 0UL) && (Pin_Set != enPinState));
     }
 

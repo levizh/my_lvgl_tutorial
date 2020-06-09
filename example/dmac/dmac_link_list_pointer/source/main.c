@@ -4,7 +4,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-09       Chengy          First version
+   2020-04-09       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -113,7 +113,7 @@ static stc_dma_llp_descriptor_t stcLlpDesc[2] = {0};
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @brief  DMA basical and llp function init
+ * @brief  DMA basic and llp function init
  * @param  None
  * @retval en_result_t
  */
@@ -122,7 +122,7 @@ en_result_t DmaInit(void)
     stc_dma_init_t stcDmaInit;
     stc_dma_llp_init_t stcDmaLlpInit;
 
-    DMA_SetTrigSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
+    DMA_SetTriggerSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
 
     DMA_StructInit(&stcDmaInit);
 
@@ -156,9 +156,9 @@ en_result_t DmaInit(void)
 
     DMA_LlpStructInit(&stcDmaLlpInit);
 
-    stcDmaLlpInit.u32LlpEn = DMA_LLP_ENABLE;
-    stcDmaLlpInit.u32LlpRun= DMA_LLP_RUN;
-    stcDmaLlpInit.u32Llp   = (uint32_t)&stcLlpDesc[0];
+    stcDmaLlpInit.u32LlpEn  = DMA_LLP_ENABLE;
+    stcDmaLlpInit.u32LlpRun = DMA_LLP_RUN;
+    stcDmaLlpInit.u32LlpAddr= (uint32_t)&stcLlpDesc[0];
 
     return (DMA_LlpInit(DMA_UNIT, DMA_CH, &stcDmaLlpInit));
 }
@@ -171,11 +171,11 @@ en_result_t DmaInit(void)
 void DMA1_CH5_TransEnd_IrqCallback(void)
 {
     u8DmaTcEnd = Set;
-    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT5);
+    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT_CH5);
 }
 
 /**
- * @brief  DMA basical function interrupt init
+ * @brief  DMA basic function interrupt init
  * @param  None
  * @retval None
  */
@@ -189,7 +189,7 @@ void DmaIntInit(void)
 
     INTC_IrqSignIn(&stcIrqSignConfig);
 
-    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT5);
+    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT_CH5);
 
     /* NVIC setting */
     NVIC_ClearPendingIRQ(DMA_IRQn);
@@ -209,7 +209,7 @@ int32_t main(void)
     BSP_LED_Init();
 
     /* DMA/AOS FCG enable */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_AOS, Enable);
 
     /* Config DMA */
     if (Ok != DmaInit()) {
@@ -220,7 +220,7 @@ int32_t main(void)
     /* DMA interrupt config */
     DmaIntInit();
 
-    /* DMA moudle enable */
+    /* DMA module enable */
     DMA_Cmd(DMA_UNIT, Enable);
 
     /* DMA channel enable */
@@ -243,10 +243,12 @@ int32_t main(void)
 
     if (0U == (u8Ret1 | u8Ret2 | u8Ret3))
     {
+        /* LED blue, as expected */
         BSP_LED_On(LED_BLUE);
     }
     else
     {
+        /* LED red */
         BSP_LED_On(LED_RED);
     }
     while(1)

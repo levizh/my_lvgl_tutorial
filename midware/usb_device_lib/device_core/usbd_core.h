@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_core.h
+ * @brief Header file for usbd_core.c
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,16 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_core.h
- **
- ** A detailed description is available at
- ** @link header file for the usbd_core.c @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 #ifndef __USBD_CORE_H
 #define __USBD_CORE_H
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
@@ -58,18 +66,44 @@
 #include "usbd_def.h"
 #include "usbd_conf.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CORE
+ * @{
+ */
+
+/** @addtogroup USBD_CORE
+ * @{
+ */
+
 /*******************************************************************************
- * Global pre-processor symbols/macros ('#define')
+ * Global type definitions ('typedef')
  ******************************************************************************/
-typedef enum {
-    USBD_OK   = 0u,
-    USBD_BUSY,
-    USBD_FAIL,
-}USBD_Status;
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/**
+ * @defgroup USBD_CORE_Global_Macros USBD Core Global Macros
+ * @{
+ */
+typedef enum {
+    USBD_OK   = 0U,
+    USBD_BUSY,
+    USBD_FAIL,
+}USBD_Status;
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -78,6 +112,10 @@ typedef enum {
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBD_CORE_Global_Functions
+ * @{
+ */
 void USBD_Init(USB_OTG_CORE_HANDLE *pdev,
                USB_OTG_CORE_ID_TypeDef coreID,
                USBD_DEVICE *pDevice,
@@ -86,6 +124,29 @@ void USBD_Init(USB_OTG_CORE_HANDLE *pdev,
 USBD_Status USBD_DeInit(USB_OTG_CORE_HANDLE *pdev);
 USBD_Status USBD_ClrCfg(USB_OTG_CORE_HANDLE  *pdev, uint8_t cfgidx);
 USBD_Status USBD_SetCfg(USB_OTG_CORE_HANDLE  *pdev, uint8_t cfgidx);
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBD_CORE_H */
 

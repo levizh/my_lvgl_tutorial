@@ -1,8 +1,19 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_hid_keybd.c
+ * @brief This file is the application layer for USB Host HID Keyboard handling
+ *        QWERTY and AZERTY Keyboard are supported as per the selection in
+ *        usbh_hid_keybd.h
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-12-13       zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,25 +49,34 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_hid_keybd.c
- **
- ** A detailed description is available at
- ** @link
-        This file is the application layer for USB Host HID Keyboard handling
-        QWERTY and AZERTY Keyboard are supported as per the selection in
-        usbh_hid_keybd.h
-    @endlink
- **
- **   - 2019-12-13  1.0  zhangxl First version for USB HID keyboard demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbh_hid_keybd.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CLASS
+ * @{
+ */
+
+/** @defgroup USBH_HID_KEYBD
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -69,12 +89,23 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+/**
+ * @defgroup USBH_HID_KEYBD_Local_Functions USBH HID Keyboard Local Functions
+ * @{
+ */
 static void  KEYBRD_Init (void);
 static void  KEYBRD_Decode(uint8_t *data);
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
+/**
+ * @defgroup USBH_HID_KEYBD_Global_Variables USBH HID Keyboard Global Variables
+ * @{
+ */
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
  #if defined   (__CC_ARM) /*!< ARM Compiler */
   __align(4)
@@ -90,41 +121,48 @@ HID_cb_TypeDef HID_KEYBRD_cb=
     KEYBRD_Init,
     KEYBRD_Decode
 };
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @defgroup USBH_HID_KEYBD_Local_Variables USBH HID Keyboard Local Variables
+ * @{
+ */
 static  const  uint8_t  HID_KEYBRD_Codes[] =
 {
-    0,      0,      0,      0,      31,     50,     48,     33,
-    19,     34,     35,     36,     24,     37,     38,     39,     /* 0x00 - 0x0F */
-    52,     51,     25,     26,     17,     20,     32,     21,
-    23,     49,     18,     47,     22,     46,     2,      3,      /* 0x10 - 0x1F */
-    4,      5,      6,      7,      8,      9,      10,     11,
-    43,     110,    15,     16,     61,     12,     13,     27,     /* 0x20 - 0x2F */
-    28,     29,     42,     40,     41,     1,      53,     54,
-    55,     30,     112,    113,    114,    115,    116,    117,    /* 0x30 - 0x3F */
-    118,    119,    120,    121,    122,    123,    124,    125,
-    126,    75,     80,     85,     76,     81,     86,     89,     /* 0x40 - 0x4F */
-    79,     84,     83,     90,     95,     100,    105,    106,
-    108,    93,     98,     103,    92,     97,     102,    91,     /* 0x50 - 0x5F */
-    96,     101,    99,     104,    45,     129,    0,      0,
-    0,      0,      0,      0,      0,      0,      0,      0,      /* 0x60 - 0x6F */
-    0,      0,      0,      0,      0,      0,      0,      0,
-    0,      0,      0,      0,      0,      0,      0,      0,      /* 0x70 - 0x7F */
-    0,      0,      0,      0,      0,      107,    0,      56,
-    0,      0,      0,      0,      0,      0,      0,      0,      /* 0x80 - 0x8F */
-    0,      0,      0,      0,      0,      0,      0,      0,
-    0,      0,      0,      0,      0,      0,      0,      0,      /* 0x90 - 0x9F */
-    0,      0,      0,      0,      0,      0,      0,      0,
-    0,      0,      0,      0,      0,      0,      0,      0,      /* 0xA0 - 0xAF */
-    0,      0,      0,      0,      0,      0,      0,      0,
-    0,      0,      0,      0,      0,      0,      0,      0,      /* 0xB0 - 0xBF */
-    0,      0,      0,      0,      0,      0,      0,      0,
-    0,      0,      0,      0,      0,      0,      0,      0,      /* 0xC0 - 0xCF */
-    0,      0,      0,      0,      0,      0,      0,      0,
-    0,      0,      0,      0,      0,      0,      0,      0,      /* 0xD0 - 0xDF */
-    58,     44,     60,     127,    64,     57,     62,     128     /* 0xE0 - 0xE7 */
+    0U,      0U,      0U,      0U,      31U,     50U,     48U,     33U,
+    19U,     34U,     35U,     36U,     24U,     37U,     38U,     39U,     /* 0x00 - 0x0F */
+    52U,     51U,     25U,     26U,     17U,     20U,     32U,     21U,
+    23U,     49U,     18U,     47U,     22U,     46U,     2U,      3U,      /* 0x10 - 0x1F */
+    4U,      5U,      6U,      7U,      8U,      9U,      10U,     11U,
+    43U,     110U,    15U,     16U,     61U,     12U,     13U,     27U,     /* 0x20 - 0x2F */
+    28U,     29U,     42U,     40U,     41U,     1U,      53U,     54U,
+    55U,     30U,     112U,    113U,    114U,    115U,    116U,    117U,    /* 0x30 - 0x3F */
+    118U,    119U,    120U,    121U,    122U,    123U,    124U,    125U,
+    126U,    75U,     80U,     85U,     76U,     81U,     86U,     89U,     /* 0x40 - 0x4F */
+    79U,     84U,     83U,     90U,     95U,     100U,    105U,    106U,
+    108U,    93U,     98U,     103U,    92U,     97U,     102U,    91U,     /* 0x50 - 0x5F */
+    96U,     101U,    99U,     104U,    45U,     129U,    0U,      0U,
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,      /* 0x60 - 0x6F */
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,      /* 0x70 - 0x7F */
+    0U,      0U,      0U,      0U,      0U,      107U,    0U,      56U,
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,      /* 0x80 - 0x8F */
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,      /* 0x90 - 0x9F */
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,      /* 0xA0 - 0xAF */
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,      /* 0xB0 - 0xBF */
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,      /* 0xC0 - 0xCF */
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,
+    0U,      0U,      0U,      0U,      0U,      0U,      0U,      0U,      /* 0xD0 - 0xDF */
+    58U,     44U,     60U,     127U,    64U,     57U,     62U,     128U     /* 0xE0 - 0xE7 */
 };
 
 #ifdef QWERTY_KEYBOARD
@@ -195,6 +233,19 @@ static  const  int8_t  HID_KEYBRD_ShiftKey[] = {
 #endif
 
 /**
+ * @}
+ */
+
+/*******************************************************************************
+ * Function implementation - global ('extern') and local ('static')
+ ******************************************************************************/
+
+/**
+ * @addtogroup USBH_HID_KEYBD_Local_Functions USBH HID Keyboard Local Functions
+ * @{
+ */
+
+/**
 * @brief  KEYBRD_Init.
 *         Initialize the keyboard function.
 * @param  None
@@ -227,14 +278,14 @@ static void KEYBRD_Decode(uint8_t *pbuf)
     uint8_t   error;
     uint8_t   output;
 
-    nbr_keys      = 0;
-    nbr_keys_new  = 0;
-    nbr_keys_last = 0;
-    key_newest    = 0x00;
+    nbr_keys      = 0U;
+    nbr_keys_new  = 0U;
+    nbr_keys_last = 0U;
+    key_newest    = 0x00U;
 
 
     /* Check if Shift key is pressed */
-    if ((pbuf[0] == KBD_LEFT_SHIFT) || (pbuf[0] == KBD_RIGHT_SHIFT))
+    if ((pbuf[0U] == KBD_LEFT_SHIFT) || (pbuf[0U] == KBD_RIGHT_SHIFT))
     {
         shift = TRUE;
     }
@@ -246,9 +297,9 @@ static void KEYBRD_Decode(uint8_t *pbuf)
     error = FALSE;
 
     /* Check for the value of pressed key */
-    for (ix = 2; ix < 2 + KBR_MAX_NBR_PRESSED; ix++)
+    for (ix = 2U; ix < 2U + KBR_MAX_NBR_PRESSED; ix++)
     {
-        if ((pbuf[ix] == 0x01) || (pbuf[ix] == 0x02) || (pbuf[ix] == 0x03))
+        if ((pbuf[ix] == 0x01U) || (pbuf[ix] == 0x02U) || (pbuf[ix] == 0x03U))
         {
             error = TRUE;
         }
@@ -257,15 +308,15 @@ static void KEYBRD_Decode(uint8_t *pbuf)
     {
         return;
     }
-    nbr_keys     = 0;
-    nbr_keys_new = 0;
-    for (ix = 2; ix < 2 + KBR_MAX_NBR_PRESSED; ix++)
+    nbr_keys     = 0U;
+    nbr_keys_new = 0U;
+    for (ix = 2U; ix < 2U + KBR_MAX_NBR_PRESSED; ix++)
     {
-        if (pbuf[ix] != 0)
+        if (pbuf[ix] != 0U)
         {
             keys[nbr_keys] = pbuf[ix];
             nbr_keys++;
-            for (jx = 0; jx < nbr_keys_last; jx++)
+            for (jx = 0U; jx < nbr_keys_last; jx++)
             {
                 if (pbuf[ix] == keys_last[jx])
                 {
@@ -279,9 +330,9 @@ static void KEYBRD_Decode(uint8_t *pbuf)
             }
         }
     }
-    if (nbr_keys_new == 1)
+    if (nbr_keys_new == 1U)
     {
-        key_newest = keys_new[0];
+        key_newest = keys_new[0U];
 
         if (shift == TRUE)
         {
@@ -296,14 +347,36 @@ static void KEYBRD_Decode(uint8_t *pbuf)
     }
     else
     {
-        key_newest = 0x00;
+        key_newest = 0x00U;
     }
     nbr_keys_last  = nbr_keys;
-    for (ix = 0; ix < KBR_MAX_NBR_PRESSED; ix++)
+    for (ix = 0U; ix < KBR_MAX_NBR_PRESSED; ix++)
     {
         keys_last[ix] = keys[ix];
     }
 }
+
+/**
+ * @}
+ */
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

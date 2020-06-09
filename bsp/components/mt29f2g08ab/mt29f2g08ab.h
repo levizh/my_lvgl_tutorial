@@ -153,23 +153,23 @@ en_result_t MT29F2G08AB_ReadPageHwEcc4Bits(uint32_t u32Page,
                                                     uint8_t *pu8Buf,
                                                     uint32_t u32NumBytes);
 
-/* Implement the intialization function on evb board source */
-en_result_t EV_NFC_MT29F2G08AB_Init(void);
-en_result_t EV_NFC_MT29F2G08AB_ReadId(uint32_t u32IdAddr,
+/* Implement the below functions for the specified BSP board */
+en_result_t BSP_NFC_MT29F2G08AB_Init(void);
+en_result_t BSP_NFC_MT29F2G08AB_ReadId(uint32_t u32IdAddr,
                                         uint8_t au8DevId[],
                                         uint8_t u8NumBytes);
-uint32_t EV_NFC_MT29F2G08AB_ReadStatus(void);
-en_result_t EV_NFC_MT29F2G08AB_EraseBlock(uint32_t u32BlockRowAddress);
-en_result_t EV_NFC_MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
+uint32_t BSP_NFC_MT29F2G08AB_ReadStatus(void);
+en_result_t BSP_NFC_MT29F2G08AB_EraseBlock(uint32_t u32BlockRowAddress);
+en_result_t BSP_NFC_MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
                                     uint8_t *pu8Datas,
                                     uint32_t u32NumBytes);
-en_result_t EV_NFC_MT29F2G08AB_WritePageMeta(uint32_t u32Page,
+en_result_t BSP_NFC_MT29F2G08AB_WritePageMeta(uint32_t u32Page,
                                     const uint8_t *pu8Data,
                                     uint32_t u32NumBytes);
-en_result_t EV_NFC_MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
+en_result_t BSP_NFC_MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
                                     uint8_t *pu8Data,
                                     uint32_t u32NumBytes);
-en_result_t EV_NFC_MT29F2G08AB_WritePageHwEcc(uint32_t u32Page,
+en_result_t BSP_NFC_MT29F2G08AB_WritePageHwEcc(uint32_t u32Page,
                                     const uint8_t *pu8Data,
                                     uint32_t u32NumBytes);
 /**

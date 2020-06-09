@@ -118,14 +118,16 @@
  * @brief  Sqrt result left shift config
  * @param  [in] pstMAUx   Pointer to MAU instance register base
  *         This parameter can only be: @arg M4_MAU
- * @param  [in] enSHL     number of left shift bits
- *         @ref en_sqrt_output_lshift_t
+ * @param  [in] u8LShBitsNumber     number of left shift bits
+ *                                  max value is MAU_SQRT_OUTPUT_LSHIFT_MAX
  * @retval None
  */
-void MAU_SqrtResultLShiftCfg(M4_MAU_TypeDef * pstMAUx, en_sqrt_output_lshift_t enSHL)
+void MAU_SqrtResultLShiftCfg(M4_MAU_TypeDef * pstMAUx, uint8_t u8LShBitsNumber)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstMAUx));
-    MODIFY_REG32(pstMAUx->CSR, MAU_CSR_SHIFT, ((uint32_t)enSHL << MAU_CSR_SHIFT_POS));
+    DDL_ASSERT(u8LShBitsNumber <= MAU_SQRT_OUTPUT_LSHIFT_MAX);
+
+    MODIFY_REG32(pstMAUx->CSR, MAU_CSR_SHIFT, ((uint32_t)u8LShBitsNumber << MAU_CSR_SHIFT_POS));
 }
 
 /**
@@ -140,6 +142,7 @@ void MAU_SqrtIntCmd(M4_MAU_TypeDef * pstMAUx, en_functional_state_t enNewState)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstMAUx));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
     MODIFY_REG32(pstMAUx->CSR, MAU_CSR_INTEN, (uint32_t)enNewState << MAU_CSR_INTEN_POS);
 }
 

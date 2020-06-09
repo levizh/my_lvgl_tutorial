@@ -104,14 +104,13 @@ extern "C"
  * @defgroup SRAM_Access_Wait_Cycle SRAM Access Wait Cycle
  * @{
  */
-#define SRAM_WAIT_CYCLE_1       (0U)                        /*!< Wait 1 CPU cycle. */
-#define SRAM_WAIT_CYCLE_2       (1U)                        /*!< Wait 2 CPU cycles. */
-#define SRAM_WAIT_CYCLE_3       (2U)                        /*!< Wait 3 CPU cycles. */
-#define SRAM_WAIT_CYCLE_4       (3U)                        /*!< Wait 4 CPU cycles. */
-#define SRAM_WAIT_CYCLE_5       (4U)                        /*!< Wait 5 CPU cycles. */
-#define SRAM_WAIT_CYCLE_6       (5U)                        /*!< Wait 6 CPU cycles. */
-#define SRAM_WAIT_CYCLE_7       (6U)                        /*!< Wait 7 CPU cycles. */
-#define SRAM_WAIT_CYCLE_8       (7U)                        /*!< Wait 8 CPU cycles. */
+#define SRAM_WAIT_CYCLE_1       (1U)                        /*!< Wait 1 CPU cycle. */
+#define SRAM_WAIT_CYCLE_2       (2U)                        /*!< Wait 2 CPU cycles. */
+#define SRAM_WAIT_CYCLE_3       (3U)                        /*!< Wait 3 CPU cycles. */
+#define SRAM_WAIT_CYCLE_4       (4U)                        /*!< Wait 4 CPU cycles. */
+#define SRAM_WAIT_CYCLE_5       (5U)                        /*!< Wait 5 CPU cycles. */
+#define SRAM_WAIT_CYCLE_6       (6U)                        /*!< Wait 6 CPU cycles. */
+#define SRAM_WAIT_CYCLE_7       (7U)                        /*!< Wait 7 CPU cycles. */
 /**
  * @}
  */

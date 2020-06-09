@@ -98,6 +98,7 @@ extern "C"
 
 /* Imprecise delay */
 void DDL_Delay1ms(uint32_t u32Cnt);
+void DDL_Delay1us(uint32_t u32Cnt);
 
 /* Systick functions */
 en_result_t SysTick_Init(uint32_t u32Freq);

@@ -68,8 +68,7 @@
  * @{
  */
 
-#if (DDL_INTERRUPTS_ENABLE == DDL_ON) || (DDL_EXINT_NMI_ENABLE == DDL_ON) ||    \
-    (DDL_EKEY_ENABLE == DDL_ON)
+#if (DDL_INTERRUPTS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -85,7 +84,20 @@
 /**
  * @brief   Maximum IRQ handler number
  */
-#define IRQ_NUM_MAX         128U
+#define IRQ_NUM_MAX         (128U)
+
+/**
+ * @brief   Wakeup event enable mask
+ */
+#define INTC_WUPEN_MASK                                                         \
+            (INTC_WUPEN_EIRQWUEN    | INTC_WUPEN_SWDTWUEN           |           \
+             INTC_WUPEN_PVD1WUEN    | INTC_WUPEN_PVD2WUEN           |           \
+             INTC_WUPEN_CMPWUEN     | INTC_WUPEN_WKTMWUEN           |           \
+             INTC_WUPEN_RTCALMWUEN  | INTC_WUPEN_RTCPRDWUEN         |           \
+             INTC_WUPEN_TMR0GCMWUEN | INTC_WUPEN_TMR2GCMWUEN        |           \
+             INTC_WUPEN_TMR2OVFWUEN | INTC_WUPEN_RXWUEN             |           \
+             INTC_WUPEN_USHWUEN     | INTC_WUPEN_USFWUEN            |           \
+             INTC_WUPEN_ETHWUEN)
 
 /**
  * @defgroup INTC_Check_Parameters_Validity INTC Check Parameters Validity
@@ -93,85 +105,22 @@
  */
 /*  Parameter validity check for wakeup source from stop mode. */
 #define IS_INTC_WKUP_SRC(src)                                                   \
-(   ((src) & (INTC_WUPEN_EIRQWUEN   | INTC_WUPEN_SWDTWUEN           |           \
-             INTC_WUPEN_PVD1WUEN    | INTC_WUPEN_PVD2WUEN           |           \
-             INTC_WUPEN_CMPWUEN     | INTC_WUPEN_WKTMWUEN           |           \
-             INTC_WUPEN_RTCALMWUEN  | INTC_WUPEN_RTCPRDWUEN         |           \
-             INTC_WUPEN_TMR0GCMWUEN | INTC_WUPEN_TMR2GCMWUEN        |           \
-             INTC_WUPEN_TMR2OVFWUEN | INTC_WUPEN_RXWUEN             |           \
-             INTC_WUPEN_USHWUEN     | INTC_WUPEN_USFWUEN            |           \
-             INTC_WUPEN_ETHWUEN)) != (uint32_t)0x00000000ul)
+(   ((src) != 0x00UL)                           &&                              \
+    (((src) | INTC_WUPEN_MASK) == INTC_WUPEN_MASK))
 
 /*  Parameter validity check for event index. */
-#define IS_INTC_EVENT(event)                                                    \
-(   ((event) & (INTC_EVTER_EVTE0    | INTC_EVTER_EVTE1              |           \
-                INTC_EVTER_EVTE2    | INTC_EVTER_EVTE3              |           \
-                INTC_EVTER_EVTE4    | INTC_EVTER_EVTE5              |           \
-                INTC_EVTER_EVTE6    | INTC_EVTER_EVTE7              |           \
-                INTC_EVTER_EVTE8    | INTC_EVTER_EVTE9              |           \
-                INTC_EVTER_EVTE10   | INTC_EVTER_EVTE11             |           \
-                INTC_EVTER_EVTE12   | INTC_EVTER_EVTE13             |           \
-                INTC_EVTER_EVTE14   | INTC_EVTER_EVTE15             |           \
-                INTC_EVTER_EVTE16   | INTC_EVTER_EVTE17             |           \
-                INTC_EVTER_EVTE18   | INTC_EVTER_EVTE19             |           \
-                INTC_EVTER_EVTE20   | INTC_EVTER_EVTE21             |           \
-                INTC_EVTER_EVTE22   | INTC_EVTER_EVTE23             |           \
-                INTC_EVTER_EVTE24   | INTC_EVTER_EVTE25             |           \
-                INTC_EVTER_EVTE26   | INTC_EVTER_EVTE27             |           \
-                INTC_EVTER_EVTE28   | INTC_EVTER_EVTE29             |           \
-                INTC_EVTER_EVTE30   | INTC_EVTER_EVTE31)) != (uint32_t)0x00000000UL)
+#define IS_INTC_EVENT(event)        ((event) != 0x00UL)
 
 /*  Parameter validity check for interrupt index. */
-#define IS_INTC_INT(int)                                                        \
-(   ((int) &    (INTC_IER_IER0      | INTC_IER_IER1                     |       \
-                INTC_IER_IER2       | INTC_IER_IER3                     |       \
-                INTC_IER_IER4       | INTC_IER_IER5                     |       \
-                INTC_IER_IER6       | INTC_IER_IER7                     |       \
-                INTC_IER_IER8       | INTC_IER_IER9                     |       \
-                INTC_IER_IER10      | INTC_IER_IER11                    |       \
-                INTC_IER_IER12      | INTC_IER_IER13                    |       \
-                INTC_IER_IER14      | INTC_IER_IER15                    |       \
-                INTC_IER_IER16      | INTC_IER_IER17                    |       \
-                INTC_IER_IER18      | INTC_IER_IER19                    |       \
-                INTC_IER_IER20      | INTC_IER_IER21                    |       \
-                INTC_IER_IER22      | INTC_IER_IER23                    |       \
-                INTC_IER_IER24      | INTC_IER_IER25                    |       \
-                INTC_IER_IER26      | INTC_IER_IER27                    |       \
-                INTC_IER_IER28      | INTC_IER_IER29                    |       \
-                INTC_IER_IER30      | INTC_IER_IER31)) != (uint32_t)0x00000000UL)
+#define IS_INTC_INT(it)             ((it) != 0x00UL)
 
 /*  Parameter validity check for software interrupt index. */
-#define IS_INTC_SWI(swi)                                                        \
-(   ((swi) &   (INTC_SWIER_SWIE0    | INTC_SWIER_SWIE1                  |       \
-                INTC_SWIER_SWIE2    | INTC_SWIER_SWIE3                  |       \
-                INTC_SWIER_SWIE4    | INTC_SWIER_SWIE5                  |       \
-                INTC_SWIER_SWIE6    | INTC_SWIER_SWIE7                  |       \
-                INTC_SWIER_SWIE8    | INTC_SWIER_SWIE9                  |       \
-                INTC_SWIER_SWIE10   | INTC_SWIER_SWIE11                 |       \
-                INTC_SWIER_SWIE12   | INTC_SWIER_SWIE13                 |       \
-                INTC_SWIER_SWIE14   | INTC_SWIER_SWIE15                 |       \
-                INTC_SWIER_SWIE16   | INTC_SWIER_SWIE17                 |       \
-                INTC_SWIER_SWIE18   | INTC_SWIER_SWIE19                 |       \
-                INTC_SWIER_SWIE20   | INTC_SWIER_SWIE21                 |       \
-                INTC_SWIER_SWIE22   | INTC_SWIER_SWIE23                 |       \
-                INTC_SWIER_SWIE24   | INTC_SWIER_SWIE25                 |       \
-                INTC_SWIER_SWIE26   | INTC_SWIER_SWIE27                 |       \
-                INTC_SWIER_SWIE28   | INTC_SWIER_SWIE29                 |       \
-                INTC_SWIER_SWIE30   | INTC_SWIER_SWIE31)) != (uint32_t)0x00000000UL)
+#define IS_INTC_SWI(swi)            ((swi) != 0x00UL)
 
-/*  Parameter validity check for NMI trigger souce. */
-#define IS_NMI_SRC(src) (((src) & NMI_SRC_MASK) != (uint32_t)0x00000000UL)
-
-/*  Parameter validity check for get NMI trigger source. */
-#define IS_GET_NMI_SRC(src)                                                     \
-(   ((src) == NMI_SRC_SWDT)                     ||                              \
-    ((src) == NMI_SRC_PVD1)                     ||                              \
-    ((src) == NMI_SRC_PVD2)                     ||                              \
-    ((src) == NMI_SRC_XTAL)                     ||                              \
-    ((src) == NMI_SRC_SRAM_PARITY)              ||                              \
-    ((src) == NMI_SRC_SRAM_ECC)                 ||                              \
-    ((src) == NMI_SRC_BUS_ERR)                  ||                              \
-    ((src) == NMI_SRC_WDT))
+/*  Parameter validity check for NMI trigger source. */
+#define IS_NMI_SRC(src)                                                         \
+(   ((src) != 0x00UL)                           &&                              \
+    (((src) | NMI_SRC_MASK) == NMI_SRC_MASK))
 
 /*  Parameter validity check for EXINT filter A function. */
 #define IS_EXINT_FAE(fae)                                                       \
@@ -206,26 +155,10 @@
     ((trigger) == EXINT_TRIGGER_BOTH))
 
 /*  Parameter validity check for EXINT channel. */
-#define IS_EXINT_CH(ch)     (((ch) & EXINT_CH_MASK) != (uint16_t)0x0000u)
+#define IS_EXINT_CH(ch)                                                         \
+(   ((ch) != 0x00UL)                            &&                              \
+    (((ch) | EXINT_CH_MASK) == EXINT_CH_MASK))
 
-/*  Parameter validity check for get EXINT channel. */
-#define IS_GET_EXINT_CH(ch)                                                     \
-(   ((ch) == EXINT_CH00)                        ||                              \
-    ((ch) == EXINT_CH01)                        ||                              \
-    ((ch) == EXINT_CH02)                        ||                              \
-    ((ch) == EXINT_CH03)                        ||                              \
-    ((ch) == EXINT_CH04)                        ||                              \
-    ((ch) == EXINT_CH05)                        ||                              \
-    ((ch) == EXINT_CH06)                        ||                              \
-    ((ch) == EXINT_CH07)                        ||                              \
-    ((ch) == EXINT_CH08)                        ||                              \
-    ((ch) == EXINT_CH09)                        ||                              \
-    ((ch) == EXINT_CH10)                        ||                              \
-    ((ch) == EXINT_CH11)                        ||                              \
-    ((ch) == EXINT_CH12)                        ||                              \
-    ((ch) == EXINT_CH13)                        ||                              \
-    ((ch) == EXINT_CH14)                        ||                              \
-    ((ch) == EXINT_CH15))
 /**
  * @}
  */
@@ -241,8 +174,8 @@
  * @defgroup INTC_Local_Variable INTC Local Variable
  * @{
  */
-static func_ptr_t pfnIrqHandler[IRQ_NUM_MAX] = {NULL};
-static func_ptr_t pfnNmiCallback;
+static func_ptr_t m_apfnIrqHandler[IRQ_NUM_MAX] = {NULL};
+static func_ptr_t m_pfnNmiCallback;
 /**
  * @}
  */
@@ -266,12 +199,12 @@ static func_ptr_t pfnNmiCallback;
  *   @arg  pfnCallback: Callback function
  * @retval Ok: IRQ register successfully
  *         ErrorInvalidParameter: IRQ No. and Peripheral Int source are not match;
- *                                Input peripheral Int source cannot be configure;
  *                                NULL pointer.
+ *         ErrorUninitialized: Specified IRQ entry was signed before.
  */
 en_result_t INTC_IrqSignIn(const stc_irq_signin_config_t *pstcIrqSignConfig)
 {
-    uint32_t *INTC_SELx;
+    __IO uint32_t *INTC_SELx;
     en_result_t enRet = Ok;
 
     /* Check if pointer is NULL */
@@ -279,7 +212,7 @@ en_result_t INTC_IrqSignIn(const stc_irq_signin_config_t *pstcIrqSignConfig)
     {
         enRet = ErrorInvalidParameter;
     }
-    else
+    else//todo
     {
         /* IRQ032~127 whether out of range */
         if (((((pstcIrqSignConfig->enIntSrc / 0x20) * 6 + 0x20) > pstcIrqSignConfig->enIRQn) || \
@@ -290,11 +223,11 @@ en_result_t INTC_IrqSignIn(const stc_irq_signin_config_t *pstcIrqSignConfig)
         }
         else
         {
-            INTC_SELx = (uint32_t *)((uint32_t)(&M4_INTC->SEL0) + (4U * pstcIrqSignConfig->enIRQn));
-            if (0x1FFUL == (*INTC_SELx & 0x1FFUL) || ((pstcIrqSignConfig->enIntSrc) == (*INTC_SELx & 0x1FFUL)))
+            INTC_SELx = (__IO uint32_t *)((uint32_t)(&M4_INTC->SEL0) + (4U * pstcIrqSignConfig->enIRQn));
+            if ((0x1FFUL == ((*INTC_SELx) & 0x1FFUL)) || ((uint32_t)(pstcIrqSignConfig->enIntSrc) == ((*INTC_SELx) & 0x1FFUL)))
             {
                 WRITE_REG32(*INTC_SELx, pstcIrqSignConfig->enIntSrc);
-                pfnIrqHandler[pstcIrqSignConfig->enIRQn] = pstcIrqSignConfig->pfnCallback;
+                m_apfnIrqHandler[pstcIrqSignConfig->enIRQn] = pstcIrqSignConfig->pfnCallback;
             }
             else
             {
@@ -313,7 +246,7 @@ en_result_t INTC_IrqSignIn(const stc_irq_signin_config_t *pstcIrqSignConfig)
  */
 en_result_t INTC_IrqSignOut(IRQn_Type enIRQn)
 {
-    uint32_t *INTC_SELx;
+    __IO uint32_t *INTC_SELx;
     en_result_t enRet = Ok;
 
     if ((enIRQn < Int000_IRQn) || (enIRQn > Int127_IRQn))
@@ -322,9 +255,9 @@ en_result_t INTC_IrqSignOut(IRQn_Type enIRQn)
     }
     else
     {
-        INTC_SELx = (uint32_t *)((uint32_t)(&M4_INTC->SEL0) + (4UL * enIRQn));
+        INTC_SELx = (__IO uint32_t *)((uint32_t)(&M4_INTC->SEL0) + (4UL * enIRQn));
         WRITE_REG32(*INTC_SELx, 0x1FFUL);
-        pfnIrqHandler[enIRQn] = NULL;
+        m_apfnIrqHandler[enIRQn] = NULL;
     }
     return enRet;
 }
@@ -339,9 +272,11 @@ en_result_t INTC_IrqSignOut(IRQn_Type enIRQn)
  */
 en_result_t INTC_ShareIrqCmd(en_int_src_t enIntSrc, en_functional_state_t enNewState)
 {
-    uint32_t *INTC_VSSELx;
+    __IO uint32_t *INTC_VSSELx;
 
-    INTC_VSSELx = (uint32_t *)(((uint32_t)&M4_INTC->VSSEL128) + (4U * (enIntSrc / 0x20U)));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    INTC_VSSELx = (__IO uint32_t *)(((uint32_t)&M4_INTC->VSSEL128) + (4U * (enIntSrc / 0x20U)));
     if (Enable == enNewState)
     {
         SET_REG32_BIT(*INTC_VSSELx, (uint32_t)(1UL << (enIntSrc & 0x1FUL)));
@@ -452,6 +387,7 @@ void INTC_EventCmd(uint32_t u32Event, en_functional_state_t enNewState)
 {
     /* Parameter validity checking */
     DDL_ASSERT(IS_INTC_EVENT(u32Event));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     if (Enable == enNewState)
     {
@@ -507,6 +443,7 @@ void INTC_IntCmd(uint32_t u32Int, en_functional_state_t enNewState)
 {
     /* Parameter validity checking */
     DDL_ASSERT(IS_INTC_INT(u32Int));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     if (Enable == enNewState)
     {
@@ -562,6 +499,7 @@ void INTC_SWICmd(uint32_t u32SWI, en_functional_state_t enNewState)
 {
     /* Parameter validity checking */
     DDL_ASSERT(IS_INTC_SWI(u32SWI));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     if (Enable == enNewState)
     {
@@ -626,7 +564,7 @@ en_result_t NMI_Init(const stc_nmi_init_t *pstcNmiInit)
         WRITE_REG32(M4_INTC->NMIENR, pstcNmiInit->u32NmiSrc);
 
         /* NMI callback function configure */
-        pfnNmiCallback = pstcNmiInit->pfnNmiCallback;
+        m_pfnNmiCallback = pstcNmiInit->pfnNmiCallback;
     }
     return enRet;
 }
@@ -648,7 +586,7 @@ en_result_t NMI_Init(const stc_nmi_init_t *pstcNmiInit)
 en_flag_status_t NMI_GetNmiSrc(uint32_t u32NmiSrc)
 {
     /* Parameter validity checking */
-    DDL_ASSERT(IS_GET_NMI_SRC(u32NmiSrc));
+    DDL_ASSERT(IS_NMI_SRC(u32NmiSrc));
 
     return ((READ_REG32(M4_INTC->NMIFR) & u32NmiSrc)) ? Set : Reset;
 }
@@ -664,15 +602,14 @@ en_flag_status_t NMI_GetNmiSrc(uint32_t u32NmiSrc)
  *   @arg  NMI_SRC_SRAM_ECC
  *   @arg  NMI_SRC_BUS_ERR
  *   @arg  NMI_SRC_WDT
- * @retval Ok: NMI trigger source(s) is(are) set
+ * @retval None
  */
-en_result_t NMI_SetNmiSrc(uint32_t u32NmiSrc)
+void NMI_SetNmiSrc(uint32_t u32NmiSrc)
 {
     /* Parameter validity checking */
-    DDL_ASSERT(IS_GET_NMI_SRC(u32NmiSrc));
+    DDL_ASSERT(IS_NMI_SRC(u32NmiSrc));
 
     WRITE_REG32(M4_INTC->NMIENR, u32NmiSrc);
-    return Ok;
 }
 
 /**
@@ -686,16 +623,14 @@ en_result_t NMI_SetNmiSrc(uint32_t u32NmiSrc)
  *   @arg  NMI_SRC_SRAM_ECC
  *   @arg  NMI_SRC_BUS_ERR
  *   @arg  NMI_SRC_WDT
- * @retval Ok: NMI trigger source(s) is(are) cleared
+ * @retval None
  */
-en_result_t NMI_ClrNmiSrc(uint32_t u32NmiSrc)
+void NMI_ClrNmiSrc(uint32_t u32NmiSrc)
 {
     /* Parameter validity checking */
     DDL_ASSERT(IS_NMI_SRC(u32NmiSrc));
 
-    //MODIFY_REG32(M0P_INTC->NMICLR, INTC_NMICLR_MASK, u32NmiSrc);
     SET_REG32_BIT(M4_INTC->NMICFR, u32NmiSrc);
-    return Ok;
 }
 
 /**
@@ -705,9 +640,9 @@ en_result_t NMI_ClrNmiSrc(uint32_t u32NmiSrc)
  */
 void NMI_IrqHandler(void)
 {
-    if (NULL != pfnNmiCallback)
+    if (NULL != m_pfnNmiCallback)
     {
-        pfnNmiCallback();
+        m_pfnNmiCallback();
     }
 }
 
@@ -738,7 +673,7 @@ en_result_t EXINT_Init(const stc_exint_init_t *pstcExIntInit)
         DDL_ASSERT(IS_EXINT_TRIGGER(pstcExIntInit->u32ExIntLvl));
         DDL_ASSERT(IS_EXINT_CH(pstcExIntInit->u32ExIntCh));
 
-        for (u8ExIntPos = 0U; u8ExIntPos < 10U; u8ExIntPos++)
+        for (u8ExIntPos = 0U; u8ExIntPos < 16U; u8ExIntPos++)
         {
             if (pstcExIntInit->u32ExIntCh & (1UL << u8ExIntPos))
             {
@@ -825,6 +760,12 @@ void EXINT_ClrExIntSrc(uint32_t u32ExIntCh)
  *   @arg  EXINT_CH07
  *   @arg  EXINT_CH08
  *   @arg  EXINT_CH09
+ *   @arg  EXINT_CH10
+ *   @arg  EXINT_CH11
+ *   @arg  EXINT_CH12
+ *   @arg  EXINT_CH13
+ *   @arg  EXINT_CH14
+ *   @arg  EXINT_CH15
  * @retval Set: Specified channel of external interrupt is triggered
  *         Reset: Specified channel of external interrupt is not triggered
  */
@@ -892,7 +833,7 @@ void SysTick_Handler(void)
  */
 void IRQ000_Handler(void)
 {
-    pfnIrqHandler[Int000_IRQn]();
+    m_apfnIrqHandler[Int000_IRQn]();
 }
 
 /**
@@ -902,7 +843,7 @@ void IRQ000_Handler(void)
  */
 void IRQ001_Handler(void)
 {
-    pfnIrqHandler[Int001_IRQn]();
+    m_apfnIrqHandler[Int001_IRQn]();
 }
 
 /**
@@ -912,7 +853,7 @@ void IRQ001_Handler(void)
  */
 void IRQ002_Handler(void)
 {
-    pfnIrqHandler[Int002_IRQn]();
+    m_apfnIrqHandler[Int002_IRQn]();
 }
 
 /**
@@ -922,7 +863,7 @@ void IRQ002_Handler(void)
  */
 void IRQ003_Handler(void)
 {
-    pfnIrqHandler[Int003_IRQn]();
+    m_apfnIrqHandler[Int003_IRQn]();
 }
 
 /**
@@ -932,7 +873,7 @@ void IRQ003_Handler(void)
  */
 void IRQ004_Handler(void)
 {
-    pfnIrqHandler[Int004_IRQn]();
+    m_apfnIrqHandler[Int004_IRQn]();
 }
 
 /**
@@ -942,7 +883,7 @@ void IRQ004_Handler(void)
  */
 void IRQ005_Handler(void)
 {
-    pfnIrqHandler[Int005_IRQn]();
+    m_apfnIrqHandler[Int005_IRQn]();
 }
 
 /**
@@ -952,7 +893,7 @@ void IRQ005_Handler(void)
  */
 void IRQ006_Handler(void)
 {
-    pfnIrqHandler[Int006_IRQn]();
+    m_apfnIrqHandler[Int006_IRQn]();
 }
 
 /**
@@ -962,7 +903,7 @@ void IRQ006_Handler(void)
  */
 void IRQ007_Handler(void)
 {
-    pfnIrqHandler[Int007_IRQn]();
+    m_apfnIrqHandler[Int007_IRQn]();
 }
 
 /**
@@ -972,7 +913,7 @@ void IRQ007_Handler(void)
  */
 void IRQ008_Handler(void)
 {
-    pfnIrqHandler[Int008_IRQn]();
+    m_apfnIrqHandler[Int008_IRQn]();
 }
 
 /**
@@ -982,7 +923,7 @@ void IRQ008_Handler(void)
  */
 void IRQ009_Handler(void)
 {
-    pfnIrqHandler[Int009_IRQn]();
+    m_apfnIrqHandler[Int009_IRQn]();
 }
 
 /**
@@ -992,7 +933,7 @@ void IRQ009_Handler(void)
  */
 void IRQ010_Handler(void)
 {
-    pfnIrqHandler[Int010_IRQn]();
+    m_apfnIrqHandler[Int010_IRQn]();
 }
 
 
@@ -1003,7 +944,7 @@ void IRQ010_Handler(void)
  */
 void IRQ011_Handler(void)
 {
-    pfnIrqHandler[Int011_IRQn]();
+    m_apfnIrqHandler[Int011_IRQn]();
 }
 
 /**
@@ -1013,7 +954,7 @@ void IRQ011_Handler(void)
  */
 void IRQ012_Handler(void)
 {
-    pfnIrqHandler[Int012_IRQn]();
+    m_apfnIrqHandler[Int012_IRQn]();
 }
 
 /**
@@ -1023,7 +964,7 @@ void IRQ012_Handler(void)
  */
 void IRQ013_Handler(void)
 {
-    pfnIrqHandler[Int013_IRQn]();
+    m_apfnIrqHandler[Int013_IRQn]();
 }
 
 /**
@@ -1033,7 +974,7 @@ void IRQ013_Handler(void)
  */
 void IRQ014_Handler(void)
 {
-    pfnIrqHandler[Int014_IRQn]();
+    m_apfnIrqHandler[Int014_IRQn]();
 }
 
 /**
@@ -1043,7 +984,7 @@ void IRQ014_Handler(void)
  */
 void IRQ015_Handler(void)
 {
-    pfnIrqHandler[Int015_IRQn]();
+    m_apfnIrqHandler[Int015_IRQn]();
 }
 
 /**
@@ -1053,7 +994,7 @@ void IRQ015_Handler(void)
  */
 void IRQ016_Handler(void)
 {
-    pfnIrqHandler[Int016_IRQn]();
+    m_apfnIrqHandler[Int016_IRQn]();
 }
 
 /**
@@ -1063,7 +1004,7 @@ void IRQ016_Handler(void)
  */
 void IRQ017_Handler(void)
 {
-    pfnIrqHandler[Int017_IRQn]();
+    m_apfnIrqHandler[Int017_IRQn]();
 }
 
 /**
@@ -1073,7 +1014,7 @@ void IRQ017_Handler(void)
  */
 void IRQ018_Handler(void)
 {
-    pfnIrqHandler[Int018_IRQn]();
+    m_apfnIrqHandler[Int018_IRQn]();
 }
 
 /**
@@ -1083,7 +1024,7 @@ void IRQ018_Handler(void)
  */
 void IRQ019_Handler(void)
 {
-    pfnIrqHandler[Int019_IRQn]();
+    m_apfnIrqHandler[Int019_IRQn]();
 }
 
 /**
@@ -1093,7 +1034,7 @@ void IRQ019_Handler(void)
  */
 void IRQ020_Handler(void)
 {
-    pfnIrqHandler[Int020_IRQn]();
+    m_apfnIrqHandler[Int020_IRQn]();
 }
 
 /**
@@ -1103,7 +1044,7 @@ void IRQ020_Handler(void)
  */
 void IRQ021_Handler(void)
 {
-    pfnIrqHandler[Int021_IRQn]();
+    m_apfnIrqHandler[Int021_IRQn]();
 }
 
 /**
@@ -1113,7 +1054,7 @@ void IRQ021_Handler(void)
  */
 void IRQ022_Handler(void)
 {
-    pfnIrqHandler[Int022_IRQn]();
+    m_apfnIrqHandler[Int022_IRQn]();
 }
 
 /**
@@ -1123,7 +1064,7 @@ void IRQ022_Handler(void)
  */
 void IRQ023_Handler(void)
 {
-    pfnIrqHandler[Int023_IRQn]();
+    m_apfnIrqHandler[Int023_IRQn]();
 }
 
 /**
@@ -1133,7 +1074,7 @@ void IRQ023_Handler(void)
  */
 void IRQ024_Handler(void)
 {
-    pfnIrqHandler[Int024_IRQn]();
+    m_apfnIrqHandler[Int024_IRQn]();
 }
 
 /**
@@ -1143,7 +1084,7 @@ void IRQ024_Handler(void)
  */
 void IRQ025_Handler(void)
 {
-    pfnIrqHandler[Int025_IRQn]();
+    m_apfnIrqHandler[Int025_IRQn]();
 }
 
 /**
@@ -1153,7 +1094,7 @@ void IRQ025_Handler(void)
  */
 void IRQ026_Handler(void)
 {
-    pfnIrqHandler[Int026_IRQn]();
+    m_apfnIrqHandler[Int026_IRQn]();
 }
 
 /**
@@ -1163,7 +1104,7 @@ void IRQ026_Handler(void)
  */
 void IRQ027_Handler(void)
 {
-    pfnIrqHandler[Int027_IRQn]();
+    m_apfnIrqHandler[Int027_IRQn]();
 }
 
 /**
@@ -1173,7 +1114,7 @@ void IRQ027_Handler(void)
  */
 void IRQ028_Handler(void)
 {
-    pfnIrqHandler[Int028_IRQn]();
+    m_apfnIrqHandler[Int028_IRQn]();
 }
 
 /**
@@ -1183,7 +1124,7 @@ void IRQ028_Handler(void)
  */
 void IRQ029_Handler(void)
 {
-    pfnIrqHandler[Int029_IRQn]();
+    m_apfnIrqHandler[Int029_IRQn]();
 }
 
 /**
@@ -1193,7 +1134,7 @@ void IRQ029_Handler(void)
  */
 void IRQ030_Handler(void)
 {
-    pfnIrqHandler[Int030_IRQn]();
+    m_apfnIrqHandler[Int030_IRQn]();
 }
 
 /**
@@ -1203,7 +1144,7 @@ void IRQ030_Handler(void)
  */
 void IRQ031_Handler(void)
 {
-    pfnIrqHandler[Int031_IRQn]();
+    m_apfnIrqHandler[Int031_IRQn]();
 }
 
 /**
@@ -1213,7 +1154,7 @@ void IRQ031_Handler(void)
  */
 void IRQ032_Handler(void)
 {
-    pfnIrqHandler[Int032_IRQn]();
+    m_apfnIrqHandler[Int032_IRQn]();
 }
 
 /**
@@ -1223,7 +1164,7 @@ void IRQ032_Handler(void)
  */
 void IRQ033_Handler(void)
 {
-    pfnIrqHandler[Int033_IRQn]();
+    m_apfnIrqHandler[Int033_IRQn]();
 }
 
 /**
@@ -1233,7 +1174,7 @@ void IRQ033_Handler(void)
  */
 void IRQ034_Handler(void)
 {
-    pfnIrqHandler[Int034_IRQn]();
+    m_apfnIrqHandler[Int034_IRQn]();
 }
 
 /**
@@ -1243,7 +1184,7 @@ void IRQ034_Handler(void)
  */
 void IRQ035_Handler(void)
 {
-    pfnIrqHandler[Int035_IRQn]();
+    m_apfnIrqHandler[Int035_IRQn]();
 }
 
 /**
@@ -1253,7 +1194,7 @@ void IRQ035_Handler(void)
  */
 void IRQ036_Handler(void)
 {
-    pfnIrqHandler[Int036_IRQn]();
+    m_apfnIrqHandler[Int036_IRQn]();
 }
 
 /**
@@ -1263,7 +1204,7 @@ void IRQ036_Handler(void)
  */
 void IRQ037_Handler(void)
 {
-    pfnIrqHandler[Int037_IRQn]();
+    m_apfnIrqHandler[Int037_IRQn]();
 }
 
 /**
@@ -1273,7 +1214,7 @@ void IRQ037_Handler(void)
  */
 void IRQ038_Handler(void)
 {
-    pfnIrqHandler[Int038_IRQn]();
+    m_apfnIrqHandler[Int038_IRQn]();
 }
 
 /**
@@ -1283,7 +1224,7 @@ void IRQ038_Handler(void)
  */
 void IRQ039_Handler(void)
 {
-    pfnIrqHandler[Int039_IRQn]();
+    m_apfnIrqHandler[Int039_IRQn]();
 }
 
 /**
@@ -1293,7 +1234,7 @@ void IRQ039_Handler(void)
  */
 void IRQ040_Handler(void)
 {
-    pfnIrqHandler[Int040_IRQn]();
+    m_apfnIrqHandler[Int040_IRQn]();
 }
 
 /**
@@ -1303,7 +1244,7 @@ void IRQ040_Handler(void)
  */
 void IRQ041_Handler(void)
 {
-    pfnIrqHandler[Int041_IRQn]();
+    m_apfnIrqHandler[Int041_IRQn]();
 }
 
 /**
@@ -1313,7 +1254,7 @@ void IRQ041_Handler(void)
  */
 void IRQ042_Handler(void)
 {
-    pfnIrqHandler[Int042_IRQn]();
+    m_apfnIrqHandler[Int042_IRQn]();
 }
 
 /**
@@ -1323,7 +1264,7 @@ void IRQ042_Handler(void)
  */
 void IRQ043_Handler(void)
 {
-    pfnIrqHandler[Int043_IRQn]();
+    m_apfnIrqHandler[Int043_IRQn]();
 }
 
 /**
@@ -1333,7 +1274,7 @@ void IRQ043_Handler(void)
  */
 void IRQ044_Handler(void)
 {
-    pfnIrqHandler[Int044_IRQn]();
+    m_apfnIrqHandler[Int044_IRQn]();
 }
 
 /**
@@ -1343,7 +1284,7 @@ void IRQ044_Handler(void)
  */
 void IRQ045_Handler(void)
 {
-    pfnIrqHandler[Int045_IRQn]();
+    m_apfnIrqHandler[Int045_IRQn]();
 }
 
 /**
@@ -1353,7 +1294,7 @@ void IRQ045_Handler(void)
  */
 void IRQ046_Handler(void)
 {
-    pfnIrqHandler[Int046_IRQn]();
+    m_apfnIrqHandler[Int046_IRQn]();
 }
 
 /**
@@ -1363,7 +1304,7 @@ void IRQ046_Handler(void)
  */
 void IRQ047_Handler(void)
 {
-    pfnIrqHandler[Int047_IRQn]();
+    m_apfnIrqHandler[Int047_IRQn]();
 }
 
 /**
@@ -1373,7 +1314,7 @@ void IRQ047_Handler(void)
  */
 void IRQ048_Handler(void)
 {
-    pfnIrqHandler[Int048_IRQn]();
+    m_apfnIrqHandler[Int048_IRQn]();
 }
 
 /**
@@ -1383,7 +1324,7 @@ void IRQ048_Handler(void)
  */
 void IRQ049_Handler(void)
 {
-    pfnIrqHandler[Int049_IRQn]();
+    m_apfnIrqHandler[Int049_IRQn]();
 }
 
 /**
@@ -1393,7 +1334,7 @@ void IRQ049_Handler(void)
  */
 void IRQ050_Handler(void)
 {
-    pfnIrqHandler[Int050_IRQn]();
+    m_apfnIrqHandler[Int050_IRQn]();
 }
 
 /**
@@ -1403,7 +1344,7 @@ void IRQ050_Handler(void)
  */
 void IRQ051_Handler(void)
 {
-    pfnIrqHandler[Int051_IRQn]();
+    m_apfnIrqHandler[Int051_IRQn]();
 }
 
 /**
@@ -1413,7 +1354,7 @@ void IRQ051_Handler(void)
  */
 void IRQ052_Handler(void)
 {
-    pfnIrqHandler[Int052_IRQn]();
+    m_apfnIrqHandler[Int052_IRQn]();
 }
 
 /**
@@ -1423,7 +1364,7 @@ void IRQ052_Handler(void)
  */
 void IRQ053_Handler(void)
 {
-    pfnIrqHandler[Int053_IRQn]();
+    m_apfnIrqHandler[Int053_IRQn]();
 }
 
 /**
@@ -1433,7 +1374,7 @@ void IRQ053_Handler(void)
  */
 void IRQ054_Handler(void)
 {
-    pfnIrqHandler[Int054_IRQn]();
+    m_apfnIrqHandler[Int054_IRQn]();
 }
 
 /**
@@ -1443,7 +1384,7 @@ void IRQ054_Handler(void)
  */
 void IRQ055_Handler(void)
 {
-    pfnIrqHandler[Int055_IRQn]();
+    m_apfnIrqHandler[Int055_IRQn]();
 }
 
 /**
@@ -1453,7 +1394,7 @@ void IRQ055_Handler(void)
  */
 void IRQ056_Handler(void)
 {
-    pfnIrqHandler[Int056_IRQn]();
+    m_apfnIrqHandler[Int056_IRQn]();
 }
 
 /**
@@ -1463,7 +1404,7 @@ void IRQ056_Handler(void)
  */
 void IRQ057_Handler(void)
 {
-    pfnIrqHandler[Int057_IRQn]();
+    m_apfnIrqHandler[Int057_IRQn]();
 }
 
 /**
@@ -1473,7 +1414,7 @@ void IRQ057_Handler(void)
  */
 void IRQ058_Handler(void)
 {
-    pfnIrqHandler[Int058_IRQn]();
+    m_apfnIrqHandler[Int058_IRQn]();
 }
 
 /**
@@ -1483,7 +1424,7 @@ void IRQ058_Handler(void)
  */
 void IRQ059_Handler(void)
 {
-    pfnIrqHandler[Int059_IRQn]();
+    m_apfnIrqHandler[Int059_IRQn]();
 }
 
 /**
@@ -1493,7 +1434,7 @@ void IRQ059_Handler(void)
  */
 void IRQ060_Handler(void)
 {
-    pfnIrqHandler[Int060_IRQn]();
+    m_apfnIrqHandler[Int060_IRQn]();
 }
 
 /**
@@ -1503,7 +1444,7 @@ void IRQ060_Handler(void)
  */
 void IRQ061_Handler(void)
 {
-    pfnIrqHandler[Int061_IRQn]();
+    m_apfnIrqHandler[Int061_IRQn]();
 }
 
 /**
@@ -1513,7 +1454,7 @@ void IRQ061_Handler(void)
  */
 void IRQ062_Handler(void)
 {
-    pfnIrqHandler[Int062_IRQn]();
+    m_apfnIrqHandler[Int062_IRQn]();
 }
 
 /**
@@ -1523,7 +1464,7 @@ void IRQ062_Handler(void)
  */
 void IRQ063_Handler(void)
 {
-    pfnIrqHandler[Int063_IRQn]();
+    m_apfnIrqHandler[Int063_IRQn]();
 }
 
 /**
@@ -1533,7 +1474,7 @@ void IRQ063_Handler(void)
  */
 void IRQ064_Handler(void)
 {
-    pfnIrqHandler[Int064_IRQn]();
+    m_apfnIrqHandler[Int064_IRQn]();
 }
 
 /**
@@ -1543,7 +1484,7 @@ void IRQ064_Handler(void)
  */
 void IRQ065_Handler(void)
 {
-    pfnIrqHandler[Int065_IRQn]();
+    m_apfnIrqHandler[Int065_IRQn]();
 }
 
 /**
@@ -1553,7 +1494,7 @@ void IRQ065_Handler(void)
  */
 void IRQ066_Handler(void)
 {
-    pfnIrqHandler[Int066_IRQn]();
+    m_apfnIrqHandler[Int066_IRQn]();
 }
 
 /**
@@ -1563,7 +1504,7 @@ void IRQ066_Handler(void)
  */
 void IRQ067_Handler(void)
 {
-    pfnIrqHandler[Int067_IRQn]();
+    m_apfnIrqHandler[Int067_IRQn]();
 }
 
 /**
@@ -1573,7 +1514,7 @@ void IRQ067_Handler(void)
  */
 void IRQ068_Handler(void)
 {
-    pfnIrqHandler[Int068_IRQn]();
+    m_apfnIrqHandler[Int068_IRQn]();
 }
 
 /**
@@ -1583,7 +1524,7 @@ void IRQ068_Handler(void)
  */
 void IRQ069_Handler(void)
 {
-    pfnIrqHandler[Int069_IRQn]();
+    m_apfnIrqHandler[Int069_IRQn]();
 }
 
 /**
@@ -1593,7 +1534,7 @@ void IRQ069_Handler(void)
  */
 void IRQ070_Handler(void)
 {
-    pfnIrqHandler[Int070_IRQn]();
+    m_apfnIrqHandler[Int070_IRQn]();
 }
 
 /**
@@ -1603,7 +1544,7 @@ void IRQ070_Handler(void)
  */
 void IRQ071_Handler(void)
 {
-    pfnIrqHandler[Int071_IRQn]();
+    m_apfnIrqHandler[Int071_IRQn]();
 }
 
 /**
@@ -1613,7 +1554,7 @@ void IRQ071_Handler(void)
  */
 void IRQ072_Handler(void)
 {
-    pfnIrqHandler[Int072_IRQn]();
+    m_apfnIrqHandler[Int072_IRQn]();
 }
 
 /**
@@ -1623,7 +1564,7 @@ void IRQ072_Handler(void)
  */
 void IRQ073_Handler(void)
 {
-    pfnIrqHandler[Int073_IRQn]();
+    m_apfnIrqHandler[Int073_IRQn]();
 }
 
 /**
@@ -1633,7 +1574,7 @@ void IRQ073_Handler(void)
  */
 void IRQ074_Handler(void)
 {
-    pfnIrqHandler[Int074_IRQn]();
+    m_apfnIrqHandler[Int074_IRQn]();
 }
 
 /**
@@ -1643,7 +1584,7 @@ void IRQ074_Handler(void)
  */
 void IRQ075_Handler(void)
 {
-    pfnIrqHandler[Int075_IRQn]();
+    m_apfnIrqHandler[Int075_IRQn]();
 }
 
 /**
@@ -1653,7 +1594,7 @@ void IRQ075_Handler(void)
  */
 void IRQ076_Handler(void)
 {
-    pfnIrqHandler[Int076_IRQn]();
+    m_apfnIrqHandler[Int076_IRQn]();
 }
 
 /**
@@ -1663,7 +1604,7 @@ void IRQ076_Handler(void)
  */
 void IRQ077_Handler(void)
 {
-    pfnIrqHandler[Int077_IRQn]();
+    m_apfnIrqHandler[Int077_IRQn]();
 }
 
 /**
@@ -1673,7 +1614,7 @@ void IRQ077_Handler(void)
  */
 void IRQ078_Handler(void)
 {
-    pfnIrqHandler[Int078_IRQn]();
+    m_apfnIrqHandler[Int078_IRQn]();
 }
 
 /**
@@ -1683,7 +1624,7 @@ void IRQ078_Handler(void)
  */
 void IRQ079_Handler(void)
 {
-    pfnIrqHandler[Int079_IRQn]();
+    m_apfnIrqHandler[Int079_IRQn]();
 }
 
 /**
@@ -1693,7 +1634,7 @@ void IRQ079_Handler(void)
  */
 void IRQ080_Handler(void)
 {
-    pfnIrqHandler[Int080_IRQn]();
+    m_apfnIrqHandler[Int080_IRQn]();
 }
 
 /**
@@ -1703,7 +1644,7 @@ void IRQ080_Handler(void)
  */
 void IRQ081_Handler(void)
 {
-    pfnIrqHandler[Int081_IRQn]();
+    m_apfnIrqHandler[Int081_IRQn]();
 }
 
 /**
@@ -1713,7 +1654,7 @@ void IRQ081_Handler(void)
  */
 void IRQ082_Handler(void)
 {
-    pfnIrqHandler[Int082_IRQn]();
+    m_apfnIrqHandler[Int082_IRQn]();
 }
 
 /**
@@ -1723,7 +1664,7 @@ void IRQ082_Handler(void)
  */
 void IRQ083_Handler(void)
 {
-    pfnIrqHandler[Int083_IRQn]();
+    m_apfnIrqHandler[Int083_IRQn]();
 }
 
 /**
@@ -1733,7 +1674,7 @@ void IRQ083_Handler(void)
  */
 void IRQ084_Handler(void)
 {
-    pfnIrqHandler[Int084_IRQn]();
+    m_apfnIrqHandler[Int084_IRQn]();
 }
 
 /**
@@ -1743,7 +1684,7 @@ void IRQ084_Handler(void)
  */
 void IRQ085_Handler(void)
 {
-    pfnIrqHandler[Int085_IRQn]();
+    m_apfnIrqHandler[Int085_IRQn]();
 }
 
 /**
@@ -1753,7 +1694,7 @@ void IRQ085_Handler(void)
  */
 void IRQ086_Handler(void)
 {
-    pfnIrqHandler[Int086_IRQn]();
+    m_apfnIrqHandler[Int086_IRQn]();
 }
 
 /**
@@ -1763,7 +1704,7 @@ void IRQ086_Handler(void)
  */
 void IRQ087_Handler(void)
 {
-    pfnIrqHandler[Int087_IRQn]();
+    m_apfnIrqHandler[Int087_IRQn]();
 }
 
 /**
@@ -1773,7 +1714,7 @@ void IRQ087_Handler(void)
  */
 void IRQ088_Handler(void)
 {
-    pfnIrqHandler[Int088_IRQn]();
+    m_apfnIrqHandler[Int088_IRQn]();
 }
 
 /**
@@ -1783,7 +1724,7 @@ void IRQ088_Handler(void)
  */
 void IRQ089_Handler(void)
 {
-    pfnIrqHandler[Int089_IRQn]();
+    m_apfnIrqHandler[Int089_IRQn]();
 }
 
 /**
@@ -1793,7 +1734,7 @@ void IRQ089_Handler(void)
  */
 void IRQ090_Handler(void)
 {
-    pfnIrqHandler[Int090_IRQn]();
+    m_apfnIrqHandler[Int090_IRQn]();
 }
 
 /**
@@ -1803,7 +1744,7 @@ void IRQ090_Handler(void)
  */
 void IRQ091_Handler(void)
 {
-    pfnIrqHandler[Int091_IRQn]();
+    m_apfnIrqHandler[Int091_IRQn]();
 }
 
 /**
@@ -1813,7 +1754,7 @@ void IRQ091_Handler(void)
  */
 void IRQ092_Handler(void)
 {
-    pfnIrqHandler[Int092_IRQn]();
+    m_apfnIrqHandler[Int092_IRQn]();
 }
 
 /**
@@ -1823,7 +1764,7 @@ void IRQ092_Handler(void)
  */
 void IRQ093_Handler(void)
 {
-    pfnIrqHandler[Int093_IRQn]();
+    m_apfnIrqHandler[Int093_IRQn]();
 }
 
 /**
@@ -1833,7 +1774,7 @@ void IRQ093_Handler(void)
  */
 void IRQ094_Handler(void)
 {
-    pfnIrqHandler[Int094_IRQn]();
+    m_apfnIrqHandler[Int094_IRQn]();
 }
 
 /**
@@ -1843,7 +1784,7 @@ void IRQ094_Handler(void)
  */
 void IRQ095_Handler(void)
 {
-    pfnIrqHandler[Int095_IRQn]();
+    m_apfnIrqHandler[Int095_IRQn]();
 }
 
 /**
@@ -1853,7 +1794,7 @@ void IRQ095_Handler(void)
  */
 void IRQ096_Handler(void)
 {
-    pfnIrqHandler[Int096_IRQn]();
+    m_apfnIrqHandler[Int096_IRQn]();
 }
 
 /**
@@ -1863,7 +1804,7 @@ void IRQ096_Handler(void)
  */
 void IRQ097_Handler(void)
 {
-    pfnIrqHandler[Int097_IRQn]();
+    m_apfnIrqHandler[Int097_IRQn]();
 }
 
 /**
@@ -1873,7 +1814,7 @@ void IRQ097_Handler(void)
  */
 void IRQ098_Handler(void)
 {
-    pfnIrqHandler[Int098_IRQn]();
+    m_apfnIrqHandler[Int098_IRQn]();
 }
 
 /**
@@ -1883,7 +1824,7 @@ void IRQ098_Handler(void)
  */
 void IRQ099_Handler(void)
 {
-    pfnIrqHandler[Int099_IRQn]();
+    m_apfnIrqHandler[Int099_IRQn]();
 }
 
 /**
@@ -1893,7 +1834,7 @@ void IRQ099_Handler(void)
  */
 void IRQ100_Handler(void)
 {
-    pfnIrqHandler[Int100_IRQn]();
+    m_apfnIrqHandler[Int100_IRQn]();
 }
 
 /**
@@ -1903,7 +1844,7 @@ void IRQ100_Handler(void)
  */
 void IRQ101_Handler(void)
 {
-    pfnIrqHandler[Int101_IRQn]();
+    m_apfnIrqHandler[Int101_IRQn]();
 }
 
 /**
@@ -1913,7 +1854,7 @@ void IRQ101_Handler(void)
  */
 void IRQ102_Handler(void)
 {
-    pfnIrqHandler[Int102_IRQn]();
+    m_apfnIrqHandler[Int102_IRQn]();
 }
 
 /**
@@ -1923,7 +1864,7 @@ void IRQ102_Handler(void)
  */
 void IRQ103_Handler(void)
 {
-    pfnIrqHandler[Int103_IRQn]();
+    m_apfnIrqHandler[Int103_IRQn]();
 }
 
 /**
@@ -1933,7 +1874,7 @@ void IRQ103_Handler(void)
  */
 void IRQ104_Handler(void)
 {
-    pfnIrqHandler[Int104_IRQn]();
+    m_apfnIrqHandler[Int104_IRQn]();
 }
 
 /**
@@ -1943,7 +1884,7 @@ void IRQ104_Handler(void)
  */
 void IRQ105_Handler(void)
 {
-    pfnIrqHandler[Int105_IRQn]();
+    m_apfnIrqHandler[Int105_IRQn]();
 }
 
 /**
@@ -1953,7 +1894,7 @@ void IRQ105_Handler(void)
  */
 void IRQ106_Handler(void)
 {
-    pfnIrqHandler[Int106_IRQn]();
+    m_apfnIrqHandler[Int106_IRQn]();
 }
 
 /**
@@ -1963,7 +1904,7 @@ void IRQ106_Handler(void)
  */
 void IRQ107_Handler(void)
 {
-    pfnIrqHandler[Int107_IRQn]();
+    m_apfnIrqHandler[Int107_IRQn]();
 }
 
 /**
@@ -1973,7 +1914,7 @@ void IRQ107_Handler(void)
  */
 void IRQ108_Handler(void)
 {
-    pfnIrqHandler[Int108_IRQn]();
+    m_apfnIrqHandler[Int108_IRQn]();
 }
 
 /**
@@ -1983,7 +1924,7 @@ void IRQ108_Handler(void)
  */
 void IRQ109_Handler(void)
 {
-    pfnIrqHandler[Int109_IRQn]();
+    m_apfnIrqHandler[Int109_IRQn]();
 }
 
 /**
@@ -1993,7 +1934,7 @@ void IRQ109_Handler(void)
  */
 void IRQ110_Handler(void)
 {
-    pfnIrqHandler[Int110_IRQn]();
+    m_apfnIrqHandler[Int110_IRQn]();
 }
 
 /**
@@ -2003,7 +1944,7 @@ void IRQ110_Handler(void)
  */
 void IRQ111_Handler(void)
 {
-    pfnIrqHandler[Int111_IRQn]();
+    m_apfnIrqHandler[Int111_IRQn]();
 }
 
 /**
@@ -2013,7 +1954,7 @@ void IRQ111_Handler(void)
  */
 void IRQ112_Handler(void)
 {
-    pfnIrqHandler[Int112_IRQn]();
+    m_apfnIrqHandler[Int112_IRQn]();
 }
 
 /**
@@ -2023,7 +1964,7 @@ void IRQ112_Handler(void)
  */
 void IRQ113_Handler(void)
 {
-    pfnIrqHandler[Int113_IRQn]();
+    m_apfnIrqHandler[Int113_IRQn]();
 }
 
 /**
@@ -2033,7 +1974,7 @@ void IRQ113_Handler(void)
  */
 void IRQ114_Handler(void)
 {
-    pfnIrqHandler[Int114_IRQn]();
+    m_apfnIrqHandler[Int114_IRQn]();
 }
 
 /**
@@ -2043,7 +1984,7 @@ void IRQ114_Handler(void)
  */
 void IRQ115_Handler(void)
 {
-    pfnIrqHandler[Int115_IRQn]();
+    m_apfnIrqHandler[Int115_IRQn]();
 }
 
 /**
@@ -2053,7 +1994,7 @@ void IRQ115_Handler(void)
  */
 void IRQ116_Handler(void)
 {
-    pfnIrqHandler[Int116_IRQn]();
+    m_apfnIrqHandler[Int116_IRQn]();
 }
 
 /**
@@ -2063,7 +2004,7 @@ void IRQ116_Handler(void)
  */
 void IRQ117_Handler(void)
 {
-    pfnIrqHandler[Int117_IRQn]();
+    m_apfnIrqHandler[Int117_IRQn]();
 }
 
 /**
@@ -2073,7 +2014,7 @@ void IRQ117_Handler(void)
  */
 void IRQ118_Handler(void)
 {
-    pfnIrqHandler[Int118_IRQn]();
+    m_apfnIrqHandler[Int118_IRQn]();
 }
 
 /**
@@ -2083,7 +2024,7 @@ void IRQ118_Handler(void)
  */
 void IRQ119_Handler(void)
 {
-    pfnIrqHandler[Int119_IRQn]();
+    m_apfnIrqHandler[Int119_IRQn]();
 }
 
 /**
@@ -2093,7 +2034,7 @@ void IRQ119_Handler(void)
  */
 void IRQ120_Handler(void)
 {
-    pfnIrqHandler[Int120_IRQn]();
+    m_apfnIrqHandler[Int120_IRQn]();
 }
 
 /**
@@ -2103,7 +2044,7 @@ void IRQ120_Handler(void)
  */
 void IRQ121_Handler(void)
 {
-    pfnIrqHandler[Int121_IRQn]();
+    m_apfnIrqHandler[Int121_IRQn]();
 }
 
 /**
@@ -2113,7 +2054,7 @@ void IRQ121_Handler(void)
  */
 void IRQ122_Handler(void)
 {
-    pfnIrqHandler[Int122_IRQn]();
+    m_apfnIrqHandler[Int122_IRQn]();
 }
 
 /**
@@ -2123,7 +2064,7 @@ void IRQ122_Handler(void)
  */
 void IRQ123_Handler(void)
 {
-    pfnIrqHandler[Int123_IRQn]();
+    m_apfnIrqHandler[Int123_IRQn]();
 }
 
 /**
@@ -2133,7 +2074,7 @@ void IRQ123_Handler(void)
  */
 void IRQ124_Handler(void)
 {
-    pfnIrqHandler[Int124_IRQn]();
+    m_apfnIrqHandler[Int124_IRQn]();
 }
 
 /**
@@ -2143,7 +2084,7 @@ void IRQ124_Handler(void)
  */
 void IRQ125_Handler(void)
 {
-    pfnIrqHandler[Int125_IRQn]();
+    m_apfnIrqHandler[Int125_IRQn]();
 }
 
 /**
@@ -2153,7 +2094,7 @@ void IRQ125_Handler(void)
  */
 void IRQ126_Handler(void)
 {
-    pfnIrqHandler[Int126_IRQn]();
+    m_apfnIrqHandler[Int126_IRQn]();
 }
 
 /**
@@ -2163,7 +2104,7 @@ void IRQ126_Handler(void)
  */
 void IRQ127_Handler(void)
 {
-    pfnIrqHandler[Int127_IRQn]();
+    m_apfnIrqHandler[Int127_IRQn]();
 }
 
 /**

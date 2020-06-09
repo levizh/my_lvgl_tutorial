@@ -124,34 +124,34 @@ en_result_t S29GL064_ReadBuffer(uint32_t u32ReadAddress,
                                     uint16_t au16DataBuf[],
                                     uint32_t u32NumHalfwords);
 
-/* Implement the intialization function on evb board source */
-en_result_t EV_SMC_S29GL064_Init(void);
-void EV_SMC_S29GL064_GetMemInfo(uint32_t *pu32MemStartAddr,
+/* Implement the below functions for the specified BSP board */
+en_result_t BSP_SMC_S29GL064_Init(void);
+void BSP_SMC_S29GL064_GetMemInfo(uint32_t *pu32MemStartAddr,
                                         uint32_t *pu32SectorsNumber,
                                         uint32_t *pu32BytesPerSector,
                                         uint32_t *pu32BytesPerBufProgram);
-en_result_t EV_SMC_S29GL064_ReadId(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_ReadId(uint32_t u32DevicBaseAddress,
                                         uint16_t au16Id[],
                                         uint32_t u32Length);
-en_result_t EV_SMC_S29GL064_ReadCfiId(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_ReadCfiId(uint32_t u32DevicBaseAddress,
                                             uint16_t au16Id[],
                                             uint32_t u32Length);
-en_result_t EV_SMC_S29GL064_GetStatus(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_GetStatus(uint32_t u32DevicBaseAddress,
                                             uint32_t Timeout);
-void EV_SMC_S29GL064_Reset(uint32_t u32DevicBaseAddress);
-en_result_t EV_SMC_S29GL064_EraseChip(uint32_t u32DevicBaseAddress);
-void EV_SMC_S29GL064_EraseSector(uint32_t u32DevicBaseAddress,
+void BSP_SMC_S29GL064_Reset(uint32_t u32DevicBaseAddress);
+en_result_t BSP_SMC_S29GL064_EraseChip(uint32_t u32DevicBaseAddress);
+void BSP_SMC_S29GL064_EraseSector(uint32_t u32DevicBaseAddress,
                                         uint32_t u32SectorAddress);
-en_result_t EV_SMC_S29GL064_Program(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_Program(uint32_t u32DevicBaseAddress,
                                             uint32_t u32ProgramAddress,
                                             uint16_t u16Data);
-uint16_t EV_SMC_S29GL064_Read(uint32_t u32DevicBaseAddress,
+uint16_t BSP_SMC_S29GL064_Read(uint32_t u32DevicBaseAddress,
                                     uint32_t u32ReadAddress);
-en_result_t EV_SMC_S29GL064_ProgramBuffer(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_ProgramBuffer(uint32_t u32DevicBaseAddress,
                                                   uint32_t u32ProgramAddress,
                                                   const uint16_t au16Data[],
                                                   uint32_t u32NumHalfWords);
-en_result_t EV_SMC_S29GL064_ReadBuffer(uint32_t u32DevicBaseAddress,
+en_result_t BSP_SMC_S29GL064_ReadBuffer(uint32_t u32DevicBaseAddress,
                                             uint32_t u32ReadAddress,
                                             uint16_t au16DataBuf[],
                                             uint32_t u32NumHalfwords);

@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-28      Heqb          First version
+   2020-06-08      Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2017, Huada Semiconductor Co.,Ltd All rights reserved.
@@ -687,6 +687,7 @@ typedef enum en_event_src
     EVT_ADC3_SEQCMP          = 491U,
     /*  TRNG  */
     EVT_TRNG_END             = 492U,
+    EVT_MAX                  = 511U,
 } en_event_src_t;
 
 /**
@@ -1207,6 +1208,7 @@ typedef enum en_int_src
     INT_TRNG_END             = 492U,
     /*  NFC  */
     INT_NFC_INT              = 496U,
+    INT_MAX                  = 511U,
 } en_int_src_t;
 
 #if defined ( __CC_ARM   )
@@ -2554,8 +2556,10 @@ typedef struct
     __IO uint32_t SLTR;
     __IO uint32_t SR;
     __IO uint32_t CLR;
-    __IO uint32_t DTR;
-    __IO uint32_t DRR;
+    __IO uint8_t  DTR;
+    uint8_t RESERVED1[3];
+    __IO uint8_t  DRR;
+    uint8_t RESERVED2[3];
     __IO uint32_t CCR;
     __IO uint32_t FLTR;
 } M4_I2C_TypeDef;
@@ -3241,6 +3245,7 @@ typedef struct
     uint8_t RESERVED136[3];
     __IO uint8_t  PWRC3;
     uint8_t RESERVED137[3];
+//    __IO uint32_t  PWRC3;
     __IO uint8_t  PWRC4;
     uint8_t RESERVED138[3];
     __IO uint8_t  PVDCR0;
@@ -6959,12 +6964,6 @@ typedef struct
 #define CTC_CR1_CTCEN                                  (0x00000080UL)
 #define CTC_CR1_TRMVAL_POS                             (16U)
 #define CTC_CR1_TRMVAL                                 (0x003F0000UL)
-#define CTC_CR1_TRMVAL_0                               (0x00010000UL)
-#define CTC_CR1_TRMVAL_1                               (0x00020000UL)
-#define CTC_CR1_TRMVAL_2                               (0x00040000UL)
-#define CTC_CR1_TRMVAL_3                               (0x00080000UL)
-#define CTC_CR1_TRMVAL_4                               (0x00100000UL)
-#define CTC_CR1_TRMVAL_5                               (0x00200000UL)
 
 /*  Bit definition for CTC_CR2 register  */
 #define CTC_CR2_OFSVAL_POS                             (0U)
@@ -6979,22 +6978,6 @@ typedef struct
 #define CTC_CR2_OFSVAL_7                               (0x00000080UL)
 #define CTC_CR2_RLDVAL_POS                             (16U)
 #define CTC_CR2_RLDVAL                                 (0xFFFF0000UL)
-#define CTC_CR2_RLDVAL_0                               (0x00010000UL)
-#define CTC_CR2_RLDVAL_1                               (0x00020000UL)
-#define CTC_CR2_RLDVAL_2                               (0x00040000UL)
-#define CTC_CR2_RLDVAL_3                               (0x00080000UL)
-#define CTC_CR2_RLDVAL_4                               (0x00100000UL)
-#define CTC_CR2_RLDVAL_5                               (0x00200000UL)
-#define CTC_CR2_RLDVAL_6                               (0x00400000UL)
-#define CTC_CR2_RLDVAL_7                               (0x00800000UL)
-#define CTC_CR2_RLDVAL_8                               (0x01000000UL)
-#define CTC_CR2_RLDVAL_9                               (0x02000000UL)
-#define CTC_CR2_RLDVAL_10                              (0x04000000UL)
-#define CTC_CR2_RLDVAL_11                              (0x08000000UL)
-#define CTC_CR2_RLDVAL_12                              (0x10000000UL)
-#define CTC_CR2_RLDVAL_13                              (0x20000000UL)
-#define CTC_CR2_RLDVAL_14                              (0x40000000UL)
-#define CTC_CR2_RLDVAL_15                              (0x80000000UL)
 
 /*  Bit definition for CTC_STR register  */
 #define CTC_STR_TRIMOK_POS                             (0U)
@@ -7466,8 +7449,8 @@ typedef struct
 #define DCU_FLAG_FLAG_RLD                              (0x00000200UL)
 #define DCU_FLAG_FLAG_BTM_POS                          (10U)
 #define DCU_FLAG_FLAG_BTM                              (0x00000400UL)
-#define DCU_FLAG_FLAT_TOP_POS                          (11U)
-#define DCU_FLAG_FLAT_TOP                              (0x00000800UL)
+#define DCU_FLAG_FLAG_TOP_POS                          (11U)
+#define DCU_FLAG_FLAG_TOP                              (0x00000800UL)
 
 /*  Bit definition for DCU_DATA0 register  */
 #define DCU_DATA0                                      (0xFFFFFFFFUL)
@@ -7501,24 +7484,24 @@ typedef struct
 #define DCU_FLAGCLR_CLR_TOP                            (0x00000800UL)
 
 /*  Bit definition for DCU_INTEVTSEL register  */
-#define DCU_INTEVTSEL_INT_OP_POS                       (0U)
-#define DCU_INTEVTSEL_INT_OP                           (0x00000001UL)
-#define DCU_INTEVTSEL_INT_LS2_POS                      (1U)
-#define DCU_INTEVTSEL_INT_LS2                          (0x00000002UL)
-#define DCU_INTEVTSEL_INT_EQ2_POS                      (2U)
-#define DCU_INTEVTSEL_INT_EQ2                          (0x00000004UL)
-#define DCU_INTEVTSEL_INT_GT2_POS                      (3U)
-#define DCU_INTEVTSEL_INT_GT2                          (0x00000008UL)
-#define DCU_INTEVTSEL_INT_LS1_POS                      (4U)
-#define DCU_INTEVTSEL_INT_LS1                          (0x00000010UL)
-#define DCU_INTEVTSEL_INT_EQ1_POS                      (5U)
-#define DCU_INTEVTSEL_INT_EQ1                          (0x00000020UL)
-#define DCU_INTEVTSEL_INT_GT1_POS                      (6U)
-#define DCU_INTEVTSEL_INT_GT1                          (0x00000040UL)
-#define DCU_INTEVTSEL_INT_WIN_POS                      (7U)
-#define DCU_INTEVTSEL_INT_WIN                          (0x00000180UL)
-#define DCU_INTEVTSEL_INT_WIN_0                        (0x00000080UL)
-#define DCU_INTEVTSEL_INT_WIN_1                        (0x00000100UL)
+#define DCU_INTEVTSEL_SEL_OP_POS                       (0U)
+#define DCU_INTEVTSEL_SEL_OP                           (0x00000001UL)
+#define DCU_INTEVTSEL_SEL_LS2_POS                      (1U)
+#define DCU_INTEVTSEL_SEL_LS2                          (0x00000002UL)
+#define DCU_INTEVTSEL_SEL_EQ2_POS                      (2U)
+#define DCU_INTEVTSEL_SEL_EQ2                          (0x00000004UL)
+#define DCU_INTEVTSEL_SEL_GT2_POS                      (3U)
+#define DCU_INTEVTSEL_SEL_GT2                          (0x00000008UL)
+#define DCU_INTEVTSEL_SEL_LS1_POS                      (4U)
+#define DCU_INTEVTSEL_SEL_LS1                          (0x00000010UL)
+#define DCU_INTEVTSEL_SEL_EQ1_POS                      (5U)
+#define DCU_INTEVTSEL_SEL_EQ1                          (0x00000020UL)
+#define DCU_INTEVTSEL_SEL_GT1_POS                      (6U)
+#define DCU_INTEVTSEL_SEL_GT1                          (0x00000040UL)
+#define DCU_INTEVTSEL_SEL_WIN_POS                      (7U)
+#define DCU_INTEVTSEL_SEL_WIN                          (0x00000180UL)
+#define DCU_INTEVTSEL_SEL_WIN_0                        (0x00000080UL)
+#define DCU_INTEVTSEL_SEL_WIN_1                        (0x00000100UL)
 #define DCU_INTEVTSEL_SEL_RLD_POS                      (9U)
 #define DCU_INTEVTSEL_SEL_RLD                          (0x00000200UL)
 #define DCU_INTEVTSEL_SEL_BTM_POS                      (10U)
@@ -8157,20 +8140,6 @@ typedef struct
 /*  Bit definition for DMC_CMDR register  */
 #define DMC_CMDR_CMDADD_POS                            (0U)
 #define DMC_CMDR_CMDADD                                (0x00003FFFUL)
-#define DMC_CMDR_CMDADD_0                              (0x00000001UL)
-#define DMC_CMDR_CMDADD_1                              (0x00000002UL)
-#define DMC_CMDR_CMDADD_2                              (0x00000004UL)
-#define DMC_CMDR_CMDADD_3                              (0x00000008UL)
-#define DMC_CMDR_CMDADD_4                              (0x00000010UL)
-#define DMC_CMDR_CMDADD_5                              (0x00000020UL)
-#define DMC_CMDR_CMDADD_6                              (0x00000040UL)
-#define DMC_CMDR_CMDADD_7                              (0x00000080UL)
-#define DMC_CMDR_CMDADD_8                              (0x00000100UL)
-#define DMC_CMDR_CMDADD_9                              (0x00000200UL)
-#define DMC_CMDR_CMDADD_10                             (0x00000400UL)
-#define DMC_CMDR_CMDADD_11                             (0x00000800UL)
-#define DMC_CMDR_CMDADD_12                             (0x00001000UL)
-#define DMC_CMDR_CMDADD_13                             (0x00002000UL)
 #define DMC_CMDR_CMDBA_POS                             (16U)
 #define DMC_CMDR_CMDBA                                 (0x00030000UL)
 #define DMC_CMDR_CMDBA_0                               (0x00010000UL)
@@ -8205,12 +8174,6 @@ typedef struct
 #define DMC_CPCR_CKSTOP                                (0x00000200UL)
 #define DMC_CPCR_CKEDISPRD_POS                         (10U)
 #define DMC_CPCR_CKEDISPRD                             (0x0000FC00UL)
-#define DMC_CPCR_CKEDISPRD_0                           (0x00000400UL)
-#define DMC_CPCR_CKEDISPRD_1                           (0x00000800UL)
-#define DMC_CPCR_CKEDISPRD_2                           (0x00001000UL)
-#define DMC_CPCR_CKEDISPRD_3                           (0x00002000UL)
-#define DMC_CPCR_CKEDISPRD_4                           (0x00004000UL)
-#define DMC_CPCR_CKEDISPRD_5                           (0x00008000UL)
 #define DMC_CPCR_BURST_POS                             (16U)
 #define DMC_CPCR_BURST                                 (0x00070000UL)
 #define DMC_CPCR_BURST_0                               (0x00010000UL)
@@ -8269,24 +8232,8 @@ typedef struct
 /*  Bit definition for DMC_CSCR register  */
 #define DMC_CSCR_ADDMSK_POS                            (0U)
 #define DMC_CSCR_ADDMSK                                (0x000000FFUL)
-#define DMC_CSCR_ADDMSK_0                              (0x00000001UL)
-#define DMC_CSCR_ADDMSK_1                              (0x00000002UL)
-#define DMC_CSCR_ADDMSK_2                              (0x00000004UL)
-#define DMC_CSCR_ADDMSK_3                              (0x00000008UL)
-#define DMC_CSCR_ADDMSK_4                              (0x00000010UL)
-#define DMC_CSCR_ADDMSK_5                              (0x00000020UL)
-#define DMC_CSCR_ADDMSK_6                              (0x00000040UL)
-#define DMC_CSCR_ADDMSK_7                              (0x00000080UL)
 #define DMC_CSCR_ADDMAT_POS                            (8U)
 #define DMC_CSCR_ADDMAT                                (0x0000FF00UL)
-#define DMC_CSCR_ADDMAT_0                              (0x00000100UL)
-#define DMC_CSCR_ADDMAT_1                              (0x00000200UL)
-#define DMC_CSCR_ADDMAT_2                              (0x00000400UL)
-#define DMC_CSCR_ADDMAT_3                              (0x00000800UL)
-#define DMC_CSCR_ADDMAT_4                              (0x00001000UL)
-#define DMC_CSCR_ADDMAT_5                              (0x00002000UL)
-#define DMC_CSCR_ADDMAT_6                              (0x00004000UL)
-#define DMC_CSCR_ADDMAT_7                              (0x00008000UL)
 #define DMC_CSCR_BRC_POS                               (16U)
 #define DMC_CSCR_BRC                                   (0x00010000UL)
 #define DMC_CSCR_RESV8_POS                             (24U)
@@ -8368,154 +8315,34 @@ typedef struct
 /*  Bit definition for DVP_SSYNDR register  */
 #define DVP_SSYNDR_FSDAT_POS                           (0U)
 #define DVP_SSYNDR_FSDAT                               (0x000000FFUL)
-#define DVP_SSYNDR_FSDAT_0                             (0x00000001UL)
-#define DVP_SSYNDR_FSDAT_1                             (0x00000002UL)
-#define DVP_SSYNDR_FSDAT_2                             (0x00000004UL)
-#define DVP_SSYNDR_FSDAT_3                             (0x00000008UL)
-#define DVP_SSYNDR_FSDAT_4                             (0x00000010UL)
-#define DVP_SSYNDR_FSDAT_5                             (0x00000020UL)
-#define DVP_SSYNDR_FSDAT_6                             (0x00000040UL)
-#define DVP_SSYNDR_FSDAT_7                             (0x00000080UL)
 #define DVP_SSYNDR_LSDAT_POS                           (8U)
 #define DVP_SSYNDR_LSDAT                               (0x0000FF00UL)
-#define DVP_SSYNDR_LSDAT_0                             (0x00000100UL)
-#define DVP_SSYNDR_LSDAT_1                             (0x00000200UL)
-#define DVP_SSYNDR_LSDAT_2                             (0x00000400UL)
-#define DVP_SSYNDR_LSDAT_3                             (0x00000800UL)
-#define DVP_SSYNDR_LSDAT_4                             (0x00001000UL)
-#define DVP_SSYNDR_LSDAT_5                             (0x00002000UL)
-#define DVP_SSYNDR_LSDAT_6                             (0x00004000UL)
-#define DVP_SSYNDR_LSDAT_7                             (0x00008000UL)
 #define DVP_SSYNDR_LEDAT_POS                           (16U)
 #define DVP_SSYNDR_LEDAT                               (0x00FF0000UL)
-#define DVP_SSYNDR_LEDAT_0                             (0x00010000UL)
-#define DVP_SSYNDR_LEDAT_1                             (0x00020000UL)
-#define DVP_SSYNDR_LEDAT_2                             (0x00040000UL)
-#define DVP_SSYNDR_LEDAT_3                             (0x00080000UL)
-#define DVP_SSYNDR_LEDAT_4                             (0x00100000UL)
-#define DVP_SSYNDR_LEDAT_5                             (0x00200000UL)
-#define DVP_SSYNDR_LEDAT_6                             (0x00400000UL)
-#define DVP_SSYNDR_LEDAT_7                             (0x00800000UL)
 #define DVP_SSYNDR_FEDAT_POS                           (24U)
 #define DVP_SSYNDR_FEDAT                               (0xFF000000UL)
-#define DVP_SSYNDR_FEDAT_0                             (0x01000000UL)
-#define DVP_SSYNDR_FEDAT_1                             (0x02000000UL)
-#define DVP_SSYNDR_FEDAT_2                             (0x04000000UL)
-#define DVP_SSYNDR_FEDAT_3                             (0x08000000UL)
-#define DVP_SSYNDR_FEDAT_4                             (0x10000000UL)
-#define DVP_SSYNDR_FEDAT_5                             (0x20000000UL)
-#define DVP_SSYNDR_FEDAT_6                             (0x40000000UL)
-#define DVP_SSYNDR_FEDAT_7                             (0x80000000UL)
 
 /*  Bit definition for DVP_SSYNMR register  */
 #define DVP_SSYNMR_FSMSK_POS                           (0U)
 #define DVP_SSYNMR_FSMSK                               (0x000000FFUL)
-#define DVP_SSYNMR_FSMSK_0                             (0x00000001UL)
-#define DVP_SSYNMR_FSMSK_1                             (0x00000002UL)
-#define DVP_SSYNMR_FSMSK_2                             (0x00000004UL)
-#define DVP_SSYNMR_FSMSK_3                             (0x00000008UL)
-#define DVP_SSYNMR_FSMSK_4                             (0x00000010UL)
-#define DVP_SSYNMR_FSMSK_5                             (0x00000020UL)
-#define DVP_SSYNMR_FSMSK_6                             (0x00000040UL)
-#define DVP_SSYNMR_FSMSK_7                             (0x00000080UL)
 #define DVP_SSYNMR_LSMSK_POS                           (8U)
 #define DVP_SSYNMR_LSMSK                               (0x0000FF00UL)
-#define DVP_SSYNMR_LSMSK_0                             (0x00000100UL)
-#define DVP_SSYNMR_LSMSK_1                             (0x00000200UL)
-#define DVP_SSYNMR_LSMSK_2                             (0x00000400UL)
-#define DVP_SSYNMR_LSMSK_3                             (0x00000800UL)
-#define DVP_SSYNMR_LSMSK_4                             (0x00001000UL)
-#define DVP_SSYNMR_LSMSK_5                             (0x00002000UL)
-#define DVP_SSYNMR_LSMSK_6                             (0x00004000UL)
-#define DVP_SSYNMR_LSMSK_7                             (0x00008000UL)
 #define DVP_SSYNMR_LEMSK_POS                           (16U)
 #define DVP_SSYNMR_LEMSK                               (0x00FF0000UL)
-#define DVP_SSYNMR_LEMSK_0                             (0x00010000UL)
-#define DVP_SSYNMR_LEMSK_1                             (0x00020000UL)
-#define DVP_SSYNMR_LEMSK_2                             (0x00040000UL)
-#define DVP_SSYNMR_LEMSK_3                             (0x00080000UL)
-#define DVP_SSYNMR_LEMSK_4                             (0x00100000UL)
-#define DVP_SSYNMR_LEMSK_5                             (0x00200000UL)
-#define DVP_SSYNMR_LEMSK_6                             (0x00400000UL)
-#define DVP_SSYNMR_LEMSK_7                             (0x00800000UL)
 #define DVP_SSYNMR_FEMSK_POS                           (24U)
 #define DVP_SSYNMR_FEMSK                               (0xFF000000UL)
-#define DVP_SSYNMR_FEMSK_0                             (0x01000000UL)
-#define DVP_SSYNMR_FEMSK_1                             (0x02000000UL)
-#define DVP_SSYNMR_FEMSK_2                             (0x04000000UL)
-#define DVP_SSYNMR_FEMSK_3                             (0x08000000UL)
-#define DVP_SSYNMR_FEMSK_4                             (0x10000000UL)
-#define DVP_SSYNMR_FEMSK_5                             (0x20000000UL)
-#define DVP_SSYNMR_FEMSK_6                             (0x40000000UL)
-#define DVP_SSYNMR_FEMSK_7                             (0x80000000UL)
 
 /*  Bit definition for DVP_CPSFTR register  */
 #define DVP_CPSFTR_RSHIFT_POS                          (0U)
 #define DVP_CPSFTR_RSHIFT                              (0x00003FFFUL)
-#define DVP_CPSFTR_RSHIFT_0                            (0x00000001UL)
-#define DVP_CPSFTR_RSHIFT_1                            (0x00000002UL)
-#define DVP_CPSFTR_RSHIFT_2                            (0x00000004UL)
-#define DVP_CPSFTR_RSHIFT_3                            (0x00000008UL)
-#define DVP_CPSFTR_RSHIFT_4                            (0x00000010UL)
-#define DVP_CPSFTR_RSHIFT_5                            (0x00000020UL)
-#define DVP_CPSFTR_RSHIFT_6                            (0x00000040UL)
-#define DVP_CPSFTR_RSHIFT_7                            (0x00000080UL)
-#define DVP_CPSFTR_RSHIFT_8                            (0x00000100UL)
-#define DVP_CPSFTR_RSHIFT_9                            (0x00000200UL)
-#define DVP_CPSFTR_RSHIFT_10                           (0x00000400UL)
-#define DVP_CPSFTR_RSHIFT_11                           (0x00000800UL)
-#define DVP_CPSFTR_RSHIFT_12                           (0x00001000UL)
-#define DVP_CPSFTR_RSHIFT_13                           (0x00002000UL)
 #define DVP_CPSFTR_CSHIFT_POS                          (16U)
 #define DVP_CPSFTR_CSHIFT                              (0x3FFF0000UL)
-#define DVP_CPSFTR_CSHIFT_0                            (0x00010000UL)
-#define DVP_CPSFTR_CSHIFT_1                            (0x00020000UL)
-#define DVP_CPSFTR_CSHIFT_2                            (0x00040000UL)
-#define DVP_CPSFTR_CSHIFT_3                            (0x00080000UL)
-#define DVP_CPSFTR_CSHIFT_4                            (0x00100000UL)
-#define DVP_CPSFTR_CSHIFT_5                            (0x00200000UL)
-#define DVP_CPSFTR_CSHIFT_6                            (0x00400000UL)
-#define DVP_CPSFTR_CSHIFT_7                            (0x00800000UL)
-#define DVP_CPSFTR_CSHIFT_8                            (0x01000000UL)
-#define DVP_CPSFTR_CSHIFT_9                            (0x02000000UL)
-#define DVP_CPSFTR_CSHIFT_10                           (0x04000000UL)
-#define DVP_CPSFTR_CSHIFT_11                           (0x08000000UL)
-#define DVP_CPSFTR_CSHIFT_12                           (0x10000000UL)
-#define DVP_CPSFTR_CSHIFT_13                           (0x20000000UL)
 
 /*  Bit definition for DVP_CPSZER register  */
 #define DVP_CPSZER_RSIZE_POS                           (0U)
 #define DVP_CPSZER_RSIZE                               (0x00003FFFUL)
-#define DVP_CPSZER_RSIZE_0                             (0x00000001UL)
-#define DVP_CPSZER_RSIZE_1                             (0x00000002UL)
-#define DVP_CPSZER_RSIZE_2                             (0x00000004UL)
-#define DVP_CPSZER_RSIZE_3                             (0x00000008UL)
-#define DVP_CPSZER_RSIZE_4                             (0x00000010UL)
-#define DVP_CPSZER_RSIZE_5                             (0x00000020UL)
-#define DVP_CPSZER_RSIZE_6                             (0x00000040UL)
-#define DVP_CPSZER_RSIZE_7                             (0x00000080UL)
-#define DVP_CPSZER_RSIZE_8                             (0x00000100UL)
-#define DVP_CPSZER_RSIZE_9                             (0x00000200UL)
-#define DVP_CPSZER_RSIZE_10                            (0x00000400UL)
-#define DVP_CPSZER_RSIZE_11                            (0x00000800UL)
-#define DVP_CPSZER_RSIZE_12                            (0x00001000UL)
-#define DVP_CPSZER_RSIZE_13                            (0x00002000UL)
 #define DVP_CPSZER_CSIZE_POS                           (16U)
 #define DVP_CPSZER_CSIZE                               (0x3FFF0000UL)
-#define DVP_CPSZER_CSIZE_0                             (0x00010000UL)
-#define DVP_CPSZER_CSIZE_1                             (0x00020000UL)
-#define DVP_CPSZER_CSIZE_2                             (0x00040000UL)
-#define DVP_CPSZER_CSIZE_3                             (0x00080000UL)
-#define DVP_CPSZER_CSIZE_4                             (0x00100000UL)
-#define DVP_CPSZER_CSIZE_5                             (0x00200000UL)
-#define DVP_CPSZER_CSIZE_6                             (0x00400000UL)
-#define DVP_CPSZER_CSIZE_7                             (0x00800000UL)
-#define DVP_CPSZER_CSIZE_8                             (0x01000000UL)
-#define DVP_CPSZER_CSIZE_9                             (0x02000000UL)
-#define DVP_CPSZER_CSIZE_10                            (0x04000000UL)
-#define DVP_CPSZER_CSIZE_11                            (0x08000000UL)
-#define DVP_CPSZER_CSIZE_12                            (0x10000000UL)
-#define DVP_CPSZER_CSIZE_13                            (0x20000000UL)
 
 /*******************************************************************************
                 Bit definition for Peripheral EFM
@@ -12856,10 +12683,10 @@ typedef struct
 #define I2C_CLR_SMBALRTFCLR                            (0x00800000UL)
 
 /*  Bit definition for I2C_DTR register  */
-#define I2C_DTR_DT                                     (0x000000FFUL)
+#define I2C_DTR_DT                                     (0xFFU)
 
 /*  Bit definition for I2C_DRR register  */
-#define I2C_DRR_DR                                     (0x000000FFUL)
+#define I2C_DRR_DR                                     (0xFFU)
 
 /*  Bit definition for I2C_CCR register  */
 #define I2C_CCR_SLOWW_POS                              (0U)
@@ -13975,7 +13802,7 @@ typedef struct
 #define KEYSCAN_SER_SEN                                (0x00000001UL)
 
 /*  Bit definition for KEYSCAN_SSR register  */
-#define KEYSCAN_SSR_INDEX                              (0x00000003UL)
+#define KEYSCAN_SSR_INDEX                              (0x00000007UL)
 
 /*******************************************************************************
                 Bit definition for Peripheral MAU
@@ -15158,40 +14985,8 @@ typedef struct
 /*  Bit definition for NFC_CMDR register  */
 #define NFC_CMDR_CMD_POS                               (0U)
 #define NFC_CMDR_CMD                                   (0x000000FFUL)
-#define NFC_CMDR_CMD_0                                 (0x00000001UL)
-#define NFC_CMDR_CMD_1                                 (0x00000002UL)
-#define NFC_CMDR_CMD_2                                 (0x00000004UL)
-#define NFC_CMDR_CMD_3                                 (0x00000008UL)
-#define NFC_CMDR_CMD_4                                 (0x00000010UL)
-#define NFC_CMDR_CMD_5                                 (0x00000020UL)
-#define NFC_CMDR_CMD_6                                 (0x00000040UL)
-#define NFC_CMDR_CMD_7                                 (0x00000080UL)
 #define NFC_CMDR_ARG_POS                               (8U)
 #define NFC_CMDR_ARG                                   (0xFFFFFF00UL)
-#define NFC_CMDR_ARG_0                                 (0x00000100UL)
-#define NFC_CMDR_ARG_1                                 (0x00000200UL)
-#define NFC_CMDR_ARG_2                                 (0x00000400UL)
-#define NFC_CMDR_ARG_3                                 (0x00000800UL)
-#define NFC_CMDR_ARG_4                                 (0x00001000UL)
-#define NFC_CMDR_ARG_5                                 (0x00002000UL)
-#define NFC_CMDR_ARG_6                                 (0x00004000UL)
-#define NFC_CMDR_ARG_7                                 (0x00008000UL)
-#define NFC_CMDR_ARG_8                                 (0x00010000UL)
-#define NFC_CMDR_ARG_9                                 (0x00020000UL)
-#define NFC_CMDR_ARG_10                                (0x00040000UL)
-#define NFC_CMDR_ARG_11                                (0x00080000UL)
-#define NFC_CMDR_ARG_12                                (0x00100000UL)
-#define NFC_CMDR_ARG_13                                (0x00200000UL)
-#define NFC_CMDR_ARG_14                                (0x00400000UL)
-#define NFC_CMDR_ARG_15                                (0x00800000UL)
-#define NFC_CMDR_ARG_16                                (0x01000000UL)
-#define NFC_CMDR_ARG_17                                (0x02000000UL)
-#define NFC_CMDR_ARG_18                                (0x04000000UL)
-#define NFC_CMDR_ARG_19                                (0x08000000UL)
-#define NFC_CMDR_ARG_20                                (0x10000000UL)
-#define NFC_CMDR_ARG_21                                (0x20000000UL)
-#define NFC_CMDR_ARG_22                                (0x40000000UL)
-#define NFC_CMDR_ARG_23                                (0x80000000UL)
 
 /*  Bit definition for NFC_IDXR0 register  */
 #define NFC_IDXR0                                      (0xFFFFFFFFUL)
@@ -15267,16 +15062,8 @@ typedef struct
 /*  Bit definition for NFC_IDXR1 register  */
 #define NFC_IDXR1_IDX1_POS                             (0U)
 #define NFC_IDXR1_IDX1                                 (0x000000FFUL)
-#define NFC_IDXR1_IDX1_0                               (0x00000001UL)
-#define NFC_IDXR1_IDX1_1                               (0x00000002UL)
-#define NFC_IDXR1_IDX1_2                               (0x00000004UL)
-#define NFC_IDXR1_IDX1_3                               (0x00000008UL)
-#define NFC_IDXR1_IDX1_4                               (0x00000010UL)
-#define NFC_IDXR1_IDX1_5                               (0x00000020UL)
-#define NFC_IDXR1_IDX1_6                               (0x00000040UL)
-#define NFC_IDXR1_IDX1_7                               (0x00000080UL)
-#define NFC_IDXR1_RESV_POS                             (31U)
-#define NFC_IDXR1_RESV                                 (0x80000000UL)
+#define NFC_IDXR1_RESV_POS                             (8U)
+#define NFC_IDXR1_RESV                                 (0xFFFFFF00UL)
 
 /*  Bit definition for NFC_TMCR0 register  */
 #define NFC_TMCR0_TS_POS                               (0U)
@@ -15323,44 +15110,12 @@ typedef struct
 /*  Bit definition for NFC_TMCR1 register  */
 #define NFC_TMCR1_TWH_POS                              (0U)
 #define NFC_TMCR1_TWH                                  (0x000000FFUL)
-#define NFC_TMCR1_TWH_0                                (0x00000001UL)
-#define NFC_TMCR1_TWH_1                                (0x00000002UL)
-#define NFC_TMCR1_TWH_2                                (0x00000004UL)
-#define NFC_TMCR1_TWH_3                                (0x00000008UL)
-#define NFC_TMCR1_TWH_4                                (0x00000010UL)
-#define NFC_TMCR1_TWH_5                                (0x00000020UL)
-#define NFC_TMCR1_TWH_6                                (0x00000040UL)
-#define NFC_TMCR1_TWH_7                                (0x00000080UL)
 #define NFC_TMCR1_TRH_POS                              (8U)
 #define NFC_TMCR1_TRH                                  (0x0000FF00UL)
-#define NFC_TMCR1_TRH_0                                (0x00000100UL)
-#define NFC_TMCR1_TRH_1                                (0x00000200UL)
-#define NFC_TMCR1_TRH_2                                (0x00000400UL)
-#define NFC_TMCR1_TRH_3                                (0x00000800UL)
-#define NFC_TMCR1_TRH_4                                (0x00001000UL)
-#define NFC_TMCR1_TRH_5                                (0x00002000UL)
-#define NFC_TMCR1_TRH_6                                (0x00004000UL)
-#define NFC_TMCR1_TRH_7                                (0x00008000UL)
 #define NFC_TMCR1_TRR_POS                              (16U)
 #define NFC_TMCR1_TRR                                  (0x00FF0000UL)
-#define NFC_TMCR1_TRR_0                                (0x00010000UL)
-#define NFC_TMCR1_TRR_1                                (0x00020000UL)
-#define NFC_TMCR1_TRR_2                                (0x00040000UL)
-#define NFC_TMCR1_TRR_3                                (0x00080000UL)
-#define NFC_TMCR1_TRR_4                                (0x00100000UL)
-#define NFC_TMCR1_TRR_5                                (0x00200000UL)
-#define NFC_TMCR1_TRR_6                                (0x00400000UL)
-#define NFC_TMCR1_TRR_7                                (0x00800000UL)
 #define NFC_TMCR1_TWB_POS                              (24U)
 #define NFC_TMCR1_TWB                                  (0xFF000000UL)
-#define NFC_TMCR1_TWB_0                                (0x01000000UL)
-#define NFC_TMCR1_TWB_1                                (0x02000000UL)
-#define NFC_TMCR1_TWB_2                                (0x04000000UL)
-#define NFC_TMCR1_TWB_3                                (0x08000000UL)
-#define NFC_TMCR1_TWB_4                                (0x10000000UL)
-#define NFC_TMCR1_TWB_5                                (0x20000000UL)
-#define NFC_TMCR1_TWB_6                                (0x40000000UL)
-#define NFC_TMCR1_TWB_7                                (0x80000000UL)
 
 /*  Bit definition for NFC_BACR register  */
 #define NFC_BACR_SIZE_POS                              (0U)
@@ -15396,206 +15151,24 @@ typedef struct
 #define NFC_BACR_SCS_5                                 (0x00200000UL)
 #define NFC_BACR_SCS_6                                 (0x00400000UL)
 #define NFC_BACR_SCS_7                                 (0x00800000UL)
-#define NFC_BACR_RESV7_POS                             (24U)
-#define NFC_BACR_RESV7                                 (0x01000000UL)
-#define NFC_BACR_RESV_POS                              (31U)
-#define NFC_BACR_RESV                                  (0x80000000UL)
 
 /*  Bit definition for NFC_TMCR2 register  */
 #define NFC_TMCR2_TCCS_POS                             (0U)
 #define NFC_TMCR2_TCCS                                 (0x000000FFUL)
-#define NFC_TMCR2_TCCS_0                               (0x00000001UL)
-#define NFC_TMCR2_TCCS_1                               (0x00000002UL)
-#define NFC_TMCR2_TCCS_2                               (0x00000004UL)
-#define NFC_TMCR2_TCCS_3                               (0x00000008UL)
-#define NFC_TMCR2_TCCS_4                               (0x00000010UL)
-#define NFC_TMCR2_TCCS_5                               (0x00000020UL)
-#define NFC_TMCR2_TCCS_6                               (0x00000040UL)
-#define NFC_TMCR2_TCCS_7                               (0x00000080UL)
 #define NFC_TMCR2_TWTR_POS                             (8U)
 #define NFC_TMCR2_TWTR                                 (0x0000FF00UL)
-#define NFC_TMCR2_TWTR_0                               (0x00000100UL)
-#define NFC_TMCR2_TWTR_1                               (0x00000200UL)
-#define NFC_TMCR2_TWTR_2                               (0x00000400UL)
-#define NFC_TMCR2_TWTR_3                               (0x00000800UL)
-#define NFC_TMCR2_TWTR_4                               (0x00001000UL)
-#define NFC_TMCR2_TWTR_5                               (0x00002000UL)
-#define NFC_TMCR2_TWTR_6                               (0x00004000UL)
-#define NFC_TMCR2_TWTR_7                               (0x00008000UL)
 #define NFC_TMCR2_TRTW_POS                             (16U)
 #define NFC_TMCR2_TRTW                                 (0x00FF0000UL)
-#define NFC_TMCR2_TRTW_0                               (0x00010000UL)
-#define NFC_TMCR2_TRTW_1                               (0x00020000UL)
-#define NFC_TMCR2_TRTW_2                               (0x00040000UL)
-#define NFC_TMCR2_TRTW_3                               (0x00080000UL)
-#define NFC_TMCR2_TRTW_4                               (0x00100000UL)
-#define NFC_TMCR2_TRTW_5                               (0x00200000UL)
-#define NFC_TMCR2_TRTW_6                               (0x00400000UL)
-#define NFC_TMCR2_TRTW_7                               (0x00800000UL)
 #define NFC_TMCR2_TADL_POS                             (24U)
 #define NFC_TMCR2_TADL                                 (0xFF000000UL)
-#define NFC_TMCR2_TADL_0                               (0x01000000UL)
-#define NFC_TMCR2_TADL_1                               (0x02000000UL)
-#define NFC_TMCR2_TADL_2                               (0x04000000UL)
-#define NFC_TMCR2_TADL_3                               (0x08000000UL)
-#define NFC_TMCR2_TADL_4                               (0x10000000UL)
-#define NFC_TMCR2_TADL_5                               (0x20000000UL)
-#define NFC_TMCR2_TADL_6                               (0x40000000UL)
-#define NFC_TMCR2_TADL_7                               (0x80000000UL)
 
-/*  Bit definition for NFC_ECCR0 register  */
-#define NFC_ECCR0_ERRLOC_POS                           (0U)
-#define NFC_ECCR0_ERRLOC                               (0x00000FFFUL)
-#define NFC_ECCR0_ERRLOC_0                             (0x00000001UL)
-#define NFC_ECCR0_ERRLOC_1                             (0x00000002UL)
-#define NFC_ECCR0_ERRLOC_2                             (0x00000004UL)
-#define NFC_ECCR0_ERRLOC_3                             (0x00000008UL)
-#define NFC_ECCR0_ERRLOC_4                             (0x00000010UL)
-#define NFC_ECCR0_ERRLOC_5                             (0x00000020UL)
-#define NFC_ECCR0_ERRLOC_6                             (0x00000040UL)
-#define NFC_ECCR0_ERRLOC_7                             (0x00000080UL)
-#define NFC_ECCR0_ERRLOC_8                             (0x00000100UL)
-#define NFC_ECCR0_ERRLOC_9                             (0x00000200UL)
-#define NFC_ECCR0_ERRLOC_10                            (0x00000400UL)
-#define NFC_ECCR0_ERRLOC_11                            (0x00000800UL)
-#define NFC_ECCR0_SE_POS                               (12U)
-#define NFC_ECCR0_SE                                   (0x00001000UL)
-#define NFC_ECCR0_ME_POS                               (13U)
-#define NFC_ECCR0_ME                                   (0x00002000UL)
-#define NFC_ECCR0_RESV_POS                             (31U)
-#define NFC_ECCR0_RESV                                 (0x80000000UL)
-
-/*  Bit definition for NFC_ECCR1 register  */
-#define NFC_ECCR1_ERRLOC_POS                           (0U)
-#define NFC_ECCR1_ERRLOC                               (0x00000FFFUL)
-#define NFC_ECCR1_ERRLOC_0                             (0x00000001UL)
-#define NFC_ECCR1_ERRLOC_1                             (0x00000002UL)
-#define NFC_ECCR1_ERRLOC_2                             (0x00000004UL)
-#define NFC_ECCR1_ERRLOC_3                             (0x00000008UL)
-#define NFC_ECCR1_ERRLOC_4                             (0x00000010UL)
-#define NFC_ECCR1_ERRLOC_5                             (0x00000020UL)
-#define NFC_ECCR1_ERRLOC_6                             (0x00000040UL)
-#define NFC_ECCR1_ERRLOC_7                             (0x00000080UL)
-#define NFC_ECCR1_ERRLOC_8                             (0x00000100UL)
-#define NFC_ECCR1_ERRLOC_9                             (0x00000200UL)
-#define NFC_ECCR1_ERRLOC_10                            (0x00000400UL)
-#define NFC_ECCR1_ERRLOC_11                            (0x00000800UL)
-#define NFC_ECCR1_SE_POS                               (12U)
-#define NFC_ECCR1_SE                                   (0x00001000UL)
-#define NFC_ECCR1_ME_POS                               (13U)
-#define NFC_ECCR1_ME                                   (0x00002000UL)
-#define NFC_ECCR1_RESV_POS                             (31U)
-#define NFC_ECCR1_RESV                                 (0x80000000UL)
-
-/*  Bit definition for NFC_ECCR2 register  */
-#define NFC_ECCR2_ERRLOC_POS                           (0U)
-#define NFC_ECCR2_ERRLOC                               (0x00000FFFUL)
-#define NFC_ECCR2_ERRLOC_0                             (0x00000001UL)
-#define NFC_ECCR2_ERRLOC_1                             (0x00000002UL)
-#define NFC_ECCR2_ERRLOC_2                             (0x00000004UL)
-#define NFC_ECCR2_ERRLOC_3                             (0x00000008UL)
-#define NFC_ECCR2_ERRLOC_4                             (0x00000010UL)
-#define NFC_ECCR2_ERRLOC_5                             (0x00000020UL)
-#define NFC_ECCR2_ERRLOC_6                             (0x00000040UL)
-#define NFC_ECCR2_ERRLOC_7                             (0x00000080UL)
-#define NFC_ECCR2_ERRLOC_8                             (0x00000100UL)
-#define NFC_ECCR2_ERRLOC_9                             (0x00000200UL)
-#define NFC_ECCR2_ERRLOC_10                            (0x00000400UL)
-#define NFC_ECCR2_ERRLOC_11                            (0x00000800UL)
-#define NFC_ECCR2_SE_POS                               (12U)
-#define NFC_ECCR2_SE                                   (0x00001000UL)
-#define NFC_ECCR2_ME_POS                               (13U)
-#define NFC_ECCR2_ME                                   (0x00002000UL)
-#define NFC_ECCR2_RESV_POS                             (31U)
-#define NFC_ECCR2_RESV                                 (0x80000000UL)
-
-/*  Bit definition for NFC_ECCR3 register  */
-#define NFC_ECCR3_ERRLOC_POS                           (0U)
-#define NFC_ECCR3_ERRLOC                               (0x00000FFFUL)
-#define NFC_ECCR3_ERRLOC_0                             (0x00000001UL)
-#define NFC_ECCR3_ERRLOC_1                             (0x00000002UL)
-#define NFC_ECCR3_ERRLOC_2                             (0x00000004UL)
-#define NFC_ECCR3_ERRLOC_3                             (0x00000008UL)
-#define NFC_ECCR3_ERRLOC_4                             (0x00000010UL)
-#define NFC_ECCR3_ERRLOC_5                             (0x00000020UL)
-#define NFC_ECCR3_ERRLOC_6                             (0x00000040UL)
-#define NFC_ECCR3_ERRLOC_7                             (0x00000080UL)
-#define NFC_ECCR3_ERRLOC_8                             (0x00000100UL)
-#define NFC_ECCR3_ERRLOC_9                             (0x00000200UL)
-#define NFC_ECCR3_ERRLOC_10                            (0x00000400UL)
-#define NFC_ECCR3_ERRLOC_11                            (0x00000800UL)
-#define NFC_ECCR3_SE_POS                               (12U)
-#define NFC_ECCR3_SE                                   (0x00001000UL)
-#define NFC_ECCR3_ME_POS                               (13U)
-#define NFC_ECCR3_ME                                   (0x00002000UL)
-#define NFC_ECCR3_RESV_POS                             (31U)
-#define NFC_ECCR3_RESV                                 (0x80000000UL)
-
-/*  Bit definition for NFC_ECCR4 register  */
-#define NFC_ECCR4_ERRLOC_POS                           (0U)
-#define NFC_ECCR4_ERRLOC                               (0x00000FFFUL)
-#define NFC_ECCR4_ERRLOC_0                             (0x00000001UL)
-#define NFC_ECCR4_ERRLOC_1                             (0x00000002UL)
-#define NFC_ECCR4_ERRLOC_2                             (0x00000004UL)
-#define NFC_ECCR4_ERRLOC_3                             (0x00000008UL)
-#define NFC_ECCR4_ERRLOC_4                             (0x00000010UL)
-#define NFC_ECCR4_ERRLOC_5                             (0x00000020UL)
-#define NFC_ECCR4_ERRLOC_6                             (0x00000040UL)
-#define NFC_ECCR4_ERRLOC_7                             (0x00000080UL)
-#define NFC_ECCR4_ERRLOC_8                             (0x00000100UL)
-#define NFC_ECCR4_ERRLOC_9                             (0x00000200UL)
-#define NFC_ECCR4_ERRLOC_10                            (0x00000400UL)
-#define NFC_ECCR4_ERRLOC_11                            (0x00000800UL)
-#define NFC_ECCR4_SE_POS                               (12U)
-#define NFC_ECCR4_SE                                   (0x00001000UL)
-#define NFC_ECCR4_ME_POS                               (13U)
-#define NFC_ECCR4_ME                                   (0x00002000UL)
-#define NFC_ECCR4_RESV_POS                             (31U)
-#define NFC_ECCR4_RESV                                 (0x80000000UL)
-
-/*  Bit definition for NFC_ECCR5 register  */
-#define NFC_ECCR5_ERRLOC_POS                           (0U)
-#define NFC_ECCR5_ERRLOC                               (0x00000FFFUL)
-#define NFC_ECCR5_ERRLOC_0                             (0x00000001UL)
-#define NFC_ECCR5_ERRLOC_1                             (0x00000002UL)
-#define NFC_ECCR5_ERRLOC_2                             (0x00000004UL)
-#define NFC_ECCR5_ERRLOC_3                             (0x00000008UL)
-#define NFC_ECCR5_ERRLOC_4                             (0x00000010UL)
-#define NFC_ECCR5_ERRLOC_5                             (0x00000020UL)
-#define NFC_ECCR5_ERRLOC_6                             (0x00000040UL)
-#define NFC_ECCR5_ERRLOC_7                             (0x00000080UL)
-#define NFC_ECCR5_ERRLOC_8                             (0x00000100UL)
-#define NFC_ECCR5_ERRLOC_9                             (0x00000200UL)
-#define NFC_ECCR5_ERRLOC_10                            (0x00000400UL)
-#define NFC_ECCR5_ERRLOC_11                            (0x00000800UL)
-#define NFC_ECCR5_SE_POS                               (12U)
-#define NFC_ECCR5_SE                                   (0x00001000UL)
-#define NFC_ECCR5_ME_POS                               (13U)
-#define NFC_ECCR5_ME                                   (0x00002000UL)
-#define NFC_ECCR5_RESV_POS                             (31U)
-#define NFC_ECCR5_RESV                                 (0x80000000UL)
-
-/*  Bit definition for NFC_ECCR6 register  */
-#define NFC_ECCR6_ERRLOC_POS                           (0U)
-#define NFC_ECCR6_ERRLOC                               (0x00000FFFUL)
-#define NFC_ECCR6_ERRLOC_0                             (0x00000001UL)
-#define NFC_ECCR6_ERRLOC_1                             (0x00000002UL)
-#define NFC_ECCR6_ERRLOC_2                             (0x00000004UL)
-#define NFC_ECCR6_ERRLOC_3                             (0x00000008UL)
-#define NFC_ECCR6_ERRLOC_4                             (0x00000010UL)
-#define NFC_ECCR6_ERRLOC_5                             (0x00000020UL)
-#define NFC_ECCR6_ERRLOC_6                             (0x00000040UL)
-#define NFC_ECCR6_ERRLOC_7                             (0x00000080UL)
-#define NFC_ECCR6_ERRLOC_8                             (0x00000100UL)
-#define NFC_ECCR6_ERRLOC_9                             (0x00000200UL)
-#define NFC_ECCR6_ERRLOC_10                            (0x00000400UL)
-#define NFC_ECCR6_ERRLOC_11                            (0x00000800UL)
-#define NFC_ECCR6_SE_POS                               (12U)
-#define NFC_ECCR6_SE                                   (0x00001000UL)
-#define NFC_ECCR6_ME_POS                               (13U)
-#define NFC_ECCR6_ME                                   (0x00002000UL)
-#define NFC_ECCR6_RESV_POS                             (31U)
-#define NFC_ECCR6_RESV                                 (0x80000000UL)
+/*  Bit definition for NFC_ECCR register  */
+#define NFC_ECCR_ERRLOC_POS                            (0U)
+#define NFC_ECCR_ERRLOC                                (0x00000FFFUL)
+#define NFC_ECCR_SE_POS                                (12U)
+#define NFC_ECCR_SE                                    (0x00001000UL)
+#define NFC_ECCR_ME_POS                                (13U)
+#define NFC_ECCR_ME                                    (0x00002000UL)
 
 /*  Bit definition for NFC_ECC_STAT register  */
 #define NFC_ECC_STAT_ERRSEC_POS                        (0U)
@@ -15616,858 +15189,158 @@ typedef struct
 #define NFC_ECC_STAT_ERRSEC_13                         (0x00002000UL)
 #define NFC_ECC_STAT_ERRSEC_14                         (0x00004000UL)
 #define NFC_ECC_STAT_ERRSEC_15                         (0x00008000UL)
-#define NFC_ECC_STAT_RESV_POS                          (31U)
-#define NFC_ECC_STAT_RESV                              (0x80000000UL)
+#define NFC_ECC_STAT_RESV_POS                          (16U)
+#define NFC_ECC_STAT_RESV                              (0xFFFF0000UL)
 
 /*  Bit definition for NFC_ECC_SYND0_0 register  */
 #define NFC_ECC_SYND0_0_S1_POS                         (0U)
 #define NFC_ECC_SYND0_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND0_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND0_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND0_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND0_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND0_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND0_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND0_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND0_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND0_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND0_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND0_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND0_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND0_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND0_0_S2_POS                         (16U)
 #define NFC_ECC_SYND0_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND0_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND0_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND0_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND0_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND0_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND0_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND0_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND0_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND0_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND0_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND0_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND0_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND0_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND0_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND0_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND0_1 register  */
 #define NFC_ECC_SYND0_1_S3_POS                         (0U)
 #define NFC_ECC_SYND0_1_S3                             (0x00001FFFUL)
-#define NFC_ECC_SYND0_1_S3_0                           (0x00000001UL)
-#define NFC_ECC_SYND0_1_S3_1                           (0x00000002UL)
-#define NFC_ECC_SYND0_1_S3_2                           (0x00000004UL)
-#define NFC_ECC_SYND0_1_S3_3                           (0x00000008UL)
-#define NFC_ECC_SYND0_1_S3_4                           (0x00000010UL)
-#define NFC_ECC_SYND0_1_S3_5                           (0x00000020UL)
-#define NFC_ECC_SYND0_1_S3_6                           (0x00000040UL)
-#define NFC_ECC_SYND0_1_S3_7                           (0x00000080UL)
-#define NFC_ECC_SYND0_1_S3_8                           (0x00000100UL)
-#define NFC_ECC_SYND0_1_S3_9                           (0x00000200UL)
-#define NFC_ECC_SYND0_1_S3_10                          (0x00000400UL)
-#define NFC_ECC_SYND0_1_S3_11                          (0x00000800UL)
-#define NFC_ECC_SYND0_1_S3_12                          (0x00001000UL)
 #define NFC_ECC_SYND0_1_S4_POS                         (16U)
 #define NFC_ECC_SYND0_1_S4                             (0x1FFF0000UL)
-#define NFC_ECC_SYND0_1_S4_0                           (0x00010000UL)
-#define NFC_ECC_SYND0_1_S4_1                           (0x00020000UL)
-#define NFC_ECC_SYND0_1_S4_2                           (0x00040000UL)
-#define NFC_ECC_SYND0_1_S4_3                           (0x00080000UL)
-#define NFC_ECC_SYND0_1_S4_4                           (0x00100000UL)
-#define NFC_ECC_SYND0_1_S4_5                           (0x00200000UL)
-#define NFC_ECC_SYND0_1_S4_6                           (0x00400000UL)
-#define NFC_ECC_SYND0_1_S4_7                           (0x00800000UL)
-#define NFC_ECC_SYND0_1_S4_8                           (0x01000000UL)
-#define NFC_ECC_SYND0_1_S4_9                           (0x02000000UL)
-#define NFC_ECC_SYND0_1_S4_10                          (0x04000000UL)
-#define NFC_ECC_SYND0_1_S4_11                          (0x08000000UL)
-#define NFC_ECC_SYND0_1_S4_12                          (0x10000000UL)
-#define NFC_ECC_SYND0_1_RESV_POS                       (31U)
-#define NFC_ECC_SYND0_1_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND0_2 register  */
 #define NFC_ECC_SYND0_2_S5_POS                         (0U)
 #define NFC_ECC_SYND0_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND0_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND0_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND0_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND0_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND0_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND0_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND0_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND0_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND0_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND0_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND0_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND0_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND0_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND0_2_S6_POS                         (16U)
 #define NFC_ECC_SYND0_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND0_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND0_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND0_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND0_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND0_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND0_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND0_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND0_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND0_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND0_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND0_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND0_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND0_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND0_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND0_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND0_3 register  */
 #define NFC_ECC_SYND0_3_S7_POS                         (0U)
 #define NFC_ECC_SYND0_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND0_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND0_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND0_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND0_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND0_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND0_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND0_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND0_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND0_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND0_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND0_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND0_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND0_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND0_3_S8_POS                         (16U)
 #define NFC_ECC_SYND0_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND0_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND0_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND0_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND0_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND0_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND0_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND0_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND0_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND0_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND0_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND0_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND0_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND0_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND0_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND0_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND1_0 register  */
 #define NFC_ECC_SYND1_0_S1_POS                         (0U)
 #define NFC_ECC_SYND1_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND1_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND1_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND1_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND1_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND1_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND1_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND1_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND1_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND1_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND1_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND1_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND1_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND1_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND1_0_S2_POS                         (16U)
 #define NFC_ECC_SYND1_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND1_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND1_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND1_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND1_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND1_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND1_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND1_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND1_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND1_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND1_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND1_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND1_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND1_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND1_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND1_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND1_1 register  */
 #define NFC_ECC_SYND1_1_S3_POS                         (0U)
 #define NFC_ECC_SYND1_1_S3                             (0x00001FFFUL)
-#define NFC_ECC_SYND1_1_S3_0                           (0x00000001UL)
-#define NFC_ECC_SYND1_1_S3_1                           (0x00000002UL)
-#define NFC_ECC_SYND1_1_S3_2                           (0x00000004UL)
-#define NFC_ECC_SYND1_1_S3_3                           (0x00000008UL)
-#define NFC_ECC_SYND1_1_S3_4                           (0x00000010UL)
-#define NFC_ECC_SYND1_1_S3_5                           (0x00000020UL)
-#define NFC_ECC_SYND1_1_S3_6                           (0x00000040UL)
-#define NFC_ECC_SYND1_1_S3_7                           (0x00000080UL)
-#define NFC_ECC_SYND1_1_S3_8                           (0x00000100UL)
-#define NFC_ECC_SYND1_1_S3_9                           (0x00000200UL)
-#define NFC_ECC_SYND1_1_S3_10                          (0x00000400UL)
-#define NFC_ECC_SYND1_1_S3_11                          (0x00000800UL)
-#define NFC_ECC_SYND1_1_S3_12                          (0x00001000UL)
 #define NFC_ECC_SYND1_1_S4_POS                         (16U)
 #define NFC_ECC_SYND1_1_S4                             (0x1FFF0000UL)
-#define NFC_ECC_SYND1_1_S4_0                           (0x00010000UL)
-#define NFC_ECC_SYND1_1_S4_1                           (0x00020000UL)
-#define NFC_ECC_SYND1_1_S4_2                           (0x00040000UL)
-#define NFC_ECC_SYND1_1_S4_3                           (0x00080000UL)
-#define NFC_ECC_SYND1_1_S4_4                           (0x00100000UL)
-#define NFC_ECC_SYND1_1_S4_5                           (0x00200000UL)
-#define NFC_ECC_SYND1_1_S4_6                           (0x00400000UL)
-#define NFC_ECC_SYND1_1_S4_7                           (0x00800000UL)
-#define NFC_ECC_SYND1_1_S4_8                           (0x01000000UL)
-#define NFC_ECC_SYND1_1_S4_9                           (0x02000000UL)
-#define NFC_ECC_SYND1_1_S4_10                          (0x04000000UL)
-#define NFC_ECC_SYND1_1_S4_11                          (0x08000000UL)
-#define NFC_ECC_SYND1_1_S4_12                          (0x10000000UL)
-#define NFC_ECC_SYND1_1_RESV_POS                       (31U)
-#define NFC_ECC_SYND1_1_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND1_2 register  */
 #define NFC_ECC_SYND1_2_S5_POS                         (0U)
 #define NFC_ECC_SYND1_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND1_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND1_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND1_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND1_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND1_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND1_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND1_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND1_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND1_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND1_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND1_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND1_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND1_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND1_2_S6_POS                         (16U)
 #define NFC_ECC_SYND1_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND1_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND1_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND1_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND1_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND1_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND1_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND1_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND1_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND1_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND1_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND1_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND1_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND1_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND1_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND1_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND1_3 register  */
 #define NFC_ECC_SYND1_3_S7_POS                         (0U)
 #define NFC_ECC_SYND1_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND1_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND1_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND1_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND1_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND1_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND1_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND1_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND1_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND1_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND1_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND1_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND1_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND1_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND1_3_S8_POS                         (16U)
 #define NFC_ECC_SYND1_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND1_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND1_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND1_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND1_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND1_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND1_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND1_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND1_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND1_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND1_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND1_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND1_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND1_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND1_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND1_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND2_0 register  */
 #define NFC_ECC_SYND2_0_S1_POS                         (0U)
 #define NFC_ECC_SYND2_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND2_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND2_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND2_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND2_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND2_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND2_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND2_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND2_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND2_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND2_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND2_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND2_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND2_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND2_0_S2_POS                         (16U)
 #define NFC_ECC_SYND2_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND2_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND2_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND2_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND2_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND2_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND2_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND2_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND2_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND2_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND2_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND2_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND2_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND2_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND2_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND2_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND2_1 register  */
 #define NFC_ECC_SYND2_1_S3_POS                         (0U)
 #define NFC_ECC_SYND2_1_S3                             (0x00001FFFUL)
-#define NFC_ECC_SYND2_1_S3_0                           (0x00000001UL)
-#define NFC_ECC_SYND2_1_S3_1                           (0x00000002UL)
-#define NFC_ECC_SYND2_1_S3_2                           (0x00000004UL)
-#define NFC_ECC_SYND2_1_S3_3                           (0x00000008UL)
-#define NFC_ECC_SYND2_1_S3_4                           (0x00000010UL)
-#define NFC_ECC_SYND2_1_S3_5                           (0x00000020UL)
-#define NFC_ECC_SYND2_1_S3_6                           (0x00000040UL)
-#define NFC_ECC_SYND2_1_S3_7                           (0x00000080UL)
-#define NFC_ECC_SYND2_1_S3_8                           (0x00000100UL)
-#define NFC_ECC_SYND2_1_S3_9                           (0x00000200UL)
-#define NFC_ECC_SYND2_1_S3_10                          (0x00000400UL)
-#define NFC_ECC_SYND2_1_S3_11                          (0x00000800UL)
-#define NFC_ECC_SYND2_1_S3_12                          (0x00001000UL)
 #define NFC_ECC_SYND2_1_S4_POS                         (16U)
 #define NFC_ECC_SYND2_1_S4                             (0x1FFF0000UL)
-#define NFC_ECC_SYND2_1_S4_0                           (0x00010000UL)
-#define NFC_ECC_SYND2_1_S4_1                           (0x00020000UL)
-#define NFC_ECC_SYND2_1_S4_2                           (0x00040000UL)
-#define NFC_ECC_SYND2_1_S4_3                           (0x00080000UL)
-#define NFC_ECC_SYND2_1_S4_4                           (0x00100000UL)
-#define NFC_ECC_SYND2_1_S4_5                           (0x00200000UL)
-#define NFC_ECC_SYND2_1_S4_6                           (0x00400000UL)
-#define NFC_ECC_SYND2_1_S4_7                           (0x00800000UL)
-#define NFC_ECC_SYND2_1_S4_8                           (0x01000000UL)
-#define NFC_ECC_SYND2_1_S4_9                           (0x02000000UL)
-#define NFC_ECC_SYND2_1_S4_10                          (0x04000000UL)
-#define NFC_ECC_SYND2_1_S4_11                          (0x08000000UL)
-#define NFC_ECC_SYND2_1_S4_12                          (0x10000000UL)
-#define NFC_ECC_SYND2_1_RESV_POS                       (31U)
-#define NFC_ECC_SYND2_1_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND2_2 register  */
 #define NFC_ECC_SYND2_2_S5_POS                         (0U)
 #define NFC_ECC_SYND2_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND2_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND2_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND2_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND2_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND2_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND2_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND2_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND2_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND2_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND2_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND2_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND2_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND2_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND2_2_S6_POS                         (16U)
 #define NFC_ECC_SYND2_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND2_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND2_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND2_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND2_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND2_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND2_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND2_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND2_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND2_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND2_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND2_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND2_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND2_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND2_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND2_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND2_3 register  */
 #define NFC_ECC_SYND2_3_S7_POS                         (0U)
 #define NFC_ECC_SYND2_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND2_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND2_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND2_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND2_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND2_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND2_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND2_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND2_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND2_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND2_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND2_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND2_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND2_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND2_3_S8_POS                         (16U)
 #define NFC_ECC_SYND2_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND2_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND2_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND2_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND2_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND2_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND2_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND2_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND2_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND2_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND2_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND2_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND2_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND2_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND2_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND2_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND3_0 register  */
 #define NFC_ECC_SYND3_0_S1_POS                         (0U)
 #define NFC_ECC_SYND3_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND3_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND3_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND3_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND3_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND3_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND3_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND3_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND3_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND3_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND3_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND3_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND3_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND3_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND3_0_S2_POS                         (16U)
 #define NFC_ECC_SYND3_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND3_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND3_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND3_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND3_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND3_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND3_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND3_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND3_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND3_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND3_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND3_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND3_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND3_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND3_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND3_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND3_1 register  */
 #define NFC_ECC_SYND3_1_S3_POS                         (0U)
 #define NFC_ECC_SYND3_1_S3                             (0x00001FFFUL)
-#define NFC_ECC_SYND3_1_S3_0                           (0x00000001UL)
-#define NFC_ECC_SYND3_1_S3_1                           (0x00000002UL)
-#define NFC_ECC_SYND3_1_S3_2                           (0x00000004UL)
-#define NFC_ECC_SYND3_1_S3_3                           (0x00000008UL)
-#define NFC_ECC_SYND3_1_S3_4                           (0x00000010UL)
-#define NFC_ECC_SYND3_1_S3_5                           (0x00000020UL)
-#define NFC_ECC_SYND3_1_S3_6                           (0x00000040UL)
-#define NFC_ECC_SYND3_1_S3_7                           (0x00000080UL)
-#define NFC_ECC_SYND3_1_S3_8                           (0x00000100UL)
-#define NFC_ECC_SYND3_1_S3_9                           (0x00000200UL)
-#define NFC_ECC_SYND3_1_S3_10                          (0x00000400UL)
-#define NFC_ECC_SYND3_1_S3_11                          (0x00000800UL)
-#define NFC_ECC_SYND3_1_S3_12                          (0x00001000UL)
 #define NFC_ECC_SYND3_1_S4_POS                         (16U)
 #define NFC_ECC_SYND3_1_S4                             (0x1FFF0000UL)
-#define NFC_ECC_SYND3_1_S4_0                           (0x00010000UL)
-#define NFC_ECC_SYND3_1_S4_1                           (0x00020000UL)
-#define NFC_ECC_SYND3_1_S4_2                           (0x00040000UL)
-#define NFC_ECC_SYND3_1_S4_3                           (0x00080000UL)
-#define NFC_ECC_SYND3_1_S4_4                           (0x00100000UL)
-#define NFC_ECC_SYND3_1_S4_5                           (0x00200000UL)
-#define NFC_ECC_SYND3_1_S4_6                           (0x00400000UL)
-#define NFC_ECC_SYND3_1_S4_7                           (0x00800000UL)
-#define NFC_ECC_SYND3_1_S4_8                           (0x01000000UL)
-#define NFC_ECC_SYND3_1_S4_9                           (0x02000000UL)
-#define NFC_ECC_SYND3_1_S4_10                          (0x04000000UL)
-#define NFC_ECC_SYND3_1_S4_11                          (0x08000000UL)
-#define NFC_ECC_SYND3_1_S4_12                          (0x10000000UL)
-#define NFC_ECC_SYND3_1_RESV_POS                       (31U)
-#define NFC_ECC_SYND3_1_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND3_2 register  */
 #define NFC_ECC_SYND3_2_S5_POS                         (0U)
 #define NFC_ECC_SYND3_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND3_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND3_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND3_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND3_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND3_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND3_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND3_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND3_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND3_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND3_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND3_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND3_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND3_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND3_2_S6_POS                         (16U)
 #define NFC_ECC_SYND3_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND3_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND3_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND3_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND3_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND3_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND3_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND3_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND3_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND3_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND3_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND3_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND3_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND3_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND3_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND3_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND3_3 register  */
 #define NFC_ECC_SYND3_3_S7_POS                         (0U)
 #define NFC_ECC_SYND3_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND3_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND3_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND3_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND3_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND3_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND3_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND3_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND3_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND3_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND3_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND3_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND3_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND3_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND3_3_S8_POS                         (16U)
 #define NFC_ECC_SYND3_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND3_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND3_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND3_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND3_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND3_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND3_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND3_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND3_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND3_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND3_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND3_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND3_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND3_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND3_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND3_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND4_0 register  */
 #define NFC_ECC_SYND4_0_S1_POS                         (0U)
 #define NFC_ECC_SYND4_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND4_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND4_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND4_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND4_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND4_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND4_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND4_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND4_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND4_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND4_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND4_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND4_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND4_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND4_0_S2_POS                         (16U)
 #define NFC_ECC_SYND4_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND4_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND4_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND4_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND4_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND4_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND4_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND4_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND4_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND4_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND4_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND4_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND4_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND4_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND4_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND4_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND4_1 register  */
 #define NFC_ECC_SYND4_1_S3_POS                         (0U)
 #define NFC_ECC_SYND4_1_S3                             (0x00001FFFUL)
-#define NFC_ECC_SYND4_1_S3_0                           (0x00000001UL)
-#define NFC_ECC_SYND4_1_S3_1                           (0x00000002UL)
-#define NFC_ECC_SYND4_1_S3_2                           (0x00000004UL)
-#define NFC_ECC_SYND4_1_S3_3                           (0x00000008UL)
-#define NFC_ECC_SYND4_1_S3_4                           (0x00000010UL)
-#define NFC_ECC_SYND4_1_S3_5                           (0x00000020UL)
-#define NFC_ECC_SYND4_1_S3_6                           (0x00000040UL)
-#define NFC_ECC_SYND4_1_S3_7                           (0x00000080UL)
-#define NFC_ECC_SYND4_1_S3_8                           (0x00000100UL)
-#define NFC_ECC_SYND4_1_S3_9                           (0x00000200UL)
-#define NFC_ECC_SYND4_1_S3_10                          (0x00000400UL)
-#define NFC_ECC_SYND4_1_S3_11                          (0x00000800UL)
-#define NFC_ECC_SYND4_1_S3_12                          (0x00001000UL)
 #define NFC_ECC_SYND4_1_S4_POS                         (16U)
 #define NFC_ECC_SYND4_1_S4                             (0x1FFF0000UL)
-#define NFC_ECC_SYND4_1_S4_0                           (0x00010000UL)
-#define NFC_ECC_SYND4_1_S4_1                           (0x00020000UL)
-#define NFC_ECC_SYND4_1_S4_2                           (0x00040000UL)
-#define NFC_ECC_SYND4_1_S4_3                           (0x00080000UL)
-#define NFC_ECC_SYND4_1_S4_4                           (0x00100000UL)
-#define NFC_ECC_SYND4_1_S4_5                           (0x00200000UL)
-#define NFC_ECC_SYND4_1_S4_6                           (0x00400000UL)
-#define NFC_ECC_SYND4_1_S4_7                           (0x00800000UL)
-#define NFC_ECC_SYND4_1_S4_8                           (0x01000000UL)
-#define NFC_ECC_SYND4_1_S4_9                           (0x02000000UL)
-#define NFC_ECC_SYND4_1_S4_10                          (0x04000000UL)
-#define NFC_ECC_SYND4_1_S4_11                          (0x08000000UL)
-#define NFC_ECC_SYND4_1_S4_12                          (0x10000000UL)
-#define NFC_ECC_SYND4_1_RESV_POS                       (31U)
-#define NFC_ECC_SYND4_1_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND4_2 register  */
 #define NFC_ECC_SYND4_2_S5_POS                         (0U)
 #define NFC_ECC_SYND4_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND4_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND4_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND4_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND4_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND4_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND4_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND4_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND4_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND4_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND4_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND4_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND4_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND4_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND4_2_S6_POS                         (16U)
 #define NFC_ECC_SYND4_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND4_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND4_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND4_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND4_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND4_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND4_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND4_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND4_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND4_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND4_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND4_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND4_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND4_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND4_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND4_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND4_3 register  */
 #define NFC_ECC_SYND4_3_S7_POS                         (0U)
 #define NFC_ECC_SYND4_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND4_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND4_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND4_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND4_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND4_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND4_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND4_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND4_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND4_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND4_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND4_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND4_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND4_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND4_3_S8_POS                         (16U)
 #define NFC_ECC_SYND4_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND4_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND4_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND4_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND4_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND4_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND4_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND4_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND4_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND4_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND4_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND4_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND4_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND4_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND4_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND4_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND5_0 register  */
 #define NFC_ECC_SYND5_0_S1_POS                         (0U)
 #define NFC_ECC_SYND5_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND5_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND5_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND5_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND5_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND5_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND5_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND5_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND5_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND5_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND5_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND5_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND5_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND5_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND5_0_S2_POS                         (16U)
 #define NFC_ECC_SYND5_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND5_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND5_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND5_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND5_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND5_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND5_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND5_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND5_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND5_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND5_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND5_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND5_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND5_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND5_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND5_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND5_1 register  */
 #define NFC_ECC_SYND5_1_S3_POS                         (0U)
 #define NFC_ECC_SYND5_1_S3                             (0x00001FFFUL)
-#define NFC_ECC_SYND5_1_S3_0                           (0x00000001UL)
-#define NFC_ECC_SYND5_1_S3_1                           (0x00000002UL)
-#define NFC_ECC_SYND5_1_S3_2                           (0x00000004UL)
-#define NFC_ECC_SYND5_1_S3_3                           (0x00000008UL)
-#define NFC_ECC_SYND5_1_S3_4                           (0x00000010UL)
-#define NFC_ECC_SYND5_1_S3_5                           (0x00000020UL)
-#define NFC_ECC_SYND5_1_S3_6                           (0x00000040UL)
-#define NFC_ECC_SYND5_1_S3_7                           (0x00000080UL)
-#define NFC_ECC_SYND5_1_S3_8                           (0x00000100UL)
-#define NFC_ECC_SYND5_1_S3_9                           (0x00000200UL)
-#define NFC_ECC_SYND5_1_S3_10                          (0x00000400UL)
-#define NFC_ECC_SYND5_1_S3_11                          (0x00000800UL)
-#define NFC_ECC_SYND5_1_S3_12                          (0x00001000UL)
 #define NFC_ECC_SYND5_1_S4_POS                         (16U)
 #define NFC_ECC_SYND5_1_S4                             (0x1FFF0000UL)
-#define NFC_ECC_SYND5_1_S4_0                           (0x00010000UL)
-#define NFC_ECC_SYND5_1_S4_1                           (0x00020000UL)
-#define NFC_ECC_SYND5_1_S4_2                           (0x00040000UL)
-#define NFC_ECC_SYND5_1_S4_3                           (0x00080000UL)
-#define NFC_ECC_SYND5_1_S4_4                           (0x00100000UL)
-#define NFC_ECC_SYND5_1_S4_5                           (0x00200000UL)
-#define NFC_ECC_SYND5_1_S4_6                           (0x00400000UL)
-#define NFC_ECC_SYND5_1_S4_7                           (0x00800000UL)
-#define NFC_ECC_SYND5_1_S4_8                           (0x01000000UL)
-#define NFC_ECC_SYND5_1_S4_9                           (0x02000000UL)
-#define NFC_ECC_SYND5_1_S4_10                          (0x04000000UL)
-#define NFC_ECC_SYND5_1_S4_11                          (0x08000000UL)
-#define NFC_ECC_SYND5_1_S4_12                          (0x10000000UL)
-#define NFC_ECC_SYND5_1_RESV_POS                       (31U)
-#define NFC_ECC_SYND5_1_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND5_2 register  */
 #define NFC_ECC_SYND5_2_S5_POS                         (0U)
 #define NFC_ECC_SYND5_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND5_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND5_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND5_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND5_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND5_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND5_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND5_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND5_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND5_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND5_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND5_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND5_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND5_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND5_2_S6_POS                         (16U)
 #define NFC_ECC_SYND5_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND5_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND5_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND5_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND5_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND5_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND5_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND5_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND5_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND5_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND5_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND5_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND5_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND5_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND5_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND5_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND5_3 register  */
 #define NFC_ECC_SYND5_3_S7_POS                         (0U)
 #define NFC_ECC_SYND5_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND5_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND5_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND5_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND5_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND5_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND5_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND5_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND5_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND5_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND5_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND5_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND5_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND5_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND5_3_S8_POS                         (16U)
 #define NFC_ECC_SYND5_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND5_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND5_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND5_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND5_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND5_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND5_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND5_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND5_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND5_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND5_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND5_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND5_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND5_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND5_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND5_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND6_0 register  */
 #define NFC_ECC_SYND6_0_S1_POS                         (0U)
 #define NFC_ECC_SYND6_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND6_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND6_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND6_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND6_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND6_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND6_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND6_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND6_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND6_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND6_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND6_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND6_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND6_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND6_0_S2_POS                         (16U)
 #define NFC_ECC_SYND6_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND6_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND6_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND6_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND6_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND6_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND6_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND6_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND6_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND6_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND6_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND6_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND6_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND6_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND6_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND6_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND6_1 register  */
 #define NFC_ECC_SYND6_1_S3_POS                         (0U)
@@ -16506,1294 +15379,230 @@ typedef struct
 /*  Bit definition for NFC_ECC_SYND6_2 register  */
 #define NFC_ECC_SYND6_2_S5_POS                         (0U)
 #define NFC_ECC_SYND6_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND6_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND6_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND6_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND6_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND6_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND6_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND6_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND6_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND6_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND6_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND6_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND6_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND6_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND6_2_S6_POS                         (16U)
 #define NFC_ECC_SYND6_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND6_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND6_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND6_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND6_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND6_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND6_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND6_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND6_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND6_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND6_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND6_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND6_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND6_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND6_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND6_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND6_3 register  */
 #define NFC_ECC_SYND6_3_S7_POS                         (0U)
 #define NFC_ECC_SYND6_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND6_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND6_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND6_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND6_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND6_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND6_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND6_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND6_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND6_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND6_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND6_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND6_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND6_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND6_3_S8_POS                         (16U)
 #define NFC_ECC_SYND6_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND6_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND6_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND6_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND6_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND6_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND6_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND6_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND6_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND6_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND6_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND6_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND6_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND6_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND6_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND6_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND7_0 register  */
 #define NFC_ECC_SYND7_0_S1_POS                         (0U)
 #define NFC_ECC_SYND7_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND7_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND7_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND7_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND7_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND7_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND7_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND7_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND7_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND7_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND7_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND7_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND7_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND7_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND7_0_S2_POS                         (16U)
 #define NFC_ECC_SYND7_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND7_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND7_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND7_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND7_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND7_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND7_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND7_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND7_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND7_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND7_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND7_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND7_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND7_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND7_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND7_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND7_1 register  */
 #define NFC_ECC_SYND7_1_S3_POS                         (0U)
 #define NFC_ECC_SYND7_1_S3                             (0x00001FFFUL)
-#define NFC_ECC_SYND7_1_S3_0                           (0x00000001UL)
-#define NFC_ECC_SYND7_1_S3_1                           (0x00000002UL)
-#define NFC_ECC_SYND7_1_S3_2                           (0x00000004UL)
-#define NFC_ECC_SYND7_1_S3_3                           (0x00000008UL)
-#define NFC_ECC_SYND7_1_S3_4                           (0x00000010UL)
-#define NFC_ECC_SYND7_1_S3_5                           (0x00000020UL)
-#define NFC_ECC_SYND7_1_S3_6                           (0x00000040UL)
-#define NFC_ECC_SYND7_1_S3_7                           (0x00000080UL)
-#define NFC_ECC_SYND7_1_S3_8                           (0x00000100UL)
-#define NFC_ECC_SYND7_1_S3_9                           (0x00000200UL)
-#define NFC_ECC_SYND7_1_S3_10                          (0x00000400UL)
-#define NFC_ECC_SYND7_1_S3_11                          (0x00000800UL)
-#define NFC_ECC_SYND7_1_S3_12                          (0x00001000UL)
 #define NFC_ECC_SYND7_1_S4_POS                         (16U)
 #define NFC_ECC_SYND7_1_S4                             (0x1FFF0000UL)
-#define NFC_ECC_SYND7_1_S4_0                           (0x00010000UL)
-#define NFC_ECC_SYND7_1_S4_1                           (0x00020000UL)
-#define NFC_ECC_SYND7_1_S4_2                           (0x00040000UL)
-#define NFC_ECC_SYND7_1_S4_3                           (0x00080000UL)
-#define NFC_ECC_SYND7_1_S4_4                           (0x00100000UL)
-#define NFC_ECC_SYND7_1_S4_5                           (0x00200000UL)
-#define NFC_ECC_SYND7_1_S4_6                           (0x00400000UL)
-#define NFC_ECC_SYND7_1_S4_7                           (0x00800000UL)
-#define NFC_ECC_SYND7_1_S4_8                           (0x01000000UL)
-#define NFC_ECC_SYND7_1_S4_9                           (0x02000000UL)
-#define NFC_ECC_SYND7_1_S4_10                          (0x04000000UL)
-#define NFC_ECC_SYND7_1_S4_11                          (0x08000000UL)
-#define NFC_ECC_SYND7_1_S4_12                          (0x10000000UL)
-#define NFC_ECC_SYND7_1_RESV_POS                       (31U)
-#define NFC_ECC_SYND7_1_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND7_2 register  */
 #define NFC_ECC_SYND7_2_S5_POS                         (0U)
 #define NFC_ECC_SYND7_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND7_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND7_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND7_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND7_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND7_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND7_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND7_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND7_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND7_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND7_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND7_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND7_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND7_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND7_2_S6_POS                         (16U)
 #define NFC_ECC_SYND7_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND7_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND7_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND7_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND7_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND7_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND7_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND7_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND7_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND7_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND7_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND7_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND7_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND7_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND7_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND7_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND7_3 register  */
 #define NFC_ECC_SYND7_3_S7_POS                         (0U)
 #define NFC_ECC_SYND7_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND7_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND7_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND7_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND7_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND7_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND7_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND7_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND7_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND7_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND7_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND7_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND7_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND7_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND7_3_S8_POS                         (16U)
 #define NFC_ECC_SYND7_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND7_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND7_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND7_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND7_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND7_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND7_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND7_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND7_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND7_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND7_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND7_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND7_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND7_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND7_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND7_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND8_0 register  */
 #define NFC_ECC_SYND8_0_S1_POS                         (0U)
 #define NFC_ECC_SYND8_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND8_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND8_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND8_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND8_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND8_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND8_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND8_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND8_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND8_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND8_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND8_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND8_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND8_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND8_0_S2_POS                         (16U)
 #define NFC_ECC_SYND8_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND8_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND8_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND8_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND8_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND8_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND8_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND8_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND8_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND8_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND8_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND8_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND8_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND8_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND8_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND8_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND8_1 register  */
 #define NFC_ECC_SYND8_1_S3_POS                         (0U)
 #define NFC_ECC_SYND8_1_S3                             (0x00001FFFUL)
-#define NFC_ECC_SYND8_1_S3_0                           (0x00000001UL)
-#define NFC_ECC_SYND8_1_S3_1                           (0x00000002UL)
-#define NFC_ECC_SYND8_1_S3_2                           (0x00000004UL)
-#define NFC_ECC_SYND8_1_S3_3                           (0x00000008UL)
-#define NFC_ECC_SYND8_1_S3_4                           (0x00000010UL)
-#define NFC_ECC_SYND8_1_S3_5                           (0x00000020UL)
-#define NFC_ECC_SYND8_1_S3_6                           (0x00000040UL)
-#define NFC_ECC_SYND8_1_S3_7                           (0x00000080UL)
-#define NFC_ECC_SYND8_1_S3_8                           (0x00000100UL)
-#define NFC_ECC_SYND8_1_S3_9                           (0x00000200UL)
-#define NFC_ECC_SYND8_1_S3_10                          (0x00000400UL)
-#define NFC_ECC_SYND8_1_S3_11                          (0x00000800UL)
-#define NFC_ECC_SYND8_1_S3_12                          (0x00001000UL)
 #define NFC_ECC_SYND8_1_S4_POS                         (16U)
 #define NFC_ECC_SYND8_1_S4                             (0x1FFF0000UL)
-#define NFC_ECC_SYND8_1_S4_0                           (0x00010000UL)
-#define NFC_ECC_SYND8_1_S4_1                           (0x00020000UL)
-#define NFC_ECC_SYND8_1_S4_2                           (0x00040000UL)
-#define NFC_ECC_SYND8_1_S4_3                           (0x00080000UL)
-#define NFC_ECC_SYND8_1_S4_4                           (0x00100000UL)
-#define NFC_ECC_SYND8_1_S4_5                           (0x00200000UL)
-#define NFC_ECC_SYND8_1_S4_6                           (0x00400000UL)
-#define NFC_ECC_SYND8_1_S4_7                           (0x00800000UL)
-#define NFC_ECC_SYND8_1_S4_8                           (0x01000000UL)
-#define NFC_ECC_SYND8_1_S4_9                           (0x02000000UL)
-#define NFC_ECC_SYND8_1_S4_10                          (0x04000000UL)
-#define NFC_ECC_SYND8_1_S4_11                          (0x08000000UL)
-#define NFC_ECC_SYND8_1_S4_12                          (0x10000000UL)
-#define NFC_ECC_SYND8_1_RESV_POS                       (31U)
-#define NFC_ECC_SYND8_1_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND8_2 register  */
 #define NFC_ECC_SYND8_2_S5_POS                         (0U)
 #define NFC_ECC_SYND8_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND8_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND8_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND8_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND8_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND8_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND8_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND8_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND8_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND8_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND8_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND8_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND8_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND8_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND8_2_S6_POS                         (16U)
 #define NFC_ECC_SYND8_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND8_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND8_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND8_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND8_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND8_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND8_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND8_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND8_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND8_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND8_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND8_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND8_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND8_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND8_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND8_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND8_3 register  */
 #define NFC_ECC_SYND8_3_S7_POS                         (0U)
 #define NFC_ECC_SYND8_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND8_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND8_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND8_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND8_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND8_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND8_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND8_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND8_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND8_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND8_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND8_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND8_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND8_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND8_3_S8_POS                         (16U)
 #define NFC_ECC_SYND8_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND8_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND8_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND8_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND8_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND8_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND8_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND8_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND8_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND8_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND8_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND8_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND8_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND8_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND8_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND8_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND9_0 register  */
 #define NFC_ECC_SYND9_0_S1_POS                         (0U)
 #define NFC_ECC_SYND9_0_S1                             (0x00001FFFUL)
-#define NFC_ECC_SYND9_0_S1_0                           (0x00000001UL)
-#define NFC_ECC_SYND9_0_S1_1                           (0x00000002UL)
-#define NFC_ECC_SYND9_0_S1_2                           (0x00000004UL)
-#define NFC_ECC_SYND9_0_S1_3                           (0x00000008UL)
-#define NFC_ECC_SYND9_0_S1_4                           (0x00000010UL)
-#define NFC_ECC_SYND9_0_S1_5                           (0x00000020UL)
-#define NFC_ECC_SYND9_0_S1_6                           (0x00000040UL)
-#define NFC_ECC_SYND9_0_S1_7                           (0x00000080UL)
-#define NFC_ECC_SYND9_0_S1_8                           (0x00000100UL)
-#define NFC_ECC_SYND9_0_S1_9                           (0x00000200UL)
-#define NFC_ECC_SYND9_0_S1_10                          (0x00000400UL)
-#define NFC_ECC_SYND9_0_S1_11                          (0x00000800UL)
-#define NFC_ECC_SYND9_0_S1_12                          (0x00001000UL)
 #define NFC_ECC_SYND9_0_S2_POS                         (16U)
 #define NFC_ECC_SYND9_0_S2                             (0x1FFF0000UL)
-#define NFC_ECC_SYND9_0_S2_0                           (0x00010000UL)
-#define NFC_ECC_SYND9_0_S2_1                           (0x00020000UL)
-#define NFC_ECC_SYND9_0_S2_2                           (0x00040000UL)
-#define NFC_ECC_SYND9_0_S2_3                           (0x00080000UL)
-#define NFC_ECC_SYND9_0_S2_4                           (0x00100000UL)
-#define NFC_ECC_SYND9_0_S2_5                           (0x00200000UL)
-#define NFC_ECC_SYND9_0_S2_6                           (0x00400000UL)
-#define NFC_ECC_SYND9_0_S2_7                           (0x00800000UL)
-#define NFC_ECC_SYND9_0_S2_8                           (0x01000000UL)
-#define NFC_ECC_SYND9_0_S2_9                           (0x02000000UL)
-#define NFC_ECC_SYND9_0_S2_10                          (0x04000000UL)
-#define NFC_ECC_SYND9_0_S2_11                          (0x08000000UL)
-#define NFC_ECC_SYND9_0_S2_12                          (0x10000000UL)
-#define NFC_ECC_SYND9_0_RESV_POS                       (31U)
-#define NFC_ECC_SYND9_0_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND9_1 register  */
 #define NFC_ECC_SYND9_1_S3_POS                         (0U)
 #define NFC_ECC_SYND9_1_S3                             (0x00001FFFUL)
-#define NFC_ECC_SYND9_1_S3_0                           (0x00000001UL)
-#define NFC_ECC_SYND9_1_S3_1                           (0x00000002UL)
-#define NFC_ECC_SYND9_1_S3_2                           (0x00000004UL)
-#define NFC_ECC_SYND9_1_S3_3                           (0x00000008UL)
-#define NFC_ECC_SYND9_1_S3_4                           (0x00000010UL)
-#define NFC_ECC_SYND9_1_S3_5                           (0x00000020UL)
-#define NFC_ECC_SYND9_1_S3_6                           (0x00000040UL)
-#define NFC_ECC_SYND9_1_S3_7                           (0x00000080UL)
-#define NFC_ECC_SYND9_1_S3_8                           (0x00000100UL)
-#define NFC_ECC_SYND9_1_S3_9                           (0x00000200UL)
-#define NFC_ECC_SYND9_1_S3_10                          (0x00000400UL)
-#define NFC_ECC_SYND9_1_S3_11                          (0x00000800UL)
-#define NFC_ECC_SYND9_1_S3_12                          (0x00001000UL)
 #define NFC_ECC_SYND9_1_S4_POS                         (16U)
 #define NFC_ECC_SYND9_1_S4                             (0x1FFF0000UL)
-#define NFC_ECC_SYND9_1_S4_0                           (0x00010000UL)
-#define NFC_ECC_SYND9_1_S4_1                           (0x00020000UL)
-#define NFC_ECC_SYND9_1_S4_2                           (0x00040000UL)
-#define NFC_ECC_SYND9_1_S4_3                           (0x00080000UL)
-#define NFC_ECC_SYND9_1_S4_4                           (0x00100000UL)
-#define NFC_ECC_SYND9_1_S4_5                           (0x00200000UL)
-#define NFC_ECC_SYND9_1_S4_6                           (0x00400000UL)
-#define NFC_ECC_SYND9_1_S4_7                           (0x00800000UL)
-#define NFC_ECC_SYND9_1_S4_8                           (0x01000000UL)
-#define NFC_ECC_SYND9_1_S4_9                           (0x02000000UL)
-#define NFC_ECC_SYND9_1_S4_10                          (0x04000000UL)
-#define NFC_ECC_SYND9_1_S4_11                          (0x08000000UL)
-#define NFC_ECC_SYND9_1_S4_12                          (0x10000000UL)
-#define NFC_ECC_SYND9_1_RESV_POS                       (31U)
-#define NFC_ECC_SYND9_1_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND9_2 register  */
 #define NFC_ECC_SYND9_2_S5_POS                         (0U)
 #define NFC_ECC_SYND9_2_S5                             (0x00001FFFUL)
-#define NFC_ECC_SYND9_2_S5_0                           (0x00000001UL)
-#define NFC_ECC_SYND9_2_S5_1                           (0x00000002UL)
-#define NFC_ECC_SYND9_2_S5_2                           (0x00000004UL)
-#define NFC_ECC_SYND9_2_S5_3                           (0x00000008UL)
-#define NFC_ECC_SYND9_2_S5_4                           (0x00000010UL)
-#define NFC_ECC_SYND9_2_S5_5                           (0x00000020UL)
-#define NFC_ECC_SYND9_2_S5_6                           (0x00000040UL)
-#define NFC_ECC_SYND9_2_S5_7                           (0x00000080UL)
-#define NFC_ECC_SYND9_2_S5_8                           (0x00000100UL)
-#define NFC_ECC_SYND9_2_S5_9                           (0x00000200UL)
-#define NFC_ECC_SYND9_2_S5_10                          (0x00000400UL)
-#define NFC_ECC_SYND9_2_S5_11                          (0x00000800UL)
-#define NFC_ECC_SYND9_2_S5_12                          (0x00001000UL)
 #define NFC_ECC_SYND9_2_S6_POS                         (16U)
 #define NFC_ECC_SYND9_2_S6                             (0x1FFF0000UL)
-#define NFC_ECC_SYND9_2_S6_0                           (0x00010000UL)
-#define NFC_ECC_SYND9_2_S6_1                           (0x00020000UL)
-#define NFC_ECC_SYND9_2_S6_2                           (0x00040000UL)
-#define NFC_ECC_SYND9_2_S6_3                           (0x00080000UL)
-#define NFC_ECC_SYND9_2_S6_4                           (0x00100000UL)
-#define NFC_ECC_SYND9_2_S6_5                           (0x00200000UL)
-#define NFC_ECC_SYND9_2_S6_6                           (0x00400000UL)
-#define NFC_ECC_SYND9_2_S6_7                           (0x00800000UL)
-#define NFC_ECC_SYND9_2_S6_8                           (0x01000000UL)
-#define NFC_ECC_SYND9_2_S6_9                           (0x02000000UL)
-#define NFC_ECC_SYND9_2_S6_10                          (0x04000000UL)
-#define NFC_ECC_SYND9_2_S6_11                          (0x08000000UL)
-#define NFC_ECC_SYND9_2_S6_12                          (0x10000000UL)
-#define NFC_ECC_SYND9_2_RESV_POS                       (31U)
-#define NFC_ECC_SYND9_2_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND9_3 register  */
 #define NFC_ECC_SYND9_3_S7_POS                         (0U)
 #define NFC_ECC_SYND9_3_S7                             (0x00001FFFUL)
-#define NFC_ECC_SYND9_3_S7_0                           (0x00000001UL)
-#define NFC_ECC_SYND9_3_S7_1                           (0x00000002UL)
-#define NFC_ECC_SYND9_3_S7_2                           (0x00000004UL)
-#define NFC_ECC_SYND9_3_S7_3                           (0x00000008UL)
-#define NFC_ECC_SYND9_3_S7_4                           (0x00000010UL)
-#define NFC_ECC_SYND9_3_S7_5                           (0x00000020UL)
-#define NFC_ECC_SYND9_3_S7_6                           (0x00000040UL)
-#define NFC_ECC_SYND9_3_S7_7                           (0x00000080UL)
-#define NFC_ECC_SYND9_3_S7_8                           (0x00000100UL)
-#define NFC_ECC_SYND9_3_S7_9                           (0x00000200UL)
-#define NFC_ECC_SYND9_3_S7_10                          (0x00000400UL)
-#define NFC_ECC_SYND9_3_S7_11                          (0x00000800UL)
-#define NFC_ECC_SYND9_3_S7_12                          (0x00001000UL)
 #define NFC_ECC_SYND9_3_S8_POS                         (16U)
 #define NFC_ECC_SYND9_3_S8                             (0x1FFF0000UL)
-#define NFC_ECC_SYND9_3_S8_0                           (0x00010000UL)
-#define NFC_ECC_SYND9_3_S8_1                           (0x00020000UL)
-#define NFC_ECC_SYND9_3_S8_2                           (0x00040000UL)
-#define NFC_ECC_SYND9_3_S8_3                           (0x00080000UL)
-#define NFC_ECC_SYND9_3_S8_4                           (0x00100000UL)
-#define NFC_ECC_SYND9_3_S8_5                           (0x00200000UL)
-#define NFC_ECC_SYND9_3_S8_6                           (0x00400000UL)
-#define NFC_ECC_SYND9_3_S8_7                           (0x00800000UL)
-#define NFC_ECC_SYND9_3_S8_8                           (0x01000000UL)
-#define NFC_ECC_SYND9_3_S8_9                           (0x02000000UL)
-#define NFC_ECC_SYND9_3_S8_10                          (0x04000000UL)
-#define NFC_ECC_SYND9_3_S8_11                          (0x08000000UL)
-#define NFC_ECC_SYND9_3_S8_12                          (0x10000000UL)
-#define NFC_ECC_SYND9_3_RESV_POS                       (31U)
-#define NFC_ECC_SYND9_3_RESV                           (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND10_0 register  */
 #define NFC_ECC_SYND10_0_S1_POS                        (0U)
 #define NFC_ECC_SYND10_0_S1                            (0x00001FFFUL)
-#define NFC_ECC_SYND10_0_S1_0                          (0x00000001UL)
-#define NFC_ECC_SYND10_0_S1_1                          (0x00000002UL)
-#define NFC_ECC_SYND10_0_S1_2                          (0x00000004UL)
-#define NFC_ECC_SYND10_0_S1_3                          (0x00000008UL)
-#define NFC_ECC_SYND10_0_S1_4                          (0x00000010UL)
-#define NFC_ECC_SYND10_0_S1_5                          (0x00000020UL)
-#define NFC_ECC_SYND10_0_S1_6                          (0x00000040UL)
-#define NFC_ECC_SYND10_0_S1_7                          (0x00000080UL)
-#define NFC_ECC_SYND10_0_S1_8                          (0x00000100UL)
-#define NFC_ECC_SYND10_0_S1_9                          (0x00000200UL)
-#define NFC_ECC_SYND10_0_S1_10                         (0x00000400UL)
-#define NFC_ECC_SYND10_0_S1_11                         (0x00000800UL)
-#define NFC_ECC_SYND10_0_S1_12                         (0x00001000UL)
 #define NFC_ECC_SYND10_0_S2_POS                        (16U)
 #define NFC_ECC_SYND10_0_S2                            (0x1FFF0000UL)
-#define NFC_ECC_SYND10_0_S2_0                          (0x00010000UL)
-#define NFC_ECC_SYND10_0_S2_1                          (0x00020000UL)
-#define NFC_ECC_SYND10_0_S2_2                          (0x00040000UL)
-#define NFC_ECC_SYND10_0_S2_3                          (0x00080000UL)
-#define NFC_ECC_SYND10_0_S2_4                          (0x00100000UL)
-#define NFC_ECC_SYND10_0_S2_5                          (0x00200000UL)
-#define NFC_ECC_SYND10_0_S2_6                          (0x00400000UL)
-#define NFC_ECC_SYND10_0_S2_7                          (0x00800000UL)
-#define NFC_ECC_SYND10_0_S2_8                          (0x01000000UL)
-#define NFC_ECC_SYND10_0_S2_9                          (0x02000000UL)
-#define NFC_ECC_SYND10_0_S2_10                         (0x04000000UL)
-#define NFC_ECC_SYND10_0_S2_11                         (0x08000000UL)
-#define NFC_ECC_SYND10_0_S2_12                         (0x10000000UL)
-#define NFC_ECC_SYND10_0_RESV_POS                      (31U)
-#define NFC_ECC_SYND10_0_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND10_1 register  */
 #define NFC_ECC_SYND10_1_S3_POS                        (0U)
 #define NFC_ECC_SYND10_1_S3                            (0x00001FFFUL)
-#define NFC_ECC_SYND10_1_S3_0                          (0x00000001UL)
-#define NFC_ECC_SYND10_1_S3_1                          (0x00000002UL)
-#define NFC_ECC_SYND10_1_S3_2                          (0x00000004UL)
-#define NFC_ECC_SYND10_1_S3_3                          (0x00000008UL)
-#define NFC_ECC_SYND10_1_S3_4                          (0x00000010UL)
-#define NFC_ECC_SYND10_1_S3_5                          (0x00000020UL)
-#define NFC_ECC_SYND10_1_S3_6                          (0x00000040UL)
-#define NFC_ECC_SYND10_1_S3_7                          (0x00000080UL)
-#define NFC_ECC_SYND10_1_S3_8                          (0x00000100UL)
-#define NFC_ECC_SYND10_1_S3_9                          (0x00000200UL)
-#define NFC_ECC_SYND10_1_S3_10                         (0x00000400UL)
-#define NFC_ECC_SYND10_1_S3_11                         (0x00000800UL)
-#define NFC_ECC_SYND10_1_S3_12                         (0x00001000UL)
 #define NFC_ECC_SYND10_1_S4_POS                        (16U)
 #define NFC_ECC_SYND10_1_S4                            (0x1FFF0000UL)
-#define NFC_ECC_SYND10_1_S4_0                          (0x00010000UL)
-#define NFC_ECC_SYND10_1_S4_1                          (0x00020000UL)
-#define NFC_ECC_SYND10_1_S4_2                          (0x00040000UL)
-#define NFC_ECC_SYND10_1_S4_3                          (0x00080000UL)
-#define NFC_ECC_SYND10_1_S4_4                          (0x00100000UL)
-#define NFC_ECC_SYND10_1_S4_5                          (0x00200000UL)
-#define NFC_ECC_SYND10_1_S4_6                          (0x00400000UL)
-#define NFC_ECC_SYND10_1_S4_7                          (0x00800000UL)
-#define NFC_ECC_SYND10_1_S4_8                          (0x01000000UL)
-#define NFC_ECC_SYND10_1_S4_9                          (0x02000000UL)
-#define NFC_ECC_SYND10_1_S4_10                         (0x04000000UL)
-#define NFC_ECC_SYND10_1_S4_11                         (0x08000000UL)
-#define NFC_ECC_SYND10_1_S4_12                         (0x10000000UL)
-#define NFC_ECC_SYND10_1_RESV_POS                      (31U)
-#define NFC_ECC_SYND10_1_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND10_2 register  */
 #define NFC_ECC_SYND10_2_S5_POS                        (0U)
 #define NFC_ECC_SYND10_2_S5                            (0x00001FFFUL)
-#define NFC_ECC_SYND10_2_S5_0                          (0x00000001UL)
-#define NFC_ECC_SYND10_2_S5_1                          (0x00000002UL)
-#define NFC_ECC_SYND10_2_S5_2                          (0x00000004UL)
-#define NFC_ECC_SYND10_2_S5_3                          (0x00000008UL)
-#define NFC_ECC_SYND10_2_S5_4                          (0x00000010UL)
-#define NFC_ECC_SYND10_2_S5_5                          (0x00000020UL)
-#define NFC_ECC_SYND10_2_S5_6                          (0x00000040UL)
-#define NFC_ECC_SYND10_2_S5_7                          (0x00000080UL)
-#define NFC_ECC_SYND10_2_S5_8                          (0x00000100UL)
-#define NFC_ECC_SYND10_2_S5_9                          (0x00000200UL)
-#define NFC_ECC_SYND10_2_S5_10                         (0x00000400UL)
-#define NFC_ECC_SYND10_2_S5_11                         (0x00000800UL)
-#define NFC_ECC_SYND10_2_S5_12                         (0x00001000UL)
 #define NFC_ECC_SYND10_2_S6_POS                        (16U)
 #define NFC_ECC_SYND10_2_S6                            (0x1FFF0000UL)
-#define NFC_ECC_SYND10_2_S6_0                          (0x00010000UL)
-#define NFC_ECC_SYND10_2_S6_1                          (0x00020000UL)
-#define NFC_ECC_SYND10_2_S6_2                          (0x00040000UL)
-#define NFC_ECC_SYND10_2_S6_3                          (0x00080000UL)
-#define NFC_ECC_SYND10_2_S6_4                          (0x00100000UL)
-#define NFC_ECC_SYND10_2_S6_5                          (0x00200000UL)
-#define NFC_ECC_SYND10_2_S6_6                          (0x00400000UL)
-#define NFC_ECC_SYND10_2_S6_7                          (0x00800000UL)
-#define NFC_ECC_SYND10_2_S6_8                          (0x01000000UL)
-#define NFC_ECC_SYND10_2_S6_9                          (0x02000000UL)
-#define NFC_ECC_SYND10_2_S6_10                         (0x04000000UL)
-#define NFC_ECC_SYND10_2_S6_11                         (0x08000000UL)
-#define NFC_ECC_SYND10_2_S6_12                         (0x10000000UL)
-#define NFC_ECC_SYND10_2_RESV_POS                      (31U)
-#define NFC_ECC_SYND10_2_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND10_3 register  */
 #define NFC_ECC_SYND10_3_S7_POS                        (0U)
 #define NFC_ECC_SYND10_3_S7                            (0x00001FFFUL)
-#define NFC_ECC_SYND10_3_S7_0                          (0x00000001UL)
-#define NFC_ECC_SYND10_3_S7_1                          (0x00000002UL)
-#define NFC_ECC_SYND10_3_S7_2                          (0x00000004UL)
-#define NFC_ECC_SYND10_3_S7_3                          (0x00000008UL)
-#define NFC_ECC_SYND10_3_S7_4                          (0x00000010UL)
-#define NFC_ECC_SYND10_3_S7_5                          (0x00000020UL)
-#define NFC_ECC_SYND10_3_S7_6                          (0x00000040UL)
-#define NFC_ECC_SYND10_3_S7_7                          (0x00000080UL)
-#define NFC_ECC_SYND10_3_S7_8                          (0x00000100UL)
-#define NFC_ECC_SYND10_3_S7_9                          (0x00000200UL)
-#define NFC_ECC_SYND10_3_S7_10                         (0x00000400UL)
-#define NFC_ECC_SYND10_3_S7_11                         (0x00000800UL)
-#define NFC_ECC_SYND10_3_S7_12                         (0x00001000UL)
 #define NFC_ECC_SYND10_3_S8_POS                        (16U)
 #define NFC_ECC_SYND10_3_S8                            (0x1FFF0000UL)
-#define NFC_ECC_SYND10_3_S8_0                          (0x00010000UL)
-#define NFC_ECC_SYND10_3_S8_1                          (0x00020000UL)
-#define NFC_ECC_SYND10_3_S8_2                          (0x00040000UL)
-#define NFC_ECC_SYND10_3_S8_3                          (0x00080000UL)
-#define NFC_ECC_SYND10_3_S8_4                          (0x00100000UL)
-#define NFC_ECC_SYND10_3_S8_5                          (0x00200000UL)
-#define NFC_ECC_SYND10_3_S8_6                          (0x00400000UL)
-#define NFC_ECC_SYND10_3_S8_7                          (0x00800000UL)
-#define NFC_ECC_SYND10_3_S8_8                          (0x01000000UL)
-#define NFC_ECC_SYND10_3_S8_9                          (0x02000000UL)
-#define NFC_ECC_SYND10_3_S8_10                         (0x04000000UL)
-#define NFC_ECC_SYND10_3_S8_11                         (0x08000000UL)
-#define NFC_ECC_SYND10_3_S8_12                         (0x10000000UL)
-#define NFC_ECC_SYND10_3_RESV_POS                      (31U)
-#define NFC_ECC_SYND10_3_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND11_0 register  */
 #define NFC_ECC_SYND11_0_S1_POS                        (0U)
 #define NFC_ECC_SYND11_0_S1                            (0x00001FFFUL)
-#define NFC_ECC_SYND11_0_S1_0                          (0x00000001UL)
-#define NFC_ECC_SYND11_0_S1_1                          (0x00000002UL)
-#define NFC_ECC_SYND11_0_S1_2                          (0x00000004UL)
-#define NFC_ECC_SYND11_0_S1_3                          (0x00000008UL)
-#define NFC_ECC_SYND11_0_S1_4                          (0x00000010UL)
-#define NFC_ECC_SYND11_0_S1_5                          (0x00000020UL)
-#define NFC_ECC_SYND11_0_S1_6                          (0x00000040UL)
-#define NFC_ECC_SYND11_0_S1_7                          (0x00000080UL)
-#define NFC_ECC_SYND11_0_S1_8                          (0x00000100UL)
-#define NFC_ECC_SYND11_0_S1_9                          (0x00000200UL)
-#define NFC_ECC_SYND11_0_S1_10                         (0x00000400UL)
-#define NFC_ECC_SYND11_0_S1_11                         (0x00000800UL)
-#define NFC_ECC_SYND11_0_S1_12                         (0x00001000UL)
 #define NFC_ECC_SYND11_0_S2_POS                        (16U)
 #define NFC_ECC_SYND11_0_S2                            (0x1FFF0000UL)
-#define NFC_ECC_SYND11_0_S2_0                          (0x00010000UL)
-#define NFC_ECC_SYND11_0_S2_1                          (0x00020000UL)
-#define NFC_ECC_SYND11_0_S2_2                          (0x00040000UL)
-#define NFC_ECC_SYND11_0_S2_3                          (0x00080000UL)
-#define NFC_ECC_SYND11_0_S2_4                          (0x00100000UL)
-#define NFC_ECC_SYND11_0_S2_5                          (0x00200000UL)
-#define NFC_ECC_SYND11_0_S2_6                          (0x00400000UL)
-#define NFC_ECC_SYND11_0_S2_7                          (0x00800000UL)
-#define NFC_ECC_SYND11_0_S2_8                          (0x01000000UL)
-#define NFC_ECC_SYND11_0_S2_9                          (0x02000000UL)
-#define NFC_ECC_SYND11_0_S2_10                         (0x04000000UL)
-#define NFC_ECC_SYND11_0_S2_11                         (0x08000000UL)
-#define NFC_ECC_SYND11_0_S2_12                         (0x10000000UL)
-#define NFC_ECC_SYND11_0_RESV_POS                      (31U)
-#define NFC_ECC_SYND11_0_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND11_1 register  */
 #define NFC_ECC_SYND11_1_S3_POS                        (0U)
 #define NFC_ECC_SYND11_1_S3                            (0x00001FFFUL)
-#define NFC_ECC_SYND11_1_S3_0                          (0x00000001UL)
-#define NFC_ECC_SYND11_1_S3_1                          (0x00000002UL)
-#define NFC_ECC_SYND11_1_S3_2                          (0x00000004UL)
-#define NFC_ECC_SYND11_1_S3_3                          (0x00000008UL)
-#define NFC_ECC_SYND11_1_S3_4                          (0x00000010UL)
-#define NFC_ECC_SYND11_1_S3_5                          (0x00000020UL)
-#define NFC_ECC_SYND11_1_S3_6                          (0x00000040UL)
-#define NFC_ECC_SYND11_1_S3_7                          (0x00000080UL)
-#define NFC_ECC_SYND11_1_S3_8                          (0x00000100UL)
-#define NFC_ECC_SYND11_1_S3_9                          (0x00000200UL)
-#define NFC_ECC_SYND11_1_S3_10                         (0x00000400UL)
-#define NFC_ECC_SYND11_1_S3_11                         (0x00000800UL)
-#define NFC_ECC_SYND11_1_S3_12                         (0x00001000UL)
 #define NFC_ECC_SYND11_1_S4_POS                        (16U)
 #define NFC_ECC_SYND11_1_S4                            (0x1FFF0000UL)
-#define NFC_ECC_SYND11_1_S4_0                          (0x00010000UL)
-#define NFC_ECC_SYND11_1_S4_1                          (0x00020000UL)
-#define NFC_ECC_SYND11_1_S4_2                          (0x00040000UL)
-#define NFC_ECC_SYND11_1_S4_3                          (0x00080000UL)
-#define NFC_ECC_SYND11_1_S4_4                          (0x00100000UL)
-#define NFC_ECC_SYND11_1_S4_5                          (0x00200000UL)
-#define NFC_ECC_SYND11_1_S4_6                          (0x00400000UL)
-#define NFC_ECC_SYND11_1_S4_7                          (0x00800000UL)
-#define NFC_ECC_SYND11_1_S4_8                          (0x01000000UL)
-#define NFC_ECC_SYND11_1_S4_9                          (0x02000000UL)
-#define NFC_ECC_SYND11_1_S4_10                         (0x04000000UL)
-#define NFC_ECC_SYND11_1_S4_11                         (0x08000000UL)
-#define NFC_ECC_SYND11_1_S4_12                         (0x10000000UL)
-#define NFC_ECC_SYND11_1_RESV_POS                      (31U)
-#define NFC_ECC_SYND11_1_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND11_2 register  */
 #define NFC_ECC_SYND11_2_S5_POS                        (0U)
 #define NFC_ECC_SYND11_2_S5                            (0x00001FFFUL)
-#define NFC_ECC_SYND11_2_S5_0                          (0x00000001UL)
-#define NFC_ECC_SYND11_2_S5_1                          (0x00000002UL)
-#define NFC_ECC_SYND11_2_S5_2                          (0x00000004UL)
-#define NFC_ECC_SYND11_2_S5_3                          (0x00000008UL)
-#define NFC_ECC_SYND11_2_S5_4                          (0x00000010UL)
-#define NFC_ECC_SYND11_2_S5_5                          (0x00000020UL)
-#define NFC_ECC_SYND11_2_S5_6                          (0x00000040UL)
-#define NFC_ECC_SYND11_2_S5_7                          (0x00000080UL)
-#define NFC_ECC_SYND11_2_S5_8                          (0x00000100UL)
-#define NFC_ECC_SYND11_2_S5_9                          (0x00000200UL)
-#define NFC_ECC_SYND11_2_S5_10                         (0x00000400UL)
-#define NFC_ECC_SYND11_2_S5_11                         (0x00000800UL)
-#define NFC_ECC_SYND11_2_S5_12                         (0x00001000UL)
 #define NFC_ECC_SYND11_2_S6_POS                        (16U)
 #define NFC_ECC_SYND11_2_S6                            (0x1FFF0000UL)
-#define NFC_ECC_SYND11_2_S6_0                          (0x00010000UL)
-#define NFC_ECC_SYND11_2_S6_1                          (0x00020000UL)
-#define NFC_ECC_SYND11_2_S6_2                          (0x00040000UL)
-#define NFC_ECC_SYND11_2_S6_3                          (0x00080000UL)
-#define NFC_ECC_SYND11_2_S6_4                          (0x00100000UL)
-#define NFC_ECC_SYND11_2_S6_5                          (0x00200000UL)
-#define NFC_ECC_SYND11_2_S6_6                          (0x00400000UL)
-#define NFC_ECC_SYND11_2_S6_7                          (0x00800000UL)
-#define NFC_ECC_SYND11_2_S6_8                          (0x01000000UL)
-#define NFC_ECC_SYND11_2_S6_9                          (0x02000000UL)
-#define NFC_ECC_SYND11_2_S6_10                         (0x04000000UL)
-#define NFC_ECC_SYND11_2_S6_11                         (0x08000000UL)
-#define NFC_ECC_SYND11_2_S6_12                         (0x10000000UL)
-#define NFC_ECC_SYND11_2_RESV_POS                      (31U)
-#define NFC_ECC_SYND11_2_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND11_3 register  */
 #define NFC_ECC_SYND11_3_S7_POS                        (0U)
 #define NFC_ECC_SYND11_3_S7                            (0x00001FFFUL)
-#define NFC_ECC_SYND11_3_S7_0                          (0x00000001UL)
-#define NFC_ECC_SYND11_3_S7_1                          (0x00000002UL)
-#define NFC_ECC_SYND11_3_S7_2                          (0x00000004UL)
-#define NFC_ECC_SYND11_3_S7_3                          (0x00000008UL)
-#define NFC_ECC_SYND11_3_S7_4                          (0x00000010UL)
-#define NFC_ECC_SYND11_3_S7_5                          (0x00000020UL)
-#define NFC_ECC_SYND11_3_S7_6                          (0x00000040UL)
-#define NFC_ECC_SYND11_3_S7_7                          (0x00000080UL)
-#define NFC_ECC_SYND11_3_S7_8                          (0x00000100UL)
-#define NFC_ECC_SYND11_3_S7_9                          (0x00000200UL)
-#define NFC_ECC_SYND11_3_S7_10                         (0x00000400UL)
-#define NFC_ECC_SYND11_3_S7_11                         (0x00000800UL)
-#define NFC_ECC_SYND11_3_S7_12                         (0x00001000UL)
 #define NFC_ECC_SYND11_3_S8_POS                        (16U)
 #define NFC_ECC_SYND11_3_S8                            (0x1FFF0000UL)
-#define NFC_ECC_SYND11_3_S8_0                          (0x00010000UL)
-#define NFC_ECC_SYND11_3_S8_1                          (0x00020000UL)
-#define NFC_ECC_SYND11_3_S8_2                          (0x00040000UL)
-#define NFC_ECC_SYND11_3_S8_3                          (0x00080000UL)
-#define NFC_ECC_SYND11_3_S8_4                          (0x00100000UL)
-#define NFC_ECC_SYND11_3_S8_5                          (0x00200000UL)
-#define NFC_ECC_SYND11_3_S8_6                          (0x00400000UL)
-#define NFC_ECC_SYND11_3_S8_7                          (0x00800000UL)
-#define NFC_ECC_SYND11_3_S8_8                          (0x01000000UL)
-#define NFC_ECC_SYND11_3_S8_9                          (0x02000000UL)
-#define NFC_ECC_SYND11_3_S8_10                         (0x04000000UL)
-#define NFC_ECC_SYND11_3_S8_11                         (0x08000000UL)
-#define NFC_ECC_SYND11_3_S8_12                         (0x10000000UL)
-#define NFC_ECC_SYND11_3_RESV_POS                      (31U)
-#define NFC_ECC_SYND11_3_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND12_0 register  */
 #define NFC_ECC_SYND12_0_S1_POS                        (0U)
 #define NFC_ECC_SYND12_0_S1                            (0x00001FFFUL)
-#define NFC_ECC_SYND12_0_S1_0                          (0x00000001UL)
-#define NFC_ECC_SYND12_0_S1_1                          (0x00000002UL)
-#define NFC_ECC_SYND12_0_S1_2                          (0x00000004UL)
-#define NFC_ECC_SYND12_0_S1_3                          (0x00000008UL)
-#define NFC_ECC_SYND12_0_S1_4                          (0x00000010UL)
-#define NFC_ECC_SYND12_0_S1_5                          (0x00000020UL)
-#define NFC_ECC_SYND12_0_S1_6                          (0x00000040UL)
-#define NFC_ECC_SYND12_0_S1_7                          (0x00000080UL)
-#define NFC_ECC_SYND12_0_S1_8                          (0x00000100UL)
-#define NFC_ECC_SYND12_0_S1_9                          (0x00000200UL)
-#define NFC_ECC_SYND12_0_S1_10                         (0x00000400UL)
-#define NFC_ECC_SYND12_0_S1_11                         (0x00000800UL)
-#define NFC_ECC_SYND12_0_S1_12                         (0x00001000UL)
 #define NFC_ECC_SYND12_0_S2_POS                        (16U)
 #define NFC_ECC_SYND12_0_S2                            (0x1FFF0000UL)
-#define NFC_ECC_SYND12_0_S2_0                          (0x00010000UL)
-#define NFC_ECC_SYND12_0_S2_1                          (0x00020000UL)
-#define NFC_ECC_SYND12_0_S2_2                          (0x00040000UL)
-#define NFC_ECC_SYND12_0_S2_3                          (0x00080000UL)
-#define NFC_ECC_SYND12_0_S2_4                          (0x00100000UL)
-#define NFC_ECC_SYND12_0_S2_5                          (0x00200000UL)
-#define NFC_ECC_SYND12_0_S2_6                          (0x00400000UL)
-#define NFC_ECC_SYND12_0_S2_7                          (0x00800000UL)
-#define NFC_ECC_SYND12_0_S2_8                          (0x01000000UL)
-#define NFC_ECC_SYND12_0_S2_9                          (0x02000000UL)
-#define NFC_ECC_SYND12_0_S2_10                         (0x04000000UL)
-#define NFC_ECC_SYND12_0_S2_11                         (0x08000000UL)
-#define NFC_ECC_SYND12_0_S2_12                         (0x10000000UL)
-#define NFC_ECC_SYND12_0_RESV_POS                      (31U)
-#define NFC_ECC_SYND12_0_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND12_1 register  */
 #define NFC_ECC_SYND12_1_S3_POS                        (0U)
 #define NFC_ECC_SYND12_1_S3                            (0x00001FFFUL)
-#define NFC_ECC_SYND12_1_S3_0                          (0x00000001UL)
-#define NFC_ECC_SYND12_1_S3_1                          (0x00000002UL)
-#define NFC_ECC_SYND12_1_S3_2                          (0x00000004UL)
-#define NFC_ECC_SYND12_1_S3_3                          (0x00000008UL)
-#define NFC_ECC_SYND12_1_S3_4                          (0x00000010UL)
-#define NFC_ECC_SYND12_1_S3_5                          (0x00000020UL)
-#define NFC_ECC_SYND12_1_S3_6                          (0x00000040UL)
-#define NFC_ECC_SYND12_1_S3_7                          (0x00000080UL)
-#define NFC_ECC_SYND12_1_S3_8                          (0x00000100UL)
-#define NFC_ECC_SYND12_1_S3_9                          (0x00000200UL)
-#define NFC_ECC_SYND12_1_S3_10                         (0x00000400UL)
-#define NFC_ECC_SYND12_1_S3_11                         (0x00000800UL)
-#define NFC_ECC_SYND12_1_S3_12                         (0x00001000UL)
 #define NFC_ECC_SYND12_1_S4_POS                        (16U)
 #define NFC_ECC_SYND12_1_S4                            (0x1FFF0000UL)
-#define NFC_ECC_SYND12_1_S4_0                          (0x00010000UL)
-#define NFC_ECC_SYND12_1_S4_1                          (0x00020000UL)
-#define NFC_ECC_SYND12_1_S4_2                          (0x00040000UL)
-#define NFC_ECC_SYND12_1_S4_3                          (0x00080000UL)
-#define NFC_ECC_SYND12_1_S4_4                          (0x00100000UL)
-#define NFC_ECC_SYND12_1_S4_5                          (0x00200000UL)
-#define NFC_ECC_SYND12_1_S4_6                          (0x00400000UL)
-#define NFC_ECC_SYND12_1_S4_7                          (0x00800000UL)
-#define NFC_ECC_SYND12_1_S4_8                          (0x01000000UL)
-#define NFC_ECC_SYND12_1_S4_9                          (0x02000000UL)
-#define NFC_ECC_SYND12_1_S4_10                         (0x04000000UL)
-#define NFC_ECC_SYND12_1_S4_11                         (0x08000000UL)
-#define NFC_ECC_SYND12_1_S4_12                         (0x10000000UL)
-#define NFC_ECC_SYND12_1_RESV_POS                      (31U)
-#define NFC_ECC_SYND12_1_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND12_2 register  */
 #define NFC_ECC_SYND12_2_S5_POS                        (0U)
 #define NFC_ECC_SYND12_2_S5                            (0x00001FFFUL)
-#define NFC_ECC_SYND12_2_S5_0                          (0x00000001UL)
-#define NFC_ECC_SYND12_2_S5_1                          (0x00000002UL)
-#define NFC_ECC_SYND12_2_S5_2                          (0x00000004UL)
-#define NFC_ECC_SYND12_2_S5_3                          (0x00000008UL)
-#define NFC_ECC_SYND12_2_S5_4                          (0x00000010UL)
-#define NFC_ECC_SYND12_2_S5_5                          (0x00000020UL)
-#define NFC_ECC_SYND12_2_S5_6                          (0x00000040UL)
-#define NFC_ECC_SYND12_2_S5_7                          (0x00000080UL)
-#define NFC_ECC_SYND12_2_S5_8                          (0x00000100UL)
-#define NFC_ECC_SYND12_2_S5_9                          (0x00000200UL)
-#define NFC_ECC_SYND12_2_S5_10                         (0x00000400UL)
-#define NFC_ECC_SYND12_2_S5_11                         (0x00000800UL)
-#define NFC_ECC_SYND12_2_S5_12                         (0x00001000UL)
 #define NFC_ECC_SYND12_2_S6_POS                        (16U)
 #define NFC_ECC_SYND12_2_S6                            (0x1FFF0000UL)
-#define NFC_ECC_SYND12_2_S6_0                          (0x00010000UL)
-#define NFC_ECC_SYND12_2_S6_1                          (0x00020000UL)
-#define NFC_ECC_SYND12_2_S6_2                          (0x00040000UL)
-#define NFC_ECC_SYND12_2_S6_3                          (0x00080000UL)
-#define NFC_ECC_SYND12_2_S6_4                          (0x00100000UL)
-#define NFC_ECC_SYND12_2_S6_5                          (0x00200000UL)
-#define NFC_ECC_SYND12_2_S6_6                          (0x00400000UL)
-#define NFC_ECC_SYND12_2_S6_7                          (0x00800000UL)
-#define NFC_ECC_SYND12_2_S6_8                          (0x01000000UL)
-#define NFC_ECC_SYND12_2_S6_9                          (0x02000000UL)
-#define NFC_ECC_SYND12_2_S6_10                         (0x04000000UL)
-#define NFC_ECC_SYND12_2_S6_11                         (0x08000000UL)
-#define NFC_ECC_SYND12_2_S6_12                         (0x10000000UL)
-#define NFC_ECC_SYND12_2_RESV_POS                      (31U)
-#define NFC_ECC_SYND12_2_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND12_3 register  */
 #define NFC_ECC_SYND12_3_S7_POS                        (0U)
 #define NFC_ECC_SYND12_3_S7                            (0x00001FFFUL)
-#define NFC_ECC_SYND12_3_S7_0                          (0x00000001UL)
-#define NFC_ECC_SYND12_3_S7_1                          (0x00000002UL)
-#define NFC_ECC_SYND12_3_S7_2                          (0x00000004UL)
-#define NFC_ECC_SYND12_3_S7_3                          (0x00000008UL)
-#define NFC_ECC_SYND12_3_S7_4                          (0x00000010UL)
-#define NFC_ECC_SYND12_3_S7_5                          (0x00000020UL)
-#define NFC_ECC_SYND12_3_S7_6                          (0x00000040UL)
-#define NFC_ECC_SYND12_3_S7_7                          (0x00000080UL)
-#define NFC_ECC_SYND12_3_S7_8                          (0x00000100UL)
-#define NFC_ECC_SYND12_3_S7_9                          (0x00000200UL)
-#define NFC_ECC_SYND12_3_S7_10                         (0x00000400UL)
-#define NFC_ECC_SYND12_3_S7_11                         (0x00000800UL)
-#define NFC_ECC_SYND12_3_S7_12                         (0x00001000UL)
 #define NFC_ECC_SYND12_3_S8_POS                        (16U)
 #define NFC_ECC_SYND12_3_S8                            (0x1FFF0000UL)
-#define NFC_ECC_SYND12_3_S8_0                          (0x00010000UL)
-#define NFC_ECC_SYND12_3_S8_1                          (0x00020000UL)
-#define NFC_ECC_SYND12_3_S8_2                          (0x00040000UL)
-#define NFC_ECC_SYND12_3_S8_3                          (0x00080000UL)
-#define NFC_ECC_SYND12_3_S8_4                          (0x00100000UL)
-#define NFC_ECC_SYND12_3_S8_5                          (0x00200000UL)
-#define NFC_ECC_SYND12_3_S8_6                          (0x00400000UL)
-#define NFC_ECC_SYND12_3_S8_7                          (0x00800000UL)
-#define NFC_ECC_SYND12_3_S8_8                          (0x01000000UL)
-#define NFC_ECC_SYND12_3_S8_9                          (0x02000000UL)
-#define NFC_ECC_SYND12_3_S8_10                         (0x04000000UL)
-#define NFC_ECC_SYND12_3_S8_11                         (0x08000000UL)
-#define NFC_ECC_SYND12_3_S8_12                         (0x10000000UL)
-#define NFC_ECC_SYND12_3_RESV_POS                      (31U)
-#define NFC_ECC_SYND12_3_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND13_0 register  */
 #define NFC_ECC_SYND13_0_S1_POS                        (0U)
 #define NFC_ECC_SYND13_0_S1                            (0x00001FFFUL)
-#define NFC_ECC_SYND13_0_S1_0                          (0x00000001UL)
-#define NFC_ECC_SYND13_0_S1_1                          (0x00000002UL)
-#define NFC_ECC_SYND13_0_S1_2                          (0x00000004UL)
-#define NFC_ECC_SYND13_0_S1_3                          (0x00000008UL)
-#define NFC_ECC_SYND13_0_S1_4                          (0x00000010UL)
-#define NFC_ECC_SYND13_0_S1_5                          (0x00000020UL)
-#define NFC_ECC_SYND13_0_S1_6                          (0x00000040UL)
-#define NFC_ECC_SYND13_0_S1_7                          (0x00000080UL)
-#define NFC_ECC_SYND13_0_S1_8                          (0x00000100UL)
-#define NFC_ECC_SYND13_0_S1_9                          (0x00000200UL)
-#define NFC_ECC_SYND13_0_S1_10                         (0x00000400UL)
-#define NFC_ECC_SYND13_0_S1_11                         (0x00000800UL)
-#define NFC_ECC_SYND13_0_S1_12                         (0x00001000UL)
 #define NFC_ECC_SYND13_0_S2_POS                        (16U)
 #define NFC_ECC_SYND13_0_S2                            (0x1FFF0000UL)
-#define NFC_ECC_SYND13_0_S2_0                          (0x00010000UL)
-#define NFC_ECC_SYND13_0_S2_1                          (0x00020000UL)
-#define NFC_ECC_SYND13_0_S2_2                          (0x00040000UL)
-#define NFC_ECC_SYND13_0_S2_3                          (0x00080000UL)
-#define NFC_ECC_SYND13_0_S2_4                          (0x00100000UL)
-#define NFC_ECC_SYND13_0_S2_5                          (0x00200000UL)
-#define NFC_ECC_SYND13_0_S2_6                          (0x00400000UL)
-#define NFC_ECC_SYND13_0_S2_7                          (0x00800000UL)
-#define NFC_ECC_SYND13_0_S2_8                          (0x01000000UL)
-#define NFC_ECC_SYND13_0_S2_9                          (0x02000000UL)
-#define NFC_ECC_SYND13_0_S2_10                         (0x04000000UL)
-#define NFC_ECC_SYND13_0_S2_11                         (0x08000000UL)
-#define NFC_ECC_SYND13_0_S2_12                         (0x10000000UL)
-#define NFC_ECC_SYND13_0_RESV_POS                      (31U)
-#define NFC_ECC_SYND13_0_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND13_1 register  */
 #define NFC_ECC_SYND13_1_S3_POS                        (0U)
 #define NFC_ECC_SYND13_1_S3                            (0x00001FFFUL)
-#define NFC_ECC_SYND13_1_S3_0                          (0x00000001UL)
-#define NFC_ECC_SYND13_1_S3_1                          (0x00000002UL)
-#define NFC_ECC_SYND13_1_S3_2                          (0x00000004UL)
-#define NFC_ECC_SYND13_1_S3_3                          (0x00000008UL)
-#define NFC_ECC_SYND13_1_S3_4                          (0x00000010UL)
-#define NFC_ECC_SYND13_1_S3_5                          (0x00000020UL)
-#define NFC_ECC_SYND13_1_S3_6                          (0x00000040UL)
-#define NFC_ECC_SYND13_1_S3_7                          (0x00000080UL)
-#define NFC_ECC_SYND13_1_S3_8                          (0x00000100UL)
-#define NFC_ECC_SYND13_1_S3_9                          (0x00000200UL)
-#define NFC_ECC_SYND13_1_S3_10                         (0x00000400UL)
-#define NFC_ECC_SYND13_1_S3_11                         (0x00000800UL)
-#define NFC_ECC_SYND13_1_S3_12                         (0x00001000UL)
 #define NFC_ECC_SYND13_1_S4_POS                        (16U)
 #define NFC_ECC_SYND13_1_S4                            (0x1FFF0000UL)
-#define NFC_ECC_SYND13_1_S4_0                          (0x00010000UL)
-#define NFC_ECC_SYND13_1_S4_1                          (0x00020000UL)
-#define NFC_ECC_SYND13_1_S4_2                          (0x00040000UL)
-#define NFC_ECC_SYND13_1_S4_3                          (0x00080000UL)
-#define NFC_ECC_SYND13_1_S4_4                          (0x00100000UL)
-#define NFC_ECC_SYND13_1_S4_5                          (0x00200000UL)
-#define NFC_ECC_SYND13_1_S4_6                          (0x00400000UL)
-#define NFC_ECC_SYND13_1_S4_7                          (0x00800000UL)
-#define NFC_ECC_SYND13_1_S4_8                          (0x01000000UL)
-#define NFC_ECC_SYND13_1_S4_9                          (0x02000000UL)
-#define NFC_ECC_SYND13_1_S4_10                         (0x04000000UL)
-#define NFC_ECC_SYND13_1_S4_11                         (0x08000000UL)
-#define NFC_ECC_SYND13_1_S4_12                         (0x10000000UL)
-#define NFC_ECC_SYND13_1_RESV_POS                      (31U)
-#define NFC_ECC_SYND13_1_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND13_2 register  */
 #define NFC_ECC_SYND13_2_S5_POS                        (0U)
 #define NFC_ECC_SYND13_2_S5                            (0x00001FFFUL)
-#define NFC_ECC_SYND13_2_S5_0                          (0x00000001UL)
-#define NFC_ECC_SYND13_2_S5_1                          (0x00000002UL)
-#define NFC_ECC_SYND13_2_S5_2                          (0x00000004UL)
-#define NFC_ECC_SYND13_2_S5_3                          (0x00000008UL)
-#define NFC_ECC_SYND13_2_S5_4                          (0x00000010UL)
-#define NFC_ECC_SYND13_2_S5_5                          (0x00000020UL)
-#define NFC_ECC_SYND13_2_S5_6                          (0x00000040UL)
-#define NFC_ECC_SYND13_2_S5_7                          (0x00000080UL)
-#define NFC_ECC_SYND13_2_S5_8                          (0x00000100UL)
-#define NFC_ECC_SYND13_2_S5_9                          (0x00000200UL)
-#define NFC_ECC_SYND13_2_S5_10                         (0x00000400UL)
-#define NFC_ECC_SYND13_2_S5_11                         (0x00000800UL)
-#define NFC_ECC_SYND13_2_S5_12                         (0x00001000UL)
 #define NFC_ECC_SYND13_2_S6_POS                        (16U)
 #define NFC_ECC_SYND13_2_S6                            (0x1FFF0000UL)
-#define NFC_ECC_SYND13_2_S6_0                          (0x00010000UL)
-#define NFC_ECC_SYND13_2_S6_1                          (0x00020000UL)
-#define NFC_ECC_SYND13_2_S6_2                          (0x00040000UL)
-#define NFC_ECC_SYND13_2_S6_3                          (0x00080000UL)
-#define NFC_ECC_SYND13_2_S6_4                          (0x00100000UL)
-#define NFC_ECC_SYND13_2_S6_5                          (0x00200000UL)
-#define NFC_ECC_SYND13_2_S6_6                          (0x00400000UL)
-#define NFC_ECC_SYND13_2_S6_7                          (0x00800000UL)
-#define NFC_ECC_SYND13_2_S6_8                          (0x01000000UL)
-#define NFC_ECC_SYND13_2_S6_9                          (0x02000000UL)
-#define NFC_ECC_SYND13_2_S6_10                         (0x04000000UL)
-#define NFC_ECC_SYND13_2_S6_11                         (0x08000000UL)
-#define NFC_ECC_SYND13_2_S6_12                         (0x10000000UL)
-#define NFC_ECC_SYND13_2_RESV_POS                      (31U)
-#define NFC_ECC_SYND13_2_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND13_3 register  */
 #define NFC_ECC_SYND13_3_S7_POS                        (0U)
 #define NFC_ECC_SYND13_3_S7                            (0x00001FFFUL)
-#define NFC_ECC_SYND13_3_S7_0                          (0x00000001UL)
-#define NFC_ECC_SYND13_3_S7_1                          (0x00000002UL)
-#define NFC_ECC_SYND13_3_S7_2                          (0x00000004UL)
-#define NFC_ECC_SYND13_3_S7_3                          (0x00000008UL)
-#define NFC_ECC_SYND13_3_S7_4                          (0x00000010UL)
-#define NFC_ECC_SYND13_3_S7_5                          (0x00000020UL)
-#define NFC_ECC_SYND13_3_S7_6                          (0x00000040UL)
-#define NFC_ECC_SYND13_3_S7_7                          (0x00000080UL)
-#define NFC_ECC_SYND13_3_S7_8                          (0x00000100UL)
-#define NFC_ECC_SYND13_3_S7_9                          (0x00000200UL)
-#define NFC_ECC_SYND13_3_S7_10                         (0x00000400UL)
-#define NFC_ECC_SYND13_3_S7_11                         (0x00000800UL)
-#define NFC_ECC_SYND13_3_S7_12                         (0x00001000UL)
 #define NFC_ECC_SYND13_3_S8_POS                        (16U)
 #define NFC_ECC_SYND13_3_S8                            (0x1FFF0000UL)
-#define NFC_ECC_SYND13_3_S8_0                          (0x00010000UL)
-#define NFC_ECC_SYND13_3_S8_1                          (0x00020000UL)
-#define NFC_ECC_SYND13_3_S8_2                          (0x00040000UL)
-#define NFC_ECC_SYND13_3_S8_3                          (0x00080000UL)
-#define NFC_ECC_SYND13_3_S8_4                          (0x00100000UL)
-#define NFC_ECC_SYND13_3_S8_5                          (0x00200000UL)
-#define NFC_ECC_SYND13_3_S8_6                          (0x00400000UL)
-#define NFC_ECC_SYND13_3_S8_7                          (0x00800000UL)
-#define NFC_ECC_SYND13_3_S8_8                          (0x01000000UL)
-#define NFC_ECC_SYND13_3_S8_9                          (0x02000000UL)
-#define NFC_ECC_SYND13_3_S8_10                         (0x04000000UL)
-#define NFC_ECC_SYND13_3_S8_11                         (0x08000000UL)
-#define NFC_ECC_SYND13_3_S8_12                         (0x10000000UL)
-#define NFC_ECC_SYND13_3_RESV_POS                      (31U)
-#define NFC_ECC_SYND13_3_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND14_0 register  */
 #define NFC_ECC_SYND14_0_S1_POS                        (0U)
 #define NFC_ECC_SYND14_0_S1                            (0x00001FFFUL)
-#define NFC_ECC_SYND14_0_S1_0                          (0x00000001UL)
-#define NFC_ECC_SYND14_0_S1_1                          (0x00000002UL)
-#define NFC_ECC_SYND14_0_S1_2                          (0x00000004UL)
-#define NFC_ECC_SYND14_0_S1_3                          (0x00000008UL)
-#define NFC_ECC_SYND14_0_S1_4                          (0x00000010UL)
-#define NFC_ECC_SYND14_0_S1_5                          (0x00000020UL)
-#define NFC_ECC_SYND14_0_S1_6                          (0x00000040UL)
-#define NFC_ECC_SYND14_0_S1_7                          (0x00000080UL)
-#define NFC_ECC_SYND14_0_S1_8                          (0x00000100UL)
-#define NFC_ECC_SYND14_0_S1_9                          (0x00000200UL)
-#define NFC_ECC_SYND14_0_S1_10                         (0x00000400UL)
-#define NFC_ECC_SYND14_0_S1_11                         (0x00000800UL)
-#define NFC_ECC_SYND14_0_S1_12                         (0x00001000UL)
 #define NFC_ECC_SYND14_0_S2_POS                        (16U)
 #define NFC_ECC_SYND14_0_S2                            (0x1FFF0000UL)
-#define NFC_ECC_SYND14_0_S2_0                          (0x00010000UL)
-#define NFC_ECC_SYND14_0_S2_1                          (0x00020000UL)
-#define NFC_ECC_SYND14_0_S2_2                          (0x00040000UL)
-#define NFC_ECC_SYND14_0_S2_3                          (0x00080000UL)
-#define NFC_ECC_SYND14_0_S2_4                          (0x00100000UL)
-#define NFC_ECC_SYND14_0_S2_5                          (0x00200000UL)
-#define NFC_ECC_SYND14_0_S2_6                          (0x00400000UL)
-#define NFC_ECC_SYND14_0_S2_7                          (0x00800000UL)
-#define NFC_ECC_SYND14_0_S2_8                          (0x01000000UL)
-#define NFC_ECC_SYND14_0_S2_9                          (0x02000000UL)
-#define NFC_ECC_SYND14_0_S2_10                         (0x04000000UL)
-#define NFC_ECC_SYND14_0_S2_11                         (0x08000000UL)
-#define NFC_ECC_SYND14_0_S2_12                         (0x10000000UL)
-#define NFC_ECC_SYND14_0_RESV_POS                      (31U)
-#define NFC_ECC_SYND14_0_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND14_1 register  */
 #define NFC_ECC_SYND14_1_S3_POS                        (0U)
 #define NFC_ECC_SYND14_1_S3                            (0x00001FFFUL)
-#define NFC_ECC_SYND14_1_S3_0                          (0x00000001UL)
-#define NFC_ECC_SYND14_1_S3_1                          (0x00000002UL)
-#define NFC_ECC_SYND14_1_S3_2                          (0x00000004UL)
-#define NFC_ECC_SYND14_1_S3_3                          (0x00000008UL)
-#define NFC_ECC_SYND14_1_S3_4                          (0x00000010UL)
-#define NFC_ECC_SYND14_1_S3_5                          (0x00000020UL)
-#define NFC_ECC_SYND14_1_S3_6                          (0x00000040UL)
-#define NFC_ECC_SYND14_1_S3_7                          (0x00000080UL)
-#define NFC_ECC_SYND14_1_S3_8                          (0x00000100UL)
-#define NFC_ECC_SYND14_1_S3_9                          (0x00000200UL)
-#define NFC_ECC_SYND14_1_S3_10                         (0x00000400UL)
-#define NFC_ECC_SYND14_1_S3_11                         (0x00000800UL)
-#define NFC_ECC_SYND14_1_S3_12                         (0x00001000UL)
 #define NFC_ECC_SYND14_1_S4_POS                        (16U)
 #define NFC_ECC_SYND14_1_S4                            (0x1FFF0000UL)
-#define NFC_ECC_SYND14_1_S4_0                          (0x00010000UL)
-#define NFC_ECC_SYND14_1_S4_1                          (0x00020000UL)
-#define NFC_ECC_SYND14_1_S4_2                          (0x00040000UL)
-#define NFC_ECC_SYND14_1_S4_3                          (0x00080000UL)
-#define NFC_ECC_SYND14_1_S4_4                          (0x00100000UL)
-#define NFC_ECC_SYND14_1_S4_5                          (0x00200000UL)
-#define NFC_ECC_SYND14_1_S4_6                          (0x00400000UL)
-#define NFC_ECC_SYND14_1_S4_7                          (0x00800000UL)
-#define NFC_ECC_SYND14_1_S4_8                          (0x01000000UL)
-#define NFC_ECC_SYND14_1_S4_9                          (0x02000000UL)
-#define NFC_ECC_SYND14_1_S4_10                         (0x04000000UL)
-#define NFC_ECC_SYND14_1_S4_11                         (0x08000000UL)
-#define NFC_ECC_SYND14_1_S4_12                         (0x10000000UL)
-#define NFC_ECC_SYND14_1_RESV_POS                      (31U)
-#define NFC_ECC_SYND14_1_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND14_2 register  */
 #define NFC_ECC_SYND14_2_S5_POS                        (0U)
 #define NFC_ECC_SYND14_2_S5                            (0x00001FFFUL)
-#define NFC_ECC_SYND14_2_S5_0                          (0x00000001UL)
-#define NFC_ECC_SYND14_2_S5_1                          (0x00000002UL)
-#define NFC_ECC_SYND14_2_S5_2                          (0x00000004UL)
-#define NFC_ECC_SYND14_2_S5_3                          (0x00000008UL)
-#define NFC_ECC_SYND14_2_S5_4                          (0x00000010UL)
-#define NFC_ECC_SYND14_2_S5_5                          (0x00000020UL)
-#define NFC_ECC_SYND14_2_S5_6                          (0x00000040UL)
-#define NFC_ECC_SYND14_2_S5_7                          (0x00000080UL)
-#define NFC_ECC_SYND14_2_S5_8                          (0x00000100UL)
-#define NFC_ECC_SYND14_2_S5_9                          (0x00000200UL)
-#define NFC_ECC_SYND14_2_S5_10                         (0x00000400UL)
-#define NFC_ECC_SYND14_2_S5_11                         (0x00000800UL)
-#define NFC_ECC_SYND14_2_S5_12                         (0x00001000UL)
 #define NFC_ECC_SYND14_2_S6_POS                        (16U)
 #define NFC_ECC_SYND14_2_S6                            (0x1FFF0000UL)
-#define NFC_ECC_SYND14_2_S6_0                          (0x00010000UL)
-#define NFC_ECC_SYND14_2_S6_1                          (0x00020000UL)
-#define NFC_ECC_SYND14_2_S6_2                          (0x00040000UL)
-#define NFC_ECC_SYND14_2_S6_3                          (0x00080000UL)
-#define NFC_ECC_SYND14_2_S6_4                          (0x00100000UL)
-#define NFC_ECC_SYND14_2_S6_5                          (0x00200000UL)
-#define NFC_ECC_SYND14_2_S6_6                          (0x00400000UL)
-#define NFC_ECC_SYND14_2_S6_7                          (0x00800000UL)
-#define NFC_ECC_SYND14_2_S6_8                          (0x01000000UL)
-#define NFC_ECC_SYND14_2_S6_9                          (0x02000000UL)
-#define NFC_ECC_SYND14_2_S6_10                         (0x04000000UL)
-#define NFC_ECC_SYND14_2_S6_11                         (0x08000000UL)
-#define NFC_ECC_SYND14_2_S6_12                         (0x10000000UL)
-#define NFC_ECC_SYND14_2_RESV_POS                      (31U)
-#define NFC_ECC_SYND14_2_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND14_3 register  */
 #define NFC_ECC_SYND14_3_S7_POS                        (0U)
 #define NFC_ECC_SYND14_3_S7                            (0x00001FFFUL)
-#define NFC_ECC_SYND14_3_S7_0                          (0x00000001UL)
-#define NFC_ECC_SYND14_3_S7_1                          (0x00000002UL)
-#define NFC_ECC_SYND14_3_S7_2                          (0x00000004UL)
-#define NFC_ECC_SYND14_3_S7_3                          (0x00000008UL)
-#define NFC_ECC_SYND14_3_S7_4                          (0x00000010UL)
-#define NFC_ECC_SYND14_3_S7_5                          (0x00000020UL)
-#define NFC_ECC_SYND14_3_S7_6                          (0x00000040UL)
-#define NFC_ECC_SYND14_3_S7_7                          (0x00000080UL)
-#define NFC_ECC_SYND14_3_S7_8                          (0x00000100UL)
-#define NFC_ECC_SYND14_3_S7_9                          (0x00000200UL)
-#define NFC_ECC_SYND14_3_S7_10                         (0x00000400UL)
-#define NFC_ECC_SYND14_3_S7_11                         (0x00000800UL)
-#define NFC_ECC_SYND14_3_S7_12                         (0x00001000UL)
 #define NFC_ECC_SYND14_3_S8_POS                        (16U)
 #define NFC_ECC_SYND14_3_S8                            (0x1FFF0000UL)
-#define NFC_ECC_SYND14_3_S8_0                          (0x00010000UL)
-#define NFC_ECC_SYND14_3_S8_1                          (0x00020000UL)
-#define NFC_ECC_SYND14_3_S8_2                          (0x00040000UL)
-#define NFC_ECC_SYND14_3_S8_3                          (0x00080000UL)
-#define NFC_ECC_SYND14_3_S8_4                          (0x00100000UL)
-#define NFC_ECC_SYND14_3_S8_5                          (0x00200000UL)
-#define NFC_ECC_SYND14_3_S8_6                          (0x00400000UL)
-#define NFC_ECC_SYND14_3_S8_7                          (0x00800000UL)
-#define NFC_ECC_SYND14_3_S8_8                          (0x01000000UL)
-#define NFC_ECC_SYND14_3_S8_9                          (0x02000000UL)
-#define NFC_ECC_SYND14_3_S8_10                         (0x04000000UL)
-#define NFC_ECC_SYND14_3_S8_11                         (0x08000000UL)
-#define NFC_ECC_SYND14_3_S8_12                         (0x10000000UL)
-#define NFC_ECC_SYND14_3_RESV_POS                      (31U)
-#define NFC_ECC_SYND14_3_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND15_0 register  */
 #define NFC_ECC_SYND15_0_S1_POS                        (0U)
 #define NFC_ECC_SYND15_0_S1                            (0x00001FFFUL)
-#define NFC_ECC_SYND15_0_S1_0                          (0x00000001UL)
-#define NFC_ECC_SYND15_0_S1_1                          (0x00000002UL)
-#define NFC_ECC_SYND15_0_S1_2                          (0x00000004UL)
-#define NFC_ECC_SYND15_0_S1_3                          (0x00000008UL)
-#define NFC_ECC_SYND15_0_S1_4                          (0x00000010UL)
-#define NFC_ECC_SYND15_0_S1_5                          (0x00000020UL)
-#define NFC_ECC_SYND15_0_S1_6                          (0x00000040UL)
-#define NFC_ECC_SYND15_0_S1_7                          (0x00000080UL)
-#define NFC_ECC_SYND15_0_S1_8                          (0x00000100UL)
-#define NFC_ECC_SYND15_0_S1_9                          (0x00000200UL)
-#define NFC_ECC_SYND15_0_S1_10                         (0x00000400UL)
-#define NFC_ECC_SYND15_0_S1_11                         (0x00000800UL)
-#define NFC_ECC_SYND15_0_S1_12                         (0x00001000UL)
 #define NFC_ECC_SYND15_0_S2_POS                        (16U)
 #define NFC_ECC_SYND15_0_S2                            (0x1FFF0000UL)
-#define NFC_ECC_SYND15_0_S2_0                          (0x00010000UL)
-#define NFC_ECC_SYND15_0_S2_1                          (0x00020000UL)
-#define NFC_ECC_SYND15_0_S2_2                          (0x00040000UL)
-#define NFC_ECC_SYND15_0_S2_3                          (0x00080000UL)
-#define NFC_ECC_SYND15_0_S2_4                          (0x00100000UL)
-#define NFC_ECC_SYND15_0_S2_5                          (0x00200000UL)
-#define NFC_ECC_SYND15_0_S2_6                          (0x00400000UL)
-#define NFC_ECC_SYND15_0_S2_7                          (0x00800000UL)
-#define NFC_ECC_SYND15_0_S2_8                          (0x01000000UL)
-#define NFC_ECC_SYND15_0_S2_9                          (0x02000000UL)
-#define NFC_ECC_SYND15_0_S2_10                         (0x04000000UL)
-#define NFC_ECC_SYND15_0_S2_11                         (0x08000000UL)
-#define NFC_ECC_SYND15_0_S2_12                         (0x10000000UL)
-#define NFC_ECC_SYND15_0_RESV_POS                      (31U)
-#define NFC_ECC_SYND15_0_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND15_1 register  */
 #define NFC_ECC_SYND15_1_S3_POS                        (0U)
 #define NFC_ECC_SYND15_1_S3                            (0x00001FFFUL)
-#define NFC_ECC_SYND15_1_S3_0                          (0x00000001UL)
-#define NFC_ECC_SYND15_1_S3_1                          (0x00000002UL)
-#define NFC_ECC_SYND15_1_S3_2                          (0x00000004UL)
-#define NFC_ECC_SYND15_1_S3_3                          (0x00000008UL)
-#define NFC_ECC_SYND15_1_S3_4                          (0x00000010UL)
-#define NFC_ECC_SYND15_1_S3_5                          (0x00000020UL)
-#define NFC_ECC_SYND15_1_S3_6                          (0x00000040UL)
-#define NFC_ECC_SYND15_1_S3_7                          (0x00000080UL)
-#define NFC_ECC_SYND15_1_S3_8                          (0x00000100UL)
-#define NFC_ECC_SYND15_1_S3_9                          (0x00000200UL)
-#define NFC_ECC_SYND15_1_S3_10                         (0x00000400UL)
-#define NFC_ECC_SYND15_1_S3_11                         (0x00000800UL)
-#define NFC_ECC_SYND15_1_S3_12                         (0x00001000UL)
 #define NFC_ECC_SYND15_1_S4_POS                        (16U)
 #define NFC_ECC_SYND15_1_S4                            (0x1FFF0000UL)
-#define NFC_ECC_SYND15_1_S4_0                          (0x00010000UL)
-#define NFC_ECC_SYND15_1_S4_1                          (0x00020000UL)
-#define NFC_ECC_SYND15_1_S4_2                          (0x00040000UL)
-#define NFC_ECC_SYND15_1_S4_3                          (0x00080000UL)
-#define NFC_ECC_SYND15_1_S4_4                          (0x00100000UL)
-#define NFC_ECC_SYND15_1_S4_5                          (0x00200000UL)
-#define NFC_ECC_SYND15_1_S4_6                          (0x00400000UL)
-#define NFC_ECC_SYND15_1_S4_7                          (0x00800000UL)
-#define NFC_ECC_SYND15_1_S4_8                          (0x01000000UL)
-#define NFC_ECC_SYND15_1_S4_9                          (0x02000000UL)
-#define NFC_ECC_SYND15_1_S4_10                         (0x04000000UL)
-#define NFC_ECC_SYND15_1_S4_11                         (0x08000000UL)
-#define NFC_ECC_SYND15_1_S4_12                         (0x10000000UL)
-#define NFC_ECC_SYND15_1_RESV_POS                      (31U)
-#define NFC_ECC_SYND15_1_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND15_2 register  */
 #define NFC_ECC_SYND15_2_S5_POS                        (0U)
 #define NFC_ECC_SYND15_2_S5                            (0x00001FFFUL)
-#define NFC_ECC_SYND15_2_S5_0                          (0x00000001UL)
-#define NFC_ECC_SYND15_2_S5_1                          (0x00000002UL)
-#define NFC_ECC_SYND15_2_S5_2                          (0x00000004UL)
-#define NFC_ECC_SYND15_2_S5_3                          (0x00000008UL)
-#define NFC_ECC_SYND15_2_S5_4                          (0x00000010UL)
-#define NFC_ECC_SYND15_2_S5_5                          (0x00000020UL)
-#define NFC_ECC_SYND15_2_S5_6                          (0x00000040UL)
-#define NFC_ECC_SYND15_2_S5_7                          (0x00000080UL)
-#define NFC_ECC_SYND15_2_S5_8                          (0x00000100UL)
-#define NFC_ECC_SYND15_2_S5_9                          (0x00000200UL)
-#define NFC_ECC_SYND15_2_S5_10                         (0x00000400UL)
-#define NFC_ECC_SYND15_2_S5_11                         (0x00000800UL)
-#define NFC_ECC_SYND15_2_S5_12                         (0x00001000UL)
 #define NFC_ECC_SYND15_2_S6_POS                        (16U)
 #define NFC_ECC_SYND15_2_S6                            (0x1FFF0000UL)
-#define NFC_ECC_SYND15_2_S6_0                          (0x00010000UL)
-#define NFC_ECC_SYND15_2_S6_1                          (0x00020000UL)
-#define NFC_ECC_SYND15_2_S6_2                          (0x00040000UL)
-#define NFC_ECC_SYND15_2_S6_3                          (0x00080000UL)
-#define NFC_ECC_SYND15_2_S6_4                          (0x00100000UL)
-#define NFC_ECC_SYND15_2_S6_5                          (0x00200000UL)
-#define NFC_ECC_SYND15_2_S6_6                          (0x00400000UL)
-#define NFC_ECC_SYND15_2_S6_7                          (0x00800000UL)
-#define NFC_ECC_SYND15_2_S6_8                          (0x01000000UL)
-#define NFC_ECC_SYND15_2_S6_9                          (0x02000000UL)
-#define NFC_ECC_SYND15_2_S6_10                         (0x04000000UL)
-#define NFC_ECC_SYND15_2_S6_11                         (0x08000000UL)
-#define NFC_ECC_SYND15_2_S6_12                         (0x10000000UL)
-#define NFC_ECC_SYND15_2_RESV_POS                      (31U)
-#define NFC_ECC_SYND15_2_RESV                          (0x80000000UL)
 
 /*  Bit definition for NFC_ECC_SYND15_3 register  */
 #define NFC_ECC_SYND15_3_S7_POS                        (0U)
 #define NFC_ECC_SYND15_3_S7                            (0x00001FFFUL)
-#define NFC_ECC_SYND15_3_S7_0                          (0x00000001UL)
-#define NFC_ECC_SYND15_3_S7_1                          (0x00000002UL)
-#define NFC_ECC_SYND15_3_S7_2                          (0x00000004UL)
-#define NFC_ECC_SYND15_3_S7_3                          (0x00000008UL)
-#define NFC_ECC_SYND15_3_S7_4                          (0x00000010UL)
-#define NFC_ECC_SYND15_3_S7_5                          (0x00000020UL)
-#define NFC_ECC_SYND15_3_S7_6                          (0x00000040UL)
-#define NFC_ECC_SYND15_3_S7_7                          (0x00000080UL)
-#define NFC_ECC_SYND15_3_S7_8                          (0x00000100UL)
-#define NFC_ECC_SYND15_3_S7_9                          (0x00000200UL)
-#define NFC_ECC_SYND15_3_S7_10                         (0x00000400UL)
-#define NFC_ECC_SYND15_3_S7_11                         (0x00000800UL)
-#define NFC_ECC_SYND15_3_S7_12                         (0x00001000UL)
 #define NFC_ECC_SYND15_3_S8_POS                        (16U)
 #define NFC_ECC_SYND15_3_S8                            (0x1FFF0000UL)
-#define NFC_ECC_SYND15_3_S8_0                          (0x00010000UL)
-#define NFC_ECC_SYND15_3_S8_1                          (0x00020000UL)
-#define NFC_ECC_SYND15_3_S8_2                          (0x00040000UL)
-#define NFC_ECC_SYND15_3_S8_3                          (0x00080000UL)
-#define NFC_ECC_SYND15_3_S8_4                          (0x00100000UL)
-#define NFC_ECC_SYND15_3_S8_5                          (0x00200000UL)
-#define NFC_ECC_SYND15_3_S8_6                          (0x00400000UL)
-#define NFC_ECC_SYND15_3_S8_7                          (0x00800000UL)
-#define NFC_ECC_SYND15_3_S8_8                          (0x01000000UL)
-#define NFC_ECC_SYND15_3_S8_9                          (0x02000000UL)
-#define NFC_ECC_SYND15_3_S8_10                         (0x04000000UL)
-#define NFC_ECC_SYND15_3_S8_11                         (0x08000000UL)
-#define NFC_ECC_SYND15_3_S8_12                         (0x10000000UL)
-#define NFC_ECC_SYND15_3_RESV_POS                      (31U)
-#define NFC_ECC_SYND15_3_RESV                          (0x80000000UL)
 
 /*******************************************************************************
                 Bit definition for Peripheral OTS
@@ -17951,8 +15760,8 @@ typedef struct
 #define PWC_FCG0_DMA2                                  (0x00008000UL)
 #define PWC_FCG0_FCM_POS                               (16U)
 #define PWC_FCG0_FCM                                   (0x00010000UL)
-#define PWC_FCG0_PTDIS_POS                             (17U)
-#define PWC_FCG0_PTDIS                                 (0x00020000UL)
+#define PWC_FCG0_AOS_POS                               (17U)
+#define PWC_FCG0_AOS                                   (0x00020000UL)
 #define PWC_FCG0_CTC_POS                               (18U)
 #define PWC_FCG0_CTC                                   (0x00040000UL)
 #define PWC_FCG0_CORDIC_POS                            (19U)
@@ -18111,6 +15920,8 @@ typedef struct
 #define PWC_FCG3_ADC2                                  (0x00000002UL)
 #define PWC_FCG3_ADC3_POS                              (2U)
 #define PWC_FCG3_ADC3                                  (0x00000004UL)
+#define PWC_FCG3_CMBIAS_POS                            (3U)
+#define PWC_FCG3_CMBIAS                                (0x00000008UL)
 #define PWC_FCG3_DAC1_POS                              (4U)
 #define PWC_FCG3_DAC1                                  (0x00000010UL)
 #define PWC_FCG3_DAC2_POS                              (5U)
@@ -18600,10 +16411,10 @@ typedef struct
 #define PWC_PWRC0_PWDN                                 (0x80U)
 
 /*  Bit definition for PWC_PWRC1 register  */
-#define PWC_PWRC1_VPLLHSD_POS                          (0U)
-#define PWC_PWRC1_VPLLHSD                              (0x01U)
-#define PWC_PWRC1_VPLLASD_POS                          (1U)
-#define PWC_PWRC1_VPLLASD                              (0x02U)
+#define PWC_PWRC1_VPLLSD_POS                           (0U)
+#define PWC_PWRC1_VPLLSD                               (0x03U)
+#define PWC_PWRC1_VPLLSD_0                             (0x01U)
+#define PWC_PWRC1_VPLLSD_1                             (0x02U)
 #define PWC_PWRC1_VHRCSD_POS                           (2U)
 #define PWC_PWRC1_VHRCSD                               (0x04U)
 #define PWC_PWRC1_PDTS_POS                             (3U)
@@ -19619,26 +17430,6 @@ typedef struct
 /*  Bit definition for SMC_CMDR register  */
 #define SMC_CMDR_CMDADD_POS                            (0U)
 #define SMC_CMDR_CMDADD                                (0x000FFFFFUL)
-#define SMC_CMDR_CMDADD_0                              (0x00000001UL)
-#define SMC_CMDR_CMDADD_1                              (0x00000002UL)
-#define SMC_CMDR_CMDADD_2                              (0x00000004UL)
-#define SMC_CMDR_CMDADD_3                              (0x00000008UL)
-#define SMC_CMDR_CMDADD_4                              (0x00000010UL)
-#define SMC_CMDR_CMDADD_5                              (0x00000020UL)
-#define SMC_CMDR_CMDADD_6                              (0x00000040UL)
-#define SMC_CMDR_CMDADD_7                              (0x00000080UL)
-#define SMC_CMDR_CMDADD_8                              (0x00000100UL)
-#define SMC_CMDR_CMDADD_9                              (0x00000200UL)
-#define SMC_CMDR_CMDADD_10                             (0x00000400UL)
-#define SMC_CMDR_CMDADD_11                             (0x00000800UL)
-#define SMC_CMDR_CMDADD_12                             (0x00001000UL)
-#define SMC_CMDR_CMDADD_13                             (0x00002000UL)
-#define SMC_CMDR_CMDADD_14                             (0x00004000UL)
-#define SMC_CMDR_CMDADD_15                             (0x00008000UL)
-#define SMC_CMDR_CMDADD_16                             (0x00010000UL)
-#define SMC_CMDR_CMDADD_17                             (0x00020000UL)
-#define SMC_CMDR_CMDADD_18                             (0x00040000UL)
-#define SMC_CMDR_CMDADD_19                             (0x00080000UL)
 #define SMC_CMDR_CRES_POS                              (20U)
 #define SMC_CMDR_CRES                                  (0x00100000UL)
 #define SMC_CMDR_CMD_POS                               (21U)
@@ -19654,38 +17445,16 @@ typedef struct
 /*  Bit definition for SMC_TMCR register  */
 #define SMC_TMCR_T_RC_POS                              (0U)
 #define SMC_TMCR_T_RC                                  (0x0000000FUL)
-#define SMC_TMCR_T_RC_0                                (0x00000001UL)
-#define SMC_TMCR_T_RC_1                                (0x00000002UL)
-#define SMC_TMCR_T_RC_2                                (0x00000004UL)
-#define SMC_TMCR_T_RC_3                                (0x00000008UL)
 #define SMC_TMCR_T_WC_POS                              (4U)
 #define SMC_TMCR_T_WC                                  (0x000000F0UL)
-#define SMC_TMCR_T_WC_0                                (0x00000010UL)
-#define SMC_TMCR_T_WC_1                                (0x00000020UL)
-#define SMC_TMCR_T_WC_2                                (0x00000040UL)
-#define SMC_TMCR_T_WC_3                                (0x00000080UL)
 #define SMC_TMCR_T_CEOE_POS                            (8U)
 #define SMC_TMCR_T_CEOE                                (0x00000700UL)
-#define SMC_TMCR_T_CEOE_0                              (0x00000100UL)
-#define SMC_TMCR_T_CEOE_1                              (0x00000200UL)
-#define SMC_TMCR_T_CEOE_2                              (0x00000400UL)
 #define SMC_TMCR_T_WP_POS                              (12U)
 #define SMC_TMCR_T_WP                                  (0x00007000UL)
-#define SMC_TMCR_T_WP_0                                (0x00001000UL)
-#define SMC_TMCR_T_WP_1                                (0x00002000UL)
-#define SMC_TMCR_T_WP_2                                (0x00004000UL)
 #define SMC_TMCR_T_PC_POS                              (16U)
 #define SMC_TMCR_T_PC                                  (0x00070000UL)
-#define SMC_TMCR_T_PC_0                                (0x00010000UL)
-#define SMC_TMCR_T_PC_1                                (0x00020000UL)
-#define SMC_TMCR_T_PC_2                                (0x00040000UL)
 #define SMC_TMCR_T_TR_POS                              (20U)
 #define SMC_TMCR_T_TR                                  (0x00700000UL)
-#define SMC_TMCR_T_TR_0                                (0x00100000UL)
-#define SMC_TMCR_T_TR_1                                (0x00200000UL)
-#define SMC_TMCR_T_TR_2                                (0x00400000UL)
-#define SMC_TMCR_RESV0_POS                             (24U)
-#define SMC_TMCR_RESV0                                 (0x01000000UL)
 
 /*  Bit definition for SMC_CPCR register  */
 #define SMC_CPCR_RSYN_POS                              (0U)
@@ -19719,38 +17488,16 @@ typedef struct
 /*  Bit definition for SMC_TMSR register  */
 #define SMC_TMSR_T_RC_POS                              (0U)
 #define SMC_TMSR_T_RC                                  (0x0000000FUL)
-#define SMC_TMSR_T_RC_0                                (0x00000001UL)
-#define SMC_TMSR_T_RC_1                                (0x00000002UL)
-#define SMC_TMSR_T_RC_2                                (0x00000004UL)
-#define SMC_TMSR_T_RC_3                                (0x00000008UL)
 #define SMC_TMSR_T_WC_POS                              (4U)
 #define SMC_TMSR_T_WC                                  (0x000000F0UL)
-#define SMC_TMSR_T_WC_0                                (0x00000010UL)
-#define SMC_TMSR_T_WC_1                                (0x00000020UL)
-#define SMC_TMSR_T_WC_2                                (0x00000040UL)
-#define SMC_TMSR_T_WC_3                                (0x00000080UL)
 #define SMC_TMSR_T_CEOE_POS                            (8U)
 #define SMC_TMSR_T_CEOE                                (0x00000700UL)
-#define SMC_TMSR_T_CEOE_0                              (0x00000100UL)
-#define SMC_TMSR_T_CEOE_1                              (0x00000200UL)
-#define SMC_TMSR_T_CEOE_2                              (0x00000400UL)
 #define SMC_TMSR_T_WP_POS                              (12U)
 #define SMC_TMSR_T_WP                                  (0x00007000UL)
-#define SMC_TMSR_T_WP_0                                (0x00001000UL)
-#define SMC_TMSR_T_WP_1                                (0x00002000UL)
-#define SMC_TMSR_T_WP_2                                (0x00004000UL)
 #define SMC_TMSR_T_PC_POS                              (16U)
 #define SMC_TMSR_T_PC                                  (0x00070000UL)
-#define SMC_TMSR_T_PC_0                                (0x00010000UL)
-#define SMC_TMSR_T_PC_1                                (0x00020000UL)
-#define SMC_TMSR_T_PC_2                                (0x00040000UL)
 #define SMC_TMSR_T_TR_POS                              (20U)
 #define SMC_TMSR_T_TR                                  (0x00700000UL)
-#define SMC_TMSR_T_TR_0                                (0x00100000UL)
-#define SMC_TMSR_T_TR_1                                (0x00200000UL)
-#define SMC_TMSR_T_TR_2                                (0x00400000UL)
-#define SMC_TMSR_RESV1_POS                             (24U)
-#define SMC_TMSR_RESV1                                 (0x01000000UL)
 
 /*  Bit definition for SMC_CPSR register  */
 #define SMC_CPSR_RSYN_POS                              (0U)
@@ -19779,24 +17526,8 @@ typedef struct
 #define SMC_CPSR_BLSS                                  (0x00001000UL)
 #define SMC_CPSR_ADDMSK_POS                            (16U)
 #define SMC_CPSR_ADDMSK                                (0x00FF0000UL)
-#define SMC_CPSR_ADDMSK_0                              (0x00010000UL)
-#define SMC_CPSR_ADDMSK_1                              (0x00020000UL)
-#define SMC_CPSR_ADDMSK_2                              (0x00040000UL)
-#define SMC_CPSR_ADDMSK_3                              (0x00080000UL)
-#define SMC_CPSR_ADDMSK_4                              (0x00100000UL)
-#define SMC_CPSR_ADDMSK_5                              (0x00200000UL)
-#define SMC_CPSR_ADDMSK_6                              (0x00400000UL)
-#define SMC_CPSR_ADDMSK_7                              (0x00800000UL)
 #define SMC_CPSR_ADDMAT_POS                            (24U)
 #define SMC_CPSR_ADDMAT                                (0xFF000000UL)
-#define SMC_CPSR_ADDMAT_0                              (0x01000000UL)
-#define SMC_CPSR_ADDMAT_1                              (0x02000000UL)
-#define SMC_CPSR_ADDMAT_2                              (0x04000000UL)
-#define SMC_CPSR_ADDMAT_3                              (0x08000000UL)
-#define SMC_CPSR_ADDMAT_4                              (0x10000000UL)
-#define SMC_CPSR_ADDMAT_5                              (0x20000000UL)
-#define SMC_CPSR_ADDMAT_6                              (0x40000000UL)
-#define SMC_CPSR_ADDMAT_7                              (0x80000000UL)
 
 /*  Bit definition for SMC_BACR register  */
 #define SMC_BACR_MUXMD_POS                             (4U)
@@ -19805,86 +17536,22 @@ typedef struct
 /*  Bit definition for SMC_CSCR0 register  */
 #define SMC_CSCR0_ADDMSK0_POS                          (0U)
 #define SMC_CSCR0_ADDMSK0                              (0x000000FFUL)
-#define SMC_CSCR0_ADDMSK0_0                            (0x00000001UL)
-#define SMC_CSCR0_ADDMSK0_1                            (0x00000002UL)
-#define SMC_CSCR0_ADDMSK0_2                            (0x00000004UL)
-#define SMC_CSCR0_ADDMSK0_3                            (0x00000008UL)
-#define SMC_CSCR0_ADDMSK0_4                            (0x00000010UL)
-#define SMC_CSCR0_ADDMSK0_5                            (0x00000020UL)
-#define SMC_CSCR0_ADDMSK0_6                            (0x00000040UL)
-#define SMC_CSCR0_ADDMSK0_7                            (0x00000080UL)
 #define SMC_CSCR0_ADDMSK1_POS                          (8U)
 #define SMC_CSCR0_ADDMSK1                              (0x0000FF00UL)
-#define SMC_CSCR0_ADDMSK1_0                            (0x00000100UL)
-#define SMC_CSCR0_ADDMSK1_1                            (0x00000200UL)
-#define SMC_CSCR0_ADDMSK1_2                            (0x00000400UL)
-#define SMC_CSCR0_ADDMSK1_3                            (0x00000800UL)
-#define SMC_CSCR0_ADDMSK1_4                            (0x00001000UL)
-#define SMC_CSCR0_ADDMSK1_5                            (0x00002000UL)
-#define SMC_CSCR0_ADDMSK1_6                            (0x00004000UL)
-#define SMC_CSCR0_ADDMSK1_7                            (0x00008000UL)
 #define SMC_CSCR0_ADDMSK2_POS                          (16U)
 #define SMC_CSCR0_ADDMSK2                              (0x00FF0000UL)
-#define SMC_CSCR0_ADDMSK2_0                            (0x00010000UL)
-#define SMC_CSCR0_ADDMSK2_1                            (0x00020000UL)
-#define SMC_CSCR0_ADDMSK2_2                            (0x00040000UL)
-#define SMC_CSCR0_ADDMSK2_3                            (0x00080000UL)
-#define SMC_CSCR0_ADDMSK2_4                            (0x00100000UL)
-#define SMC_CSCR0_ADDMSK2_5                            (0x00200000UL)
-#define SMC_CSCR0_ADDMSK2_6                            (0x00400000UL)
-#define SMC_CSCR0_ADDMSK2_7                            (0x00800000UL)
 #define SMC_CSCR0_ADDMSK3_POS                          (24U)
 #define SMC_CSCR0_ADDMSK3                              (0xFF000000UL)
-#define SMC_CSCR0_ADDMSK3_0                            (0x01000000UL)
-#define SMC_CSCR0_ADDMSK3_1                            (0x02000000UL)
-#define SMC_CSCR0_ADDMSK3_2                            (0x04000000UL)
-#define SMC_CSCR0_ADDMSK3_3                            (0x08000000UL)
-#define SMC_CSCR0_ADDMSK3_4                            (0x10000000UL)
-#define SMC_CSCR0_ADDMSK3_5                            (0x20000000UL)
-#define SMC_CSCR0_ADDMSK3_6                            (0x40000000UL)
-#define SMC_CSCR0_ADDMSK3_7                            (0x80000000UL)
 
 /*  Bit definition for SMC_CSCR1 register  */
 #define SMC_CSCR1_ADDMAT0_POS                          (0U)
 #define SMC_CSCR1_ADDMAT0                              (0x000000FFUL)
-#define SMC_CSCR1_ADDMAT0_0                            (0x00000001UL)
-#define SMC_CSCR1_ADDMAT0_1                            (0x00000002UL)
-#define SMC_CSCR1_ADDMAT0_2                            (0x00000004UL)
-#define SMC_CSCR1_ADDMAT0_3                            (0x00000008UL)
-#define SMC_CSCR1_ADDMAT0_4                            (0x00000010UL)
-#define SMC_CSCR1_ADDMAT0_5                            (0x00000020UL)
-#define SMC_CSCR1_ADDMAT0_6                            (0x00000040UL)
-#define SMC_CSCR1_ADDMAT0_7                            (0x00000080UL)
 #define SMC_CSCR1_ADDMAT1_POS                          (8U)
 #define SMC_CSCR1_ADDMAT1                              (0x0000FF00UL)
-#define SMC_CSCR1_ADDMAT1_0                            (0x00000100UL)
-#define SMC_CSCR1_ADDMAT1_1                            (0x00000200UL)
-#define SMC_CSCR1_ADDMAT1_2                            (0x00000400UL)
-#define SMC_CSCR1_ADDMAT1_3                            (0x00000800UL)
-#define SMC_CSCR1_ADDMAT1_4                            (0x00001000UL)
-#define SMC_CSCR1_ADDMAT1_5                            (0x00002000UL)
-#define SMC_CSCR1_ADDMAT1_6                            (0x00004000UL)
-#define SMC_CSCR1_ADDMAT1_7                            (0x00008000UL)
 #define SMC_CSCR1_ADDMAT2_POS                          (16U)
 #define SMC_CSCR1_ADDMAT2                              (0x00FF0000UL)
-#define SMC_CSCR1_ADDMAT2_0                            (0x00010000UL)
-#define SMC_CSCR1_ADDMAT2_1                            (0x00020000UL)
-#define SMC_CSCR1_ADDMAT2_2                            (0x00040000UL)
-#define SMC_CSCR1_ADDMAT2_3                            (0x00080000UL)
-#define SMC_CSCR1_ADDMAT2_4                            (0x00100000UL)
-#define SMC_CSCR1_ADDMAT2_5                            (0x00200000UL)
-#define SMC_CSCR1_ADDMAT2_6                            (0x00400000UL)
-#define SMC_CSCR1_ADDMAT2_7                            (0x00800000UL)
 #define SMC_CSCR1_ADDMAT3_POS                          (24U)
 #define SMC_CSCR1_ADDMAT3                              (0xFF000000UL)
-#define SMC_CSCR1_ADDMAT3_0                            (0x01000000UL)
-#define SMC_CSCR1_ADDMAT3_1                            (0x02000000UL)
-#define SMC_CSCR1_ADDMAT3_2                            (0x04000000UL)
-#define SMC_CSCR1_ADDMAT3_3                            (0x08000000UL)
-#define SMC_CSCR1_ADDMAT3_4                            (0x10000000UL)
-#define SMC_CSCR1_ADDMAT3_5                            (0x20000000UL)
-#define SMC_CSCR1_ADDMAT3_6                            (0x40000000UL)
-#define SMC_CSCR1_ADDMAT3_7                            (0x80000000UL)
 
 /*******************************************************************************
                 Bit definition for Peripheral SPI
@@ -20620,28 +18287,12 @@ typedef struct
 /*  Bit definition for TMR4_CVPR register  */
 #define TMR4_CVPR_ZIM_POS                              (0U)
 #define TMR4_CVPR_ZIM                                  (0x000FU)
-#define TMR4_CVPR_ZIM_0                                (0x0001U)
-#define TMR4_CVPR_ZIM_1                                (0x0002U)
-#define TMR4_CVPR_ZIM_2                                (0x0004U)
-#define TMR4_CVPR_ZIM_3                                (0x0008U)
 #define TMR4_CVPR_PIM_POS                              (4U)
 #define TMR4_CVPR_PIM                                  (0x00F0U)
-#define TMR4_CVPR_PIM_0                                (0x0010U)
-#define TMR4_CVPR_PIM_1                                (0x0020U)
-#define TMR4_CVPR_PIM_2                                (0x0040U)
-#define TMR4_CVPR_PIM_3                                (0x0080U)
 #define TMR4_CVPR_ZIC_POS                              (8U)
 #define TMR4_CVPR_ZIC                                  (0x0F00U)
-#define TMR4_CVPR_ZIC_0                                (0x0100U)
-#define TMR4_CVPR_ZIC_1                                (0x0200U)
-#define TMR4_CVPR_ZIC_2                                (0x0400U)
-#define TMR4_CVPR_ZIC_3                                (0x0800U)
 #define TMR4_CVPR_PIC_POS                              (12U)
 #define TMR4_CVPR_PIC                                  (0xF000U)
-#define TMR4_CVPR_PIC_0                                (0x1000U)
-#define TMR4_CVPR_PIC_1                                (0x2000U)
-#define TMR4_CVPR_PIC_2                                (0x4000U)
-#define TMR4_CVPR_PIC_3                                (0x8000U)
 
 /*  Bit definition for TMR4_PFSRU register  */
 #define TMR4_PFSRU                                     (0xFFFFU)
@@ -20763,10 +18414,6 @@ typedef struct
 /*  Bit definition for TMR4_SCMR register  */
 #define TMR4_SCMR_AMC_POS                              (0U)
 #define TMR4_SCMR_AMC                                  (0x000FU)
-#define TMR4_SCMR_AMC_0                                (0x0001U)
-#define TMR4_SCMR_AMC_1                                (0x0002U)
-#define TMR4_SCMR_AMC_2                                (0x0004U)
-#define TMR4_SCMR_AMC_3                                (0x0008U)
 #define TMR4_SCMR_MZCE_POS                             (6U)
 #define TMR4_SCMR_MZCE                                 (0x0040U)
 #define TMR4_SCMR_MPCE_POS                             (7U)
@@ -21854,49 +19501,16 @@ typedef struct
 /*  Bit definition for USART_DR register  */
 #define USART_DR_TDR_POS                               (0U)
 #define USART_DR_TDR                                   (0x000001FFUL)
-#define USART_DR_TDR_0                                 (0x00000001UL)
-#define USART_DR_TDR_1                                 (0x00000002UL)
-#define USART_DR_TDR_2                                 (0x00000004UL)
-#define USART_DR_TDR_3                                 (0x00000008UL)
-#define USART_DR_TDR_4                                 (0x00000010UL)
-#define USART_DR_TDR_5                                 (0x00000020UL)
-#define USART_DR_TDR_6                                 (0x00000040UL)
-#define USART_DR_TDR_7                                 (0x00000080UL)
-#define USART_DR_TDR_8                                 (0x00000100UL)
 #define USART_DR_MPID_POS                              (9U)
 #define USART_DR_MPID                                  (0x00000200UL)
 #define USART_DR_RDR_POS                               (16U)
 #define USART_DR_RDR                                   (0x01FF0000UL)
-#define USART_DR_RDR_0                                 (0x00010000UL)
-#define USART_DR_RDR_1                                 (0x00020000UL)
-#define USART_DR_RDR_2                                 (0x00040000UL)
-#define USART_DR_RDR_3                                 (0x00080000UL)
-#define USART_DR_RDR_4                                 (0x00100000UL)
-#define USART_DR_RDR_5                                 (0x00200000UL)
-#define USART_DR_RDR_6                                 (0x00400000UL)
-#define USART_DR_RDR_7                                 (0x00800000UL)
-#define USART_DR_RDR_8                                 (0x01000000UL)
 
 /*  Bit definition for USART_BRR register  */
 #define USART_BRR_DIV_FRACTION_POS                     (0U)
 #define USART_BRR_DIV_FRACTION                         (0x0000007FUL)
-#define USART_BRR_DIV_FRACTION_0                       (0x00000001UL)
-#define USART_BRR_DIV_FRACTION_1                       (0x00000002UL)
-#define USART_BRR_DIV_FRACTION_2                       (0x00000004UL)
-#define USART_BRR_DIV_FRACTION_3                       (0x00000008UL)
-#define USART_BRR_DIV_FRACTION_4                       (0x00000010UL)
-#define USART_BRR_DIV_FRACTION_5                       (0x00000020UL)
-#define USART_BRR_DIV_FRACTION_6                       (0x00000040UL)
 #define USART_BRR_DIV_INTEGER_POS                      (8U)
 #define USART_BRR_DIV_INTEGER                          (0x0000FF00UL)
-#define USART_BRR_DIV_INTEGER_0                        (0x00000100UL)
-#define USART_BRR_DIV_INTEGER_1                        (0x00000200UL)
-#define USART_BRR_DIV_INTEGER_2                        (0x00000400UL)
-#define USART_BRR_DIV_INTEGER_3                        (0x00000800UL)
-#define USART_BRR_DIV_INTEGER_4                        (0x00001000UL)
-#define USART_BRR_DIV_INTEGER_5                        (0x00002000UL)
-#define USART_BRR_DIV_INTEGER_6                        (0x00004000UL)
-#define USART_BRR_DIV_INTEGER_7                        (0x00008000UL)
 
 /*  Bit definition for USART_CR1 register  */
 #define USART_CR1_RTOE_POS                             (0U)
@@ -43319,7 +40933,7 @@ typedef struct
     uint32_t RESERVED0[2];
     __IO uint32_t FLAG_RLD;
     __IO uint32_t FLAG_BTM;
-    __IO uint32_t FLAT_TOP;
+    __IO uint32_t FLAG_TOP;
     uint32_t RESERVED1[20];
 } stc_dcu_flag_bit_t;
 
@@ -43449,15 +41063,15 @@ typedef struct
 
 typedef struct
 {
-    __IO uint32_t INT_OP;
-    __IO uint32_t INT_LS2;
-    __IO uint32_t INT_EQ2;
-    __IO uint32_t INT_GT2;
-    __IO uint32_t INT_LS1;
-    __IO uint32_t INT_EQ1;
-    __IO uint32_t INT_GT1;
-    __IO uint32_t INT_WIN0;
-    __IO uint32_t INT_WIN1;
+    __IO uint32_t SEL_OP;
+    __IO uint32_t SEL_LS2;
+    __IO uint32_t SEL_EQ2;
+    __IO uint32_t SEL_GT2;
+    __IO uint32_t SEL_LS1;
+    __IO uint32_t SEL_EQ1;
+    __IO uint32_t SEL_GT1;
+    __IO uint32_t SEL_WIN0;
+    __IO uint32_t SEL_WIN1;
     __IO uint32_t SEL_RLD;
     __IO uint32_t SEL_BTM;
     __IO uint32_t SEL_TOP;
@@ -44230,266 +41844,6 @@ typedef struct
     __IO uint32_t DNSCNT10;
     __IO uint32_t DNSCNT11;
 } stc_dma_mondnseqctl_bit_t;
-
-typedef struct
-{
-    __IO uint32_t STATUS0;
-    __IO uint32_t STATUS1;
-    __IO uint32_t MEMMW0;
-    __IO uint32_t MEMMW1;
-    uint32_t RESERVED0[28];
-} stc_dmc_stsr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t STCTL0;
-    __IO uint32_t STCTL1;
-    __IO uint32_t STCTL2;
-    uint32_t RESERVED0[29];
-} stc_dmc_stcr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t CMDADD0;
-    __IO uint32_t CMDADD1;
-    __IO uint32_t CMDADD2;
-    __IO uint32_t CMDADD3;
-    __IO uint32_t CMDADD4;
-    __IO uint32_t CMDADD5;
-    __IO uint32_t CMDADD6;
-    __IO uint32_t CMDADD7;
-    __IO uint32_t CMDADD8;
-    __IO uint32_t CMDADD9;
-    __IO uint32_t CMDADD10;
-    __IO uint32_t CMDADD11;
-    __IO uint32_t CMDADD12;
-    __IO uint32_t CMDADD13;
-    uint32_t RESERVED0[2];
-    __IO uint32_t CMDBA0;
-    __IO uint32_t CMDBA1;
-    __IO uint32_t CMD0;
-    __IO uint32_t CMD1;
-    __IO uint32_t CMDCHIP0;
-    __IO uint32_t CMDCHIP1;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV5;
-    uint32_t RESERVED2[7];
-} stc_dmc_cmdr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t COLBS0;
-    __IO uint32_t COLBS1;
-    __IO uint32_t COLBS2;
-    uint32_t RESERVED0[1];
-    __IO uint32_t ROWBS0;
-    __IO uint32_t ROWBS1;
-    __IO uint32_t ROWBS2;
-    __IO uint32_t APBS;
-    __IO uint32_t CKEDIS;
-    __IO uint32_t CKSTOP;
-    __IO uint32_t CKEDISPRD0;
-    __IO uint32_t CKEDISPRD1;
-    __IO uint32_t CKEDISPRD2;
-    __IO uint32_t CKEDISPRD3;
-    __IO uint32_t CKEDISPRD4;
-    __IO uint32_t CKEDISPRD5;
-    __IO uint32_t BURST0;
-    __IO uint32_t BURST1;
-    __IO uint32_t BURST2;
-    uint32_t RESERVED1[5];
-    __IO uint32_t ACTCP0;
-    __IO uint32_t ACTCP1;
-    uint32_t RESERVED2[6];
-} stc_dmc_cpcr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t REFPRD0;
-    __IO uint32_t REFPRD1;
-    __IO uint32_t REFPRD2;
-    __IO uint32_t REFPRD3;
-    __IO uint32_t REFPRD4;
-    __IO uint32_t REFPRD5;
-    __IO uint32_t REFPRD6;
-    __IO uint32_t REFPRD7;
-    __IO uint32_t REFPRD8;
-    __IO uint32_t REFPRD9;
-    __IO uint32_t REFPRD10;
-    __IO uint32_t REFPRD11;
-    __IO uint32_t REFPRD12;
-    __IO uint32_t REFPRD13;
-    __IO uint32_t REFPRD14;
-    uint32_t RESERVED0[17];
-} stc_dmc_rftr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_CASL0;
-    __IO uint32_t T_CASL1;
-    __IO uint32_t T_CASL2;
-    uint32_t RESERVED0[29];
-} stc_dmc_tmcr_t_casl_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_DQSS0;
-    __IO uint32_t T_DQSS1;
-    uint32_t RESERVED0[30];
-} stc_dmc_tmcr_t_dqss_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_MRD0;
-    __IO uint32_t T_MRD1;
-    __IO uint32_t T_MRD2;
-    __IO uint32_t T_MRD3;
-    __IO uint32_t T_MRD4;
-    __IO uint32_t T_MRD5;
-    __IO uint32_t T_MRD6;
-    uint32_t RESERVED0[25];
-} stc_dmc_tmcr_t_mrd_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_RAS0;
-    __IO uint32_t T_RAS1;
-    __IO uint32_t T_RAS2;
-    __IO uint32_t T_RAS3;
-    uint32_t RESERVED0[28];
-} stc_dmc_tmcr_t_ras_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_RC0;
-    __IO uint32_t T_RC1;
-    __IO uint32_t T_RC2;
-    __IO uint32_t T_RC3;
-    uint32_t RESERVED0[28];
-} stc_dmc_tmcr_t_rc_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_RCD0;
-    __IO uint32_t T_RCD1;
-    __IO uint32_t T_RCD2;
-    uint32_t RESERVED0[29];
-} stc_dmc_tmcr_t_rcd_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_RFC0;
-    __IO uint32_t T_RFC1;
-    __IO uint32_t T_RFC2;
-    __IO uint32_t T_RFC3;
-    __IO uint32_t T_RFC4;
-    uint32_t RESERVED0[27];
-} stc_dmc_tmcr_t_rfc_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_RP0;
-    __IO uint32_t T_RP1;
-    __IO uint32_t T_RP2;
-    uint32_t RESERVED0[29];
-} stc_dmc_tmcr_t_rp_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_RRD0;
-    __IO uint32_t T_RRD1;
-    __IO uint32_t T_RRD2;
-    __IO uint32_t T_RRD3;
-    uint32_t RESERVED0[28];
-} stc_dmc_tmcr_t_rrd_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_WR0;
-    __IO uint32_t T_WR1;
-    __IO uint32_t T_WR2;
-    uint32_t RESERVED0[29];
-} stc_dmc_tmcr_t_wr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_WTR0;
-    __IO uint32_t T_WTR1;
-    __IO uint32_t T_WTR2;
-    uint32_t RESERVED0[29];
-} stc_dmc_tmcr_t_wtr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_XP0;
-    __IO uint32_t T_XP1;
-    __IO uint32_t T_XP2;
-    __IO uint32_t T_XP3;
-    __IO uint32_t T_XP4;
-    __IO uint32_t T_XP5;
-    __IO uint32_t T_XP6;
-    __IO uint32_t T_XP7;
-    uint32_t RESERVED0[24];
-} stc_dmc_tmcr_t_xp_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_XSR0;
-    __IO uint32_t T_XSR1;
-    __IO uint32_t T_XSR2;
-    __IO uint32_t T_XSR3;
-    __IO uint32_t T_XSR4;
-    __IO uint32_t T_XSR5;
-    __IO uint32_t T_XSR6;
-    __IO uint32_t T_XSR7;
-    uint32_t RESERVED0[24];
-} stc_dmc_tmcr_t_xsr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_ESR0;
-    __IO uint32_t T_ESR1;
-    __IO uint32_t T_ESR2;
-    __IO uint32_t T_ESR3;
-    __IO uint32_t T_ESR4;
-    __IO uint32_t T_ESR5;
-    __IO uint32_t T_ESR6;
-    __IO uint32_t T_ESR7;
-    uint32_t RESERVED0[24];
-} stc_dmc_tmcr_t_esr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ADDMSK0;
-    __IO uint32_t ADDMSK1;
-    __IO uint32_t ADDMSK2;
-    __IO uint32_t ADDMSK3;
-    __IO uint32_t ADDMSK4;
-    __IO uint32_t ADDMSK5;
-    __IO uint32_t ADDMSK6;
-    __IO uint32_t ADDMSK7;
-    __IO uint32_t ADDMAT0;
-    __IO uint32_t ADDMAT1;
-    __IO uint32_t ADDMAT2;
-    __IO uint32_t ADDMAT3;
-    __IO uint32_t ADDMAT4;
-    __IO uint32_t ADDMAT5;
-    __IO uint32_t ADDMAT6;
-    __IO uint32_t ADDMAT7;
-    __IO uint32_t BRC;
-    uint32_t RESERVED0[7];
-    __IO uint32_t RESV8;
-    uint32_t RESERVED1[7];
-} stc_dmc_cscr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t DMCMW0;
-    __IO uint32_t DMCMW1;
-    uint32_t RESERVED0[22];
-    __IO uint32_t RESV11;
-    uint32_t RESERVED1[7];
-} stc_dmc_bacr_bit_t;
 
 typedef struct
 {
@@ -50610,7 +47964,6 @@ typedef struct
     __IO uint32_t DT5;
     __IO uint32_t DT6;
     __IO uint32_t DT7;
-    uint32_t RESERVED0[24];
 } stc_i2c_dtr_bit_t;
 
 typedef struct
@@ -50623,7 +47976,6 @@ typedef struct
     __IO uint32_t DR5;
     __IO uint32_t DR6;
     __IO uint32_t DR7;
-    uint32_t RESERVED0[24];
 } stc_i2c_drr_bit_t;
 
 typedef struct
@@ -53052,7 +50404,8 @@ typedef struct
 {
     __IO uint32_t INDEX0;
     __IO uint32_t INDEX1;
-    uint32_t RESERVED0[30];
+    __IO uint32_t INDEX2;
+    uint32_t RESERVED0[29];
 } stc_keyscan_ssr_bit_t;
 
 typedef struct
@@ -54118,2602 +51471,6 @@ typedef struct
 
 typedef struct
 {
-    uint32_t NFC_DATR_BASE_0;
-    uint32_t NFC_DATR_BASE_1;
-    uint32_t NFC_DATR_BASE_2;
-    uint32_t NFC_DATR_BASE_3;
-    uint32_t NFC_DATR_BASE_4;
-    uint32_t NFC_DATR_BASE_5;
-    uint32_t NFC_DATR_BASE_6;
-    uint32_t NFC_DATR_BASE_7;
-    uint32_t NFC_DATR_BASE_8;
-    uint32_t NFC_DATR_BASE_9;
-    uint32_t NFC_DATR_BASE_10;
-    uint32_t NFC_DATR_BASE_11;
-    uint32_t NFC_DATR_BASE_12;
-    uint32_t NFC_DATR_BASE_13;
-    uint32_t NFC_DATR_BASE_14;
-    uint32_t NFC_DATR_BASE_15;
-    uint32_t NFC_DATR_BASE_16;
-    uint32_t NFC_DATR_BASE_17;
-    uint32_t NFC_DATR_BASE_18;
-    uint32_t NFC_DATR_BASE_19;
-    uint32_t NFC_DATR_BASE_20;
-    uint32_t NFC_DATR_BASE_21;
-    uint32_t NFC_DATR_BASE_22;
-    uint32_t NFC_DATR_BASE_23;
-    uint32_t NFC_DATR_BASE_24;
-    uint32_t NFC_DATR_BASE_25;
-    uint32_t NFC_DATR_BASE_26;
-    uint32_t NFC_DATR_BASE_27;
-    uint32_t NFC_DATR_BASE_28;
-    uint32_t NFC_DATR_BASE_29;
-    uint32_t NFC_DATR_BASE_30;
-    uint32_t NFC_DATR_BASE_31;
-} stc_nfc_datr_base_bit_t;
-
-typedef struct
-{
-    __IO uint32_t CMD0;
-    __IO uint32_t CMD1;
-    __IO uint32_t CMD2;
-    __IO uint32_t CMD3;
-    __IO uint32_t CMD4;
-    __IO uint32_t CMD5;
-    __IO uint32_t CMD6;
-    __IO uint32_t CMD7;
-    __IO uint32_t ARG0;
-    __IO uint32_t ARG1;
-    __IO uint32_t ARG2;
-    __IO uint32_t ARG3;
-    __IO uint32_t ARG4;
-    __IO uint32_t ARG5;
-    __IO uint32_t ARG6;
-    __IO uint32_t ARG7;
-    __IO uint32_t ARG8;
-    __IO uint32_t ARG9;
-    __IO uint32_t ARG10;
-    __IO uint32_t ARG11;
-    __IO uint32_t ARG12;
-    __IO uint32_t ARG13;
-    __IO uint32_t ARG14;
-    __IO uint32_t ARG15;
-    __IO uint32_t ARG16;
-    __IO uint32_t ARG17;
-    __IO uint32_t ARG18;
-    __IO uint32_t ARG19;
-    __IO uint32_t ARG20;
-    __IO uint32_t ARG21;
-    __IO uint32_t ARG22;
-    __IO uint32_t ARG23;
-} stc_nfc_cmdr_bit_t;
-
-typedef struct
-{
-    uint32_t NFC_IDXR0_0;
-    uint32_t NFC_IDXR0_1;
-    uint32_t NFC_IDXR0_2;
-    uint32_t NFC_IDXR0_3;
-    uint32_t NFC_IDXR0_4;
-    uint32_t NFC_IDXR0_5;
-    uint32_t NFC_IDXR0_6;
-    uint32_t NFC_IDXR0_7;
-    uint32_t NFC_IDXR0_8;
-    uint32_t NFC_IDXR0_9;
-    uint32_t NFC_IDXR0_10;
-    uint32_t NFC_IDXR0_11;
-    uint32_t NFC_IDXR0_12;
-    uint32_t NFC_IDXR0_13;
-    uint32_t NFC_IDXR0_14;
-    uint32_t NFC_IDXR0_15;
-    uint32_t NFC_IDXR0_16;
-    uint32_t NFC_IDXR0_17;
-    uint32_t NFC_IDXR0_18;
-    uint32_t NFC_IDXR0_19;
-    uint32_t NFC_IDXR0_20;
-    uint32_t NFC_IDXR0_21;
-    uint32_t NFC_IDXR0_22;
-    uint32_t NFC_IDXR0_23;
-    uint32_t NFC_IDXR0_24;
-    uint32_t NFC_IDXR0_25;
-    uint32_t NFC_IDXR0_26;
-    uint32_t NFC_IDXR0_27;
-    uint32_t NFC_IDXR0_28;
-    uint32_t NFC_IDXR0_29;
-    uint32_t NFC_IDXR0_30;
-    uint32_t NFC_IDXR0_31;
-} stc_nfc_idxr0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ECCEUEN;
-    __IO uint32_t ECCECEN;
-    uint32_t RESERVED0[2];
-    __IO uint32_t ECCCEN;
-    uint32_t RESERVED1[1];
-    __IO uint32_t ECCEEN;
-    __IO uint32_t ECCDIS;
-    __IO uint32_t RBEN0;
-    __IO uint32_t RBEN1;
-    __IO uint32_t RBEN2;
-    __IO uint32_t RBEN3;
-    __IO uint32_t RBEN4;
-    __IO uint32_t RBEN5;
-    __IO uint32_t RBEN6;
-    __IO uint32_t RBEN7;
-    uint32_t RESERVED2[15];
-    __IO uint32_t RESV;
-} stc_nfc_ienr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ECCEUST;
-    __IO uint32_t ECCECST;
-    uint32_t RESERVED0[2];
-    __IO uint32_t ECCCST;
-    uint32_t RESERVED1[1];
-    __IO uint32_t ECCEST;
-    uint32_t RESERVED2[1];
-    __IO uint32_t RBST0;
-    __IO uint32_t RBST1;
-    __IO uint32_t RBST2;
-    __IO uint32_t RBST3;
-    __IO uint32_t RBST4;
-    __IO uint32_t RBST5;
-    __IO uint32_t RBST6;
-    __IO uint32_t RBST7;
-    uint32_t RESERVED3[15];
-    __IO uint32_t RESV;
-} stc_nfc_istr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ECCEURS;
-    __IO uint32_t ECCECRS;
-    uint32_t RESERVED0[2];
-    __IO uint32_t ECCCRS;
-    uint32_t RESERVED1[1];
-    __IO uint32_t ECCERS;
-    uint32_t RESERVED2[1];
-    __IO uint32_t RBRS0;
-    __IO uint32_t RBRS1;
-    __IO uint32_t RBRS2;
-    __IO uint32_t RBRS3;
-    __IO uint32_t RBRS4;
-    __IO uint32_t RBRS5;
-    __IO uint32_t RBRS6;
-    __IO uint32_t RBRS7;
-    uint32_t RESERVED3[15];
-    __IO uint32_t RESV;
-} stc_nfc_irsr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t IDX10;
-    __IO uint32_t IDX11;
-    __IO uint32_t IDX12;
-    __IO uint32_t IDX13;
-    __IO uint32_t IDX14;
-    __IO uint32_t IDX15;
-    __IO uint32_t IDX16;
-    __IO uint32_t IDX17;
-    uint32_t RESERVED0[23];
-    __IO uint32_t RESV;
-} stc_nfc_idxr1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t TS0;
-    __IO uint32_t TS1;
-    __IO uint32_t TS2;
-    __IO uint32_t TS3;
-    __IO uint32_t TS4;
-    __IO uint32_t TS5;
-    __IO uint32_t TS6;
-    __IO uint32_t TS7;
-    __IO uint32_t TWP0;
-    __IO uint32_t TWP1;
-    __IO uint32_t TWP2;
-    __IO uint32_t TWP3;
-    __IO uint32_t TWP4;
-    __IO uint32_t TWP5;
-    __IO uint32_t TWP6;
-    __IO uint32_t TWP7;
-    __IO uint32_t TRP0;
-    __IO uint32_t TRP1;
-    __IO uint32_t TRP2;
-    __IO uint32_t TRP3;
-    __IO uint32_t TRP4;
-    __IO uint32_t TRP5;
-    __IO uint32_t TRP6;
-    __IO uint32_t TRP7;
-    __IO uint32_t TH0;
-    __IO uint32_t TH1;
-    __IO uint32_t TH2;
-    __IO uint32_t TH3;
-    __IO uint32_t TH4;
-    __IO uint32_t TH5;
-    __IO uint32_t TH6;
-    __IO uint32_t TH7;
-} stc_nfc_tmcr0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t TWH0;
-    __IO uint32_t TWH1;
-    __IO uint32_t TWH2;
-    __IO uint32_t TWH3;
-    __IO uint32_t TWH4;
-    __IO uint32_t TWH5;
-    __IO uint32_t TWH6;
-    __IO uint32_t TWH7;
-    __IO uint32_t TRH0;
-    __IO uint32_t TRH1;
-    __IO uint32_t TRH2;
-    __IO uint32_t TRH3;
-    __IO uint32_t TRH4;
-    __IO uint32_t TRH5;
-    __IO uint32_t TRH6;
-    __IO uint32_t TRH7;
-    __IO uint32_t TRR0;
-    __IO uint32_t TRR1;
-    __IO uint32_t TRR2;
-    __IO uint32_t TRR3;
-    __IO uint32_t TRR4;
-    __IO uint32_t TRR5;
-    __IO uint32_t TRR6;
-    __IO uint32_t TRR7;
-    __IO uint32_t TWB0;
-    __IO uint32_t TWB1;
-    __IO uint32_t TWB2;
-    __IO uint32_t TWB3;
-    __IO uint32_t TWB4;
-    __IO uint32_t TWB5;
-    __IO uint32_t TWB6;
-    __IO uint32_t TWB7;
-} stc_nfc_tmcr1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t SIZE0;
-    __IO uint32_t SIZE1;
-    __IO uint32_t SIZE2;
-    __IO uint32_t B16BIT;
-    uint32_t RESERVED0[2];
-    __IO uint32_t BANK0;
-    __IO uint32_t BANK1;
-    __IO uint32_t PAGE0;
-    __IO uint32_t PAGE1;
-    __IO uint32_t WP;
-    __IO uint32_t ECCM0;
-    __IO uint32_t ECCM1;
-    __IO uint32_t RAC;
-    uint32_t RESERVED1[2];
-    __IO uint32_t SCS0;
-    __IO uint32_t SCS1;
-    __IO uint32_t SCS2;
-    __IO uint32_t SCS3;
-    __IO uint32_t SCS4;
-    __IO uint32_t SCS5;
-    __IO uint32_t SCS6;
-    __IO uint32_t SCS7;
-    __IO uint32_t RESV7;
-    uint32_t RESERVED2[6];
-    __IO uint32_t RESV;
-} stc_nfc_bacr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t TCCS0;
-    __IO uint32_t TCCS1;
-    __IO uint32_t TCCS2;
-    __IO uint32_t TCCS3;
-    __IO uint32_t TCCS4;
-    __IO uint32_t TCCS5;
-    __IO uint32_t TCCS6;
-    __IO uint32_t TCCS7;
-    __IO uint32_t TWTR0;
-    __IO uint32_t TWTR1;
-    __IO uint32_t TWTR2;
-    __IO uint32_t TWTR3;
-    __IO uint32_t TWTR4;
-    __IO uint32_t TWTR5;
-    __IO uint32_t TWTR6;
-    __IO uint32_t TWTR7;
-    __IO uint32_t TRTW0;
-    __IO uint32_t TRTW1;
-    __IO uint32_t TRTW2;
-    __IO uint32_t TRTW3;
-    __IO uint32_t TRTW4;
-    __IO uint32_t TRTW5;
-    __IO uint32_t TRTW6;
-    __IO uint32_t TRTW7;
-    __IO uint32_t TADL0;
-    __IO uint32_t TADL1;
-    __IO uint32_t TADL2;
-    __IO uint32_t TADL3;
-    __IO uint32_t TADL4;
-    __IO uint32_t TADL5;
-    __IO uint32_t TADL6;
-    __IO uint32_t TADL7;
-} stc_nfc_tmcr2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ERRLOC0;
-    __IO uint32_t ERRLOC1;
-    __IO uint32_t ERRLOC2;
-    __IO uint32_t ERRLOC3;
-    __IO uint32_t ERRLOC4;
-    __IO uint32_t ERRLOC5;
-    __IO uint32_t ERRLOC6;
-    __IO uint32_t ERRLOC7;
-    __IO uint32_t ERRLOC8;
-    __IO uint32_t ERRLOC9;
-    __IO uint32_t ERRLOC10;
-    __IO uint32_t ERRLOC11;
-    __IO uint32_t SE;
-    __IO uint32_t ME;
-    uint32_t RESERVED0[17];
-    __IO uint32_t RESV;
-} stc_nfc_eccr0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ERRLOC0;
-    __IO uint32_t ERRLOC1;
-    __IO uint32_t ERRLOC2;
-    __IO uint32_t ERRLOC3;
-    __IO uint32_t ERRLOC4;
-    __IO uint32_t ERRLOC5;
-    __IO uint32_t ERRLOC6;
-    __IO uint32_t ERRLOC7;
-    __IO uint32_t ERRLOC8;
-    __IO uint32_t ERRLOC9;
-    __IO uint32_t ERRLOC10;
-    __IO uint32_t ERRLOC11;
-    __IO uint32_t SE;
-    __IO uint32_t ME;
-    uint32_t RESERVED0[17];
-    __IO uint32_t RESV;
-} stc_nfc_eccr1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ERRLOC0;
-    __IO uint32_t ERRLOC1;
-    __IO uint32_t ERRLOC2;
-    __IO uint32_t ERRLOC3;
-    __IO uint32_t ERRLOC4;
-    __IO uint32_t ERRLOC5;
-    __IO uint32_t ERRLOC6;
-    __IO uint32_t ERRLOC7;
-    __IO uint32_t ERRLOC8;
-    __IO uint32_t ERRLOC9;
-    __IO uint32_t ERRLOC10;
-    __IO uint32_t ERRLOC11;
-    __IO uint32_t SE;
-    __IO uint32_t ME;
-    uint32_t RESERVED0[17];
-    __IO uint32_t RESV;
-} stc_nfc_eccr2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ERRLOC0;
-    __IO uint32_t ERRLOC1;
-    __IO uint32_t ERRLOC2;
-    __IO uint32_t ERRLOC3;
-    __IO uint32_t ERRLOC4;
-    __IO uint32_t ERRLOC5;
-    __IO uint32_t ERRLOC6;
-    __IO uint32_t ERRLOC7;
-    __IO uint32_t ERRLOC8;
-    __IO uint32_t ERRLOC9;
-    __IO uint32_t ERRLOC10;
-    __IO uint32_t ERRLOC11;
-    __IO uint32_t SE;
-    __IO uint32_t ME;
-    uint32_t RESERVED0[17];
-    __IO uint32_t RESV;
-} stc_nfc_eccr3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ERRLOC0;
-    __IO uint32_t ERRLOC1;
-    __IO uint32_t ERRLOC2;
-    __IO uint32_t ERRLOC3;
-    __IO uint32_t ERRLOC4;
-    __IO uint32_t ERRLOC5;
-    __IO uint32_t ERRLOC6;
-    __IO uint32_t ERRLOC7;
-    __IO uint32_t ERRLOC8;
-    __IO uint32_t ERRLOC9;
-    __IO uint32_t ERRLOC10;
-    __IO uint32_t ERRLOC11;
-    __IO uint32_t SE;
-    __IO uint32_t ME;
-    uint32_t RESERVED0[17];
-    __IO uint32_t RESV;
-} stc_nfc_eccr4_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ERRLOC0;
-    __IO uint32_t ERRLOC1;
-    __IO uint32_t ERRLOC2;
-    __IO uint32_t ERRLOC3;
-    __IO uint32_t ERRLOC4;
-    __IO uint32_t ERRLOC5;
-    __IO uint32_t ERRLOC6;
-    __IO uint32_t ERRLOC7;
-    __IO uint32_t ERRLOC8;
-    __IO uint32_t ERRLOC9;
-    __IO uint32_t ERRLOC10;
-    __IO uint32_t ERRLOC11;
-    __IO uint32_t SE;
-    __IO uint32_t ME;
-    uint32_t RESERVED0[17];
-    __IO uint32_t RESV;
-} stc_nfc_eccr5_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ERRLOC0;
-    __IO uint32_t ERRLOC1;
-    __IO uint32_t ERRLOC2;
-    __IO uint32_t ERRLOC3;
-    __IO uint32_t ERRLOC4;
-    __IO uint32_t ERRLOC5;
-    __IO uint32_t ERRLOC6;
-    __IO uint32_t ERRLOC7;
-    __IO uint32_t ERRLOC8;
-    __IO uint32_t ERRLOC9;
-    __IO uint32_t ERRLOC10;
-    __IO uint32_t ERRLOC11;
-    __IO uint32_t SE;
-    __IO uint32_t ME;
-    uint32_t RESERVED0[17];
-    __IO uint32_t RESV;
-} stc_nfc_eccr6_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ERRSEC0;
-    __IO uint32_t ERRSEC1;
-    __IO uint32_t ERRSEC2;
-    __IO uint32_t ERRSEC3;
-    __IO uint32_t ERRSEC4;
-    __IO uint32_t ERRSEC5;
-    __IO uint32_t ERRSEC6;
-    __IO uint32_t ERRSEC7;
-    __IO uint32_t ERRSEC8;
-    __IO uint32_t ERRSEC9;
-    __IO uint32_t ERRSEC10;
-    __IO uint32_t ERRSEC11;
-    __IO uint32_t ERRSEC12;
-    __IO uint32_t ERRSEC13;
-    __IO uint32_t ERRSEC14;
-    __IO uint32_t ERRSEC15;
-    uint32_t RESERVED0[15];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_stat_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd0_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd0_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd0_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd0_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd1_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd1_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd1_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd1_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd2_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd2_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd2_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd2_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd3_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd3_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd3_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd3_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd4_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd4_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd4_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd4_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd5_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd5_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd5_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd5_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd6_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd6_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd6_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd6_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd7_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd7_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd7_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd7_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd8_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd8_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd8_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd8_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd9_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd9_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd9_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd9_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd10_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd10_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd10_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd10_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd11_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd11_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd11_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd11_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd12_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd12_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd12_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd12_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd13_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd13_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd13_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd13_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd14_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd14_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd14_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd14_3_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S10;
-    __IO uint32_t S11;
-    __IO uint32_t S12;
-    __IO uint32_t S13;
-    __IO uint32_t S14;
-    __IO uint32_t S15;
-    __IO uint32_t S16;
-    __IO uint32_t S17;
-    __IO uint32_t S18;
-    __IO uint32_t S19;
-    __IO uint32_t S110;
-    __IO uint32_t S111;
-    __IO uint32_t S112;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S20;
-    __IO uint32_t S21;
-    __IO uint32_t S22;
-    __IO uint32_t S23;
-    __IO uint32_t S24;
-    __IO uint32_t S25;
-    __IO uint32_t S26;
-    __IO uint32_t S27;
-    __IO uint32_t S28;
-    __IO uint32_t S29;
-    __IO uint32_t S210;
-    __IO uint32_t S211;
-    __IO uint32_t S212;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd15_0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S30;
-    __IO uint32_t S31;
-    __IO uint32_t S32;
-    __IO uint32_t S33;
-    __IO uint32_t S34;
-    __IO uint32_t S35;
-    __IO uint32_t S36;
-    __IO uint32_t S37;
-    __IO uint32_t S38;
-    __IO uint32_t S39;
-    __IO uint32_t S310;
-    __IO uint32_t S311;
-    __IO uint32_t S312;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S40;
-    __IO uint32_t S41;
-    __IO uint32_t S42;
-    __IO uint32_t S43;
-    __IO uint32_t S44;
-    __IO uint32_t S45;
-    __IO uint32_t S46;
-    __IO uint32_t S47;
-    __IO uint32_t S48;
-    __IO uint32_t S49;
-    __IO uint32_t S410;
-    __IO uint32_t S411;
-    __IO uint32_t S412;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd15_1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S50;
-    __IO uint32_t S51;
-    __IO uint32_t S52;
-    __IO uint32_t S53;
-    __IO uint32_t S54;
-    __IO uint32_t S55;
-    __IO uint32_t S56;
-    __IO uint32_t S57;
-    __IO uint32_t S58;
-    __IO uint32_t S59;
-    __IO uint32_t S510;
-    __IO uint32_t S511;
-    __IO uint32_t S512;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S60;
-    __IO uint32_t S61;
-    __IO uint32_t S62;
-    __IO uint32_t S63;
-    __IO uint32_t S64;
-    __IO uint32_t S65;
-    __IO uint32_t S66;
-    __IO uint32_t S67;
-    __IO uint32_t S68;
-    __IO uint32_t S69;
-    __IO uint32_t S610;
-    __IO uint32_t S611;
-    __IO uint32_t S612;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd15_2_bit_t;
-
-typedef struct
-{
-    __IO uint32_t S70;
-    __IO uint32_t S71;
-    __IO uint32_t S72;
-    __IO uint32_t S73;
-    __IO uint32_t S74;
-    __IO uint32_t S75;
-    __IO uint32_t S76;
-    __IO uint32_t S77;
-    __IO uint32_t S78;
-    __IO uint32_t S79;
-    __IO uint32_t S710;
-    __IO uint32_t S711;
-    __IO uint32_t S712;
-    uint32_t RESERVED0[3];
-    __IO uint32_t S80;
-    __IO uint32_t S81;
-    __IO uint32_t S82;
-    __IO uint32_t S83;
-    __IO uint32_t S84;
-    __IO uint32_t S85;
-    __IO uint32_t S86;
-    __IO uint32_t S87;
-    __IO uint32_t S88;
-    __IO uint32_t S89;
-    __IO uint32_t S810;
-    __IO uint32_t S811;
-    __IO uint32_t S812;
-    uint32_t RESERVED1[2];
-    __IO uint32_t RESV;
-} stc_nfc_ecc_synd15_3_bit_t;
-
-typedef struct
-{
     __IO uint32_t OTSST;
     __IO uint32_t OTSCK;
     __IO uint32_t OTSIE;
@@ -56903,7 +51660,7 @@ typedef struct
     __IO uint32_t DMA1;
     __IO uint32_t DMA2;
     __IO uint32_t FCM;
-    __IO uint32_t PTDIS;
+    __IO uint32_t AOS;
     __IO uint32_t CTC;
     __IO uint32_t CORDIC;
     __IO uint32_t AES;
@@ -56994,20 +51751,20 @@ typedef struct
     __IO uint32_t ADC1;
     __IO uint32_t ADC2;
     __IO uint32_t ADC3;
-    uint32_t RESERVED0[1];
+    __IO uint32_t CMBIAS;
     __IO uint32_t DAC1;
     __IO uint32_t DAC2;
-    uint32_t RESERVED1[2];
+    uint32_t RESERVED0[2];
     __IO uint32_t CMP1;
     __IO uint32_t CMP2;
-    uint32_t RESERVED2[2];
+    uint32_t RESERVED1[2];
     __IO uint32_t OTS;
-    uint32_t RESERVED3[2];
+    uint32_t RESERVED2[2];
     __IO uint32_t DVP;
     __IO uint32_t SMC;
     __IO uint32_t DMC;
     __IO uint32_t NFC;
-    uint32_t RESERVED4[1];
+    uint32_t RESERVED3[1];
     __IO uint32_t USART1;
     __IO uint32_t USART2;
     __IO uint32_t USART3;
@@ -57018,7 +51775,7 @@ typedef struct
     __IO uint32_t USART8;
     __IO uint32_t USART9;
     __IO uint32_t USART10;
-    uint32_t RESERVED5[2];
+    uint32_t RESERVED4[2];
 } stc_pwc_fcg3_bit_t;
 
 typedef struct
@@ -58644,8 +53401,8 @@ typedef struct
 
 typedef struct
 {
-    __IO uint32_t VPLLHSD;
-    __IO uint32_t VPLLASD;
+    __IO uint32_t VPLLSD0;
+    __IO uint32_t VPLLSD1;
     __IO uint32_t VHRCSD;
     __IO uint32_t PDTS;
     uint32_t RESERVED0[2];
@@ -58898,136 +53655,6 @@ typedef struct
     __IO uint32_t FPRCWE6;
     __IO uint32_t FPRCWE7;
 } stc_pwc_fprc_bit_t;
-
-typedef struct
-{
-    __IO uint32_t MDSEL0;
-    __IO uint32_t MDSEL1;
-    __IO uint32_t MDSEL2;
-    __IO uint32_t PFE;
-    __IO uint32_t PFSAE;
-    __IO uint32_t DCOME;
-    __IO uint32_t XIPE;
-    __IO uint32_t SPIMD3;
-    __IO uint32_t IPRSL0;
-    __IO uint32_t IPRSL1;
-    __IO uint32_t APRSL0;
-    __IO uint32_t APRSL1;
-    __IO uint32_t DPRSL0;
-    __IO uint32_t DPRSL1;
-    uint32_t RESERVED0[2];
-    __IO uint32_t DIV0;
-    __IO uint32_t DIV1;
-    __IO uint32_t DIV2;
-    __IO uint32_t DIV3;
-    __IO uint32_t DIV4;
-    __IO uint32_t DIV5;
-    uint32_t RESERVED1[10];
-} stc_qspi_cr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t SSHW0;
-    __IO uint32_t SSHW1;
-    __IO uint32_t SSHW2;
-    __IO uint32_t SSHW3;
-    __IO uint32_t SSNW0;
-    __IO uint32_t SSNW1;
-    uint32_t RESERVED0[26];
-} stc_qspi_cscr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t AWSL0;
-    __IO uint32_t AWSL1;
-    __IO uint32_t FOUR_BIC;
-    uint32_t RESERVED0[1];
-    __IO uint32_t SSNHD;
-    __IO uint32_t SSNLD;
-    __IO uint32_t WPOL;
-    uint32_t RESERVED1[1];
-    __IO uint32_t DMCYCN0;
-    __IO uint32_t DMCYCN1;
-    __IO uint32_t DMCYCN2;
-    __IO uint32_t DMCYCN3;
-    uint32_t RESERVED2[3];
-    __IO uint32_t DUTY;
-    uint32_t RESERVED3[16];
-} stc_qspi_fcr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t BUSY;
-    uint32_t RESERVED0[5];
-    __IO uint32_t XIPF;
-    __IO uint32_t RAER;
-    __IO uint32_t PFNUM0;
-    __IO uint32_t PFNUM1;
-    __IO uint32_t PFNUM2;
-    __IO uint32_t PFNUM3;
-    __IO uint32_t PFNUM4;
-    uint32_t RESERVED1[1];
-    __IO uint32_t PFFUL;
-    __IO uint32_t PFAN;
-    uint32_t RESERVED2[16];
-} stc_qspi_sr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t DCOM0;
-    __IO uint32_t DCOM1;
-    __IO uint32_t DCOM2;
-    __IO uint32_t DCOM3;
-    __IO uint32_t DCOM4;
-    __IO uint32_t DCOM5;
-    __IO uint32_t DCOM6;
-    __IO uint32_t DCOM7;
-    uint32_t RESERVED0[24];
-} stc_qspi_dcom_bit_t;
-
-typedef struct
-{
-    __IO uint32_t RIC0;
-    __IO uint32_t RIC1;
-    __IO uint32_t RIC2;
-    __IO uint32_t RIC3;
-    __IO uint32_t RIC4;
-    __IO uint32_t RIC5;
-    __IO uint32_t RIC6;
-    __IO uint32_t RIC7;
-    uint32_t RESERVED0[24];
-} stc_qspi_ccmd_bit_t;
-
-typedef struct
-{
-    __IO uint32_t XIPMC0;
-    __IO uint32_t XIPMC1;
-    __IO uint32_t XIPMC2;
-    __IO uint32_t XIPMC3;
-    __IO uint32_t XIPMC4;
-    __IO uint32_t XIPMC5;
-    __IO uint32_t XIPMC6;
-    __IO uint32_t XIPMC7;
-    uint32_t RESERVED0[24];
-} stc_qspi_xcmd_bit_t;
-
-typedef struct
-{
-    uint32_t RESERVED0[7];
-    __IO uint32_t RAERCLR;
-    uint32_t RESERVED1[24];
-} stc_qspi_sr2_bit_t;
-
-typedef struct
-{
-    uint32_t RESERVED0[26];
-    __IO uint32_t EXADR0;
-    __IO uint32_t EXADR1;
-    __IO uint32_t EXADR2;
-    __IO uint32_t EXADR3;
-    __IO uint32_t EXADR4;
-    __IO uint32_t EXADR5;
-} stc_qspi_exar_bit_t;
 
 typedef struct
 {
@@ -59825,257 +54452,6 @@ typedef struct
     __IO uint32_t FACE;
     uint32_t RESERVED1[7];
 } stc_sdioc_fee_bit_t;
-
-typedef struct
-{
-    __IO uint32_t STATUS;
-    uint32_t RESERVED0[31];
-} stc_smc_stsr_bit_t;
-
-typedef struct
-{
-    uint32_t RESERVED0[2];
-    __IO uint32_t LPWIR;
-    uint32_t RESERVED1[29];
-} stc_smc_stcr0_bit_t;
-
-typedef struct
-{
-    uint32_t RESERVED0[2];
-    __IO uint32_t LPWOR;
-    uint32_t RESERVED1[29];
-} stc_smc_stcr1_bit_t;
-
-typedef struct
-{
-    __IO uint32_t CMDADD0;
-    __IO uint32_t CMDADD1;
-    __IO uint32_t CMDADD2;
-    __IO uint32_t CMDADD3;
-    __IO uint32_t CMDADD4;
-    __IO uint32_t CMDADD5;
-    __IO uint32_t CMDADD6;
-    __IO uint32_t CMDADD7;
-    __IO uint32_t CMDADD8;
-    __IO uint32_t CMDADD9;
-    __IO uint32_t CMDADD10;
-    __IO uint32_t CMDADD11;
-    __IO uint32_t CMDADD12;
-    __IO uint32_t CMDADD13;
-    __IO uint32_t CMDADD14;
-    __IO uint32_t CMDADD15;
-    __IO uint32_t CMDADD16;
-    __IO uint32_t CMDADD17;
-    __IO uint32_t CMDADD18;
-    __IO uint32_t CMDADD19;
-    __IO uint32_t CRES;
-    __IO uint32_t CMD0;
-    __IO uint32_t CMD1;
-    __IO uint32_t CMDCHIP0;
-    __IO uint32_t CMDCHIP1;
-    __IO uint32_t CMDCHIP2;
-    uint32_t RESERVED0[6];
-} stc_smc_cmdr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_RC0;
-    __IO uint32_t T_RC1;
-    __IO uint32_t T_RC2;
-    __IO uint32_t T_RC3;
-    __IO uint32_t T_WC0;
-    __IO uint32_t T_WC1;
-    __IO uint32_t T_WC2;
-    __IO uint32_t T_WC3;
-    __IO uint32_t T_CEOE0;
-    __IO uint32_t T_CEOE1;
-    __IO uint32_t T_CEOE2;
-    uint32_t RESERVED0[1];
-    __IO uint32_t T_WP0;
-    __IO uint32_t T_WP1;
-    __IO uint32_t T_WP2;
-    uint32_t RESERVED1[1];
-    __IO uint32_t T_PC0;
-    __IO uint32_t T_PC1;
-    __IO uint32_t T_PC2;
-    uint32_t RESERVED2[1];
-    __IO uint32_t T_TR0;
-    __IO uint32_t T_TR1;
-    __IO uint32_t T_TR2;
-    uint32_t RESERVED3[1];
-    __IO uint32_t RESV0;
-    uint32_t RESERVED4[7];
-} stc_smc_tmcr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t RSYN;
-    __IO uint32_t RBL0;
-    __IO uint32_t RBL1;
-    __IO uint32_t RBL2;
-    __IO uint32_t WSYN;
-    __IO uint32_t WBL0;
-    __IO uint32_t WBL1;
-    __IO uint32_t WBL2;
-    __IO uint32_t MW0;
-    __IO uint32_t MW1;
-    __IO uint32_t BAAS;
-    __IO uint32_t ADVS;
-    __IO uint32_t BLSS;
-    uint32_t RESERVED0[19];
-} stc_smc_cpcr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t REFPRD0;
-    __IO uint32_t REFPRD1;
-    __IO uint32_t REFPRD2;
-    __IO uint32_t REFPRD3;
-    uint32_t RESERVED0[28];
-} stc_smc_rftr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t T_RC0;
-    __IO uint32_t T_RC1;
-    __IO uint32_t T_RC2;
-    __IO uint32_t T_RC3;
-    __IO uint32_t T_WC0;
-    __IO uint32_t T_WC1;
-    __IO uint32_t T_WC2;
-    __IO uint32_t T_WC3;
-    __IO uint32_t T_CEOE0;
-    __IO uint32_t T_CEOE1;
-    __IO uint32_t T_CEOE2;
-    uint32_t RESERVED0[1];
-    __IO uint32_t T_WP0;
-    __IO uint32_t T_WP1;
-    __IO uint32_t T_WP2;
-    uint32_t RESERVED1[1];
-    __IO uint32_t T_PC0;
-    __IO uint32_t T_PC1;
-    __IO uint32_t T_PC2;
-    uint32_t RESERVED2[1];
-    __IO uint32_t T_TR0;
-    __IO uint32_t T_TR1;
-    __IO uint32_t T_TR2;
-    uint32_t RESERVED3[1];
-    __IO uint32_t RESV1;
-    uint32_t RESERVED4[7];
-} stc_smc_tmsr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t RSYN;
-    __IO uint32_t RBL0;
-    __IO uint32_t RBL1;
-    __IO uint32_t RBL2;
-    __IO uint32_t WSYN;
-    __IO uint32_t WBL0;
-    __IO uint32_t WBL1;
-    __IO uint32_t WBL2;
-    __IO uint32_t MW0;
-    __IO uint32_t MW1;
-    __IO uint32_t BAAS;
-    __IO uint32_t ADVS;
-    __IO uint32_t BLSS;
-    uint32_t RESERVED0[3];
-    __IO uint32_t ADDMSK0;
-    __IO uint32_t ADDMSK1;
-    __IO uint32_t ADDMSK2;
-    __IO uint32_t ADDMSK3;
-    __IO uint32_t ADDMSK4;
-    __IO uint32_t ADDMSK5;
-    __IO uint32_t ADDMSK6;
-    __IO uint32_t ADDMSK7;
-    __IO uint32_t ADDMAT0;
-    __IO uint32_t ADDMAT1;
-    __IO uint32_t ADDMAT2;
-    __IO uint32_t ADDMAT3;
-    __IO uint32_t ADDMAT4;
-    __IO uint32_t ADDMAT5;
-    __IO uint32_t ADDMAT6;
-    __IO uint32_t ADDMAT7;
-} stc_smc_cpsr_bit_t;
-
-typedef struct
-{
-    uint32_t RESERVED0[4];
-    __IO uint32_t MUXMD;
-    uint32_t RESERVED1[27];
-} stc_smc_bacr_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ADDMSK00;
-    __IO uint32_t ADDMSK01;
-    __IO uint32_t ADDMSK02;
-    __IO uint32_t ADDMSK03;
-    __IO uint32_t ADDMSK04;
-    __IO uint32_t ADDMSK05;
-    __IO uint32_t ADDMSK06;
-    __IO uint32_t ADDMSK07;
-    __IO uint32_t ADDMSK10;
-    __IO uint32_t ADDMSK11;
-    __IO uint32_t ADDMSK12;
-    __IO uint32_t ADDMSK13;
-    __IO uint32_t ADDMSK14;
-    __IO uint32_t ADDMSK15;
-    __IO uint32_t ADDMSK16;
-    __IO uint32_t ADDMSK17;
-    __IO uint32_t ADDMSK20;
-    __IO uint32_t ADDMSK21;
-    __IO uint32_t ADDMSK22;
-    __IO uint32_t ADDMSK23;
-    __IO uint32_t ADDMSK24;
-    __IO uint32_t ADDMSK25;
-    __IO uint32_t ADDMSK26;
-    __IO uint32_t ADDMSK27;
-    __IO uint32_t ADDMSK30;
-    __IO uint32_t ADDMSK31;
-    __IO uint32_t ADDMSK32;
-    __IO uint32_t ADDMSK33;
-    __IO uint32_t ADDMSK34;
-    __IO uint32_t ADDMSK35;
-    __IO uint32_t ADDMSK36;
-    __IO uint32_t ADDMSK37;
-} stc_smc_cscr0_bit_t;
-
-typedef struct
-{
-    __IO uint32_t ADDMAT00;
-    __IO uint32_t ADDMAT01;
-    __IO uint32_t ADDMAT02;
-    __IO uint32_t ADDMAT03;
-    __IO uint32_t ADDMAT04;
-    __IO uint32_t ADDMAT05;
-    __IO uint32_t ADDMAT06;
-    __IO uint32_t ADDMAT07;
-    __IO uint32_t ADDMAT10;
-    __IO uint32_t ADDMAT11;
-    __IO uint32_t ADDMAT12;
-    __IO uint32_t ADDMAT13;
-    __IO uint32_t ADDMAT14;
-    __IO uint32_t ADDMAT15;
-    __IO uint32_t ADDMAT16;
-    __IO uint32_t ADDMAT17;
-    __IO uint32_t ADDMAT20;
-    __IO uint32_t ADDMAT21;
-    __IO uint32_t ADDMAT22;
-    __IO uint32_t ADDMAT23;
-    __IO uint32_t ADDMAT24;
-    __IO uint32_t ADDMAT25;
-    __IO uint32_t ADDMAT26;
-    __IO uint32_t ADDMAT27;
-    __IO uint32_t ADDMAT30;
-    __IO uint32_t ADDMAT31;
-    __IO uint32_t ADDMAT32;
-    __IO uint32_t ADDMAT33;
-    __IO uint32_t ADDMAT34;
-    __IO uint32_t ADDMAT35;
-    __IO uint32_t ADDMAT36;
-    __IO uint32_t ADDMAT37;
-} stc_smc_cscr1_bit_t;
 
 typedef struct
 {
@@ -80288,36 +74664,6 @@ typedef struct
 
 typedef struct
 {
-    stc_dmc_stsr_bit_t                       STSR_b;
-    stc_dmc_stcr_bit_t                       STCR_b;
-    stc_dmc_cmdr_bit_t                       CMDR_b;
-    stc_dmc_cpcr_bit_t                       CPCR_b;
-    stc_dmc_rftr_bit_t                       RFTR_b;
-    stc_dmc_tmcr_t_casl_bit_t                TMCR_T_CASL_b;
-    stc_dmc_tmcr_t_dqss_bit_t                TMCR_T_DQSS_b;
-    stc_dmc_tmcr_t_mrd_bit_t                 TMCR_T_MRD_b;
-    stc_dmc_tmcr_t_ras_bit_t                 TMCR_T_RAS_b;
-    stc_dmc_tmcr_t_rc_bit_t                  TMCR_T_RC_b;
-    stc_dmc_tmcr_t_rcd_bit_t                 TMCR_T_RCD_b;
-    stc_dmc_tmcr_t_rfc_bit_t                 TMCR_T_RFC_b;
-    stc_dmc_tmcr_t_rp_bit_t                  TMCR_T_RP_b;
-    stc_dmc_tmcr_t_rrd_bit_t                 TMCR_T_RRD_b;
-    stc_dmc_tmcr_t_wr_bit_t                  TMCR_T_WR_b;
-    stc_dmc_tmcr_t_wtr_bit_t                 TMCR_T_WTR_b;
-    stc_dmc_tmcr_t_xp_bit_t                  TMCR_T_XP_b;
-    stc_dmc_tmcr_t_xsr_bit_t                 TMCR_T_XSR_b;
-    stc_dmc_tmcr_t_esr_bit_t                 TMCR_T_ESR_b;
-    uint32_t                                 RESERVED0[3488];
-    stc_dmc_cscr_bit_t                       CSCR0_b;
-    stc_dmc_cscr_bit_t                       CSCR1_b;
-    stc_dmc_cscr_bit_t                       CSCR2_b;
-    stc_dmc_cscr_bit_t                       CSCR3_b;
-    uint32_t                                 RESERVED1[1920];
-    stc_dmc_bacr_bit_t                       BACR_b;
-} bM4_DMC_TypeDef;
-
-typedef struct
-{
     stc_dvp_ctr_bit_t                        CTR_b;
     stc_dvp_dtr_bit_t                        DTR_b;
     stc_dvp_str_bit_t                        STR_b;
@@ -80953,7 +75299,9 @@ typedef struct
     stc_i2c_sr_bit_t                         SR_b;
     stc_i2c_clr_bit_t                        CLR_b;
     stc_i2c_dtr_bit_t                        DTR_b;
+    uint32_t                                 RESERVED1[24];
     stc_i2c_drr_bit_t                        DRR_b;
+    uint32_t                                 RESERVED2[24];
     stc_i2c_ccr_bit_t                        CCR_b;
     stc_i2c_fltr_bit_t                       FLTR_b;
 } bM4_I2C_TypeDef;
@@ -81650,36 +75998,6 @@ typedef struct
     stc_sdioc_fea_bit_t                      FEA_b;
     stc_sdioc_fee_bit_t                      FEE_b;
 } bM4_SDIOC_TypeDef;
-
-typedef struct
-{
-    stc_smc_stsr_bit_t                       STSR_b;
-    uint32_t                                 RESERVED0[32];
-    stc_smc_stcr0_bit_t                      STCR0_b;
-    stc_smc_stcr1_bit_t                      STCR1_b;
-    stc_smc_cmdr_bit_t                       CMDR_b;
-    stc_smc_tmcr_bit_t                       TMCR_b;
-    stc_smc_cpcr_bit_t                       CPCR_b;
-    uint32_t                                 RESERVED1[32];
-    stc_smc_rftr_bit_t                       RFTR_b;
-    uint32_t                                 RESERVED2[1760];
-    stc_smc_tmsr_bit_t                       TMSR0_b;
-    stc_smc_cpsr_bit_t                       CPSR0_b;
-    uint32_t                                 RESERVED3[192];
-    stc_smc_tmsr_bit_t                       TMSR1_b;
-    stc_smc_cpsr_bit_t                       CPSR1_b;
-    uint32_t                                 RESERVED4[192];
-    stc_smc_tmsr_bit_t                       TMSR2_b;
-    stc_smc_cpsr_bit_t                       CPSR2_b;
-    uint32_t                                 RESERVED5[192];
-    stc_smc_tmsr_bit_t                       TMSR3_b;
-    stc_smc_cpsr_bit_t                       CPSR3_b;
-    uint32_t                                 RESERVED6[1216];
-    stc_smc_bacr_bit_t                       BACR_b;
-    uint32_t                                 RESERVED7[32];
-    stc_smc_cscr0_bit_t                      CSCR0_b;
-    stc_smc_cscr1_bit_t                      CSCR1_b;
-} bM4_SMC_TypeDef;
 
 typedef struct
 {

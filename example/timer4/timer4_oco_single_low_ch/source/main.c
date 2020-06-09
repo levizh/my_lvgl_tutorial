@@ -116,10 +116,12 @@ static void WaveIoConfig(void)
 {
     stc_gpio_init_t stcGpioInit;
 
+    GPIO_Unlock();
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinDir = PIN_DIR_OUT;
     stcGpioInit.u16PinState = PIN_STATE_RESET;
     GPIO_Init(WAVE_IO_PORT, WAVE_IO_PIN, &stcGpioInit);
+    GPIO_Lock();
 }
 
 /**
@@ -143,7 +145,7 @@ static uint32_t Tmr4PclkFreq(void)
 static void TMR4_OcoMatch_IrqCallback(void)
 {
     GPIO_TogglePins(WAVE_IO_PORT, WAVE_IO_PIN);
-    TMR4_OCO_ClearFlag(TMR4_UNIT, TMR4_OCO_CH, TMR4_OCO_FLAG_MATCH);
+    TMR4_OCO_ClearFlag(TMR4_UNIT, TMR4_OCO_CH);
 }
 
 /**
@@ -181,7 +183,7 @@ int32_t main(void)
     TMR4_OCO_StructInit(&stcTmr4OcoInit);
     stcTmr4OcoInit.u16CompareVal = stcTmr4CntInit.u16CycleVal/2U;
     TMR4_OCO_Init(TMR4_UNIT, TMR4_OCO_CH, &stcTmr4OcoInit);
-    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_CH, TMR4_OCO_INT_MATCH, Enable);
+    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_CH, Enable);
 
     if (TMR4_OCO_CH % 2UL)
     {

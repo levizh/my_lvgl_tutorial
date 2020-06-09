@@ -162,7 +162,7 @@ int32_t main(void)
         .u32ClkMode = USART_INTCLK_OUTPUT,
         .u32OversamplingBits = USART_OVERSAMPLING_BITS_8,
         .u32NoiseFilterState = USART_NOISE_FILTER_DISABLE,
-        .u32SbDetectPolarity = USART_SB_DETECT_LOW,
+        .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
 
     /* Initialize system clock. */
@@ -176,8 +176,10 @@ int32_t main(void)
     BSP_LED_Init();
 
     /* Configure USART RX/TX pin. */
+    GPIO_Unlock();
     GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(USART_TX_PORT, USART_TX_PIN, USART_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Enable peripheral clock */
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);

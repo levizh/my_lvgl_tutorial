@@ -121,7 +121,7 @@ static const uint8_t nand_ecc_precalc_table[256] = {
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorInvalidParameter:       au8Buf == NULL or au8Ecc == NULL
- * @note   The paramter size of array au8Ecc[] must be larger than 3 and paramter
+ * @note   The paramter size of array au8Ecc[] must be larger than 2 and paramter
  *         size of array au8Data[] must be equal 512
  */
 en_result_t NFC_SwCalculateEcc1Bit(const uint8_t au8Data[],
@@ -174,7 +174,6 @@ en_result_t NFC_SwCalculateEcc1Bit(const uint8_t au8Data[],
         au8Ecc[0] = u8Reg1;
         au8Ecc[1] = u8Tmp2;
         au8Ecc[2] = u8Tmp1;
-        au8Ecc[3] = 0xFFU;
     }
 
     return enRet;

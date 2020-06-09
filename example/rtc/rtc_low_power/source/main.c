@@ -183,7 +183,7 @@ static void RTC_DisplayWeekday(uint8_t u8Weekday)
  */
 static void RTC_Config(void)
 {
-    uint8_t u8Ret;
+    en_result_t enRet;
     stc_rtc_init_t stcRtcInit;
     stc_irq_signin_config_t stcIrqConfig;
 
@@ -198,7 +198,7 @@ static void RTC_Config(void)
         RTC_StructInit(&stcRtcInit);
 
         /* Configuration RTC structure */
-        stcRtcInit.u8ClockSource     = RTC_CLOCK_SOURCE_LRC;
+        stcRtcInit.u8ClockSource     = RTC_CLOCK_SOURCE_RTCLRC;
         stcRtcInit.u8HourFormat      = RTC_HOUR_FORMAT_24;
         stcRtcInit.u8PeriodInterrupt = RTC_PERIOD_INT_ONE_MINUTE;
         RTC_Init(&stcRtcInit);
@@ -208,8 +208,8 @@ static void RTC_Config(void)
         stcIrqConfig.enIRQn      = Int052_IRQn;
         stcIrqConfig.pfnCallback = &RTC_Period_IrqCallback;
         INTC_IrqSignOut(stcIrqConfig.enIRQn);
-        u8Ret = INTC_IrqSignIn(&stcIrqConfig);
-        if (Ok != u8Ret)
+        enRet = INTC_IrqSignIn(&stcIrqConfig);
+        if (Ok != enRet)
         {
             /* check parameter */
             while (1)
@@ -263,6 +263,8 @@ int32_t main(void)
 
     /* Configure clock */
     BSP_CLK_Init();
+    /* Reset the VBAT area */
+    PWC_VBAT_Reset();
     XTAL32_ClkInit();
     /* Configure BSP */
     BSP_IO_Init();

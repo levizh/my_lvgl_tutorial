@@ -103,7 +103,7 @@ static uint32_t u32ExpectDestBufData[20] = {1, 2, 1, 2, 1, 2, 1, 2, 1, 2,
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @brief  DMA basical and repeat function init
+ * @brief  DMA basic and repeat function init
  * @param  None
  * @retval en_result_t
  */
@@ -112,7 +112,7 @@ en_result_t DmaInit(void)
     stc_dma_init_t stcDmaInit;
     stc_dma_rpt_init_t stcDmaRptInit;
 
-    DMA_SetTrigSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
+    DMA_SetTriggerSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
 
     DMA_StructInit(&stcDmaInit);
 
@@ -147,11 +147,11 @@ en_result_t DmaInit(void)
 void DMA1_CH3_TransEnd_IrqCallback(void)
 {
     u8DmaTcEnd = Set;
-    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT3);
+    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT_CH3);
 }
 
 /**
- * @brief  DMA basical function interrupt init
+ * @brief  DMA basic function interrupt init
  * @param  None
  * @retval None
  */
@@ -165,7 +165,7 @@ void DmaIntInit(void)
 
     INTC_IrqSignIn(&stcIrqSignConfig);
 
-    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT3);
+    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT_CH3);
 
     /* NVIC setting */
     NVIC_ClearPendingIRQ(DMA_IRQn);
@@ -184,7 +184,7 @@ int32_t main(void)
     BSP_LED_Init();
 
     /* DMA/AOS FCG enable */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_AOS, Enable);
 
     /* Config DMA */
     if (Ok != DmaInit()) {
@@ -195,7 +195,7 @@ int32_t main(void)
     /* DMA interrupt config */
     DmaIntInit();
 
-    /* DMA moudle enable */
+    /* DMA module enable */
     DMA_Cmd(DMA_UNIT, Enable);
 
     /* DMA channel enable */
@@ -209,13 +209,13 @@ int32_t main(void)
     {
         AOS_SW_Trigger();
     }
-    if((uint8_t)memcmp(u32DestBuf, u32ExpectDestBufData, sizeof(u32DestBuf)))
+    if(memcmp(u32DestBuf, u32ExpectDestBufData, sizeof(u32DestBuf)))
     {
-        BSP_LED_On(LED_RED);    /* Don't meet the expected */
+        BSP_LED_On(LED_RED);    /* LED red */
     }
     else
     {
-        BSP_LED_On(LED_BLUE);    /* Meet the expected */
+        BSP_LED_On(LED_BLUE);   /* LED blue, as expected */
     }
 
     while(1)

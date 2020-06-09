@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  hc32f4a0_usb_dcd.h
+ * @brief A detailed description is available at  Header of the Core Layer
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,27 +48,43 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.h
- **
- ** A detailed description is available at
- ** @link Peripheral Driver Header file @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
-#ifndef __DCD_H__
-#define __DCD_H__
+
+#ifndef __HC32F4A0_USB_DCD_H__
+#define __HC32F4A0_USB_DCD_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "hc32f4a0_usb_core.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Driver
+ * @{
+ */
+
+/**
+ * @addtogroup DDL_USB_DCD
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
+
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
+/**
+ * @defgroup USB_DCD_Global_Types USB DCD Global Types
+ * @{
+ */
+
 typedef struct
 {
     uint8_t  bLength;
@@ -69,20 +95,32 @@ typedef struct
     uint8_t  bInterval;
 }EP_DESCRIPTOR , *PEP_DESCRIPTOR;
 
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define USB_OTG_EP_CONTROL                       (0u)
-#define USB_OTG_EP_ISOC                          (1u)
-#define USB_OTG_EP_BULK                          (2u)
-#define USB_OTG_EP_INT                           (3u)
-#define USB_OTG_EP_MASK                          (3u)
+/**
+ * @defgroup USB_DCD_Global_Macros USB DCD Global Macros
+ * @{
+ */
+
+#define USB_OTG_EP_CONTROL                       (0U)
+#define USB_OTG_EP_ISOC                          (1U)
+#define USB_OTG_EP_BULK                          (2U)
+#define USB_OTG_EP_INT                           (3U)
+#define USB_OTG_EP_MASK                          (3U)
 
 /*  Device Status */
-#define USB_OTG_DEFAULT                          (1u)
-#define USB_OTG_ADDRESSED                        (2u)
-#define USB_OTG_CONFIGURED                       (3u)
-#define USB_OTG_SUSPENDED                        (4u)
+#define USB_OTG_DEFAULT                          (1U)
+#define USB_OTG_ADDRESSED                        (2U)
+#define USB_OTG_CONFIGURED                       (3U)
+#define USB_OTG_SUSPENDED                        (4U)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -91,7 +129,11 @@ typedef struct
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
-void       DCD_Init(USB_OTG_CORE_HANDLE *pdev, USB_OTG_CORE_ID_TypeDef coreID);
+/**
+ * @addtogroup USB_DCD_Global_Functions
+ * @{
+ */
+void        DCD_Init(USB_OTG_CORE_HANDLE *pdev, USB_OTG_CORE_ID_TypeDef coreID);
 void        DCD_DevConnect (USB_OTG_CORE_HANDLE *pdev);
 void        DCD_DevDisconnect (USB_OTG_CORE_HANDLE *pdev);
 void        DCD_EP_SetAddress (USB_OTG_CORE_HANDLE *pdev, uint8_t address);
@@ -100,7 +142,7 @@ uint32_t    DCD_EP_Open(USB_OTG_CORE_HANDLE *pdev ,
                         uint16_t ep_mps,
                         uint8_t ep_type);
 uint32_t    DCD_EP_Close  (USB_OTG_CORE_HANDLE *pdev, uint8_t  ep_addr);
-uint32_t   DCD_EP_PrepareRx ( USB_OTG_CORE_HANDLE *pdev,
+uint32_t    DCD_EP_PrepareRx ( USB_OTG_CORE_HANDLE *pdev,
                                 uint8_t   ep_addr,
                                 uint8_t *pbuf,
                                 uint16_t  buf_len);
@@ -112,12 +154,29 @@ uint32_t    DCD_EP_Stall (USB_OTG_CORE_HANDLE *pdev, uint8_t   epnum);
 uint32_t    DCD_EP_ClrStall (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum);
 uint32_t    DCD_EP_Flush (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum);
 uint32_t    DCD_Handle_ISR(USB_OTG_CORE_HANDLE *pdev);
-uint32_t DCD_GetEPStatus(USB_OTG_CORE_HANDLE *pdev, uint8_t epnum);
-void DCD_SetEPStatus (USB_OTG_CORE_HANDLE *pdev ,
-                      uint8_t epnum ,
-                      uint32_t Status);
+uint32_t    DCD_GetEPStatus(USB_OTG_CORE_HANDLE *pdev, uint8_t epnum);
+void        DCD_SetEPStatus (USB_OTG_CORE_HANDLE *pdev ,
+                             uint8_t epnum ,
+                             uint32_t Status);
+/**
+ * @}
+ */
 
-#endif //__DCD_H__
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __HC32F4A0_USB_DCD_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)

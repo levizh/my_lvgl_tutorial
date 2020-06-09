@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_vcp\source\usbd_desc.h
+ * @brief Header for usbd_desc.c file.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,34 +48,42 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.h
- **
- ** A detailed description is available at
- ** @link header file for the usbd_desc.c @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 #ifndef __USB_DESC_H__
 #define __USB_DESC_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbd_def.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_VCP
+ * @{
+ */
+
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define USB_DEVICE_DESCRIPTOR_TYPE              0x01
-#define USB_CONFIGURATION_DESCRIPTOR_TYPE       0x02
-#define USB_STRING_DESCRIPTOR_TYPE              0x03
-#define USB_INTERFACE_DESCRIPTOR_TYPE           0x04
-#define USB_ENDPOINT_DESCRIPTOR_TYPE            0x05
-#define USB_SIZ_DEVICE_DESC                     18
-#define USB_SIZ_STRING_LANGID                   4
+#define USB_DEVICE_DESCRIPTOR_TYPE              (0x01U)
+#define USB_CONFIGURATION_DESCRIPTOR_TYPE       (0x02U)
+#define USB_STRING_DESCRIPTOR_TYPE              (0x03U)
+#define USB_INTERFACE_DESCRIPTOR_TYPE           (0x04U)
+#define USB_ENDPOINT_DESCRIPTOR_TYPE            (0x05U)
+#define USB_SIZ_DEVICE_DESC                     (18U)
+#define USB_SIZ_STRING_LANGID                   (4U)
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -91,6 +109,18 @@ uint8_t *     USBD_USR_InterfaceStrDescriptor( uint8_t speed , uint16_t *length)
 uint8_t *     USBD_USR_USRStringDesc (uint8_t speed, uint8_t idx , uint16_t *length);
 #endif /* USB_SUPPORT_USER_STRING_DESC */
 
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBD_DESC_H__ */
 

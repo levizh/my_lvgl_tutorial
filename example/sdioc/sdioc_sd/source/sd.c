@@ -578,15 +578,15 @@ void SD_IRQHandler(stc_sd_handle_t *handle)
         /* Set Error code */
         if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_DEBESEN))
         {
-            handle->u32ErrorCode |= SDMMC_ERROR_DATA_STOP_BIT; 
+            handle->u32ErrorCode |= SDMMC_ERROR_DATA_STOP_BIT;
         }
         if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_DCESEN))
         {
-            handle->u32ErrorCode |= SDMMC_ERROR_DATA_CRC_FAIL; 
+            handle->u32ErrorCode |= SDMMC_ERROR_DATA_CRC_FAIL;
         }
         if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_DTOESEN))
         {
-            handle->u32ErrorCode |= SDMMC_ERROR_DATA_TIMEOUT; 
+            handle->u32ErrorCode |= SDMMC_ERROR_DATA_TIMEOUT;
         }
 
         /* Clear All flags */
@@ -885,7 +885,7 @@ en_result_t SD_WriteBlocks(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint1
             SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
             return enRet;
         }
-        
+
         /* Configure the SD data transfer */
         stcDataCfg.u16BlockSize    = SD_CARD_BLOCK_SIZE;
         stcDataCfg.u16BlockCount   = u16BlockCnt;
@@ -893,7 +893,7 @@ en_result_t SD_WriteBlocks(stc_sd_handle_t *handle, uint32_t u32BlockAddr, uint1
         stcDataCfg.u16AutoCMD12En  = SDIOC_AUTO_SEND_CMD12_DISABLE;
         stcDataCfg.u16TransferMode = (u16BlockCnt > 1U) ? (uint16_t)SDIOC_TRANSFER_MODE_MULTIPLE : (uint16_t)SDIOC_TRANSFER_MODE_SINGLE;
         stcDataCfg.u16DataTimeout  = SDIOC_DATA_TIMEOUT_CLK_2_27;
-        SDIOC_ConfigData(handle->SDIOCx, &stcDataCfg);        
+        SDIOC_ConfigData(handle->SDIOCx, &stcDataCfg);
 
         /* Write block(s) in polling mode */
         if (u16BlockCnt > 1U)
@@ -1366,7 +1366,6 @@ static en_result_t SD_GetSCR(stc_sd_handle_t *handle, uint32_t pu32SCR[])
 {
     stc_sdioc_data_init_t stcDataCfg;
     en_result_t enCmdRet = Ok;
-    __IO uint32_t u32Count = 0UL;
     uint32_t u32CardSta = 0UL;
     uint32_t u32TempSCR[2] = {0UL, 0UL};
 
@@ -1674,7 +1673,7 @@ static en_result_t SD_PowerCmd(stc_sd_handle_t *handle, en_functional_state_t en
         {
             return enCmdRet;
         }
-        
+
         /* Wait for reset to completed */
         DDL_Delay1ms(1U);
         /* CMD8: SEND_IF_COND: Command available only on V2.0 cards */
@@ -1879,9 +1878,8 @@ static en_result_t SD_ReadWriteFifo(stc_sd_handle_t *handle, const stc_sdioc_dat
     en_result_t enCmdRet = Ok;
     uint32_t u32Index = 0UL;
 
-    /* 8 is the number of required instructions cycles for the below loop statement.
-    The u32Timeout is expressed in ms */
-    u32Count = u32Timeout * (SystemCoreClock / 8U / 1000U);
+    /* The u32Timeout is expressed in ms */
+    u32Count = u32Timeout * (SystemCoreClock / 20000UL);
     while (Reset == SDIOC_GetIntStatus(handle->SDIOCx, (SDIOC_ERROR_INT_FLAG_DEBE | SDIOC_ERROR_INT_FLAG_DCE |
                                                         SDIOC_ERROR_INT_FLAG_DTOE | SDIOC_NORMAL_INT_FLAG_TC)))
     {
@@ -1904,7 +1902,7 @@ static en_result_t SD_ReadWriteFifo(stc_sd_handle_t *handle, const stc_sdioc_dat
             }
         }
 
-        if (u32Count-- == 0U)
+        if (--u32Count == 0UL)
         {
             SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
             return ErrorTimeout;
@@ -1950,11 +1948,12 @@ static en_result_t SD_ReadWriteFifo(stc_sd_handle_t *handle, const stc_sdioc_dat
         /* Empty FIFO if there is still any data */
         if (SDIOC_TRANSFER_DIR_TO_CARD != pstcDataCfg->u16TransferDir)
         {
+            u32Count = u32Timeout * (SystemCoreClock / 20000UL);
             while (Set == SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FALG_BRE))
             {
                 SDIOC_ReadBuffer(handle->SDIOCx, (uint8_t *)&pu8Data[u32Index], (uint32_t)(pstcDataCfg->u16BlockSize));
                 u32Index += pstcDataCfg->u16BlockSize;
-                if (u32Count-- == 0U)
+                if (--u32Count == 0UL)
                 {
                     SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
                     return ErrorTimeout;

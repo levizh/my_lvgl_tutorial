@@ -140,7 +140,10 @@
     ((out) == KEYSCAN_OUT_0T7))
 
 /* Parameter valid check for KEYSCAN keyin(EIRQ) pins. */
-#define IS_KEYSCAN_IN(in)       (((in) & KEYSCAN_IN_MASK) != (uint32_t)(0x00UL))
+#define IS_KEYSCAN_IN(in)                                                       \
+(   ((in) != 0x00U)                         &&                                  \
+    (((in) | KEYSCAN_IN_MASK) == KEYSCAN_IN_MASK))
+
 /**
  * @}
  */
@@ -177,6 +180,7 @@
  */
 void KEYSCAN_Cmd(en_functional_state_t enNewState)
 {
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
     WRITE_REG32(M4_KEYSCAN->SER, enNewState);
 }
 
@@ -184,7 +188,7 @@ void KEYSCAN_Cmd(en_functional_state_t enNewState)
  * @brief  Initialize KEYSCAN config structure. Fill each pstcKeyscanInit with default value
  * @param  [in] pstcKeyscanInit Pointer to a stc_keyscan_init_t structure that
  *                            contains configuration information.
- * @retval Ok: KEYSCAN structure initilize successful
+ * @retval Ok: KEYSCAN structure initialize successful
  *         ErrorInvalidParameter: NULL pointer
  */
 en_result_t KEYSCAN_StructInit(stc_keyscan_init_t *pstcKeyscanInit)
@@ -200,8 +204,8 @@ en_result_t KEYSCAN_StructInit(stc_keyscan_init_t *pstcKeyscanInit)
         pstcKeyscanInit->u32HizCycle= KEYSCAN_HIZ_CLC_4;
         pstcKeyscanInit->u32LowCycle= KEYSCAN_LOW_CLC_4;
         pstcKeyscanInit->u32KeyClk  = KEYSCAN_CLK_HCLK;
-        pstcKeyscanInit->u32Keyout  = KEYSCAN_OUT_0T1;
-        pstcKeyscanInit->u32Keyin   = KEYSCAN_IN_0;
+        pstcKeyscanInit->u32KeyOut  = KEYSCAN_OUT_0T1;
+        pstcKeyscanInit->u32KeyIn   = KEYSCAN_IN_0;
     }
     return enRet;
 }
@@ -209,12 +213,12 @@ en_result_t KEYSCAN_StructInit(stc_keyscan_init_t *pstcKeyscanInit)
 /**
  * @brief  KEYSCAN initialize.
  * @param  [in] pstcKeyscanInit KEYSCAN config structure.
- *   @arg  u32HizCycle  Hiz state keep cycles during low level outoup.
+ *   @arg  u32HizCycle  Hiz state keep cycles during low level output.
  *   @arg  u32LowCycle  Low level output cycles.
  *   @arg  u32KeyClk    Scan clock.
- *   @arg  u32Keyout    KEYOUT selection.
- *   @arg  u32Keyin     KEYIN(EIRQ) selection.
- * @retval Ok: KEYSCAN function initilize successful
+ *   @arg  u32KeyOut    KEYOUT selection.
+ *   @arg  u32KeyIn     KEYIN(EIRQ) selection.
+ * @retval Ok: KEYSCAN function initialize successful
  *         ErrorInvalidParameter: NULL pointer
  */
 en_result_t KEYSCAN_Init(const stc_keyscan_init_t *pstcKeyscanInit)
@@ -230,25 +234,15 @@ en_result_t KEYSCAN_Init(const stc_keyscan_init_t *pstcKeyscanInit)
         DDL_ASSERT(IS_KEYSCAN_HIZ_CLC(pstcKeyscanInit->u32HizCycle));
         DDL_ASSERT(IS_KEYSCAN_LOW_CLC(pstcKeyscanInit->u32LowCycle));
         DDL_ASSERT(IS_KEYSCAN_CLK(pstcKeyscanInit->u32KeyClk));
-        DDL_ASSERT(IS_KEYSCAN_OUT(pstcKeyscanInit->u32Keyout));
-        DDL_ASSERT(IS_KEYSCAN_IN(pstcKeyscanInit->u32Keyin));
+        DDL_ASSERT(IS_KEYSCAN_OUT(pstcKeyscanInit->u32KeyOut));
+        DDL_ASSERT(IS_KEYSCAN_IN(pstcKeyscanInit->u32KeyIn));
 
         WRITE_REG32(M4_KEYSCAN->SCR,                                            \
             (pstcKeyscanInit->u32HizCycle | pstcKeyscanInit->u32LowCycle |      \
-            pstcKeyscanInit->u32KeyClk    | pstcKeyscanInit->u32Keyout   |      \
-            pstcKeyscanInit->u32Keyin ));
+            pstcKeyscanInit->u32KeyClk    | pstcKeyscanInit->u32KeyOut   |      \
+            pstcKeyscanInit->u32KeyIn ));
     }
     return enRet;
-}
-
-/**
- * @brief  Get KEYOUT index.
- * @param  None.
- * @retval uint32_t: KEYOUT index 0~7.
- */
-uint32_t KEYSCAN_GetKeyoutIdx(void)
-{
-    return (uint32_t)(READ_REG32(M4_KEYSCAN->SSR) & 0x07UL);
 }
 
 /**

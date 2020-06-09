@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_msc_mem.h
+ * @brief Header for the STORAGE DISK file file
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-05-15       Zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,16 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_msc_mem.h
- **
- ** A detailed description is available at
- ** @link header file for the usbd_msc_mem.c @endlink
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 #ifndef __USBD_MEM_H__
 #define __USBD_MEM_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
@@ -57,10 +65,33 @@
 #include "hc32_ddl.h"
 #include "usbd_def.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @defgroup USBD_MSC_MEM
+ * @{
+ */
+
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-typedef struct _USBD_STORAGE
+/**
+ * @defgroup USBD_MSC_MEM_Global_Types
+ * @{
+ */
+typedef struct
 {
     int8_t (* Init)(uint8_t lun);
     int8_t (* GetCapacity)(uint8_t lun, uint32_t *block_num, uint32_t *block_size);
@@ -71,12 +102,21 @@ typedef struct _USBD_STORAGE
     int8_t (* GetMaxLun)(void);
     int8_t *pInquiry;
 }USBD_STORAGE_cb_TypeDef;
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/**
+ * @defgroup USBD_MSC_MEM_Global_Macros
+ * @{
+ */
 #define USBD_STD_INQUIRY_LENGTH     (36u)
-
+/**
+ * @}
+ */
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
@@ -85,6 +125,27 @@ typedef struct _USBD_STORAGE
  * Global function prototypes (definition in C source)
  ******************************************************************************/
 extern USBD_STORAGE_cb_TypeDef *USBD_STORAGE_fops;
+
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBD_MSC_MEM_H__ */
 

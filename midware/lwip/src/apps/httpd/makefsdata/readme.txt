@@ -1,4 +1,4 @@
-This directory contains a script ('makefsdata') to create C code suitable for
+﻿This directory contains a script ('makefsdata') to create C code suitable for
 httpd for given html pages (or other files) in a directory.
 
 There is also a plain C console application doing the same and extended a bit.

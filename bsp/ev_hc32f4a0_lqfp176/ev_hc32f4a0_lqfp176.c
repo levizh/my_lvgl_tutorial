@@ -212,12 +212,12 @@ en_result_t EIO_Read(uint8_t u8Reg, uint8_t *u8Val)
   */
 void EIO_Reset(void)
 {
-    GPIO_Unlock();
+//    GPIO_Unlock();
     GPIO_OE(GPIO_PORT_C, GPIO_PIN_13, Enable);
     GPIO_ResetPins(GPIO_PORT_C, GPIO_PIN_13);
     DDL_Delay1ms(3UL);
     GPIO_SetPins(GPIO_PORT_C, GPIO_PIN_13);
-    GPIO_Lock();
+//    GPIO_Lock();
 }
 
 /**
@@ -238,9 +238,9 @@ void EIO_IntInit(void)
 void BSP_CAM_IO_Init(void)
 {
     /* Init camera and touch panel control IO before direction setting */
-    BSP_IO_WritePortPin(CAM_PORT, (CAM_RST_PIN | CAM_STBY_PIN), EIO_PIN_SET);
+    BSP_IO_WritePortPin(CAM_PORT, (CAM_RST_PIN | CAM_STB_PIN), EIO_PIN_RESET);
     /* CAM pins set to output */
-    BSP_IO_ConfigPortPin(CAM_PORT, (CAM_RST_PIN | CAM_STBY_PIN), EIO_DIR_OUT);
+    BSP_IO_ConfigPortPin(CAM_PORT, (CAM_RST_PIN | CAM_STB_PIN), EIO_DIR_OUT);
 }
 
 /**
@@ -264,7 +264,7 @@ void BSP_CAM_ResetCmd(uint8_t Cmd)
  */
 void BSP_CAM_StandbyCmd(uint8_t Cmd)
 {
-    BSP_IO_WritePortPin(CAM_PORT, CAM_STBY_PIN, Cmd);
+    BSP_IO_WritePortPin(CAM_PORT, CAM_STB_PIN, Cmd);
 }
 
 /**
@@ -276,11 +276,11 @@ void BSP_LCD_IO_Init(void)
 {
     /* Init LCD and touch panel control IO before direction setting */
     BSP_IO_WritePortPin(LCD_RST_PORT, LCD_RST_PIN, EIO_PIN_SET);
-    BSP_IO_WritePortPin(LCD_BKL_PORT, LCD_BKL_PIN, EIO_PIN_RESET);
+//    BSP_IO_WritePortPin(LCD_BKL_PORT, LCD_BKL_PIN, EIO_PIN_RESET);
     BSP_IO_WritePortPin(LCD_CTRST_PORT, LCD_CTRST_PIN, EIO_PIN_RESET);
     /* LCD and touch panel control IO set to output */
     BSP_IO_ConfigPortPin(LCD_RST_PORT, LCD_RST_PIN, EIO_DIR_OUT);
-    BSP_IO_ConfigPortPin(LCD_BKL_PORT, LCD_BKL_PIN, EIO_DIR_OUT);
+//    BSP_IO_ConfigPortPin(LCD_BKL_PORT, LCD_BKL_PIN, EIO_DIR_OUT);
     BSP_IO_ConfigPortPin(LCD_CTRST_PORT, LCD_CTRST_PIN, EIO_DIR_OUT);
 
     /*
@@ -321,7 +321,15 @@ void BSP_LCD_ResetCmd(uint8_t Cmd)
  */
 void BSP_LCD_BKLCmd(uint8_t Cmd)
 {
-    BSP_IO_WritePortPin(LCD_BKL_PORT, LCD_BKL_PIN, Cmd);
+//    BSP_IO_WritePortPin(LCD_BKL_PORT, LCD_BKL_PIN, Cmd);
+    if(Cmd)
+    {
+        GPIO_SetPins(GPIO_PORT_I, GPIO_PIN_00);
+    }
+    else
+    {
+        GPIO_ResetPins(GPIO_PORT_I, GPIO_PIN_00);
+    }
 }
 
 /**
@@ -398,7 +406,7 @@ static void BSP_KEY_ROW0_IrqCallback(void)
     {
         while (1)
         {
-            if (Pin_Reset == GPIO_ReadInputPortPin(BSP_KEYIN0_PORT, BSP_KEYIN0_PIN))
+            if (Pin_Reset == GPIO_ReadInputPins(BSP_KEYIN0_PORT, BSP_KEYIN0_PIN))
             {
                 gu32GlobalKey |= (0x01UL) << u32Idx;
             }
@@ -424,7 +432,7 @@ static void BSP_KEY_ROW1_IrqCallback(void)
     {
         while (1)
         {
-            if (Pin_Reset == GPIO_ReadInputPortPin(BSP_KEYIN1_PORT, BSP_KEYIN1_PIN))
+            if (Pin_Reset == GPIO_ReadInputPins(BSP_KEYIN1_PORT, BSP_KEYIN1_PIN))
             {
                 gu32GlobalKey |= (0x10UL) << u32Idx;
             }
@@ -450,7 +458,7 @@ static void BSP_KEY_ROW2_IrqCallback(void)
     {
         while (1)
         {
-            if (Pin_Reset == GPIO_ReadInputPortPin(BSP_KEYIN2_PORT, BSP_KEYIN2_PIN))
+            if (Pin_Reset == GPIO_ReadInputPins(BSP_KEYIN2_PORT, BSP_KEYIN2_PIN))
             {
                 gu32GlobalKey |= (0x100UL) << u32Idx;
             }
@@ -600,8 +608,8 @@ static void BSP_KEY_COL_Init(void)
     stcKeyscanInit.u32HizCycle = KEYSCAN_HIZ_CLC_4;
     stcKeyscanInit.u32LowCycle = KEYSCAN_LOW_CLC_512;
     stcKeyscanInit.u32KeyClk   = KEYSCAN_CLK_LRC;
-    stcKeyscanInit.u32Keyout   = KEYSCAN_OUT_0T2;
-    stcKeyscanInit.u32Keyin    = (KEYSCAN_IN_0 | KEYSCAN_IN_3 | KEYSCAN_IN_7);
+    stcKeyscanInit.u32KeyOut   = KEYSCAN_OUT_0T2;
+    stcKeyscanInit.u32KeyIn    = (KEYSCAN_IN_8 | KEYSCAN_IN_3 | KEYSCAN_IN_7);
 
     KEYSCAN_Init(&stcKeyscanInit);
 }
@@ -703,8 +711,8 @@ void BSP_CLK_Init(void)
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }

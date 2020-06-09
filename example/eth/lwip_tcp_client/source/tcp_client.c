@@ -149,13 +149,13 @@ void TcpClient_Disconnect(void)
 /**
  * @brief  Function called when TCP connection established
  * @param  tpcb: Pointer on the connection contol block
- * @param  err:  When connection correctly established err should be ERR_OK 
- * @retval err_t: Returned error 
+ * @param  err:  When connection correctly established err should be ERR_OK
+ * @retval err_t: Returned error
  */
 static err_t TcpClient_Connected(void *arg, struct tcp_pcb *tpcb, err_t err)
 {
     stc_tcp_client_param_t *tcpClient = NULL;
-    
+
     if ((err == ERR_OK) && (NULL != tpcb))
     {
         /* allocate structure stc_tcp_client_param_t to maintain tcp connection informations */
@@ -175,7 +175,7 @@ static err_t TcpClient_Connected(void *arg, struct tcp_pcb *tpcb, err_t err)
                 pbuf_take(tcpClient->p_tx, (char*)u8TransData, strlen((char*)u8TransData));
                 /* pass newly allocated stc_tcp_client_param_t structure as argument to tpcb */
                 tcp_arg(tpcb, tcpClient);
-                /* initialize LwIP tcp_recv callback function */ 
+                /* initialize LwIP tcp_recv callback function */
                 tcp_recv(tpcb, TcpClient_Recv);
                 /* initialize LwIP tcp_sent callback function */
                 tcp_sent(tpcb, TcpClient_Sent);
@@ -192,7 +192,7 @@ static err_t TcpClient_Connected(void *arg, struct tcp_pcb *tpcb, err_t err)
             /* close connection */
             TcpClient_ConnectClose(tpcb, tcpClient);
             /* return memory allocation error */
-            return ERR_MEM;  
+            return ERR_MEM;
         }
     }
     else
@@ -202,18 +202,18 @@ static err_t TcpClient_Connected(void *arg, struct tcp_pcb *tpcb, err_t err)
     }
     return err;
 }
-    
+
 /**
  * @brief  Tcp client receive callback
- * @param  arg:  Argument to be passed to receive callback 
- * @param  tpcb: Tcp connection control block 
- * @param  err:  Receive error code 
- * @retval err_t: Returned error  
+ * @param  arg:  Argument to be passed to receive callback
+ * @param  tpcb: Tcp connection control block
+ * @param  err:  Receive error code
+ * @retval err_t: Returned error
  */
 static err_t TcpClient_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
-{ 
+{
     stc_tcp_client_param_t *tcpClient;
-    err_t ret_err; 
+    err_t ret_err;
     struct pbuf *ptr;
 
     LWIP_ASSERT("arg != NULL",arg != NULL);
@@ -229,12 +229,12 @@ static err_t TcpClient_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err
             TcpClient_ConnectClose(tpcb, tcpClient);
         }
         else
-        {    
+        {
             /* send remaining data*/
             TcpClient_Send(tpcb, tcpClient);
         }
         ret_err = ERR_OK;
-    }   
+    }
     /* else : a non empty frame was received from server but for some reason err != ERR_OK */
     else if (err != ERR_OK)
     {
@@ -254,7 +254,7 @@ static err_t TcpClient_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err
             /* send data */
             TcpClient_Send(tpcb, tcpClient);
         }
-        else 
+        else
         {
             /* chain pbufs to the end of what we received previously  */
             ptr = tcpClient->p_tx;
@@ -279,9 +279,9 @@ static err_t TcpClient_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err
 /**
  * @brief  Function used to send data
  * @param  tpcb: Tcp control block
- * @param  tcpClient: Pointer on structure of type tcpClient containing info on 
+ * @param  tcpClient: Pointer on structure of type tcpClient containing info on
  *                    data to be sent
- * @retval None 
+ * @retval None
  */
 static void TcpClient_Send(struct tcp_pcb *tpcb, stc_tcp_client_param_t * tcpClient)
 {
@@ -289,7 +289,7 @@ static void TcpClient_Send(struct tcp_pcb *tpcb, stc_tcp_client_param_t * tcpCli
     err_t wr_err = ERR_OK;
 
     while ((wr_err == ERR_OK) &&
-            (tcpClient->p_tx != NULL) && 
+            (tcpClient->p_tx != NULL) &&
             (tcpClient->p_tx->len <= tcp_sndbuf(tpcb)))
     {
         /* get pointer on pbuf from stc_tcp_client_param_t structure */
@@ -298,7 +298,7 @@ static void TcpClient_Send(struct tcp_pcb *tpcb, stc_tcp_client_param_t * tcpCli
         wr_err = tcp_write(tpcb, ptr->payload, ptr->len, 1U);
 
         if (wr_err == ERR_OK)
-        { 
+        {
             /* continue with next pbuf in chain (if any) */
             tcpClient->p_tx = ptr->next;
             if (tcpClient->p_tx != NULL)
@@ -363,10 +363,10 @@ static err_t TcpClient_Poll(void *arg, struct tcp_pcb *tpcb)
 
 /**
  * @brief  This function implements the tcp_sent LwIP callback (called when ACK
- *         is received from remote host for sent u8TransData) 
+ *         is received from remote host for sent u8TransData)
  * @param  arg:     Pointer on argument passed to callback
  * @param  tcp_pcb: Tcp connection control block
- * @param  len: Length of data sent 
+ * @param  len: Length of data sent
  * @retval err_t: Returned error code
  */
 static err_t TcpClient_Sent(void *arg, struct tcp_pcb *tpcb, u16_t len)

@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_hid_cdc_wrapper.h
+ * @brief Header file for the usbd_hid_cdc_wrapper.c file.
+ *
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,29 +48,80 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_hid_cdc_wrapper.h
- **
- ** A detailed description is available at
- ** @link header file for the usbd_hid_cdc_wrapper.c @endlink
- **
- **   - 2019-07-22  1.0  wangmin First version for CDC_HID composite demo.
- **
- ******************************************************************************/
-
 #ifndef __USB_HID_CDC_WRAPPER_H_
 #define __USB_HID_CDC_WRAPPER_H_
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include  "usbd_ioreq.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @addtogroup USBD_HID_CDC_WRAPPER
+ * @{
+ */
+
+/*******************************************************************************
+ * Global type definitions ('typedef')
+ ******************************************************************************/
+
+/*******************************************************************************
+ * Global pre-processor symbols/macros ('#define')
+ ******************************************************************************/
+
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+/**
+ * @addtogroup USBD_HID_CDC_WRAPPER_Global_Variables
+ * @{
+ */
 extern USBD_Class_cb_TypeDef  USBD_HID_CDC_cb;
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USB_MSC_CDC_WRAPPER_H_ */
 

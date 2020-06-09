@@ -214,7 +214,7 @@ static void low_level_init(struct netif *netif)
     ETH_DMA_RxDescListInit(&EthHandle, EthDmaRxDscrTab, &EthRxBuff[0][0], ETH_RXBUF_NUMBER);
 
     /* set MAC hardware address length */
-    netif->hwaddr_len = ETH_HWADDR_LEN;
+    netif->hwaddr_len = ETHARP_HWADDR_LEN;
 
     /* set MAC hardware address */
     netif->hwaddr[0] = (EthHandle.stcCommInit).u8MACAddr[0];
@@ -233,7 +233,7 @@ static void low_level_init(struct netif *netif)
 
     /* Enable MAC and DMA transmission and reception */
     ETH_Start();
-    
+
     /* Configure PHY LED mode */
     u16RegVal = PHY_PAGE_ADDR_7;
     ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);

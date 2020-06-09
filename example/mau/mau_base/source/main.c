@@ -99,15 +99,6 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  Configure system clock
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    
-}
 
 /**
  * @brief   MAU Initialization
@@ -165,9 +156,10 @@ static void ErrHandler(uint32_t u32IsError)
     }
     else
     {
+        BSP_LED_On(LED_BLUE);
         while(1)
         {
-            BSP_LED_On(LED_BLUE);
+            /* do nothing */
         }
     }
 }
@@ -231,36 +223,44 @@ static void  Trng_Gen(uint32_t u32TrngArr[],uint32_t count)
  *           0: Delta is below threshold
  *           1: Delta is above threshold
  */
-static uint32_t Sqrt_Example(void)
+static en_result_t Sqrt_Example(void)
 {
     static uint32_t u32Radicands[SQRT_DATA_CNT];
     static uint32_t u32SplGrp[SQRT_DATA_CNT];
     static uint32_t u32CtrlGrp[SQRT_DATA_CNT];
-    uint32_t u32CtrlScale = (uint32_t)1U << MAU_SQRT_OUTPUT_LSHIFT_0;
-    uint32_t u32Err = 0U;
+    uint32_t u32CtrlScale = 1U;
+    en_result_t enRet;
 
     /* Generate random data as radicand parameters for sqrt example */
     Trng_Gen(u32Radicands,SQRT_DATA_CNT);
     /* Sqrt configuration */
     Sqrt_IntCfg();
-    MAU_SqrtResultLShiftCfg(M4_MAU,MAU_SQRT_OUTPUT_LSHIFT_0);
+    MAU_SqrtResultLShiftCfg(M4_MAU,0);
     /* Input random radicands, generate sqrt and compare results */
     for(uint32_t i = 0U; i < SQRT_DATA_CNT; i++)
     {        
         /* Generate sample group by mau */
-        u32SplGrp[i] = (uint32_t)((float32_t)(((float32_t)MAU_Sqrt(M4_MAU, u32Radicands[i]) / (float32_t)u32CtrlScale) + 0.5F));
-        /* Generate control group by math.h */
-        u32CtrlGrp[i] = (uint32_t)((float32_t)(sqrt((float64_t)u32Radicands[i]) + 0.5F));
-        /* Compare result to check error*/
-        if(MAU_CheckResidualErr(u32SplGrp[i]
-                                ,(u32CtrlGrp[i])
-                                    ,SQRT_DELTA))
+        enRet = MAU_Sqrt(M4_MAU, u32Radicands[i], &u32SplGrp[i]);
+        if(Ok == enRet)
         {
-            u32Err = 1U;
+            u32SplGrp[i] = (uint32_t)((float32_t)((float32_t)u32SplGrp[i] / (float32_t)u32CtrlScale) + 0.5F);
+            /* Generate control group by math.h */
+            u32CtrlGrp[i] = (uint32_t)((float32_t)(sqrt((float64_t)u32Radicands[i]) + 0.5F));
+            /* Compare result to check error*/
+            if(MAU_CheckResidualErr(u32SplGrp[i]
+                                    ,(u32CtrlGrp[i])
+                                        ,SQRT_DELTA))
+            {
+                enRet = Error;
+            }
+        }
+
+        if(Error == enRet)
+        {
             break;
         }
     }
-    return u32Err;
+    return enRet;
 }
 
 /**
@@ -308,9 +308,8 @@ static uint32_t Sin_Example(void)
  */
 int32_t main(void)
 {
-    /* system clock.configuration */
-    SystemClockConfig();
-    /* system led initiation */
+    BSP_CLK_Init();
+    BSP_IO_Init();
     BSP_LED_Init();
 
     uint32_t u32ErrSqrt = 0U,u32ErrSin = 0U;

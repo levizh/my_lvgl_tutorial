@@ -81,7 +81,7 @@ extern "C"
  * Global type definitions ('typedef')
  ******************************************************************************/
 /**
- * @defgroup TMR4__Global_Types TIMER4 Global Types
+ * @defgroup TMR4_Global_Types TIMER4 Global Types
  * @{
  */
 
@@ -350,23 +350,14 @@ typedef struct
  */
 
 /**
- * @defgroup TMR4_Result_Code TIMER4 Result Code
- * @{
- */
-#define TMR4_RESULT_ERROR                       ((uint16_t)0xFFFFU)
-/**
- * @}
- */
-
-/**
  * @defgroup TMR4_CNT_Macros TIMER4 Counter Macros
  * @{
  */
 
-/** @defgroup TMR4_CNT_Clock_Division TIMER4 Count Clock Division
+/** @defgroup TMR4_CNT_Clock_Division TIMER4 Counter Clock Division
  * @{
  */
-#define TMR4_CNT_CLK_DIV1                       ((uint16_t)0U)          /*!< PCLK      */
+#define TMR4_CNT_CLK_DIV1                       (0U)                    /*!< PCLK      */
 #define TMR4_CNT_CLK_DIV2                       (TMR4_CCSR_CKDIV_0)     /*!< PCLK/2    */
 #define TMR4_CNT_CLK_DIV4                       (TMR4_CCSR_CKDIV_1)     /*!< PCLK/4    */
 #define TMR4_CNT_CLK_DIV8                       (TMR4_CCSR_CKDIV_1 | \
@@ -389,17 +380,17 @@ typedef struct
  */
 
 /**
- * @defgroup TMR4_CNT_Mode Timer4 Count Mode
+ * @defgroup TMR4_CNT_Mode Timer4 Counter Mode
  * @{
  */
-#define TMR4_CNT_MODE_SAWTOOTH_WAVE             ((uint16_t)0U)
+#define TMR4_CNT_MODE_SAWTOOTH_WAVE             (0U)
 #define TMR4_CNT_MODE_TRIANGLE_WAVE             (TMR4_CCSR_MODE)
 /**
  * @}
  */
 
 /**
- * @defgroup TMR4_CNT_Flag TIMER4 Count Flag
+ * @defgroup TMR4_CNT_Flag TIMER4 Counter Flag
  * @{
  */
 #define TMR4_CNT_FLAG_PEAK                      (TMR4_CCSR_IRQPF)
@@ -409,7 +400,7 @@ typedef struct
  */
 
 /**
- * @defgroup TMR4_CNT_Interrupt TIMER4 Count Interrupt
+ * @defgroup TMR4_CNT_Interrupt TIMER4 Counter Interrupt
  * @{
  */
 #define TMR4_CNT_INT_PEAK                       (TMR4_CCSR_IRQPEN)
@@ -422,8 +413,8 @@ typedef struct
  * @defgroup TMR4_CNT_Buffer_State TIMER4 CNT Buffer State
  * @{
  */
-#define TMR4_CNT_BUFFER_DISABLE                 ((uint16_t)0U)      /*!< Disable TIMER4 CNT buffer function */
-#define TMR4_CNT_BUFFER_ENABLE                  (TMR4_CCSR_BUFEN)   /*!< Enable TIMER4 CNT buffer function */
+#define TMR4_CNT_BUFFER_DISABLE                 (0U)                /*!< Disable TIMER4 counter buffer function */
+#define TMR4_CNT_BUFFER_ENABLE                  (TMR4_CCSR_BUFEN)   /*!< Enable TIMER4 counter buffer function */
 /**
  * @}
  */
@@ -432,31 +423,31 @@ typedef struct
  * @defgroup TMR4_CNT_Clock_Source TIMER4 Count Clock Source
  * @{
  */
-#define TMR4_CNT_PCLK                           ((uint16_t)0U)
+#define TMR4_CNT_PCLK                           (0U)
 #define TMR4_CNT_EXTCLK                         (TMR4_CCSR_ECKEN)
 /**
  * @}
  */
 
-/** @defgroup TMR4_CNT_Interrupt_Mask_Times TIMER4 Count Interrupt Mask Times
+/** @defgroup TMR4_CNT_Interrupt_Mask_Times TIMER4 Counter Interrupt Mask Times
  * @{
  */
-#define TMR4_CNT_INT_MASK_0                     ((uint16_t)0U)  /*!< CNT interrupt flag is always set(not masked) for every CNT count at "0x0000" */
-#define TMR4_CNT_INT_MASK_1                     ((uint16_t)1U)  /*!< CNT interrupt flag is set once for 2 every CNT counts at "0x0000" (skiping 1 count) */
-#define TMR4_CNT_INT_MASK_2                     ((uint16_t)2U)  /*!< CNT interrupt flag is set once for 3 every CNT counts at "0x0000" (skiping 2 count) */
-#define TMR4_CNT_INT_MASK_3                     ((uint16_t)3U)  /*!< CNT interrupt flag is set once for 4 every CNT counts at "0x0000" (skiping 3 count) */
-#define TMR4_CNT_INT_MASK_4                     ((uint16_t)4U)  /*!< CNT interrupt flag is set once for 5 every CNT counts at "0x0000" (skiping 4 count) */
-#define TMR4_CNT_INT_MASK_5                     ((uint16_t)5U)  /*!< CNT interrupt flag is set once for 6 every CNT counts at "0x0000" (skiping 5 count) */
-#define TMR4_CNT_INT_MASK_6                     ((uint16_t)6U)  /*!< CNT interrupt flag is set once for 7 every CNT counts at "0x0000" (skiping 6 count) */
-#define TMR4_CNT_INT_MASK_7                     ((uint16_t)7U)  /*!< CNT interrupt flag is set once for 8 every CNT counts at "0x0000" (skiping 7 count) */
-#define TMR4_CNT_INT_MASK_8                     ((uint16_t)8U)  /*!< CNT interrupt flag is set once for 9 every CNT counts at "0x0000" (skiping 8 count) */
-#define TMR4_CNT_INT_MASK_9                     ((uint16_t)9U)  /*!< CNT interrupt flag is set once for 10 every CNT counts at "0x0000" (skiping 9 count) */
-#define TMR4_CNT_INT_MASK_10                    ((uint16_t)10U) /*!< CNT interrupt flag is set once for 11 every CNT counts at "0x0000" (skiping 10 count) */
-#define TMR4_CNT_INT_MASK_11                    ((uint16_t)11U) /*!< CNT interrupt flag is set once for 12 every CNT counts at "0x0000" (skiping 11 count) */
-#define TMR4_CNT_INT_MASK_12                    ((uint16_t)12U) /*!< CNT interrupt flag is set once for 13 every CNT counts at "0x0000" (skiping 12 count) */
-#define TMR4_CNT_INT_MASK_13                    ((uint16_t)13U) /*!< CNT interrupt flag is set once for 14 every CNT counts at "0x0000" (skiping 13 count) */
-#define TMR4_CNT_INT_MASK_14                    ((uint16_t)14U) /*!< CNT interrupt flag is set once for 15 every CNT counts at "0x0000" (skiping 14 count) */
-#define TMR4_CNT_INT_MASK_15                    ((uint16_t)15U) /*!< CNT interrupt flag is set once for 16 every CNT counts at "0x0000" (skiping 15 count) */
+#define TMR4_CNT_INT_MASK_0                     (0U)    /*!< Counter interrupt flag is always set(not masked) for every counter count at "0x0000" */
+#define TMR4_CNT_INT_MASK_1                     (1U)    /*!< Counter interrupt flag is set once for 2 for every counter counts at "0x0000" (skiping 1 count) */
+#define TMR4_CNT_INT_MASK_2                     (2U)    /*!< Counter interrupt flag is set once for 3 for every counter counts at "0x0000" (skiping 2 count) */
+#define TMR4_CNT_INT_MASK_3                     (3U)    /*!< Counter interrupt flag is set once for 4 for every counter counts at "0x0000" (skiping 3 count) */
+#define TMR4_CNT_INT_MASK_4                     (4U)    /*!< Counter interrupt flag is set once for 5 for every counter counts at "0x0000" (skiping 4 count) */
+#define TMR4_CNT_INT_MASK_5                     (5U)    /*!< Counter interrupt flag is set once for 6 for every counter counts at "0x0000" (skiping 5 count) */
+#define TMR4_CNT_INT_MASK_6                     (6U)    /*!< Counter interrupt flag is set once for 7 for every counter counts at "0x0000" (skiping 6 count) */
+#define TMR4_CNT_INT_MASK_7                     (7U)    /*!< Counter interrupt flag is set once for 8 for every counter counts at "0x0000" (skiping 7 count) */
+#define TMR4_CNT_INT_MASK_8                     (8U)    /*!< Counter interrupt flag is set once for 9 for every counter counts at "0x0000" (skiping 8 count) */
+#define TMR4_CNT_INT_MASK_9                     (9U)    /*!< Counter interrupt flag is set once for 10 for every counter counts at "0x0000" (skiping 9 count) */
+#define TMR4_CNT_INT_MASK_10                    (10U)   /*!< Counter interrupt flag is set once for 11 for every counter counts at "0x0000" (skiping 10 count) */
+#define TMR4_CNT_INT_MASK_11                    (11U)   /*!< Counter interrupt flag is set once for 12 for every counter counts at "0x0000" (skiping 11 count) */
+#define TMR4_CNT_INT_MASK_12                    (12U)   /*!< Counter interrupt flag is set once for 13 for every counter counts at "0x0000" (skiping 12 count) */
+#define TMR4_CNT_INT_MASK_13                    (13U)   /*!< Counter interrupt flag is set once for 14 for every counter counts at "0x0000" (skiping 13 count) */
+#define TMR4_CNT_INT_MASK_14                    (14U)   /*!< Counter interrupt flag is set once for 15 for every counter counts at "0x0000" (skiping 14 count) */
+#define TMR4_CNT_INT_MASK_15                    (15U)   /*!< Counter interrupt flag is set once for 16 for every counter counts at "0x0000" (skiping 15 count) */
 /**
  * @}
  */
@@ -473,12 +464,12 @@ typedef struct
 /** @defgroup TMR4_OCO_Channel TIMER4 OCO Channel
  * @{
  */
-#define TMR4_OCO_UH                             ((uint32_t)0UL)   /*!< Timer4 OCO channel:UH */
-#define TMR4_OCO_UL                             ((uint32_t)1UL)   /*!< Timer4 OCO channel:UL */
-#define TMR4_OCO_VH                             ((uint32_t)2UL)   /*!< Timer4 OCO channel:VH */
-#define TMR4_OCO_VL                             ((uint32_t)3UL)   /*!< Timer4 OCO channel:VL */
-#define TMR4_OCO_WH                             ((uint32_t)4UL)   /*!< Timer4 OCO channel:WH */
-#define TMR4_OCO_WL                             ((uint32_t)5UL)   /*!< Timer4 OCO channel:WL */
+#define TMR4_OCO_UH                             (0UL)   /*!< Timer4 OCO channel:UH */
+#define TMR4_OCO_UL                             (1UL)   /*!< Timer4 OCO channel:UL */
+#define TMR4_OCO_VH                             (2UL)   /*!< Timer4 OCO channel:VH */
+#define TMR4_OCO_VL                             (3UL)   /*!< Timer4 OCO channel:VL */
+#define TMR4_OCO_WH                             (4UL)   /*!< Timer4 OCO channel:WH */
+#define TMR4_OCO_WL                             (5UL)   /*!< Timer4 OCO channel:WL */
 /**
  * @}
  */
@@ -488,7 +479,7 @@ typedef struct
  * @note TIM4_<t>_OxH/TIM4_<t>_OxL: _<t>_ is unit number, t = 1, x = U/V/W
  * @{
  */
-#define TMR4_OCO_DISABLE                        ((uint16_t)0U)      /*!< Disable TIM4_<t>_OxH/TIM4_<t>_OxL output */
+#define TMR4_OCO_DISABLE                        (0U)                /*!< Disable TIM4_<t>_OxH/TIM4_<t>_OxL output */
 #define TMR4_OCO_ENABLE                         (TMR4_OCSR_OCEH)    /*!< Enable TIM4_<t>_OxH/TIM4_<t>_OxL output */
 /**
  * @}
@@ -499,7 +490,7 @@ typedef struct
  * @note TIM4_<t>_OxH/TIM4_<t>_OxL: _<t>_ is unit number, t = 1, x = U/V/W
  * @{
  */
-#define TMR4_OCO_INVAILD_OP_LOW                 ((uint16_t)0U)      /*!< TIM4_<t>_OxH/TIM4_<t>_OxL output low level when OCO is invalid */
+#define TMR4_OCO_INVAILD_OP_LOW                 (0U)                /*!< TIM4_<t>_OxH/TIM4_<t>_OxL output low level when OCO is invalid */
 #define TMR4_OCO_INVAILD_OP_HIGH                (TMR4_OCSR_OCPH)    /*!< TIM4_<t>_OxH/TIM4_<t>_OxL output high level when OCO is invalid */
 /**
  * @}
@@ -508,7 +499,7 @@ typedef struct
 /** @defgroup TMR4_OCO_Extend_Match_Condtion TIMER4 OCO Extend Match Condtion
  * @{
  */
-#define TMR4_OCO_EXTEND_MATCH_DISABLE           ((uint16_t)0U)      /*!< Disable TIMER4 OCO extend match function */
+#define TMR4_OCO_EXTEND_MATCH_DISABLE           (0U)                /*!< Disable TIMER4 OCO extend match function */
 #define TMR4_OCO_EXTEND_MATCH_ENABLE            (TMR4_OCER_MCECH)   /*!< Enable TIMER4 OCO extend match function */
 /**
  * @}
@@ -517,7 +508,7 @@ typedef struct
 /** @defgroup TMR4_OCO_OCCR_Link_Transfer TIMER4 OCO OCCR Link Transfer
  * @{
  */
-#define TMR4_OCO_OCCR_LINK_TRANSFER_DISABLE     ((uint16_t)0U)      /*!< Disable the register OCCR buffer link transfer function */
+#define TMR4_OCO_OCCR_LINK_TRANSFER_DISABLE     (0U)                /*!< Disable the register OCCR buffer link transfer function */
 #define TMR4_OCO_OCCR_LINK_TRANSFER_ENABLE      (TMR4_OCER_LMCH)    /*!< Register OCCR buffer transfer when the value is both 0 and CPSR and ZIC/PIC is 0 */
 /**
  * @}
@@ -526,7 +517,7 @@ typedef struct
 /** @defgroup TMR4_OCO_OCCR_Buffer_Mode TIMER4 OCO OCCR Buffer Mode
  * @{
  */
-#define TMR4_OCO_OCCR_BUF_DISABLE               ((uint16_t)0U)          /*!< Disable the register OCCR buffer function */
+#define TMR4_OCO_OCCR_BUF_DISABLE               (0U)                    /*!< Disable the register OCCR buffer function */
 #define TMR4_OCO_OCCR_BUF_CNT_ZERO              (TMR4_OCER_CHBUFEN_0)   /*!< Register OCCR buffer transfer when counter value is 0x0000 */
 #define TMR4_OCO_OCCR_BUF_CNT_PEAK              (TMR4_OCER_CHBUFEN_1)   /*!< Register OCCR buffer transfer when counter value is CPSR */
 #define TMR4_OCO_OCCR_BUF_CNT_ZERO_OR_PEAK      (TMR4_OCER_CHBUFEN)     /*!< Register OCCR buffer transfer when the value is both 0 and CPSR */
@@ -537,7 +528,7 @@ typedef struct
 /** @defgroup TMR4_OCO_OCMR_Link_Transfer TIMER4 OCO OCMR Link Transfer
  * @{
  */
-#define TMR4_OCO_OCMR_LINK_TRANSFER_DISABLE     ((uint16_t)0x0000U) /*!< Disable the register OCMR buffer link transfer function */
+#define TMR4_OCO_OCMR_LINK_TRANSFER_DISABLE     (0x0000U)           /*!< Disable the register OCMR buffer link transfer function */
 #define TMR4_OCO_OCMR_LINK_TRANSFER_ENABLE      (TMR4_OCER_LMMH)    /*!< Register OCMR buffer transfer when the value is both 0 and CPSR and ZIC/PIC is 0 */
 /**
  * @}
@@ -546,7 +537,7 @@ typedef struct
 /** @defgroup TMR4_OCO_OCMR_Buffer_Mode TIMER4 OCO OCMR Buffer Mode
  * @{
  */
-#define TMR4_OCO_OCMR_BUF_DISABLE               ((uint16_t)0U)          /*!< Disable the register OCCR buffer function */
+#define TMR4_OCO_OCMR_BUF_DISABLE               (0U)                    /*!< Disable the register OCCR buffer function */
 #define TMR4_OCO_OCMR_BUF_CNT_ZERO              (TMR4_OCER_MHBUFEN_0)   /*!< Register OCMR buffer transfer when counter value is 0x0000 */
 #define TMR4_OCO_OCMR_BUF_CNT_PEAK              (TMR4_OCER_MHBUFEN_1)   /*!< Register OCMR buffer transfer when counter value is CPSR */
 #define TMR4_OCO_OCMR_BUF_CNT_ZERO_OR_PEAK      (TMR4_OCER_MHBUFEN)     /*!< Register OCMR buffer transfer when the value is both 0 and CPSR */
@@ -557,7 +548,7 @@ typedef struct
 /** @defgroup TMR4_OCO_Cnt_Match_OCF_State TIMER4 OCO Cnt Match OCF State
  * @{
  */
-#define TMR4_OCO_OCF_HOLD                       ((uint16_t)0U)      /*!< Hold OCF */
+#define TMR4_OCO_OCF_HOLD                       (0U)                /*!< Hold OCF */
 #define TMR4_OCO_OCF_SET                        (TMR4_OCMRH_OCFDCH) /*!< Set OCF */
 /**
  * @}
@@ -566,29 +557,11 @@ typedef struct
 /** @defgroup TMR4_OCO_Cnt_Match_Output_Polarity TIMER4 OCO Cnt Match Output Polarity
  * @{
  */
-#define TMR4_OCO_OP_HOLD                        ((uint16_t)0U)      /*!< Hold output when the TIMER4 OCO count match */
-#define TMR4_OCO_OP_HIGH                        ((uint16_t)1U)      /*!< Output high when the TIMER4 OCO count match */
-#define TMR4_OCO_OP_LOW                         ((uint16_t)2U)      /*!< Output low when the TIMER4 OCO count match */
-#define TMR4_OCO_OP_INVERT                      ((uint16_t)3U)      /*!< Invert output when the TIMER4 OCO count match */
+#define TMR4_OCO_OP_HOLD                        (0U)    /*!< Hold output when the TIMER4 OCO count match */
+#define TMR4_OCO_OP_HIGH                        (1U)    /*!< Output high when the TIMER4 OCO count match */
+#define TMR4_OCO_OP_LOW                         (2U)    /*!< Output low when the TIMER4 OCO count match */
+#define TMR4_OCO_OP_INVERT                      (3U)    /*!< Invert output when the TIMER4 OCO count match */
 /**
- * @}
- */
-
-/**
- * @defgroup TMR4_OCO_Interrupt TIMER4 OCO Interrupt
- * @{
- */
-#define TMR4_OCO_INT_MATCH                      (TMR4_OCSR_OCIEH)   /*!< TIMER4 OCO count match interrupt */
- /**
- * @}
- */
-
-/**
- * @defgroup TMR4_OCO_Flag TIMER4 OCO Flag
- * @{
- */
-#define TMR4_OCO_FLAG_MATCH                     (TMR4_OCSR_OCFH)   /*!< TIMER4 OCO count match flag */
- /**
  * @}
  */
 
@@ -604,9 +577,9 @@ typedef struct
 /** @defgroup TMR4_PWM_Channel TIMER4 PWM Channel
  * @{
  */
-#define TMR4_PWM_U                              ((uint32_t)0UL)   /*!< Timer4 PWM couple channel: U */
-#define TMR4_PWM_V                              ((uint32_t)1UL)   /*!< Timer4 PWM couple channel: V */
-#define TMR4_PWM_W                              ((uint32_t)2UL)   /*!< Timer4 PWM couple channel: W */
+#define TMR4_PWM_U                              (0UL)   /*!< Timer4 PWM couple channel: U */
+#define TMR4_PWM_V                              (1UL)   /*!< Timer4 PWM couple channel: V */
+#define TMR4_PWM_W                              (2UL)   /*!< Timer4 PWM couple channel: W */
 /**
  * @}
  */
@@ -614,12 +587,12 @@ typedef struct
 /** @defgroup TMR4_PWM_Port TIMER4 PWM Port
  * @{
  */
-#define TMR4_PWM_PORT_OUH                       ((uint32_t)0UL)   /*!< Timer4 PWM port: TIM4_<t>_OUH */
-#define TMR4_PWM_PORT_OUL                       ((uint32_t)1UL)   /*!< Timer4 PWM port: TIM4_<t>_OUL */
-#define TMR4_PWM_PORT_OVH                       ((uint32_t)2UL)   /*!< Timer4 PWM port: TIM4_<t>_OVH */
-#define TMR4_PWM_PORT_OVL                       ((uint32_t)3UL)   /*!< Timer4 PWM port: TIM4_<t>_OVL */
-#define TMR4_PWM_PORT_OWH                       ((uint32_t)4UL)   /*!< Timer4 PWM port: TIM4_<t>_OWH */
-#define TMR4_PWM_PORT_OWL                       ((uint32_t)5UL)   /*!< Timer4 PWM port: TIM4_<t>_OWL */
+#define TMR4_PWM_PORT_OUH                       (0UL)   /*!< Timer4 PWM port: TIM4_<t>_OUH */
+#define TMR4_PWM_PORT_OUL                       (1UL)   /*!< Timer4 PWM port: TIM4_<t>_OUL */
+#define TMR4_PWM_PORT_OVH                       (2UL)   /*!< Timer4 PWM port: TIM4_<t>_OVH */
+#define TMR4_PWM_PORT_OVL                       (3UL)   /*!< Timer4 PWM port: TIM4_<t>_OVL */
+#define TMR4_PWM_PORT_OWH                       (4UL)   /*!< Timer4 PWM port: TIM4_<t>_OWH */
+#define TMR4_PWM_PORT_OWL                       (5UL)   /*!< Timer4 PWM port: TIM4_<t>_OWL */
 /**
  * @}
  */
@@ -627,7 +600,7 @@ typedef struct
 /** @defgroup TMR4_PWM_Clock_Division TIMER4 PWM Clock Division
  * @{
  */
-#define TMR4_PWM_CLK_DIV1                       ((uint16_t)0U)          /*!< PCLK     */
+#define TMR4_PWM_CLK_DIV1                       (0U)                    /*!< PCLK     */
 #define TMR4_PWM_CLK_DIV2                       (TMR4_POCR_DIVCK_0)     /*!< PCLK/2   */
 #define TMR4_PWM_CLK_DIV4                       (TMR4_POCR_DIVCK_1)     /*!< PCLK/4   */
 #define TMR4_PWM_CLK_DIV8                       (TMR4_POCR_DIVCK_1 | \
@@ -648,7 +621,7 @@ typedef struct
  * @defgroup TMR4_PWM_Mode Timer4 PWM Mode
  * @{
  */
-#define TMR4_PWM_THROUGH_MODE                   ((uint16_t)0U)      /*!< Through mode */
+#define TMR4_PWM_THROUGH_MODE                   (0U)                /*!< Through mode */
 #define TMR4_PWM_DEAD_TIMER_MODE                (TMR4_POCR_PWMMD_0) /*!< Dead timer mode */
 #define TMR4_PWM_DEAD_TIMER_FILTER_MODE         (TMR4_POCR_PWMMD_1) /*!< Dead timer filter mode */
 /**
@@ -659,7 +632,7 @@ typedef struct
  * @defgroup TMR4_PWM_Transform_OCO_Polarity Timer4 PWM Transform OCO Polarity
  * @{
  */
-#define TMR4_PWM_OP_OXH_HOLD_OXL_HOLD           ((uint16_t)0U)      /*!< Output PWML and PWMH signals without changing the level */
+#define TMR4_PWM_OP_OXH_HOLD_OXL_HOLD           (0U)                /*!< Output PWML and PWMH signals without changing the level */
 #define TMR4_PWM_OP_OXH_INVERT_OXL_INVERT       (TMR4_POCR_LVLS_0)  /*!< Output both PWML and PWMH signals reversed */
 #define TMR4_PWM_OP_OXH_INVERT_OXL_HOLD         (TMR4_POCR_LVLS_1)  /*!< Output the PWMH signal reversed, outputs the PWML signal without changing the level. */
 #define TMR4_PWM_OP_OXH_HOLD_OXL_INVERT         (TMR4_POCR_LVLS)    /*!< Output the PWMH signal without changing the level, Outputs the PWML signal reversed. */
@@ -671,7 +644,7 @@ typedef struct
  * @defgroup TMR4_PWM_Port_Output_Mode Timer4 PWM Port Mode
  * @{
  */
-#define TMR4_PWM_PORT_OUTPUT_OSxy               ((uint32_t)0UL)     /*!< TIM4_<t>_Oxy output polarity by specified OSxy */
+#define TMR4_PWM_PORT_OUTPUT_OSxy               (0UL)               /*!< TIM4_<t>_Oxy output polarity by specified OSxy */
 #define TMR4_PWM_PORT_OUTPUT_NORMAL             (TMR4_PSCR_OEUH)    /*!< TIM4_<t>_Oxy output normal PWM */
 /**
  * @}
@@ -681,7 +654,7 @@ typedef struct
  * @defgroup TMR4_PWM_EMB_Port_State Timer4 PWM EMB Port State
  * @{
  */
-#define TMR4_PWM_EMB_PORT_OUTPUT_NORMAL         ((uint32_t)0UL)     /*!< TIM4_<t>_Oxy output normal */
+#define TMR4_PWM_EMB_PORT_OUTPUT_NORMAL         (0UL)               /*!< TIM4_<t>_Oxy output normal */
 #define TMR4_PWM_EMB_PORT_OUTPUT_HIZ            (TMR4_PSCR_OSUH_0)  /*!< TIM4_<t>_Oxy output Hi-z */
 #define TMR4_PWM_EMB_PORT_OUTPUT_LOW            (TMR4_PSCR_OSUH_1)  /*!< TIM4_<t>_Oxy output low level */
 #define TMR4_PWM_EMB_PORT_OUTPUT_HIGH           (TMR4_PSCR_OSUH)    /*!< TIM4_<t>_Oxy output high level */
@@ -693,7 +666,7 @@ typedef struct
  * @defgroup TMR4_PWM_Port_Enable_Bit_Effective_Time TIMER4 PWM Port Enable Bit Effective Time
  * @{
  */
-#define TMR4_PWM_PORT_ENBIT_EFFECT_IMMEDIATE    ((uint32_t)0UL)     /*!< TIMER4 PWM Port Enable Bit Effective Time: immediate */
+#define TMR4_PWM_PORT_ENBIT_EFFECT_IMMEDIATE    (0UL)               /*!< TIMER4 PWM Port Enable Bit Effective Time: immediate */
 #define TMR4_PWM_PORT_ENBIT_EFFECT_CNTUVF       (TMR4_PSCR_ODT_1)   /*!< TIMER4 PWM Port Enable Bit Effective Time: Timer4 counter underflow */
 #define TMR4_PWM_PORT_ENBIT_EFFECT_CNTOVF       (TMR4_PSCR_ODT)     /*!< TIMER4 PWM Port Enable Bit Effective Time: Timer4 counter overflow */
  /**
@@ -712,12 +685,12 @@ typedef struct
 /** @defgroup TMR4_SEVT_Channel TIMER4 SEVT Channel
  * @{
  */
-#define TMR4_SEVT_UH                            ((uint32_t)0UL)   /*!< Timer4 SEVT channel:UH */
-#define TMR4_SEVT_UL                            ((uint32_t)1UL)   /*!< Timer4 SEVT channel:UL */
-#define TMR4_SEVT_VH                            ((uint32_t)2UL)   /*!< Timer4 SEVT channel:VH */
-#define TMR4_SEVT_VL                            ((uint32_t)3UL)   /*!< Timer4 SEVT channel:VL */
-#define TMR4_SEVT_WH                            ((uint32_t)4UL)   /*!< Timer4 SEVT channel:WH */
-#define TMR4_SEVT_WL                            ((uint32_t)5UL)   /*!< Timer4 SEVT channel:WL */
+#define TMR4_SEVT_UH                            (0UL)   /*!< Timer4 SEVT channel:UH */
+#define TMR4_SEVT_UL                            (1UL)   /*!< Timer4 SEVT channel:UL */
+#define TMR4_SEVT_VH                            (2UL)   /*!< Timer4 SEVT channel:VH */
+#define TMR4_SEVT_VL                            (3UL)   /*!< Timer4 SEVT channel:VL */
+#define TMR4_SEVT_WH                            (4UL)   /*!< Timer4 SEVT channel:WH */
+#define TMR4_SEVT_WL                            (5UL)   /*!< Timer4 SEVT channel:WL */
 /**
  * @}
  */
@@ -725,7 +698,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Link_Transfer TIMER4 SEVT Link Transfer
  * @{
  */
-#define TMR4_SEVT_LINK_TRANSFER_DISABLE         ((uint16_t)0U)  /*!< Disable the SEVT Link Transfer function */
+#define TMR4_SEVT_LINK_TRANSFER_DISABLE         (0U)            /*!< Disable the SEVT Link Transfer function */
 #define TMR4_SEVT_LINK_TRANSFER_ENABLE          (TMR4_SCSR_LMC) /*!< Enable the SEVT Link Transfer function */
 /**
  * @}
@@ -734,7 +707,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Down_Selection TIMER4 SEVT Down Selection
  * @{
  */
-#define TMR4_SEVT_DOWN_DISABLE                  ((uint16_t)0U)  /*!< Disable trigger signal when match with SCCR&SCMR and Timer4 CNT count zero */
+#define TMR4_SEVT_DOWN_DISABLE                  (0U)            /*!< Disable trigger signal when match with SCCR&SCMR and Timer4 CNT count zero */
 #define TMR4_SEVT_DOWN_ENABLE                   (TMR4_SCSR_DEN) /*!< Enable trigger signal when match with SCCR&SCMR and Timer4 CNT count down */
 /**
  * @}
@@ -743,7 +716,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Up_Selection TIMER4 SEVT Up Selection
  * @{
  */
-#define TMR4_SEVT_UP_DISABLE                    ((uint16_t)0U)  /*!< Disable trigger signal when match with SCCR&SCMR and Timer4 CNT count up */
+#define TMR4_SEVT_UP_DISABLE                    (0U)            /*!< Disable trigger signal when match with SCCR&SCMR and Timer4 CNT count up */
 #define TMR4_SEVT_UP_ENABLE                     (TMR4_SCSR_UEN) /*!< Enable trigger signal when match with SCCR&SCMR and Timer4 CNT count up */
 /**
  * @}
@@ -752,7 +725,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Peak_Selection TIMER4 SEVT Peak Selection
  * @{
  */
-#define TMR4_SEVT_PEAK_DISABLE                  ((uint16_t)0U)  /*!< Disable trigger signal when match with SCCR&SCMR and Timer4 CNT count peak */
+#define TMR4_SEVT_PEAK_DISABLE                  (0U)            /*!< Disable trigger signal when match with SCCR&SCMR and Timer4 CNT count peak */
 #define TMR4_SEVT_PEAK_ENABLE                   (TMR4_SCSR_PEN) /*!< Enable trigger signal when match with SCCR&SCMR and Timer4 CNT count peak */
 /**
  * @}
@@ -761,7 +734,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Zero_Selection TIMER4 SEVT Zero Selection
  * @{
  */
-#define TMR4_SEVT_ZERO_DISABLE                  ((uint16_t)0U)  /*!< Disable trigger signal when match with SCCR&SCMR and Timer4 CNT count zero */
+#define TMR4_SEVT_ZERO_DISABLE                  (0U)            /*!< Disable trigger signal when match with SCCR&SCMR and Timer4 CNT count zero */
 #define TMR4_SEVT_ZERO_ENABLE                   (TMR4_SCSR_ZEN) /*!< Enable trigger signal when match with SCCR&SCMR and Timer4 CNT count zero */
 /**
  * @}
@@ -770,7 +743,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Zero_Match_Mask_Selection TIMER4 SEVT Zero Match Mask Selection
  * @{
  */
-#define TMR4_SEVT_ZERO_MATCH_MASK_DISABLE       ((uint16_t)0U)  /*!< Disable perform to compare with the CNT zero interrupt mask counter */
+#define TMR4_SEVT_ZERO_MATCH_MASK_DISABLE       (0U)            /*!< Disable perform to compare with the CNT zero interrupt mask counter */
 #define TMR4_SEVT_ZERO_MATCH_MASK_ENABLE        (TMR4_SCSR_UEN) /*!< Enable perform to compare with the CNT zero interrupt mask counter */
 /**
  * @}
@@ -779,7 +752,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Peak_Match_Mask_Selection TIMER4 SEVT Peak Match Mask Selection
  * @{
  */
-#define TMR4_SEVT_PEAK_MATCH_MASK_DISABLE       ((uint16_t)0U)  /*!< Disable perform to compare with the CNT peak interrupt mask counter */
+#define TMR4_SEVT_PEAK_MATCH_MASK_DISABLE       (0U)            /*!< Disable perform to compare with the CNT peak interrupt mask counter */
 #define TMR4_SEVT_PEAK_MATCH_MASK_ENABLE        (TMR4_SCSR_UEN) /*!< Enable perform to compare with the CNT peak interrupt mask counter */
 /**
  * @}
@@ -788,7 +761,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Buffer_Mode TIMER4 SEVT Buffer Mode
  * @{
  */
-#define TMR4_SEVT_BUF_DISABLE                   ((uint16_t)0U)      /*!< Disable the register SCCR&SCMR buffer function */
+#define TMR4_SEVT_BUF_DISABLE                   (0U)                /*!< Disable the register SCCR&SCMR buffer function */
 #define TMR4_SEVT_BUF_CNT_ZERO                  (TMR4_SCSR_BUFEN_0) /*!< Register SCCR&SCMR buffer transfer when counter value is 0x0000 */
 #define TMR4_SEVT_BUF_CNT_PEAK                  (TMR4_SCSR_BUFEN_1) /*!< Register SCCR&SCMR buffer transfer when counter value is CPSR */
 #define TMR4_SEVT_BUF_CNT_ZERO_OR_PEAK          (TMR4_SCSR_BUFEN)   /*!< Register SCCR&SCMR buffer transfer when the value is both 0 and CPSR */
@@ -799,7 +772,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Output_Event TIMER4 SEVT Output Event
  * @{
  */
-#define TMR4_SEVT_OUTPUT_EVENT0                 ((uint16_t)0U)          /*!< TIMER4 SEVT output special event 0 */
+#define TMR4_SEVT_OUTPUT_EVENT0                 (0U)                    /*!< TIMER4 SEVT output special event 0 */
 #define TMR4_SEVT_OUTPUT_EVENT1                 (TMR4_SCSR_EVTOS_0)     /*!< TIMER4 SEVT output special event 1 */
 #define TMR4_SEVT_OUTPUT_EVENT2                 (TMR4_SCSR_EVTOS_1)     /*!< TIMER4 SEVT output special event 2 */
 #define TMR4_SEVT_OUTPUT_EVENT3                 (TMR4_SCSR_EVTOS_1 | \
@@ -814,7 +787,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Mode TIMER4 SEVT Mode
  * @{
  */
-#define TMR4_SEVT_MODE_COMPARE_TRIGGER          ((uint16_t)0U)
+#define TMR4_SEVT_MODE_COMPARE_TRIGGER          (0U)
 #define TMR4_SEVT_MODE_DELAY_TRIGGER            (TMR4_SCSR_EVTMS)
 /**
  * @}
@@ -823,7 +796,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Delay_Object TIMER4 SEVT Delay Object
  * @{
  */
-#define TMR4_SEVT_DELAY_OCCRXH                  ((uint16_t)0U)      /*!< TIMER4 SEVT delay object: OCCRxh */
+#define TMR4_SEVT_DELAY_OCCRXH                  (0U)                /*!< TIMER4 SEVT delay object: OCCRxh */
 #define TMR4_SEVT_DELAY_OCCRXL                  (TMR4_SCSR_EVTDS)   /*!< TIMER4 SEVT delay object: OCCRxl */
 /**
  * @}
@@ -832,22 +805,22 @@ typedef struct
 /** @defgroup TMR4_SEVT_Mask_Times TIMER4 SEVT Mask Times
  * @{
  */
-#define TMR4_SEVT_MASK_0                        ((uint16_t)0U)      /*!< Mask 0 time */
-#define TMR4_SEVT_MASK_1                        ((uint16_t)1U)      /*!< Mask 1 times */
-#define TMR4_SEVT_MASK_2                        ((uint16_t)2)       /*!< Mask 2 times */
-#define TMR4_SEVT_MASK_3                        ((uint16_t)3U)      /*!< Mask 3 times */
-#define TMR4_SEVT_MASK_4                        ((uint16_t)4U)      /*!< Mask 4 times */
-#define TMR4_SEVT_MASK_5                        ((uint16_t)5U)      /*!< Mask 5 times */
-#define TMR4_SEVT_MASK_6                        ((uint16_t)6U)      /*!< Mask 6 times */
-#define TMR4_SEVT_MASK_7                        ((uint16_t)7U)      /*!< Mask 7 times */
-#define TMR4_SEVT_MASK_8                        ((uint16_t)8U)      /*!< Mask 8 times */
-#define TMR4_SEVT_MASK_9                        ((uint16_t)9U)      /*!< Mask 9 times */
-#define TMR4_SEVT_MASK_10                       ((uint16_t)10U)     /*!< Mask 10 times */
-#define TMR4_SEVT_MASK_11                       ((uint16_t)11U)     /*!< Mask 11 times */
-#define TMR4_SEVT_MASK_12                       ((uint16_t)12U)     /*!< Mask 12 times */
-#define TMR4_SEVT_MASK_13                       ((uint16_t)13U)     /*!< Mask 13 times */
-#define TMR4_SEVT_MASK_14                       ((uint16_t)14U)     /*!< Mask 14 times */
-#define TMR4_SEVT_MASK_15                       ((uint16_t)15U)     /*!< Mask 15 times */
+#define TMR4_SEVT_MASK_0                        (0U)    /*!< Mask 0 time */
+#define TMR4_SEVT_MASK_1                        (1U)    /*!< Mask 1 times */
+#define TMR4_SEVT_MASK_2                        (2U)    /*!< Mask 2 times */
+#define TMR4_SEVT_MASK_3                        (3U)    /*!< Mask 3 times */
+#define TMR4_SEVT_MASK_4                        (4U)    /*!< Mask 4 times */
+#define TMR4_SEVT_MASK_5                        (5U)    /*!< Mask 5 times */
+#define TMR4_SEVT_MASK_6                        (6U)    /*!< Mask 6 times */
+#define TMR4_SEVT_MASK_7                        (7U)    /*!< Mask 7 times */
+#define TMR4_SEVT_MASK_8                        (8U)    /*!< Mask 8 times */
+#define TMR4_SEVT_MASK_9                        (9U)    /*!< Mask 9 times */
+#define TMR4_SEVT_MASK_10                       (10U)   /*!< Mask 10 times */
+#define TMR4_SEVT_MASK_11                       (11U)   /*!< Mask 11 times */
+#define TMR4_SEVT_MASK_12                       (12U)   /*!< Mask 12 times */
+#define TMR4_SEVT_MASK_13                       (13U)   /*!< Mask 13 times */
+#define TMR4_SEVT_MASK_14                       (14U)   /*!< Mask 14 times */
+#define TMR4_SEVT_MASK_15                       (15U)   /*!< Mask 15 times */
 /**
  * @}
  */
@@ -855,7 +828,7 @@ typedef struct
 /** @defgroup TMR4_SEVT_Port_Output_Event_Signal TIMER4 SEVT Port Output Event Signal
  * @{
  */
-#define TMR4_SEVT_PORT_OUTPUT_NONE              ((uint16_t)0U)          /*!< Disable output event signal of Timer4 Special-EVT */
+#define TMR4_SEVT_PORT_OUTPUT_NONE              (0U)                    /*!< Disable output event signal of Timer4 Special-EVT */
 #define TMR4_SEVT_PORT_OUTPUT_EVENT0_SIGNAL     (TMR4_SCER_EVTRS_0 )    /*!< Output the specified event 0 signal of Timer4 Special-EVT */
 #define TMR4_SEVT_PORT_OUTPUT_EVENT1_SIGNAL     (TMR4_SCER_EVTRS_1)     /*!< Output the specified event 1 signal of Timer4 Special-EVT */
 #define TMR4_SEVT_PORT_OUTPUT_EVENT2_SIGNAL     (TMR4_SCER_EVTRS_1 | \
@@ -889,110 +862,6 @@ typedef struct
  * @{
  */
 
-/**
- * @brief Start Timer4 CNT
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @retval None
- */
-__STATIC_INLINE void TMR4_CNT_Start(M4_TMR4_TypeDef *TMR4x)
-{
-    CLEAR_REG16_BIT(TMR4x->CCSR, TMR4_CCSR_STOP);
-}
-
-/**
- * @brief Stop Timer4 CNT
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @retval None
- */
-__STATIC_INLINE void TMR4_CNT_Stop(M4_TMR4_TypeDef *TMR4x)
-{
-    SET_REG16_BIT(TMR4x->CCSR, TMR4_CCSR_STOP);
-}
-
-/**
- * @brief  Set Timer4 CNT cycle value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16CycleVal             The Timer4 CNT cycle value
- *           @arg number of 16bit
- * @retval None
- */
-__STATIC_INLINE void TMR4_CNT_SetCycleVal(M4_TMR4_TypeDef *TMR4x,
-                                                uint16_t u16CycleVal)
-{
-    WRITE_REG16(TMR4x->CPSR, u16CycleVal);
-}
-
-/**
- * @brief  Get Timer4 CNT cycle value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @retval The cycle value of the Timer4 CNT
- */
-__STATIC_INLINE uint16_t TMR4_CNT_GetCycleVal(const M4_TMR4_TypeDef *TMR4x)
-{
-    return READ_REG16(TMR4x->CPSR);
-}
-
-/**
- * @brief  Clear Timer4 CNT count value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @retval None
- */
-__STATIC_INLINE void TMR4_CNT_ClearCountVal(M4_TMR4_TypeDef *TMR4x)
-{
-    SET_REG16_BIT(TMR4x->CCSR, TMR4_CCSR_CLEAR);
-}
-
-/**
- * @brief  Set Timer4 CNT count value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16CountVal             The Timer4 CNT count value
- *           @arg number of 16bit
- * @retval None
- */
-__STATIC_INLINE void TMR4_CNT_SetCountVal(M4_TMR4_TypeDef *TMR4x,
-                                            uint16_t u16CountVal)
-{
-    WRITE_REG16(TMR4x->CNTR, u16CountVal);
-}
-
-/**
- * @brief  Get Timer4 CNT count value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
- *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @retval The count value of the Timer4 CNT
- */
-__STATIC_INLINE uint16_t TMR4_CNT_GetCountVal(const M4_TMR4_TypeDef *TMR4x)
-{
-    return READ_REG16(TMR4x->CNTR);
-}
-
 /* Initialization and configuration Timer4 counter functions */
 en_result_t TMR4_CNT_Init(M4_TMR4_TypeDef *TMR4x,
                                 const stc_tmr4_cnt_init_t *pstcInit);
@@ -1009,13 +878,22 @@ void TMR4_CNT_ClearFlag(M4_TMR4_TypeDef *TMR4x, uint16_t u16Flag);
 void TMR4_CNT_IntCmd(M4_TMR4_TypeDef *TMR4x,
                             uint16_t u16IntSource,
                             en_functional_state_t enNewState);
-void TMR4_CNT_SetIntMaskTimes(M4_TMR4_TypeDef *TMR4x,
+void TMR4_CNT_Start(M4_TMR4_TypeDef *TMR4x);
+void TMR4_CNT_Stop(M4_TMR4_TypeDef *TMR4x);
+void TMR4_CNT_SetCycleVal(M4_TMR4_TypeDef *TMR4x, uint16_t u16CycleVal);
+uint16_t TMR4_CNT_GetCycleVal(const M4_TMR4_TypeDef *TMR4x);
+void TMR4_CNT_ClearCountVal(M4_TMR4_TypeDef *TMR4x);
+void TMR4_CNT_SetCountVal(M4_TMR4_TypeDef *TMR4x, uint16_t u16CountVal);
+uint16_t TMR4_CNT_GetCountVal(const M4_TMR4_TypeDef *TMR4x);
+en_result_t TMR4_CNT_SetIntMaskTimes(M4_TMR4_TypeDef *TMR4x,
                                         uint16_t u16IntSource,
                                         uint16_t u16MaskTimes);
-uint16_t TMR4_CNT_GetIntMaskTimes(const M4_TMR4_TypeDef *TMR4x,
-                                            uint16_t u16IntSource);
-uint16_t TMR4_CNT_GetIntMaskCurrentTimes(const M4_TMR4_TypeDef *TMR4x,
-                                                        uint16_t u16IntSource);
+en_result_t TMR4_CNT_GetIntMaskTimes(const M4_TMR4_TypeDef *TMR4x,
+                                            uint16_t u16IntSource,
+                                            uint16_t *pu16MaskTimes);
+en_result_t TMR4_CNT_GetIntMaskCurrentTimes(const M4_TMR4_TypeDef *TMR4x,
+                                                    uint16_t u16IntSource,
+                                                    uint16_t *pu16MaskTimes);
 void TMR4_CNT_PortOutputDirSigCmd(M4_TMR4_TypeDef *TMR4x,
                                         en_functional_state_t enNewState);
 
@@ -1055,14 +933,10 @@ void TMR4_OCO_SetOutputCompare(M4_TMR4_TypeDef *TMR4x,
                                         uint16_t u16OcoCmd);
 void TMR4_OCO_IntCmd(M4_TMR4_TypeDef *TMR4x,
                             uint32_t u32Ch,
-                            uint16_t u16IntSource,
                             en_functional_state_t enNewState);
 en_flag_status_t TMR4_OCO_GetFlag(const M4_TMR4_TypeDef *TMR4x,
-                                            uint32_t u32Ch,
-                                            uint16_t u16Flag);
-void TMR4_OCO_ClearFlag(M4_TMR4_TypeDef *TMR4x,
-                                uint32_t u32Ch,
-                                uint16_t u16Flag);
+                                        uint32_t u32Ch);
+void TMR4_OCO_ClearFlag(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch);
 void TMR4_OCO_SetOcoInvalidOp(M4_TMR4_TypeDef *TMR4x,
                                         uint32_t u32Ch,
                                         uint16_t u16OutputPolarity);

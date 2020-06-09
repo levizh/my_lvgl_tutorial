@@ -80,17 +80,6 @@ extern "C"
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-/**
- * @defgroup HRPWM_Global_Types HRPWM Global Types
- * @{
- */
-
-
-
-
-/**
- * @}
- */
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
@@ -100,17 +89,17 @@ extern "C"
  * @{
  */
 
-#define   HRPWM_CH_MIN        1U
-#define   HRPWM_CH_MAX        16U
+#define   HRPWM_CH_MIN                (1UL)
+#define   HRPWM_CH_MAX                (16UL)
 
-#define   HRPWM_CH_DELAY_NUM_MIN        1U
-#define   HRPWM_CH_DELAY_NUM_MAX        256U
+#define   HRPWM_CH_DELAY_NUM_MIN      (1U)
+#define   HRPWM_CH_DELAY_NUM_MAX      (256U)
 
 /** @defgroup HRPWM_Calibrate_Unit_Define HRPWM Calibrate unit define
  * @{
  */
-#define   HRPWM_CAL_UNIT0     0x00UL
-#define   HRPWM_CAL_UNIT1     0x01UL
+#define   HRPWM_CAL_UNIT0             (0x00UL)
+#define   HRPWM_CAL_UNIT1             (0x01UL)
 /**
  * @}
  */
@@ -130,26 +119,29 @@ extern "C"
  * @addtogroup HRPWM_Global_Functions
  * @{
  */
+/* HRPWM Judge the condition of calibration function */
+en_functional_state_t HRPWM_ConditionConfirm(void);
+
 /* Process for getting HRPWM Calibrate function code */
 en_result_t HRPWM_CalibrateProcess(uint32_t u32Unit, uint8_t* pu8Code);
 
 /* HRPWM Calibrate function enable or disable for specified unit */
-en_result_t HRPWM_CalibrateCmd(uint32_t u32Unit, en_functional_state_t enNewState);
+void HRPWM_CalibrateCmd(uint32_t u32Unit, en_functional_state_t enNewState);
 /* HRPWM Calibrate function status get for specified unit */
-en_functional_state_t HRPWM_CalibrateStdGet(uint32_t u32Unit);
+en_functional_state_t HRPWM_GetCalibrateStd(uint32_t u32Unit);
 /* HRPWM Calibrate code get for specified unit */
-uint8_t HRPWM_CalCodeGet(uint32_t u32Unit);
+uint8_t HRPWM_GetCalCode(uint32_t u32Unit);
 
 /* HRPWM function enable or disable for specified channel */
-en_result_t HRPWM_CHCmd(uint32_t u32Ch, en_functional_state_t enNewState);
+void HRPWM_CHCmd(uint32_t u32Ch, en_functional_state_t enNewState);
 /* HRPWM positive edge adjust enable or disable for specified channel */
-en_result_t HRPWM_CHPositAdjCmd(uint32_t u32Ch, en_functional_state_t enNewState);
+void HRPWM_CHPositAdjCmd(uint32_t u32Ch, en_functional_state_t enNewState);
 /* HRPWM negative edge adjust enable or disable for specified channel */
-en_result_t HRPWM_CHNegatAdjCmd(uint32_t u32Ch, en_functional_state_t enNewState);
+void HRPWM_CHNegatAdjCmd(uint32_t u32Ch, en_functional_state_t enNewState);
 /* HRPWM positive edge adjust delay counts configration for specified channel */
-en_result_t HRPWM_CHPositCfg(uint32_t u32Ch, uint32_t u32DelayNum);
+void HRPWM_CHPositCfg(uint32_t u32Ch, uint32_t u32DelayNum);
 /* HRPWM negative edge adjust delay counts configration for specified channel */
-en_result_t HRPWM_CHNegatCfg(uint32_t u32Ch, uint32_t u32DelayNum);
+void HRPWM_CHNegatCfg(uint32_t u32Ch, uint32_t u32DelayNum);
 
 /**
  * @}

@@ -207,7 +207,7 @@ int32_t main(void)
     /* SW1 configuration */
     SW1_Config();
     /* Wait for SWDT module to complete initial */
-    DDL_Delay1ms(200U);
+    DDL_Delay1ms(10U);
     /* Count cycle=256,range=0%-25% */
     u16CmpVal = SWDT_COUNT_CYCLE / 4U;
 

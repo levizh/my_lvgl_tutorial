@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  * @file  hc32f4a0_mau.h
- * @brief This file contains all the functions prototypes of the MAU dirver
+ * @brief This file contains all the functions prototypes of the MAU driver
  *        library.
  @verbatim
    Change Logs:
@@ -64,6 +64,7 @@ extern "C"
  ******************************************************************************/
 #include "hc32_common.h"
 #include "ddl_config.h"
+#include "hc32f4a0_utility.h"
 
 /**
  * @addtogroup HC32F4A0_DDL_Driver
@@ -80,40 +81,7 @@ extern "C"
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-/**
- * @defgroup MAU_Global_Types MAU Global Types
- * @{
- */
-typedef enum
-{
-    MAU_SQRT_OUTPUT_LSHIFT_0 = 0U,
-    MAU_SQRT_OUTPUT_LSHIFT_1,
-    MAU_SQRT_OUTPUT_LSHIFT_2,
-    MAU_SQRT_OUTPUT_LSHIFT_3,
-    MAU_SQRT_OUTPUT_LSHIFT_4,
-    MAU_SQRT_OUTPUT_LSHIFT_5,
-    MAU_SQRT_OUTPUT_LSHIFT_6,
-    MAU_SQRT_OUTPUT_LSHIFT_7,
-    MAU_SQRT_OUTPUT_LSHIFT_8,
-    MAU_SQRT_OUTPUT_LSHIFT_9,
-    MAU_SQRT_OUTPUT_LSHIFT_10,
-    MAU_SQRT_OUTPUT_LSHIFT_11,
-    MAU_SQRT_OUTPUT_LSHIFT_12,
-    MAU_SQRT_OUTPUT_LSHIFT_13,
-    MAU_SQRT_OUTPUT_LSHIFT_14,
-    MAU_SQRT_OUTPUT_LSHIFT_15,
-    MAU_SQRT_OUTPUT_LSHIFT_16,
-} en_sqrt_output_lshift_t;
 
-typedef enum
-{
-    MAU_SQRT_RESULT_RDY = 0U,
-    MAU_SQRT_RESULT_NOTRDY = 1U,
-} en_sqrt_result_flag_t;
-
-/**
- * @}
- */
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
@@ -123,9 +91,10 @@ typedef enum
  * @defgroup MAU_Global_Macros MAU Global Macros
  * @{
  */
-#define MAU_SQRT_TIMEOUT       (0x1000U)
-#define MAU_SIN_Q15_SCALAR     (0x8000U)
-#define MAU_SIN_ANG_TOTAL      (0x1000U)
+#define MAU_SQRT_TIMEOUT            (0x1000UL)
+#define MAU_SQRT_OUTPUT_LSHIFT_MAX  (16U)
+#define MAU_SIN_Q15_SCALAR          (0x8000UL)
+#define MAU_SIN_ANG_TOTAL           (0x1000UL)
 
 /**
  * @}
@@ -145,34 +114,43 @@ typedef enum
 
 /**
  * @brief   Square root
- * @param  [in] pstMAUx   Pointer to MAU instance register base
+ * @param  [in]  pstMAUx       Pointer to MAU instance register base
  *         This parameter can only be: @arg M4_MAU
- * @param  [in] u32Radicand   data to be square rooted
- * @retval ret   Result of square root,range is [0,0x10000]
+ * @param  [in]  u32Radicand   data to be square rooted
+ * @param  [out] pu32Result    Result of square root,range is [0,0x10000]
+ * @retval None
  */
-__STATIC_INLINE uint32_t MAU_Sqrt(M4_MAU_TypeDef * pstMAUx,uint32_t u32Radicand)
+__STATIC_INLINE en_result_t MAU_Sqrt(M4_MAU_TypeDef * pstMAUx, uint32_t u32Radicand, uint32_t *pu32Result)
 {
-    uint32_t u32TimeCount = 0U,u32IsTimeout = 0U;
-    uint32_t ret = 0U;
-    uint32_t const u32WaitBusyHCount = 3U;
+    DDL_ASSERT(M4_MAU == pstMAUx);
+    DDL_ASSERT(NULL != pu32Result);
+
+    uint32_t u32TimeCount = 0UL;
+    en_result_t enRet = Ok;
+    uint32_t const u32WaitBusyHCount = 3UL;
 
     WRITE_REG32(pstMAUx->DTR0, u32Radicand);
     SET_REG32_BIT(pstMAUx->CSR, MAU_CSR_START);
-    for(uint32_t i = 0U; i < u32WaitBusyHCount; i++)
+    for(uint32_t i = 0UL; i < u32WaitBusyHCount; i++)
+    {
         __ASM("NOP");
-    while((pstMAUx->CSR & MAU_CSR_BUSY) != 0U)
+    }
+
+    while((pstMAUx->CSR & MAU_CSR_BUSY) != 0UL)
     {
         if(u32TimeCount++ > MAU_SQRT_TIMEOUT)
         {
-            u32IsTimeout = 1U;
+            enRet = Error;
             break;
         }
     }
-    if(u32IsTimeout == 0U)
+
+    if(Ok == enRet)
     {
-        ret = READ_REG32(pstMAUx->RTR0);
+        *pu32Result = READ_REG32(pstMAUx->RTR0);
     }
-    return ret;
+
+    return enRet;
 }
 
 /**
@@ -183,6 +161,8 @@ __STATIC_INLINE uint32_t MAU_Sqrt(M4_MAU_TypeDef * pstMAUx,uint32_t u32Radicand)
  */
 __STATIC_INLINE uint32_t MAU_SqrtRead(M4_MAU_TypeDef *const pstMAUx)
 {
+    DDL_ASSERT(M4_MAU == pstMAUx);
+
     return READ_REG32(pstMAUx->RTR0);
 }
 
@@ -197,13 +177,14 @@ __STATIC_INLINE uint32_t MAU_SqrtRead(M4_MAU_TypeDef *const pstMAUx)
 __STATIC_INLINE int16_t MAU_Sin(M4_MAU_TypeDef * pstMAUx, uint16_t u16AngleIdx)
 {
     WRITE_REG16(pstMAUx->DTR1, u16AngleIdx);
+
     __ASM("NOP");
     return (int16_t)READ_REG16(pstMAUx->RTR1);
 }
 
-void MAU_SqrtResultLShiftCfg(M4_MAU_TypeDef * pstMAUx, en_sqrt_output_lshift_t enSHL);
+void MAU_SqrtResultLShiftCfg(M4_MAU_TypeDef * pstMAUx, uint8_t u8LShBitsNumber);
 void MAU_SqrtIntCmd(M4_MAU_TypeDef * pstMAUx, en_functional_state_t enNewState);
-__STATIC_INLINE uint32_t MAU_Sqrt(M4_MAU_TypeDef * pstMAUx, uint32_t u32Radicand);
+__STATIC_INLINE en_result_t MAU_Sqrt(M4_MAU_TypeDef * pstMAUx, uint32_t u32Radicand, uint32_t *pu32Result);
 __STATIC_INLINE uint32_t MAU_SqrtRead(M4_MAU_TypeDef * pstMAUx);
 __STATIC_INLINE int16_t MAU_Sin(M4_MAU_TypeDef * pstMAUx, uint16_t u16AngleIdx);
 

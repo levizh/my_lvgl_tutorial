@@ -1,8 +1,17 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_hid_msc\source\main.c
+ * @brief Main program of USBD HID and MSC composite example.
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +47,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file main.c
- **
- ** A detailed description is available at
- ** @link
-        This file provides all the Application firmware functions.
-    @endlink
- **
- **   - 2019-11-19  1.0  zhangxl First version for USB MSC_HID composite demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -59,6 +58,16 @@
 #include "usbd_usr.h"
 #include "usbd_desc.h"
 #include "usb_conf.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_HID_MSC
+ * @{
+ */
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -93,15 +102,11 @@ __USB_ALIGN_BEGIN USB_OTG_CORE_HANDLE USB_OTG_dev __USB_ALIGN_END;
  ******************************************************************************/
 
 /**
- *******************************************************************************
- ** \brief  main function for mouse function
- **
- ** \param [in]  None
- **
- ** \return int32_t Return value, if needed
- **
- ******************************************************************************/
-int main(void)
+ * @brief  main function
+ * @param [in]  None
+ * @retval int32_t Return value, if needed
+ */
+int32_t main (void)
 {
   USBD_Init(&USB_OTG_dev,
 #ifdef USE_USB_OTG_HS
@@ -116,6 +121,14 @@ int main(void)
         ;
     }
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

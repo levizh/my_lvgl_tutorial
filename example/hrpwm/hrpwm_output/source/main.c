@@ -157,9 +157,10 @@ int32_t main(void)
 #ifdef EXAM_HRPWM_FUNC_ON
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_HRPWM, Enable);
 
-    /* Make sure that F(PCLK0) > 120M */
     CLK_GetClockFreq(&stcClkFreq);
-    if(stcClkFreq.pclk0Freq <= 120000000UL)
+
+    /* Make sure that F(PCLK0) > 120M */
+    if(Disable == HRPWM_ConditionConfirm())
     {
         BSP_LED_On(LED_RED);
         while(1);

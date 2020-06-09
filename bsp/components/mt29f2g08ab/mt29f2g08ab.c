@@ -106,10 +106,10 @@
  * @{
  */
 /* MT29F2G08AB Status Register: bit0-FAIL */
-#define MT29F2G08AB_SR_FAIL                         ((uint32_t)1UL)
+#define MT29F2G08AB_SR_FAIL                         (1UL)
 
 /* MT29F2G08AB Status Register: bit6-RDY */
-#define MT29F2G08AB_SR_READY                        ((uint32_t)(1UL << 6))
+#define MT29F2G08AB_SR_READY                        (1UL << 6)
 
 /* MT29F2G08AB Status Register mask */
 #define MT29F2G08AB_SR_MASK                         (MT29F2G08AB_SR_FAIL | MT29F2G08AB_SR_READY)
@@ -121,10 +121,10 @@
  * @defgroup MT29F2G08AB_Operation_Timeout MT29F2G08AB Operation Timeout
  * @{
  */
-#define MT29F2G08AB_READ_TIMEOUT            ((uint32_t)0x01000000UL)
-#define MT29F2G08AB_WRITE_TIMEOUT           ((uint32_t)0x01000000UL)
-#define MT29F2G08AB_ERASE_TIMEOUT           ((uint32_t)0x01000000UL)
-#define MT29F2G08AB_MAX_TIMEOUT             ((uint32_t)0xFFFFFFFFUL)
+#define MT29F2G08AB_READ_TIMEOUT            (0x01000000UL)
+#define MT29F2G08AB_WRITE_TIMEOUT           (0x01000000UL)
+#define MT29F2G08AB_ERASE_TIMEOUT           (0x01000000UL)
+#define MT29F2G08AB_MAX_TIMEOUT             (0xFFFFFFFFUL)
 /**
  * @}
  */
@@ -160,7 +160,7 @@
  */
 en_result_t MT29F2G08AB_Init(void)
 {
-    return EV_NFC_MT29F2G08AB_Init();
+    return BSP_NFC_MT29F2G08AB_Init();
 }
 
 /**
@@ -176,7 +176,7 @@ en_result_t MT29F2G08AB_ReadId(uint32_t u32IdAddr,
                                     uint8_t au8DevId[],
                                     uint8_t u8NumBytes)
 {
-    return EV_NFC_MT29F2G08AB_ReadId(u32IdAddr, au8DevId, u8NumBytes);
+    return BSP_NFC_MT29F2G08AB_ReadId(u32IdAddr, au8DevId, u8NumBytes);
 }
 
 /**
@@ -202,7 +202,7 @@ en_result_t MT29F2G08AB_GetStatus(uint32_t u32Timeout)
             break;
         }
 
-        u32Status = EV_NFC_MT29F2G08AB_ReadStatus();
+        u32Status = BSP_NFC_MT29F2G08AB_ReadStatus();
     } while (!(u32Status & MT29F2G08AB_SR_READY));
 
     if (ErrorTimeout != enRet)
@@ -229,7 +229,7 @@ en_result_t MT29F2G08AB_EraseBlock(uint32_t u32BlockRowAddress)
 {
     en_result_t enRet;
 
-    enRet = EV_NFC_MT29F2G08AB_EraseBlock(u32BlockRowAddress);
+    enRet = BSP_NFC_MT29F2G08AB_EraseBlock(u32BlockRowAddress);
     if (Ok == enRet)
     {
         enRet = MT29F2G08AB_GetStatus(MT29F2G08AB_ERASE_TIMEOUT);
@@ -262,7 +262,7 @@ en_result_t MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
         DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
-        enRet = EV_NFC_MT29F2G08AB_ReadPageMeta(u32Page, pu8Buf, u32NumBytes);
+        enRet = BSP_NFC_MT29F2G08AB_ReadPageMeta(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
         {
             enRet = MT29F2G08AB_GetStatus(MT29F2G08AB_READ_TIMEOUT);
@@ -295,7 +295,7 @@ en_result_t MT29F2G08AB_WritePageMeta(uint32_t u32Page,
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
         DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
-        enRet = EV_NFC_MT29F2G08AB_WritePageMeta(u32Page, pu8Buf, u32NumBytes);
+        enRet = BSP_NFC_MT29F2G08AB_WritePageMeta(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
         {
             enRet = MT29F2G08AB_GetStatus(MT29F2G08AB_WRITE_TIMEOUT);
@@ -323,13 +323,13 @@ en_result_t MT29F2G08AB_ReadPageHwEcc1Bit(uint32_t u32Page,
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((NULL != pu8Buf) && \
-        (u32NumBytes == (MT29F2G08AB_PAGE_SIZE_WITH_SPARE - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE)))
+    if (NULL != pu8Buf)
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
+        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
-        enRet = EV_NFC_MT29F2G08AB_ReadPageHwEcc(u32Page, pu8Buf, u32NumBytes);
+        enRet = BSP_NFC_MT29F2G08AB_ReadPageHwEcc(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
         {
             enRet = MT29F2G08AB_GetStatus(MT29F2G08AB_READ_TIMEOUT);
@@ -356,13 +356,13 @@ en_result_t MT29F2G08AB_WritePageHwEcc1Bit(uint32_t u32Page,
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((NULL != pu8Buf) && \
-        (u32NumBytes <= (MT29F2G08AB_PAGE_SIZE_WITH_SPARE - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE)))
+    if (NULL != pu8Buf)
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
+        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
-        enRet = EV_NFC_MT29F2G08AB_WritePageHwEcc(u32Page, pu8Buf, u32NumBytes);
+        enRet = BSP_NFC_MT29F2G08AB_WritePageHwEcc(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
         {
             enRet = MT29F2G08AB_GetStatus(MT29F2G08AB_WRITE_TIMEOUT);
@@ -393,8 +393,9 @@ en_result_t MT29F2G08AB_WritePageHwEcc4Bits(uint32_t u32Page,
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
+        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
-        enRet = EV_NFC_MT29F2G08AB_WritePageHwEcc(u32Page, pu8Buf, u32NumBytes);
+        enRet = BSP_NFC_MT29F2G08AB_WritePageHwEcc(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
         {
             enRet = MT29F2G08AB_GetStatus(MT29F2G08AB_WRITE_TIMEOUT);
@@ -426,8 +427,9 @@ en_result_t MT29F2G08AB_ReadPageHwEcc4Bits(uint32_t u32Page,
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
+        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
-        enRet = EV_NFC_MT29F2G08AB_ReadPageHwEcc(u32Page, pu8Buf, u32NumBytes);
+        enRet = BSP_NFC_MT29F2G08AB_ReadPageHwEcc(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
         {
             enRet = MT29F2G08AB_GetStatus(MT29F2G08AB_READ_TIMEOUT);

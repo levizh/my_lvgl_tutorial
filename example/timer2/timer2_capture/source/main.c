@@ -72,7 +72,6 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-
 /*
  * Functions of this example.
  * 'APP_FUNC_CAPTURE_EVENT': Measure the time that between two occurrences of a same event.
@@ -96,8 +95,8 @@
  *         APP_TMR2_CAPT_PORT
  *         APP_TMR2_CAPT_PIN
  *         APP_TMR2_CAPT_PIN_FUNC
- *         APP_TMR2_INT_SRC_MATCH
- *         APP_TMR2_IRQ_CB_MATCH
+ *         APP_TMR2_INT_SRC_CMP
+ *         APP_TMR2_IRQ_CB_CMP
  *         APP_TMR2_INT_SRC_OVF
  *         APP_TMR2_IRQ_CB_OVF
  */
@@ -122,7 +121,7 @@
 #if (APP_FUNC == APP_FUNC_CAPTURE_EVENT)
     #define APP_TMR2_START_COND             (TMR2_START_COND_EVENT)
     #define APP_TMR2_STOP_COND              (TMR2_STOP_COND_INVALID)
-    #define APP_TMR2_CLR_COND               (TMR2_CLR_COND_EVENT)
+    #define APP_TMR2_CLR_COND               (TMR2_CLR_COND_INVALID)
     #define APP_TMR2_CAPT_COND              (TMR2_CAPT_COND_EVENT)
     #define APP_TMR2_CAPT_PERIP_EVENT       (EVT_PORT_EIRQ0)
     #define APP_CAPT_COUNT                  (2U)
@@ -157,13 +156,13 @@
  */
 #define TMR2_SHARE_IRQn                     (Int131_IRQn)
 
-#define APP_TMR2_INT_TYPE_MATCH             (TMR2_INT_CNT_MATCH)
-#define APP_TMR2_INT_PRIO_MATCH             (DDL_IRQ_PRIORITY_03)
-#define APP_TMR2_INT_SRC_MATCH              (INT_TMR2_1_CMPA)
-#define APP_TMR2_IRQ_CB_MATCH               TMR2_1_CmpA_IrqHandler
-#define APP_TMR2_IRQn_MATCH                 (Int053_IRQn)
+#define APP_TMR2_INT_TYPE_CMP               (TMR2_INT_CMP)
+#define APP_TMR2_INT_PRIO_CMP               (DDL_IRQ_PRIORITY_05)
+#define APP_TMR2_INT_SRC_CMP                (INT_TMR2_1_CMPA)
+#define APP_TMR2_IRQ_CB_CMP                 TMR2_1_CmpA_IrqHandler
+#define APP_TMR2_IRQn_CMP                   (Int053_IRQn)
 
-#define APP_TMR2_INT_TYPE_OVF               (TMR2_INT_CNT_OVF)
+#define APP_TMR2_INT_TYPE_OVF               (TMR2_INT_OVF)
 #define APP_TMR2_INT_PRIO_OVF               (DDL_IRQ_PRIORITY_04)
 #define APP_TMR2_INT_SRC_OVF                (INT_TMR2_1_OVFA)
 #define APP_TMR2_IRQ_CB_OVF                 TMR2_1_OvfA_IrqHandler
@@ -228,24 +227,43 @@ int32_t main(void)
 
     while (1U)
     {
-#if (APP_FUNC == APP_FUNC_CAPTURE_EVENT)
-        /* Calculate the interval time of the specified event. */
         if (m_u32CaptCnt >= APP_CAPT_COUNT)
         {
-            u32Temp = m_u32OvfCnt * 65536UL - m_au32CaptTime[0U] + m_au32CaptTime[1U] + 2U;
-            f32Temp = (float32_t)u32Temp / ((float)APP_TMR2_CLK_FREQ);
+#if (APP_FUNC == APP_FUNC_CAPTURE_EVENT)
+            TMR2_Stop(APP_TMR2_UNIT, APP_TMR2_CH);
+
+            if (m_u32OvfCnt > 0U)
+            {
+                u32Temp = m_u32OvfCnt * 65536UL + m_au32CaptTime[1U] - m_au32CaptTime[0U];
+            }
+            else
+            {
+                if (m_au32CaptTime[0U] == 0U)
+                {
+                    u32Temp = m_au32CaptTime[1U] + 2U;
+                }
+                else
+                {
+                    if (m_au32CaptTime[1U] > m_au32CaptTime[0U])
+                    {
+                        u32Temp = m_au32CaptTime[1U] - m_au32CaptTime[0U];
+                    }
+                    else
+                    {
+                        DBG("Capture error!!!! m_u32OvfCnt should bigger than 0.");
+                        while (1U);
+                    }
+                }
+            }
+            f32Temp = (float32_t)(u32Temp) / ((float)APP_TMR2_CLK_FREQ);
+            DBG("Capture event completed: %ld overflow, %ld timer2 cycles, %f seconds.\n", m_u32OvfCnt, u32Temp, f32Temp);
+            TMR2_SetCntVal(APP_TMR2_UNIT, APP_TMR2_CH, 0U);
             m_u32OvfCnt  = 0U;
             m_u32CaptCnt = 0U;
-            DBG("Capture event completed: %ld timer2 cycles, %f seconds.\n", u32Temp, f32Temp);
-            TMR2_TrigCondCmd(APP_TMR2_UNIT, APP_TMR2_CH, \
-                            (APP_TMR2_START_COND | APP_TMR2_CAPT_COND | APP_TMR2_CLR_COND), \
-                            Enable);
-        }
+
 #elif (APP_FUNC == APP_FUNC_MEASURE_PULSE_WIDTH)
-        /* Calculate the pulse width of the input wave. */
-        if (m_u32CaptCnt >= APP_CAPT_COUNT)
-        {
             u32Temp = 0U;
+            /* The first capturing value is invalid. */
             for (uint32_t i=1UL; i<APP_CAPT_COUNT; i++)
             {
                 u32Temp += (m_au32CaptTime[i] + 2U);
@@ -254,18 +272,11 @@ int32_t main(void)
             DBG("Calculate pulse width completed: %.2f timer2 cycles, %f microseconds.\n", \
                  f32Temp, f32Temp/((float)(APP_TMR2_CLK_FREQ/1000000U)));
             m_u32CaptCnt = 0U;
-
             DDL_Delay1ms(500U);
-            TMR2_TrigCondCmd(APP_TMR2_UNIT, APP_TMR2_CH, \
-                            (APP_TMR2_START_COND | APP_TMR2_CAPT_COND | APP_TMR2_CLR_COND), \
-                            Enable);
-        }
 
 #elif (APP_FUNC == APP_FUNC_MEASURE_PERIOD)
-        /* Calculate the period of the input wave. */
-        if (m_u32CaptCnt >= APP_CAPT_COUNT)
-        {
             u32Temp = 0U;
+            /* The first capturing value is invalid. */
             for (uint32_t i=1UL; i<APP_CAPT_COUNT; i++)
             {
                 u32Temp += (m_au32CaptTime[i] + 2U);
@@ -274,13 +285,13 @@ int32_t main(void)
             DBG("Calculate period completed: %.2f timer2 cycles, %f microseconds.\n", \
                  f32Temp, f32Temp/((float)(APP_TMR2_CLK_FREQ/1000000U)));
             m_u32CaptCnt = 0U;
-
             DDL_Delay1ms(500U);
+
+#endif
             TMR2_TrigCondCmd(APP_TMR2_UNIT, APP_TMR2_CH, \
                             (APP_TMR2_START_COND | APP_TMR2_CAPT_COND | APP_TMR2_CLR_COND), \
-                            Enable);
+                             Enable);
         }
-#endif
     }
 }
 
@@ -330,12 +341,13 @@ static void SystemClockConfig(void)
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
     SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+
+    /* Set EFM wait cycle. 4 wait cycles needed when system clock is 200MHz */
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_4);
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
@@ -359,7 +371,6 @@ static void Tmr2Config(void)
     stcInit.u32FuncMode = TMR2_FUNC_CAPTURE;
     stcInit.u32ClkSrc   = APP_TMR2_CLK_SRC;
     stcInit.u32ClkDiv   = APP_TMR2_CLK_DIV;
-    stcInit.u32CmpVal   = 0U;
     TMR2_Init(APP_TMR2_UNIT, APP_TMR2_CH, &stcInit);
 
     /* 4. Configures IRQ. */
@@ -378,9 +389,9 @@ static void Tmr2IrqConfig(void)
 {
     stc_irq_signin_config_t stcCfg;
 
-    stcCfg.enIntSrc    = APP_TMR2_INT_SRC_MATCH;
-    stcCfg.enIRQn      = APP_TMR2_IRQn_MATCH;
-    stcCfg.pfnCallback = &APP_TMR2_IRQ_CB_MATCH;
+    stcCfg.enIntSrc    = APP_TMR2_INT_SRC_CMP;
+    stcCfg.enIRQn      = APP_TMR2_IRQn_CMP;
+    stcCfg.pfnCallback = &APP_TMR2_IRQ_CB_CMP;
     if (stcCfg.enIRQn == TMR2_SHARE_IRQn)
     {
         /* Sharing interrupt. */
@@ -392,7 +403,7 @@ static void Tmr2IrqConfig(void)
         INTC_IrqSignIn(&stcCfg);
     }
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
-    NVIC_SetPriority(stcCfg.enIRQn, APP_TMR2_INT_PRIO_MATCH);
+    NVIC_SetPriority(stcCfg.enIRQn, APP_TMR2_INT_PRIO_CMP);
     NVIC_EnableIRQ(stcCfg.enIRQn);
 
     /* Overflow interrupt. */
@@ -414,7 +425,7 @@ static void Tmr2IrqConfig(void)
     NVIC_EnableIRQ(stcCfg.enIRQn);
 
     /* Enable the specified interrupts of TIMER2. */
-    TMR2_IntCmd(APP_TMR2_UNIT, APP_TMR2_CH, APP_TMR2_INT_TYPE_MATCH | APP_TMR2_INT_TYPE_OVF, Enable);
+    TMR2_IntCmd(APP_TMR2_UNIT, APP_TMR2_CH, APP_TMR2_INT_TYPE_CMP | APP_TMR2_INT_TYPE_OVF, Enable);
 }
 
 /**
@@ -462,25 +473,26 @@ static void Tmr2CaptCondConfig(void)
     KEYSCAN_Cmd(Enable);
 
     /* 2. Enable AOS function. */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     /* 3. Set the event for TIMER2 capturing. */
     TMR2_SetTrigEvent(APP_TMR2_CAPT_PERIP_EVENT);
 
 #elif ((APP_FUNC == APP_FUNC_MEASURE_PULSE_WIDTH) || (APP_FUNC == APP_FUNC_MEASURE_PERIOD))
-    /* Use timer4 to output PWM with a frequency of 1MHz and a duty cycle of 50%. */
+    /* Use TIMERA to output PWM with a frequency of 1MHz and a duty cycle of 50%. */
     stc_tmra_init_t stcTmrAInit;
     stc_tmra_pwm_cfg_t stcPwmCfg;
 
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMRA_1, Enable);
 
+    /* TIMERA unit 1: clock source PCLK0(200MHZ). Divider: 2. Final count clock frequency 100MHz. */
     TMRA_StructInit(&stcTmrAInit);
-    stcTmrAInit.u32ClkSrc = TMRA_CLK_PCLK1;
-    stcTmrAInit.u32ClkDiv = TMRA_CLK_DIV_2;
-    stcTmrAInit.u32PeriodRefVal = 100U - 1U;
+    stcTmrAInit.u32ClkSrc    = TMRA_CLK_PCLK;
+    stcTmrAInit.u32PCLKDiv   = TMRA_PCLK_DIV_2;
+    stcTmrAInit.u32PeriodVal = 100U - 1U;
     TMRA_Init(M4_TMRA_1, &stcTmrAInit);
 
     TMRA_SetFuncMode(M4_TMRA_1, TMRA_CH_2, TMRA_FUNC_COMPARE);
-    TMRA_SetCmpRefVal(M4_TMRA_1, TMRA_CH_2, 50U - 1U);
+    TMRA_SetCmpVal(M4_TMRA_1, TMRA_CH_2, 50U - 1U);
 
     TMRA_PWM_StructInit(&stcPwmCfg);
     TMRA_PWM_Config(M4_TMRA_1, TMRA_CH_2, &stcPwmCfg);
@@ -507,22 +519,21 @@ static void Tmr2CaptCondConfig(void)
  * @param  None
  * @retval None
  */
-void APP_TMR2_IRQ_CB_MATCH(void)
+void APP_TMR2_IRQ_CB_CMP(void)
 {
-    if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH) == Set)
+    if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP) == Set)
     {
-        TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH);
+        TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP);
         if (m_u32CaptCnt < APP_CAPT_COUNT)
         {
             m_au32CaptTime[m_u32CaptCnt] = TMR2_GetCmpVal(APP_TMR2_UNIT, APP_TMR2_CH);
             m_u32CaptCnt++;
             if (m_u32CaptCnt >= APP_CAPT_COUNT)
             {
-                /* Stop for calculating the result, if needed. */
-                TMR2_Stop(APP_TMR2_UNIT, APP_TMR2_CH);
+                /* Disable the conditions for calculating the result, if needed. */
                 TMR2_TrigCondCmd(APP_TMR2_UNIT, APP_TMR2_CH, \
                                 (APP_TMR2_START_COND | APP_TMR2_CAPT_COND | APP_TMR2_CLR_COND), \
-                                Disable);
+                                 Disable);
             }
         }
     }
@@ -535,10 +546,13 @@ void APP_TMR2_IRQ_CB_MATCH(void)
  */
 void APP_TMR2_IRQ_CB_OVF(void)
 {
-    if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_OVF) == Set)
+    if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_OVF) == Set)
     {
-        TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_OVF);
-        m_u32OvfCnt++;
+        TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_OVF);
+        if (m_u32CaptCnt < APP_CAPT_COUNT)
+        {
+            m_u32OvfCnt++;
+        }
     }
 }
 

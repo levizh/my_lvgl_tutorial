@@ -126,8 +126,8 @@ int32_t main(void)
     CLK_PLLHInit(&stcPLLHInit);
 
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 
@@ -142,9 +142,9 @@ int32_t main(void)
     BSP_CAM_Init();
     while (1)
     {
-        BSP_LED_On(LED_RED | LED_BLUE);
+        BSP_LED_On(LED_RED | LED_BLUE | LED_YELLOW);
         DDL_Delay1ms(100UL);
-        BSP_LED_Off(LED_RED | LED_BLUE);
+        BSP_LED_Off(LED_RED | LED_BLUE | LED_YELLOW);
         DDL_Delay1ms(100UL);
         BSP_CAM_RSTCmd(EIO_PIN_SET);
         BSP_CAM_RSTCmd(EIO_PIN_RESET);

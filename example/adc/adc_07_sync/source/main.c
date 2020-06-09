@@ -251,12 +251,13 @@ static void SystemClockConfig(void)
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
     SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+
+    /* Set EFM wait cycle. 5 wait cycles needed when system clock is 240MHz */
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
@@ -476,12 +477,12 @@ static void IndicateConfig(void)
     stc_tmra_init_t stcTmrAInit;
     stc_tmra_pwm_cfg_t stcPwmCfg;
 
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMRA_1 | PWC_FCG2_TMRA_2 | PWC_FCG2_TMRA_7, Enable);
 
     TMRA_StructInit(&stcTmrAInit);
-    stcTmrAInit.u32ClkSrc       = TMRA_CLK_EVENT;
-    stcTmrAInit.u32PeriodRefVal = 0U;
+    stcTmrAInit.u32ClkSrc    = TMRA_CLK_EVENT;
+    stcTmrAInit.u32PeriodVal = 0U;
     TMRA_Init(M4_TMRA_1, &stcTmrAInit);
     TMRA_Init(M4_TMRA_2, &stcTmrAInit);
     TMRA_Init(M4_TMRA_7, &stcTmrAInit);
@@ -493,9 +494,9 @@ static void IndicateConfig(void)
     TMRA_SetFuncMode(M4_TMRA_2, TMRA_CH_3, TMRA_FUNC_COMPARE);
     TMRA_SetFuncMode(M4_TMRA_7, TMRA_CH_4, TMRA_FUNC_COMPARE);
 
-    TMRA_SetCmpRefVal(M4_TMRA_1, TMRA_CH_2, 0UL);
-    TMRA_SetCmpRefVal(M4_TMRA_2, TMRA_CH_3, 0UL);
-    TMRA_SetCmpRefVal(M4_TMRA_7, TMRA_CH_4, 0UL);
+    TMRA_SetCmpVal(M4_TMRA_1, TMRA_CH_2, 0UL);
+    TMRA_SetCmpVal(M4_TMRA_2, TMRA_CH_3, 0UL);
+    TMRA_SetCmpVal(M4_TMRA_7, TMRA_CH_4, 0UL);
 
     TMRA_PWM_StructInit(&stcPwmCfg);
     TMRA_PWM_Config(M4_TMRA_1, TMRA_CH_2, &stcPwmCfg);

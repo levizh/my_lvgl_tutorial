@@ -201,7 +201,7 @@ static en_result_t SDCard_Config(void)
     SdHandle.stcSdiocInit.u8CardDetectSelect = SDIOC_CARD_DETECT_CD_PIN_LEVEL;
     SdHandle.stcSdiocInit.u8SpeedMode        = SDIOC_SPEED_MODE_HIGH;
     SdHandle.stcSdiocInit.u8BusWidth         = SDIOC_BUS_WIDTH_4BIT;
-    SdHandle.stcSdiocInit.u16ClockDiv        = SDIOC_CLOCK_DIV_4;
+    SdHandle.stcSdiocInit.u16ClockDiv        = SDIOC_CLOCK_DIV_2;
     SdHandle.DMAx    = NULL;
 
     /* Reset SDIOC */
@@ -363,36 +363,38 @@ DRESULT SD_Ioctl(BYTE lun, BYTE cmd, void *buff)
 
     if (0U != (SdStat & (DSTATUS)STA_NOINIT))
     {
-        return RES_NOTRDY;
-    } 
-
-    switch (cmd)
+        res = RES_NOTRDY;
+    }
+    else
     {
-        /* Make sure that no pending write process */
-        case CTRL_SYNC :
-            res = RES_OK;
-            break;
-        /* Get number of sectors on the disk (DWORD) */
-        case GET_SECTOR_COUNT :
-            SD_GetCardInfo(&SdHandle, &stcCardInfo);
-            *(DWORD*)buff = stcCardInfo.u32LogBlockNbr;
-            res = RES_OK;
-            break;
-        /* Get R/W sector size (WORD) */
-        case GET_SECTOR_SIZE :
-            SD_GetCardInfo(&SdHandle, &stcCardInfo);
-            *(WORD*)buff = (uint16_t)stcCardInfo.u32LogBlockSize;
-            res = RES_OK;
-            break;
-        /* Get erase block size in unit of sector (DWORD) */
-        case GET_BLOCK_SIZE :
-            SD_GetCardInfo(&SdHandle, &stcCardInfo);
-            *(DWORD*)buff = stcCardInfo.u32LogBlockSize / SD_DEFAULT_BLOCK_SIZE;
-            res = RES_OK;
-            break;
-        default:
-            res = RES_PARERR;
-            break;
+        switch (cmd)
+        {
+            /* Make sure that no pending write process */
+            case CTRL_SYNC :
+                res = RES_OK;
+                break;
+            /* Get number of sectors on the disk (DWORD) */
+            case GET_SECTOR_COUNT :
+                SD_GetCardInfo(&SdHandle, &stcCardInfo);
+                *(DWORD*)buff = stcCardInfo.u32LogBlockNbr;
+                res = RES_OK;
+                break;
+            /* Get R/W sector size (WORD) */
+            case GET_SECTOR_SIZE :
+                SD_GetCardInfo(&SdHandle, &stcCardInfo);
+                *(WORD*)buff = (uint16_t)stcCardInfo.u32LogBlockSize;
+                res = RES_OK;
+                break;
+            /* Get erase block size in unit of sector (DWORD) */
+            case GET_BLOCK_SIZE :
+                SD_GetCardInfo(&SdHandle, &stcCardInfo);
+                *(DWORD*)buff = stcCardInfo.u32LogBlockSize / SD_DEFAULT_BLOCK_SIZE;
+                res = RES_OK;
+                break;
+            default:
+                res = RES_PARERR;
+                break;
+        }
     }
 
     return res;

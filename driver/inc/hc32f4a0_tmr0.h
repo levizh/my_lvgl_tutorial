@@ -90,24 +90,27 @@ extern "C"
  */
 typedef struct
 {
-    uint32_t       u32ClockDivision;  /*!< specifies the TMR0 clock division,
+    uint32_t       u32ClockDivision;  /*!< Specifies the TMR0 clock division,
                                          and this parameter can be a value of
                                          @ref TMR0_Clock_Division_define */
 
-    uint32_t       u32ClockSource;    /*!< specifies the TMR0 clock source,
+    uint32_t       u32ClockSource;    /*!< Specifies the TMR0 clock source,
                                          and this parameter can be a value of
                                          @ref TMR0_Clock_Source_define*/
 
-    uint32_t       u32Tmr0Func;        /*!< specifies the TMR0 function,
+    uint32_t       u32Tmr0Func;       /*!< Specifies the TMR0 function,
                                          compare output or capture input
                                          @ref TMR0_Function_define */
 
-    uint32_t       u32HwTrigFunc;     /*!< specifies the TMR0 compare
+    uint32_t       u32HwTrigFunc;     /*!< Specifies the TMR0 compare
                                          function hardware trigger function, and
                                          this parameter can be a value of @ref
                                          TMR0_HardwareTrigger_Func_define */
 
-    uint16_t       u16CmpValue;       /*!< specifies the TMR0 compare value
+    uint16_t       u16CmpValue;       /*!< Specifies the TMR0 compare value
+                                         This value can be set 0-0xFFFF */
+
+    uint16_t       u16CntValue;       /*!< Specifies the TMR0 count value
                                          This value can be set 0-0xFFFF */
 }stc_tmr0_init_t;
 
@@ -126,17 +129,17 @@ typedef struct
 /** @defgroup TMR0_Clock_Division_define TMR0 clock division define
  * @{
  */
-#define TMR0_CLK_DIV1           (uint32_t)(0UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV2           (uint32_t)(1UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV4           (uint32_t)(2UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV8           (uint32_t)(3UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV16          (uint32_t)(4UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV32          (uint32_t)(5UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV64          (uint32_t)(6UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV128         (uint32_t)(7UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV256         (uint32_t)(8UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV512         (uint32_t)(9UL<<TMR0_BCONR_CKDIVA_POS)
-#define TMR0_CLK_DIV1024        (uint32_t)(10UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV1                (0UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV2                (1UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV4                (2UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV8                (3UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV16               (4UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV32               (5UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV64               (6UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV128              (7UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV256              (8UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV512              (9UL<<TMR0_BCONR_CKDIVA_POS)
+#define TMR0_CLK_DIV1024             (10UL<<TMR0_BCONR_CKDIVA_POS)
 /**
  * @}
  */
@@ -145,8 +148,8 @@ typedef struct
  * @defgroup TMR0_Channel_Index TMR0 Channel Index
  * @{
  */
-#define TMR0_ChannelA             ((uint8_t)0U)
-#define TMR0_ChannelB             ((uint8_t)1U)
+#define TMR0_ChannelA                (0U)
+#define TMR0_ChannelB                (1U)
 /**
  * @}
  */
@@ -154,10 +157,10 @@ typedef struct
 /** @defgroup TMR0_Clock_Source_define TMR0 clock source define
  * @{
  */
-#define TMR0_CLK_SRC_PCLK1        ((uint32_t)0x00000000U)
-#define TMR0_CLK_SRC_INTHWTRIG    (TMR0_BCONR_SYNCLKA)
-#define TMR0_CLK_SRC_LRC          (TMR0_BCONR_SYNSA)
-#define TMR0_CLK_SRC_XTAL32       (TMR0_BCONR_ASYNCLKA | TMR0_BCONR_SYNSA)
+#define TMR0_CLK_SRC_PCLK1           (0x00000000UL)
+#define TMR0_CLK_SRC_INTHWTRIG       (TMR0_BCONR_SYNCLKA)
+#define TMR0_CLK_SRC_LRC             (TMR0_BCONR_SYNSA)
+#define TMR0_CLK_SRC_XTAL32          (TMR0_BCONR_ASYNCLKA | TMR0_BCONR_SYNSA)
 /**
  * @}
  */
@@ -165,8 +168,8 @@ typedef struct
 /** @defgroup TMR0_Function_define TMR0 Function define
  * @{
  */
-#define TMR0_FUNC_CMP             ((uint32_t)0x00000000U)
-#define TMR0_FUNC_CAPTURE         (TMR0_BCONR_CAPMDA | TMR0_BCONR_HICPA)
+#define TMR0_FUNC_CMP                (0x00000000UL)
+#define TMR0_FUNC_CAPTURE            (TMR0_BCONR_CAPMDA | TMR0_BCONR_HICPA)
 /**
  * @}
  */
@@ -174,13 +177,13 @@ typedef struct
 /** @defgroup TMR0_HardwareTrigger_Func_define TMR0 hardware trigger function define
  * @{
  */
-#define TMR0_BT_HWTRG_FUNC_START  (TMR0_BCONR_HSTAA)
-#define TMR0_BT_HWTRG_FUNC_CLEAR  (TMR0_BCONR_HCLEA)
-#define TMR0_BT_HWTRG_FUNC_STOP   (TMR0_BCONR_HSTPA)
-#define TMR0_BT_HWTRG_FUNC_NONE   ((uint32_t)0x00000000U)
-#define TMR0_BT_HETRG_FUNC_MASK   (TMR0_BT_HWTRG_FUNC_START | \
-                                   TMR0_BT_HWTRG_FUNC_CLEAR | \
-                                   TMR0_BT_HWTRG_FUNC_STOP)
+#define TMR0_BT_HWTRG_FUNC_START     (TMR0_BCONR_HSTAA)
+#define TMR0_BT_HWTRG_FUNC_CLEAR     (TMR0_BCONR_HCLEA)
+#define TMR0_BT_HWTRG_FUNC_STOP      (TMR0_BCONR_HSTPA)
+#define TMR0_BT_HWTRG_FUNC_NONE      (0x00000000UL)
+#define TMR0_BT_HETRG_FUNC_MASK      (TMR0_BT_HWTRG_FUNC_START | \
+                                      TMR0_BT_HWTRG_FUNC_CLEAR | \
+                                      TMR0_BT_HWTRG_FUNC_STOP)
 /**
  * @}
  */
@@ -189,8 +192,8 @@ typedef struct
  * @defgroup TMR0_CAMPAR_FLAG TMR0 Compare Status
  * @{
  */
-#define TMR0_CMP_A                (TMR0_STFLR_CMFA)
-#define TMR0_CMP_B                (TMR0_STFLR_CMFB)
+#define TMR0_CMP_A                  (TMR0_STFLR_CMFA)
+#define TMR0_CMP_B                  (TMR0_STFLR_CMFB)
 /**
  * @}
  */
@@ -199,10 +202,10 @@ typedef struct
  * @defgroup TMR0_Common_Trigger_Sel TMR0 common Trigger source select
  * @{
  */
-#define TMR0_COM1_TRIG_DISABLE    ((uint32_t)0x00UL)
-#define TMR0_COM2_TRIG_DISABLE    ((uint32_t)0x00UL)
-#define TMR0_COM1_TRIG_ENABLE     ((uint32_t)(0x01UL << 31U))
-#define TMR0_COM2_TRIG_ENABLE     ((uint32_t)(0x01Ul << 30U))
+#define TMR0_COM1_TRIG_DISABLE      (0x00UL)
+#define TMR0_COM2_TRIG_DISABLE      (0x00UL)
+#define TMR0_COM1_TRIG_ENABLE       ((0x01UL << 31U))
+#define TMR0_COM2_TRIG_ENABLE       ((0x01Ul << 30U))
 /**
  * @}
  */
@@ -225,27 +228,28 @@ typedef struct
 en_result_t TMR0_StructInit(stc_tmr0_init_t* pstcInitStruct);
 en_result_t TMR0_Init(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
                       const stc_tmr0_init_t* pstcBaseInit);
-en_result_t TMR0_DeInit(M4_TMR0_TypeDef* TMR0x);
-en_result_t TMR0_Cmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
-                     en_functional_state_t enNewState);
-en_result_t TMR0_IntCmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
-                        en_functional_state_t enNewState);
-en_result_t TMR0_SetClkSrc(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkSrc);
-en_result_t TMR0_SetClkDiv(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkDiv);
-en_result_t TMR0_HWTrigCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, \
-                           uint32_t u32HWFunc, en_functional_state_t enNewState);
-en_result_t TMR0_FuncCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32Func);
-en_result_t TMR0_SetCntVal(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, uint16_t u16Value);
-en_result_t TMR0_SetCmpVal(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, uint16_t u16Value);
-en_result_t TMR0_ClearStatus(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel);
+void TMR0_DeInit(M4_TMR0_TypeDef* TMR0x);
+void TMR0_Cmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, \
+              en_functional_state_t enNewState);
+void TMR0_IntCmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, \
+                 en_functional_state_t enNewState);
+void TMR0_SetClkSrc(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkSrc);
+void TMR0_SetClkDiv(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkDiv);
+void TMR0_HWTrigCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, \
+                    uint32_t u32HWFunc, en_functional_state_t enNewState);
+void TMR0_FuncCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32Func);
+void TMR0_SetCntVal(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, uint16_t u16Value);
+void TMR0_SetCmpVal(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, uint16_t u16Value);
+void TMR0_ClearStatus(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel);
+void TMR0_SetTriggerSrc(en_event_src_t enEvent);
+void TMR0_ComTrigCmd(uint32_t u32ComTrigEn);
 
 en_flag_status_t TMR0_GetStatus(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel);
 
 uint16_t TMR0_GetCntVal(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel);
 uint16_t TMR0_GetCmpVal(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel);
 
-void TMR0_SetTriggerSrc(en_event_src_t enEvent);
-void TMR0_ComTrigCmd(uint32_t u32ComTrigEn);
+
 /**
  * @}
  */

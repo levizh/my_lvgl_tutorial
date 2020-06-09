@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * @file  efm/efm_switch/source/main.c
+ * @file  efm/efm_switch/source/main_block1.c
  * @brief Main program of EFM for the Device Driver Library.
  @verbatim
    Change Logs:
@@ -72,8 +72,6 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define EFM_SWITCH_ADDR     ((uint32_t)0x03002000UL)
-#define EFM_SWITCH_DATA     ((uint32_t)0x005A5A5AUL)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -96,6 +94,7 @@
  * @param  None
  * @retval int32_t return value, if needed
  */
+
 int32_t main(void)
 {
     stc_efm_cfg_t stcEfmCfg;
@@ -103,7 +102,15 @@ int32_t main(void)
     /* LED Init */
     BSP_IO_Init();
     BSP_LED_Init();
-    BSP_LED_On(LED_BLUE);
+    BSP_KEY_Init();
+    /* Determine whether the boot switch is enabled */
+    if(*(uint32_t *)EFM_SWITCH_ADDR == EFM_SWITCH_DATA)
+    {
+        BSP_LED_On(LED_RED); /* boot switch is on */
+    }
+    else{
+        BSP_LED_On(LED_BLUE); /* boot switch is off */
+    }
 
     /* Unlock EFM. */
     EFM_Unlock();
@@ -111,22 +118,25 @@ int32_t main(void)
     EFM_StrucInit(&stcEfmCfg);
     /* EFM config */
     EFM_Init(&stcEfmCfg);
-    /* Set Program single mode. */
-    EFM_SetOperateMode(EFM_MODE_PROGRAMSINGLE);
 
     /* Wait flash0, flash1 ready. */
     do{
         flag1 = EFM_GetFlagStatus(EFM_FLAG_RDY0);
         flag2 = EFM_GetFlagStatus(EFM_FLAG_RDY1);
     }while((Set != flag1) || (Set != flag2));
-    /* Enable flash switch function */
-    *(uint32_t *)EFM_SWITCH_ADDR = EFM_SWITCH_DATA;
-    /* Unlock EFM. */
-    EFM_Lock();
 
     while(1)
     {
-        ;
+        /* Key1 */
+        if(Set == BSP_KEY_GetStatus(BSP_KEY_1))
+        {
+            EFM_SwitchCmd(Enable);
+        }
+        /* Key2 */
+        if(Set == BSP_KEY_GetStatus(BSP_KEY_2))
+        {
+            EFM_SwitchCmd(Disable);
+        }
     }
 }
 

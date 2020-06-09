@@ -134,58 +134,24 @@
 (   (EXMC_NFC_2_ROW_ADDRESS_CYCLES == (x))      ||                             \
     (EXMC_NFC_3_ROW_ADDRESS_CYCLES == (x)))
 
-#define IS_EXMC_NFC_INT(x)                                                     \
-(   (EXMC_NFC_INT_RB_BANK0 == (x))              ||                             \
-    (EXMC_NFC_INT_RB_BANK1 == (x))              ||                             \
-    (EXMC_NFC_INT_RB_BANK2 == (x))              ||                             \
-    (EXMC_NFC_INT_RB_BANK3 == (x))              ||                             \
-    (EXMC_NFC_INT_RB_BANK4 == (x))              ||                             \
-    (EXMC_NFC_INT_RB_BANK5 == (x))              ||                             \
-    (EXMC_NFC_INT_RB_BANK6 == (x))              ||                             \
-    (EXMC_NFC_INT_RB_BANK7 == (x))              ||                             \
-    (EXMC_NFC_INT_ECC_ERROR == (x))             ||                             \
-    (EXMC_NFC_INT_ECC_CALC_COMPLETION == (x))   ||                             \
-    (EXMC_NFC_INT_ECC_CORRECTABLE_ERROR == (x)) ||                             \
-    (EXMC_NFC_INT_ECC_UNCORRECTABLE_ERROR == (x)))
+#define IS_EXMC_NFC_SECTION(x)                  ((x) <= EXMC_NFC_ECC_SECTION15)
 
-#define IS_EXMC_NFC_SECTION(x)                                                 \
-(   (EXMC_NFC_ECC_SECTION0 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION1 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION2 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION3 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION4 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION5 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION6 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION7 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION8 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION9 == (x))              ||                             \
-    (EXMC_NFC_ECC_SECTION10 == (x))             ||                             \
-    (EXMC_NFC_ECC_SECTION11 == (x))             ||                             \
-    (EXMC_NFC_ECC_SECTION12 == (x))             ||                             \
-    (EXMC_NFC_ECC_SECTION13 == (x))             ||                             \
-    (EXMC_NFC_ECC_SECTION14 == (x))             ||                             \
-    (EXMC_NFC_ECC_SECTION15 == (x)))
+#define IS_EXMC_NFC_INT(x)                                                     \
+(   (x)                                         &&                             \
+    (!((x) & (~EXMC_NFC_INT_MASK))))
+
 
 #define IS_EXMC_NFC_FLAG(x)                                                    \
-(   (EXMC_NFC_FLAG_RB_BANK0                         |                          \
-     EXMC_NFC_FLAG_RB_BANK1                         |                          \
-     EXMC_NFC_FLAG_RB_BANK2                         |                          \
-     EXMC_NFC_FLAG_RB_BANK3                         |                          \
-     EXMC_NFC_FLAG_RB_BANK4                         |                          \
-     EXMC_NFC_FLAG_RB_BANK5                         |                          \
-     EXMC_NFC_FLAG_RB_BANK6                         |                          \
-     EXMC_NFC_FLAG_RB_BANK7                         |                          \
-     EXMC_NFC_FLAG_ECC_ERROR                        |                          \
-     EXMC_NFC_FLAG_ECC_CALCULATING                  |                          \
-     EXMC_NFC_FLAG_ECC_CALC_COMPLETION              |                          \
-     EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR            |                          \
-     EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR) & (x))
+(   (x)                                         &&                             \
+    (!((x) & (~EXMC_NFC_FLAG_MASK))))
+
+#define IS_EXMC_NFC_COLUMN(x)                   ((x) <= NFC_COLUMN_MAX)
+
+#define IS_EXMC_NFC_PAGE(page, capacity_index)  ((page) <= NFC_PAGE_MAX((capacity_index)))
 
 /**
  * @}
  */
-
-#define IS_EXMC_NFC_SPARE_COLUMN_SIZE(x)        ((x) <= 0xFFUL)
 
 #define IS_EXMC_NFC_TIMING_TS(x)                ((x) <= 0xFFUL)
 
@@ -215,17 +181,60 @@
  */
 
 /**
+ * @defgroup NFC flag mask
+ * @{
+ */
+#define EXMC_NFC_INT_MASK                                                      \
+(   EXMC_NFC_INT_RB_BANK0                       |                              \
+    EXMC_NFC_INT_RB_BANK1                       |                              \
+    EXMC_NFC_INT_RB_BANK2                       |                              \
+    EXMC_NFC_INT_RB_BANK3                       |                              \
+    EXMC_NFC_INT_RB_BANK4                       |                              \
+    EXMC_NFC_INT_RB_BANK5                       |                              \
+    EXMC_NFC_INT_RB_BANK6                       |                              \
+    EXMC_NFC_INT_RB_BANK7                       |                              \
+    EXMC_NFC_INT_ECC_ERROR                      |                              \
+    EXMC_NFC_INT_ECC_CALC_COMPLETION            |                              \
+    EXMC_NFC_INT_ECC_CORRECTABLE_ERROR          |                              \
+    EXMC_NFC_INT_ECC_UNCORRECTABLE_ERROR)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup NFC flag mask
+ * @{
+ */
+#define EXMC_NFC_FLAG_MASK                                                     \
+(   EXMC_NFC_FLAG_RB_BANK0                      |                              \
+    EXMC_NFC_FLAG_RB_BANK1                      |                              \
+    EXMC_NFC_FLAG_RB_BANK2                      |                              \
+    EXMC_NFC_FLAG_RB_BANK3                      |                              \
+    EXMC_NFC_FLAG_RB_BANK4                      |                              \
+    EXMC_NFC_FLAG_RB_BANK5                      |                              \
+    EXMC_NFC_FLAG_RB_BANK6                      |                              \
+    EXMC_NFC_FLAG_RB_BANK7                      |                              \
+    EXMC_NFC_FLAG_ECC_ERROR                     |                              \
+    EXMC_NFC_FLAG_ECC_CALCULATING               |                              \
+    EXMC_NFC_FLAG_ECC_CALC_COMPLETION           |                              \
+    EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR         |                              \
+    EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR)
+/**
+ * @}
+ */
+
+/**
  * @defgroup NFC_Memory_Capacity_Index NFC Memory Capacity Index
  * @{
  */
-#define NFC_CAPACITY_INDEX_512MBIT              ((uint32_t)0UL)
-#define NFC_CAPACITY_INDEX_1GBIT                ((uint32_t)1UL)
-#define NFC_CAPACITY_INDEX_2GBIT                ((uint32_t)2UL)
-#define NFC_CAPACITY_INDEX_4GBIT                ((uint32_t)3UL)
-#define NFC_CAPACITY_INDEX_8GBIT                ((uint32_t)4UL)
-#define NFC_CAPACITY_INDEX_16GBIT               ((uint32_t)5UL)
-#define NFC_CAPACITY_INDEX_32GBIT               ((uint32_t)6UL)
-#define NFC_CAPACITY_INDEX_64GBIT               ((uint32_t)7UL)
+#define NFC_CAPACITY_INDEX_512MBIT              (0UL)
+#define NFC_CAPACITY_INDEX_1GBIT                (1UL)
+#define NFC_CAPACITY_INDEX_2GBIT                (2UL)
+#define NFC_CAPACITY_INDEX_4GBIT                (3UL)
+#define NFC_CAPACITY_INDEX_8GBIT                (4UL)
+#define NFC_CAPACITY_INDEX_16GBIT               (5UL)
+#define NFC_CAPACITY_INDEX_32GBIT               (6UL)
+#define NFC_CAPACITY_INDEX_64GBIT               (7UL)
 /**
  * @}
  */
@@ -292,9 +301,9 @@
  * @defgroup EXMC_NFC_IDXR_Bit_Position EXMC NFC IDXR Bit Position
  * @{
  */
-#define EXMC_NFC_IDXR_COL_POS                   ((uint32_t)0UL)
-#define EXMC_NFC_IDXR_2KPAGE_POS                ((uint32_t)12UL)
-#define EXMC_NFC_IDXR_512MBIT_BANK_POS          ((uint32_t)27UL)
+#define EXMC_NFC_IDXR_COL_POS                   (0UL)
+#define EXMC_NFC_IDXR_2KPAGE_POS                (12UL)
+#define EXMC_NFC_IDXR_512MBIT_BANK_POS          (27UL)
 /**
  * @}
  */
@@ -303,19 +312,19 @@
 #define NFC_BACR_PAGE_VAL                       ((READ_REG32_BIT(M4_NFC->BACR, NFC_BACR_PAGE) >> NFC_BACR_PAGE_POS))
 
 /*!< NFC Page Size */
-#define NFC_PAGE_SIZE                           (1024UL <<  (NFC_BACR_PAGE_VAL & 0x3UL))
+#define NFC_PAGE_SIZE                           (1024UL << (NFC_BACR_PAGE_VAL & 0x3UL))
 
-/*!< NFC Spare Size */
-#define NFC_SPARE_SIZE                          ((READ_REG32_BIT(M4_NFC->BACR, NFC_BACR_SCS) >> NFC_BACR_SCS_POS) << 2UL)
+/*!< NFC Spare Size for user data */
+#define NFC_SPARE_SIZE_FOR_USER_DATA            ((READ_REG32_BIT(M4_NFC->BACR, NFC_BACR_SCS) >> NFC_BACR_SCS_POS) << 2UL)
 
 /*!< IDX register mask for 64bit */
-#define NFC_IDXR_MASK                           ((uint64_t)0x1FFFFFFFFFUL)
+#define NFC_IDXR_MASK                           (0x1FFFFFFFFFULL)
 
 /*!< NFC_ISTR register RBST bit mask */
-#define NFC_FLAG_RB_BANKx_MASK(bank)            (((uint32_t)EXMC_NFC_FLAG_RB_BANK0) << (EXMC_NFC_BANK_7 & (bank)))
+#define NFC_FLAG_RB_BANKx_MASK(bank)            (EXMC_NFC_FLAG_RB_BANK0 << (EXMC_NFC_BANK_7 & (bank)))
 
 /*!< IDX register mask for 64bit */
-#define NFC_NFC_ISTR_MASK                       ((uint32_t)0xFF53UL)
+#define NFC_NFC_ISTR_MASK                       (0xFF53UL)
 
 /*!< NFC_DATR for 32bit */
 #define NFC_DATR_REG32(x)                       (M4_NFC->DATR_BASE)
@@ -324,7 +333,13 @@
 #define NFC_ID_REG32(x)                         (*((__IO uint32_t *)((uint32_t)(&(M4_NFC->DATR_BASE)) + 0x8010UL + ((x) << 2UL))))
 
 /*!< NFC_SYND_REG for 32bit */
-#define NFC_SYND_REG32(sect, reg)               (*((__IO uint32_t *)((uint32_t)(&(M4_NFC->ECC_SYND0_0)) + (sect) *   16UL + (reg) * 4UL)))
+#define NFC_SYND_REG32(sect, reg)               (*((__IO uint32_t *)((uint32_t)(&(M4_NFC->ECC_SYND0_0)) + (((uint32_t)(sect)) << 4UL) + (((uint32_t)(reg)) << 2UL))))
+
+/*!< NFC_ECCR_REG for 32bit */
+#define NFC_ECCR_REG32(sect)                    (*((__IO uint32_t *)((uint32_t)(&(M4_NFC->ECCR0))   + (((uint32_t)(sect)) << 2UL))))
+
+/*!< NFC_SYND_MAX_Length (Unit: half-word ) */
+#define NFC_SYND_MAX_LEN                        (8U)
 
 /**
  * @defgroup Parameter_Align Parameter Align
@@ -335,8 +350,14 @@
  * @}
  */
 
+/*!< NFC column max */
+#define NFC_COLUMN_MAX                          ((1UL << (12UL + ((0x03UL & NFC_BACR_PAGE_VAL) - 1UL))) - 1UL)
+
+/*!< NFC page max for the specified capacity */
+#define NFC_PAGE_MAX(capacity_index)            ((1UL << (14UL + capacity_index - ((0x03UL & NFC_BACR_PAGE_VAL) - 1UL))) - 1UL)
+
 /**
- * @brief  Calculate NFC_IDXR resigter(64bits) value.
+ * @brief  Calculate NFC_IDXR register(64bits) value.
  * @param  [in]bank             The specified bank
  *   @arg EXMC_NFC_BANK_0:      NFC device bank 0
  *   @arg EXMC_NFC_BANK_1:      NFC device bank 1
@@ -348,7 +369,7 @@
  *   @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in]page             The page address
  * @param  [in]col              The column address
- * @param  [in]capacity         The number of bank capacity bits
+ * @param  [in]capacity_index   The number of bank capacity bits
  *   @arg NFC_CAPACITY_INDEX_512MBIT: NFC device bank size:512M bits
  *   @arg NFC_CAPACITY_INDEX_1GBIT: NFC device bank size:1G bits
  *   @arg NFC_CAPACITY_INDEX_2GBIT: NFC device bank size:2G bits
@@ -359,10 +380,10 @@
  *   @arg NFC_CAPACITY_INDEX_64BIT: NFC device bank size:64G bits
  * @retval NFC Index value
  */
-#define NFC_IDXR_VAL(bank, page, col, capacity)                                \
+#define NFC_IDXR_VAL(bank, page, col, capacity_index)                                \
 (   (((uint64_t)(col)) << EXMC_NFC_IDXR_COL_POS)     |                         \
-    (((uint64_t)(page)) << (EXMC_NFC_IDXR_2KPAGE_POS + (0x03UL & (NFC_BACR_PAGE_VAL - 1UL)))) | \
-    (((uint64_t)(bank)) << (EXMC_NFC_IDXR_512MBIT_BANK_POS + (0x07UL & (capacity)))))
+    (((uint64_t)(page)) << (EXMC_NFC_IDXR_2KPAGE_POS + (0x03UL & NFC_BACR_PAGE_VAL - 1UL))) | \
+    (((uint64_t)(bank)) << (EXMC_NFC_IDXR_512MBIT_BANK_POS + (0x07UL & (capacity_index)))))
 /**
  * @}
  */
@@ -414,7 +435,7 @@ static en_result_t EXMC_NFC_WaitFlagUntilTo(uint32_t u32Flag,
  */
 en_result_t EXMC_NFC_Init(const stc_exmc_nfc_init_t *pstcInit)
 {
-    uint32_t u32RegVal = 0UL;
+    uint32_t u32RegVal;
     en_result_t enRet = ErrorInvalidParameter;
 
     /* Check the pointer pstcInit */
@@ -428,7 +449,6 @@ en_result_t EXMC_NFC_Init(const stc_exmc_nfc_init_t *pstcInit)
         DDL_ASSERT(IS_EXMC_NFC_WR_PROTECT(pstcInit->stcBaseCfg.u32WrProtect));
         DDL_ASSERT(IS_EXMC_NFC_ECC_MODE(pstcInit->stcBaseCfg.u32EccMode));
         DDL_ASSERT(IS_EXMC_NFC_ROW_ADDRESS_CYCLES(pstcInit->stcBaseCfg.u32RowAddrCycle));
-        DDL_ASSERT(IS_EXMC_NFC_SPARE_COLUMN_SIZE(pstcInit->stcBaseCfg.u32SpareColSize));
 
         DDL_ASSERT(IS_EXMC_NFC_TIMING_TS(pstcInit->stcTimingReg0.u32TS));
         DDL_ASSERT(IS_EXMC_NFC_TIMING_TWP(pstcInit->stcTimingReg0.u32TWP));
@@ -462,7 +482,7 @@ en_result_t EXMC_NFC_Init(const stc_exmc_nfc_init_t *pstcInit)
                      pstcInit->stcBaseCfg.u32WrProtect | \
                      pstcInit->stcBaseCfg.u32EccMode | \
                      pstcInit->stcBaseCfg.u32RowAddrCycle | \
-                     (pstcInit->stcBaseCfg.u32SpareColSize << NFC_BACR_SCS_POS));
+                     (((uint32_t)pstcInit->stcBaseCfg.u8SpareSizeForUserData) << NFC_BACR_SCS_POS));
         WRITE_REG32(M4_NFC->BACR, u32RegVal);
 
         /* Set NFC timing register 0.*/
@@ -497,10 +517,9 @@ en_result_t EXMC_NFC_Init(const stc_exmc_nfc_init_t *pstcInit)
 /**
  * @brief  De-Initialize EXMC NFC function.
  * @param  None
- * @retval An en_result_t enumeration value:
- *           - Ok: De-Initialize success
+ * @retval None
  */
-en_result_t EXMC_NFC_DeInit(void)
+void EXMC_NFC_DeInit(void)
 {
     WRITE_REG32(M4_NFC->BACR, 0x00002187UL);
     WRITE_REG32(M4_NFC->IENR, 0x00000080UL);
@@ -508,8 +527,6 @@ en_result_t EXMC_NFC_DeInit(void)
     WRITE_REG32(M4_NFC->TMCR0, 0x03030202UL);
     WRITE_REG32(M4_NFC->TMCR1, 0x28080303UL);
     WRITE_REG32(M4_NFC->TMCR2, 0x03050D03UL);
-
-    return Ok;
 }
 
 /**
@@ -532,7 +549,7 @@ en_result_t EXMC_NFC_StructInit(stc_exmc_nfc_init_t *pstcInit)
         pstcInit->stcBaseCfg.u32WrProtect = EXMC_NFC_WR_PROTECT_ENABLE;
         pstcInit->stcBaseCfg.u32EccMode = EXMC_NFC_ECC_1BIT;
         pstcInit->stcBaseCfg.u32RowAddrCycle = EXMC_NFC_3_ROW_ADDRESS_CYCLES;
-        pstcInit->stcBaseCfg.u32SpareColSize = 64UL;
+        pstcInit->stcBaseCfg.u8SpareSizeForUserData = 0U;
 
         pstcInit->stcTimingReg0.u32TS = 0x02UL;
         pstcInit->stcTimingReg0.u32TWP = 0x02UL;
@@ -548,6 +565,8 @@ en_result_t EXMC_NFC_StructInit(stc_exmc_nfc_init_t *pstcInit)
         pstcInit->stcTimingReg2.u32TWTR = 0x0DUL;
         pstcInit->stcTimingReg2.u32TRTW = 0x05UL;
         pstcInit->stcTimingReg2.u32TADL = 0x03UL;
+
+        enRet = Ok;
     }
 
     return enRet;
@@ -556,18 +575,19 @@ en_result_t EXMC_NFC_StructInit(stc_exmc_nfc_init_t *pstcInit)
 /**
  * @brief  Enable or disable the specified NFC interrupt
  * @param  [in] u16IntSource            The specified interrupt
- *   @arg EXMC_NFC_INT_ECC_UNCORRECTABLE_ERROR: ECC uncorrectable error interrupt
- *   @arg EXMC_NFC_INT_ECC_CORRECTABLE_ERROR: ECC correctable error interrupt
- *   @arg EXMC_NFC_INT_ECC_CALC_COMPLETION: Calculating ECC completely interrupt
- *   @arg EXMC_NFC_INT_ECC_ERROR: ECC error interrupt
- *   @arg EXMC_NFC_INT_RB_BANK0: NFC bank 0 device ready interrupt
- *   @arg EXMC_NFC_INT_RB_BANK1: NFC bank 1 device ready interrupt
- *   @arg EXMC_NFC_INT_RB_BANK2: NFC bank 2 device ready interrupt
- *   @arg EXMC_NFC_INT_RB_BANK3: NFC bank 3 device ready interrupt
- *   @arg EXMC_NFC_INT_RB_BANK4: NFC bank 4 device ready flag
- *   @arg EXMC_NFC_INT_RB_BANK5: NFC bank 5 device ready interrupt
- *   @arg EXMC_NFC_INT_RB_BANK6: NFC bank 6 device ready interrupt
- *   @arg EXMC_NFC_INT_RB_BANK7: NFC bank 7 device ready interrupt
+ *         This parameter can be any composed value of the following values:
+ *           @arg EXMC_NFC_INT_ECC_UNCORRECTABLE_ERROR: ECC uncorrectable error interrupt
+ *           @arg EXMC_NFC_INT_ECC_CORRECTABLE_ERROR: ECC correctable error interrupt
+ *           @arg EXMC_NFC_INT_ECC_CALC_COMPLETION: Calculating ECC completely interrupt
+ *           @arg EXMC_NFC_INT_ECC_ERROR: ECC error interrupt
+ *           @arg EXMC_NFC_INT_RB_BANK0: NFC bank 0 device ready interrupt
+ *           @arg EXMC_NFC_INT_RB_BANK1: NFC bank 1 device ready interrupt
+ *           @arg EXMC_NFC_INT_RB_BANK2: NFC bank 2 device ready interrupt
+ *           @arg EXMC_NFC_INT_RB_BANK3: NFC bank 3 device ready interrupt
+ *           @arg EXMC_NFC_INT_RB_BANK4: NFC bank 4 device ready flag
+ *           @arg EXMC_NFC_INT_RB_BANK5: NFC bank 5 device ready interrupt
+ *           @arg EXMC_NFC_INT_RB_BANK6: NFC bank 6 device ready interrupt
+ *           @arg EXMC_NFC_INT_RB_BANK7: NFC bank 7 device ready interrupt
  * @param  [in] enNewState              The function new state
  *           @arg  This parameter can be: Enable or Disable
  * @retval None
@@ -591,19 +611,20 @@ void EXMC_NFC_IntCmd(uint16_t u16IntSource, en_functional_state_t enNewState)
 /**
  * @brief  Get the flag.
  * @param  [in] u32Flag                 The specified flag
- *   @arg EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR: ECC uncorrectable error
- *   @arg EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR: ECC correctable error
- *   @arg EXMC_NFC_FLAG_ECC_CALC_COMPLETION: Calculate ECC completely
- *   @arg EXMC_NFC_FLAG_ECC_ERROR: ECC error
- *   @arg EXMC_NFC_FLAG_RB_BANK0: NFC bank 0 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK1: NFC bank 1 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK2: NFC bank 2 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK3: NFC bank 3 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK4: NFC bank 4 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK5: NFC bank 5 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK6: NFC bank 6 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK7: NFC bank 7 device ready flag
- *   @arg EXMC_NFC_FLAG_ECC_CALCULATING: Calculating ECC
+ *         This parameter can be any composed value of the following values:
+ *           @arg EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR: ECC uncorrectable error
+ *           @arg EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR: ECC correctable error
+ *           @arg EXMC_NFC_FLAG_ECC_CALC_COMPLETION: Calculate ECC completely
+ *           @arg EXMC_NFC_FLAG_ECC_ERROR: ECC error
+ *           @arg EXMC_NFC_FLAG_RB_BANK0: NFC bank 0 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK1: NFC bank 1 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK2: NFC bank 2 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK3: NFC bank 3 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK4: NFC bank 4 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK5: NFC bank 5 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK6: NFC bank 6 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK7: NFC bank 7 device ready flag
+ *           @arg EXMC_NFC_FLAG_ECC_CALCULATING: Calculating ECC
  * @retval An en_flag_status_t enumeration value:
  *           - Set: Flag is set
  *           - Reset: Flag is reset
@@ -612,6 +633,9 @@ en_flag_status_t EXMC_NFC_GetFlag(uint32_t u32Flag)
 {
     en_flag_status_t enStatus1 = Set;
     en_flag_status_t enStatus2 = Set;
+
+    /* Check parameters */
+    DDL_ASSERT(IS_EXMC_NFC_FLAG(u32Flag));
 
     if (u32Flag & NFC_NFC_ISTR_MASK)
     {
@@ -633,24 +657,79 @@ en_flag_status_t EXMC_NFC_GetFlag(uint32_t u32Flag)
 }
 
 /**
+ * @brief  Get the flag.
+ * @param  [in] u32Flag                 The specified flag
+ *         This parameter can be any composed value of the following values:
+ *           @arg EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR: ECC uncorrectable error
+ *           @arg EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR: ECC correctable error
+ *           @arg EXMC_NFC_FLAG_ECC_CALC_COMPLETION: Calculating ECC completely
+ *           @arg EXMC_NFC_FLAG_ECC_ERROR: ECC error
+ *           @arg EXMC_NFC_FLAG_RB_BANK0: NFC bank 0 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK1: NFC bank 1 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK2: NFC bank 2 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK3: NFC bank 3 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK4: NFC bank 4 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK5: NFC bank 5 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK6: NFC bank 6 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK7: NFC bank 7 device ready flag
+ * @retval None
+ */
+void EXMC_NFC_ClearFlag(uint32_t u32Flag)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_EXMC_NFC_FLAG(u32Flag));
+
+    CLEAR_REG32_BIT(M4_NFC->ISTR, u32Flag);
+}
+
+/**
+ * @brief  Get the interrupt result.
+ * @param  [in] u32Flag                 The specified flag
+ *         This parameter can be any composed value of the following values:
+ *           @arg EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR: ECC uncorrectable error
+ *           @arg EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR: ECC correctable error
+ *           @arg EXMC_NFC_FLAG_ECC_CALC_COMPLETION: Calculating ECC completely
+ *           @arg EXMC_NFC_FLAG_ECC_ERROR: ECC error
+ *           @arg EXMC_NFC_FLAG_RB_BANK0: NFC bank 0 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK1: NFC bank 1 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK2: NFC bank 2 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK3: NFC bank 3 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK4: NFC bank 4 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK5: NFC bank 5 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK6: NFC bank 6 device ready flag
+ *           @arg EXMC_NFC_FLAG_RB_BANK7: NFC bank 7 device ready flag
+ * @retval An en_flag_status_t enumeration value:
+ *           - Set: Flag is set
+ *           - Reset: Flag is reset
+ */
+en_flag_status_t EXMC_NFC_GetIntResultFlag(uint32_t u32Flag)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_EXMC_NFC_FLAG(u32Flag));
+
+    return (READ_REG32_BIT(M4_NFC->IRSR, u32Flag) ? Set : Reset);
+}
+
+/**
  * @brief  Get the 1BIT ECC result of the specified section.
  * @param  [in] u32Flag                 The specified flag
- *   @arg EXMC_NFC_ECC_SECTION0: ECC section 0
- *   @arg EXMC_NFC_ECC_SECTION1: ECC section 1
- *   @arg EXMC_NFC_ECC_SECTION2: ECC section 2
- *   @arg EXMC_NFC_ECC_SECTION3: ECC section 3
- *   @arg EXMC_NFC_ECC_SECTION4: ECC section 4
- *   @arg EXMC_NFC_ECC_SECTION5: ECC section 5
- *   @arg EXMC_NFC_ECC_SECTION6: ECC section 6
- *   @arg EXMC_NFC_ECC_SECTION7: ECC section 7
- *   @arg EXMC_NFC_ECC_SECTION8: ECC section 8
- *   @arg EXMC_NFC_ECC_SECTION9: ECC section 9
- *   @arg EXMC_NFC_ECC_SECTION10: ECC section 10
- *   @arg EXMC_NFC_ECC_SECTION11: ECC section 11
- *   @arg EXMC_NFC_ECC_SECTION12: ECC section 12
- *   @arg EXMC_NFC_ECC_SECTION13: ECC section 13
- *   @arg EXMC_NFC_ECC_SECTION14: ECC section 14
- *   @arg EXMC_NFC_ECC_SECTION15: ECC section 15
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_ECC_SECTION0: ECC section 0
+ *           @arg EXMC_NFC_ECC_SECTION1: ECC section 1
+ *           @arg EXMC_NFC_ECC_SECTION2: ECC section 2
+ *           @arg EXMC_NFC_ECC_SECTION3: ECC section 3
+ *           @arg EXMC_NFC_ECC_SECTION4: ECC section 4
+ *           @arg EXMC_NFC_ECC_SECTION5: ECC section 5
+ *           @arg EXMC_NFC_ECC_SECTION6: ECC section 6
+ *           @arg EXMC_NFC_ECC_SECTION7: ECC section 7
+ *           @arg EXMC_NFC_ECC_SECTION8: ECC section 8
+ *           @arg EXMC_NFC_ECC_SECTION9: ECC section 9
+ *           @arg EXMC_NFC_ECC_SECTION10: ECC section 10
+ *           @arg EXMC_NFC_ECC_SECTION11: ECC section 11
+ *           @arg EXMC_NFC_ECC_SECTION12: ECC section 12
+ *           @arg EXMC_NFC_ECC_SECTION13: ECC section 13
+ *           @arg EXMC_NFC_ECC_SECTION14: ECC section 14
+ *           @arg EXMC_NFC_ECC_SECTION15: ECC section 15
  * @retval The register value
  */
 uint32_t EXMC_NFC_GetEcc1BitResult(uint32_t u32Section)
@@ -658,48 +737,88 @@ uint32_t EXMC_NFC_GetEcc1BitResult(uint32_t u32Section)
     /* Check parameters */
     DDL_ASSERT(IS_EXMC_NFC_SECTION(u32Section));
 
-    return READ_REG32(*(__IO uint32_t *)((uint32_t)(&M4_NFC->ECCR0) + u32Section * 4UL));
+    return READ_REG32(NFC_ECCR_REG32(u32Section));
 }
 
 /**
- * @brief  Get the 4 bits ECC syndrome register valule.
+ * @brief  Set NFC spare area size.
+ * @param  [in] u8SpareAreaSize             NFC spare area size for user data
+ * @retval None
+ */
+void EXMC_NFC_SetSpareAreaSize(uint8_t u8SpareSizeForUserData)
+{
+    MODIFY_REG32(M4_NFC ->BACR, NFC_BACR_SCS, ((((uint32_t)u8SpareSizeForUserData) << NFC_BACR_SCS_POS) & NFC_BACR_SCS));
+}
+
+/**
+ * @brief  Set NFC ECC mode.
+ * @param  [in] u32EccMode              ECC mode
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_ECC_1BIT: ECC 1 bit
+ *           @arg EXMC_NFC_ECC_4BITS: ECC 4 bits
+ * @retval None
+ */
+void EXMC_NFC_SetEccMode(uint32_t u32EccMode)
+{
+    DDL_ASSERT(IS_EXMC_NFC_ECC_MODE(u32EccMode));
+
+    MODIFY_REG32(M4_NFC ->BACR, NFC_BACR_ECCM, u32EccMode);
+}
+
+/**
+ * @brief  Get the 4 bits ECC syndrome register value.
  * @param  [in] u32Section          The syndrome section
- *   @arg EXMC_NFC_SYND0: ECC syndrome section 0
- *   @arg EXMC_NFC_SYND1: ECC syndrome section 1
- *   @arg EXMC_NFC_SYND2: ECC syndrome section 2
- *   @arg EXMC_NFC_SYND3: ECC syndrome section 3
- *   @arg EXMC_NFC_SYND4: ECC syndrome section 4
- *   @arg EXMC_NFC_SYND5: ECC syndrome section 5
- *   @arg EXMC_NFC_SYND6: ECC syndrome section 6
- *   @arg EXMC_NFC_SYND7: ECC syndrome section 7
- *   @arg EXMC_NFC_SYND8: ECC syndrome section 8
- *   @arg EXMC_NFC_SYND9: ECC syndrome section 9
- *   @arg EXMC_NFC_SYND10: ECC syndrome section 10
- *   @arg EXMC_NFC_SYND11: ECC syndrome section 11
- *   @arg EXMC_NFC_SYND12: ECC syndrome section 12
- *   @arg EXMC_NFC_SYND13: ECC syndrome section 13
- *   @arg EXMC_NFC_SYND14: ECC syndrome section 14
- *   @arg EXMC_NFC_SYND15: ECC syndrome section 15
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_SYND0: ECC syndrome section 0
+ *           @arg EXMC_NFC_SYND1: ECC syndrome section 1
+ *           @arg EXMC_NFC_SYND2: ECC syndrome section 2
+ *           @arg EXMC_NFC_SYND3: ECC syndrome section 3
+ *           @arg EXMC_NFC_SYND4: ECC syndrome section 4
+ *           @arg EXMC_NFC_SYND5: ECC syndrome section 5
+ *           @arg EXMC_NFC_SYND6: ECC syndrome section 6
+ *           @arg EXMC_NFC_SYND7: ECC syndrome section 7
+ *           @arg EXMC_NFC_SYND8: ECC syndrome section 8
+ *           @arg EXMC_NFC_SYND9: ECC syndrome section 9
+ *           @arg EXMC_NFC_SYND10: ECC syndrome section 10
+ *           @arg EXMC_NFC_SYND11: ECC syndrome section 11
+ *           @arg EXMC_NFC_SYND12: ECC syndrome section 12
+ *           @arg EXMC_NFC_SYND13: ECC syndrome section 13
+ *           @arg EXMC_NFC_SYND14: ECC syndrome section 14
+ *           @arg EXMC_NFC_SYND15: ECC syndrome section 15
  * @param  [out] au16Synd       The syndrome value
+ * @param  [in] u8Length        The length to be read(unit: half-word)
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize successfully
- *           - ErrorInvalidParameter: pstcInit = NULL
- * @note  The paramter size of array au16Synd[] must be larger than 8
+ *           - ErrorInvalidParameter: au16Synd = NULL or u8Length is out of range
+ * @note  u8Length value don't be greater than 8
  */
-en_result_t EXMC_NFC_GetSyndrome(uint32_t u32Section, uint16_t au16Synd[])
+en_result_t EXMC_NFC_GetSyndrome(uint32_t u32Section,
+                                        uint16_t au16Synd[],
+                                        uint8_t u8Length)
 {
+    uint8_t i;
     uint32_t u32SyndVal;
+    uint8_t u8LoopWords;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if (NULL != au16Synd)
+    if ((NULL != au16Synd) && (u8Length <= NFC_SYND_MAX_LEN))
     {
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_SECTION(u32Section));
 
-        for (uint32_t i = 0UL; i < 4UL; i++)
+        u8LoopWords = (u8Length >> 1U);
+
+        for (i = 0U; i < u8LoopWords; i++)
         {
             u32SyndVal = READ_REG32(NFC_SYND_REG32(u32Section, i));
-            RW_MEM32(&au16Synd[i * 2UL]) = u32SyndVal;
+            RW_MEM16(&au16Synd[i * 2U]) = (uint16_t)(u32SyndVal);
+            RW_MEM16(&au16Synd[i * 2U + 1U ]) = (uint16_t)(u32SyndVal >> 16UL);
+        }
+
+        if (u8Length % 2U)
+        {
+            u32SyndVal = READ_REG32(NFC_SYND_REG32(u32Section, i));
+            RW_MEM16(&au16Synd[i * 2U]) = (uint16_t)(u32SyndVal);
         }
 
         enRet = Ok;
@@ -711,15 +830,16 @@ en_result_t EXMC_NFC_GetSyndrome(uint32_t u32Section, uint16_t au16Synd[])
 /**
  * @brief  Read NFC device status
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
- * @retval NFC status
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
+ * @retval NFC device status
  */
 uint32_t EXMC_NFC_ReadStatus(uint32_t u32Bank)
 {
@@ -741,18 +861,17 @@ uint32_t EXMC_NFC_ReadStatus(uint32_t u32Bank)
 /**
  * @brief  Read status enhanced
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32RowAddress           The row address
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorTimeout:                Erase timeout.
+ * @retval NFC device status enhanced
  */
 uint32_t EXMC_NFC_ReadStatusEnhanced(uint32_t u32Bank,
                                             uint32_t u32RowAddress)
@@ -783,18 +902,20 @@ uint32_t EXMC_NFC_ReadStatusEnhanced(uint32_t u32Bank,
 /**
  * @brief  Reset NFC device
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32Timeout              The operation timeout value
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Reset timeout.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_Reset(uint32_t u32Bank, uint32_t u32Timeout)
 {
@@ -823,22 +944,24 @@ en_result_t EXMC_NFC_Reset(uint32_t u32Bank, uint32_t u32Timeout)
 /**
  * @brief  Asynchronous reset
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32Timeout              The operation timeout value
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Reset timeout.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_AsyncReset(uint32_t u32Bank, uint32_t u32Timeout)
 {
-    en_result_t enRet = Error;
+    en_result_t enRet;
 
     /* Clear Flag */
     EXMC_NFC_ClearFlag(NFC_FLAG_RB_BANKx_MASK(u32Bank));
@@ -858,25 +981,27 @@ en_result_t EXMC_NFC_AsyncReset(uint32_t u32Bank, uint32_t u32Timeout)
 /**
  * @brief  Reset lun of NFC device
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32RowAddress           The row address
  * @param  [in] u32Timeout              The operation timeout value
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Reset timeout.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_ResetLun(uint32_t u32Bank,
                                     uint32_t u32RowAddress,
                                     uint32_t u32Timeout)
 {
-    en_result_t enRet = Error;
+    en_result_t enRet;
 
     /* Clear Flag */
     EXMC_NFC_ClearFlag(NFC_FLAG_RB_BANKx_MASK(u32Bank));
@@ -901,17 +1026,18 @@ en_result_t EXMC_NFC_ResetLun(uint32_t u32Bank,
 /**
  * @brief  Read ID
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32IdAddr               The address
  * @param  [in] au8DevId                The id buffer
- * @param  [in] u8NumBytes              The number of bytess to read
+ * @param  [in] u8NumBytes              The number of bytes to read
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       au8DevId == NULL.
@@ -921,31 +1047,69 @@ en_result_t EXMC_NFC_ReadId(uint32_t u32Bank,
                                 uint8_t au8DevId[],
                                 uint8_t u8NumBytes)
 {
-    uint8_t au8TmpId[4];
+    uint64_t u64Val;
+    uint8_t i = 0U;
+    uint8_t u8LoopWords = u8NumBytes/4U;
+    uint8_t u8RemainBytes = u8NumBytes%4U;
+    uint32_t u32TmpId;
+    uint32_t u32CapacityIndex;
     en_result_t enRet = Error;
 
-    if (NULL != au8DevId)
+    if ((NULL != au8DevId) && u8NumBytes)
     {
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
+        DDL_ASSERT(u32IdAddr <= 0xFFUL);
 
-        /* Read Id step:
-            1. Write 0x81000M90 to NFC_CMDR, M = bank number 
-            2. Write 0x40000MAB to NFC_CMDR, M = bank number, AB=ID address
-            3. Read NFC_DATR
-            4. Write 0x000000FE to NFC_CMDR, and invalidate CE */
-        /* WRITE_REG32(M4_NFC->CMDR, CMD_READ_ID(u32Bank)); */
-        /* WRITE_REG32(M4_NFC->CMDR, CMD_READ_ID_ADDR(u32Bank, u32IdAddr)); */
-        WRITE_REG32(M4_NFC->CMDR, ((u32Bank << 8UL) | EXMC_NFC_CMD_READ_ID));
+        /* Clear Flag */
+        EXMC_NFC_ClearFlag(NFC_FLAG_RB_BANKx_MASK(u32Bank) | \
+                           EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR | \
+                           EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR | \
+                           EXMC_NFC_FLAG_ECC_CALC_COMPLETION | \
+                           EXMC_NFC_FLAG_ECC_ERROR);
 
-        au8TmpId[0] = (uint8_t)NFC_ID_REG32(0UL);
-        au8TmpId[1] = (uint8_t)NFC_ID_REG32(2UL);
-        au8TmpId[2] = (uint8_t)NFC_ID_REG32(4UL);
-        au8TmpId[3] = (uint8_t)NFC_ID_REG32(6UL);
-        memcpy (au8DevId, au8TmpId, (u8NumBytes < 4U) ? (uint32_t)u8NumBytes : 4UL);
+        u32CapacityIndex = EXMC_NFC_GetCapacityIndex();
+        u64Val = (NFC_IDXR_VAL(u32Bank, 0UL, 0UL, u32CapacityIndex) & NFC_IDXR_MASK);
+
+        /* 1. Write 0x00000000 to NFC_CMDR */
+        WRITE_REG32(M4_NFC->CMDR, EXMC_NFC_CMD_READ_1ST);
+
+        /* 2. Write NAND Flash address to NFC_IDXR0/1 */
+        WRITE_REG32(M4_NFC->IDXR0, (uint32_t)(u64Val & 0xFFFFFFFFUL));
+        WRITE_REG32(M4_NFC->IDXR1, (uint32_t)(u64Val >> 32UL));
+
+        /* 3. Write 0x000000E0 to NFC_CMDR */
+        WRITE_REG32(M4_NFC->CMDR, EXMC_NFC_CMD_READ_2ND);
+
+        /* 4. Wait RB signal until high level */
+        enRet = EXMC_NFC_WaitFlagUntilTo(NFC_FLAG_RB_BANKx_MASK(u32Bank), \
+                                         Set, \
+                                         EXMC_NFC_MAX_TIMEOUT);
+        if (Ok == enRet)
+        {
+            /* Read Id step:
+                1. Write 0x81000M90 to NFC_CMDR, M = bank number 
+                2. Write 0x40000MAB to NFC_CMDR, M = bank number, AB=ID address
+                3. Read NFC_DATR
+                4. Write 0x000000FE to NFC_CMDR, and invalidate CE */
+            WRITE_REG32(M4_NFC->CMDR, CMD_READ_ID(u32Bank));
+            WRITE_REG32(M4_NFC->CMDR, CMD_READ_ID_ADDR(u32Bank, u32IdAddr));
+            for (i = 0U; i < u8LoopWords; i++)
+            {
+                u32TmpId = NFC_DATR_REG32(i);
+                memcpy (&au8DevId[i * 4UL], &u32TmpId, 4UL);
+            }
+
+            if (u8RemainBytes)
+            {
+                u32TmpId = NFC_DATR_REG32(i);
+                memcpy (&au8DevId[i * 4UL], &u32TmpId, (uint32_t)u8RemainBytes);
+            }
+
+            enRet = Ok;
+        }
 
         EXMC_NFC_DeselectChip();
-        enRet = Ok;
     }
 
     return enRet;
@@ -954,14 +1118,15 @@ en_result_t EXMC_NFC_ReadId(uint32_t u32Bank,
 /**
  * @brief  Read Unique ID
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32IdAddr               The address
  * @param  [in] au32UniqueId            The id buffer
  * @param  [in] u8NumWords              The number of words to read
@@ -969,6 +1134,7 @@ en_result_t EXMC_NFC_ReadId(uint32_t u32Bank,
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       au8DevId == NULL.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_ReadUniqueId(uint32_t u32Bank,
                                         uint32_t u32IdAddr,
@@ -999,7 +1165,7 @@ en_result_t EXMC_NFC_ReadUniqueId(uint32_t u32Bank,
                                          u32Timeout);
         if (Ok == enRet)
         {
-            for (uint32_t i = 0U; i < (uint32_t)u8NumWords; i++)
+            for (uint8_t i = 0U; i < u8NumWords; i++)
             {
                 au32UniqueId[i] = NFC_DATR_REG32(i);
             }
@@ -1014,14 +1180,15 @@ en_result_t EXMC_NFC_ReadUniqueId(uint32_t u32Bank,
 /**
  * @brief  Read parameter page
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] au32Data                The data buffer
  * @param  [in] u16NumWords             The number of words to read
  * @param  [in] u32Timeout              The operation timeout value
@@ -1029,6 +1196,7 @@ en_result_t EXMC_NFC_ReadUniqueId(uint32_t u32Bank,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       au8Data == NULL.
  *   @arg  ErrorTimeout:                Read timeout
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_ReadParameterPage(uint32_t u32Bank,
                                         uint32_t au32Data[],
@@ -1045,7 +1213,7 @@ en_result_t EXMC_NFC_ReadParameterPage(uint32_t u32Bank,
         /* Clear Flag */
         EXMC_NFC_ClearFlag(NFC_FLAG_RB_BANKx_MASK(u32Bank));
 
-        /* Read Id step:
+        /* Read parameter page step:
             1. Write 0x81000MEC to NFC_CMDR, M = bank number 
             2. Write 0x40000M00 to NFC_CMDR, M = bank number
             3. Read NFC_DATR
@@ -1058,7 +1226,7 @@ en_result_t EXMC_NFC_ReadParameterPage(uint32_t u32Bank,
                                          u32Timeout);
         if (Ok == enRet)
         {
-            for (uint32_t i = 0U; i < (uint32_t)u16NumWords; i++)
+            for (uint16_t i = 0U; i < u16NumWords; i++)
             {
                 au32Data[i] =  NFC_DATR_REG32(i);
             }
@@ -1073,14 +1241,15 @@ en_result_t EXMC_NFC_ReadParameterPage(uint32_t u32Bank,
 /**
  * @brief  Set feature
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u8FeatrueAddr           The featrue address
  * @param  [in] au32Data                The data buffer
  * @param  [in] u8NumWords              The number of words to set
@@ -1089,6 +1258,7 @@ en_result_t EXMC_NFC_ReadParameterPage(uint32_t u32Bank,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       au8Data == NULL.
  *   @arg  ErrorTimeout:                Read timeout
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_SetFeature(uint32_t u32Bank,
                                     uint8_t u8FeatrueAddr,
@@ -1109,7 +1279,7 @@ en_result_t EXMC_NFC_SetFeature(uint32_t u32Bank,
         WRITE_REG32(M4_NFC->CMDR, CMD_SET_FEATURE(u32Bank));
         WRITE_REG32(M4_NFC->CMDR, CMD_SET_FEATURE_ADDR(u32Bank, u8FeatrueAddr));
 
-        for (uint32_t i = 0U; i < (uint32_t)u8NumWords; i++)
+        for (uint8_t i = 0U; i < u8NumWords; i++)
         {
             NFC_DATR_REG32(i) = au32Data[i];
         }
@@ -1127,14 +1297,15 @@ en_result_t EXMC_NFC_SetFeature(uint32_t u32Bank,
 /**
  * @brief  Get feature
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u8FeatrueAddr           The featrue address
  * @param  [out] au32Data               The data buffer
  * @param  [in] u8NumWords              The number of words to get
@@ -1143,6 +1314,7 @@ en_result_t EXMC_NFC_SetFeature(uint32_t u32Bank,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       au8Data == NULL.
  *   @arg  ErrorTimeout:                Read timeout
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_GetFeature(uint32_t u32Bank,
                                     uint8_t u8FeatrueAddr,
@@ -1168,7 +1340,7 @@ en_result_t EXMC_NFC_GetFeature(uint32_t u32Bank,
                                          u32Timeout);
         if (Ok == enRet)
         {
-            for (uint32_t i = 0U; i < (uint32_t)u8NumWords; i++)
+            for (uint8_t i = 0U; i < u8NumWords; i++)
             {
                 au32Data[i] = NFC_DATR_REG32(i);
             }
@@ -1183,19 +1355,21 @@ en_result_t EXMC_NFC_GetFeature(uint32_t u32Bank,
 /**
  * @brief  Erase NFC device block
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32RowAddress           The row address
  * @param  [in] u32Timeout              The operation timeout value
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Erase timeout.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_EraseBlock(uint32_t u32Bank,
                                     uint32_t u32RowAddress,
@@ -1231,14 +1405,15 @@ en_result_t EXMC_NFC_EraseBlock(uint32_t u32Bank,
 /**
  * @brief  NFC page read
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32Page                 The specified page
  * @param  [out] pu8Data                The buffer for reading
  * @param  [in] u32NumBytes             The buffer size for bytes
@@ -1247,6 +1422,7 @@ en_result_t EXMC_NFC_EraseBlock(uint32_t u32Bank,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Write timeout.
  *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_ReadPageMeta(uint32_t u32Bank,
                                     uint32_t u32Page,
@@ -1254,8 +1430,6 @@ en_result_t EXMC_NFC_ReadPageMeta(uint32_t u32Bank,
                                     uint32_t u32NumBytes,
                                     uint32_t u32Timeout)
 {
-    uint32_t u32PageSize = NFC_PAGE_SIZE;
-    uint32_t u32SpareSize = NFC_SPARE_SIZE;
     en_result_t enRet = ErrorInvalidParameter;
 
     if (pu8Data && u32NumBytes)
@@ -1263,10 +1437,9 @@ en_result_t EXMC_NFC_ReadPageMeta(uint32_t u32Bank,
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
         DDL_ASSERT(IS_PARAM_ALIGN_WORD(u32NumBytes));
-        DDL_ASSERT(IS_ADDRESS_ALIGN_WORD((uint32_t)pu8Data));
+        DDL_ASSERT(IS_ADDRESS_ALIGN_WORD(pu8Data));
 
         enRet = EXMC_NFC_Read(u32Bank, u32Page, 0UL, (uint32_t *)pu8Data, u32NumBytes/4UL, Disable, u32Timeout);
-        EXMC_NFC_DeselectChip();
     }
 
     return enRet;
@@ -1275,14 +1448,15 @@ en_result_t EXMC_NFC_ReadPageMeta(uint32_t u32Bank,
 /**
  * @brief  NFC page write
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32Page                 The specified page
  * @param  [in] pu8Data                 The buffer for writing
  * @param  [in] u32NumBytes             The buffer size for bytes
@@ -1291,6 +1465,7 @@ en_result_t EXMC_NFC_ReadPageMeta(uint32_t u32Bank,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Write timeout.
  *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_WritePageMeta(uint32_t u32Bank,
                                     uint32_t u32Page,
@@ -1298,8 +1473,6 @@ en_result_t EXMC_NFC_WritePageMeta(uint32_t u32Bank,
                                     uint32_t u32NumBytes,
                                     uint32_t u32Timeout)
 {
-    uint32_t u32PageSize = NFC_PAGE_SIZE;
-    uint32_t u32SpareSize = NFC_SPARE_SIZE;
     en_result_t enRet = ErrorInvalidParameter;
 
     if (pu8Data && u32NumBytes)
@@ -1307,10 +1480,9 @@ en_result_t EXMC_NFC_WritePageMeta(uint32_t u32Bank,
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
         DDL_ASSERT(IS_PARAM_ALIGN_WORD(u32NumBytes));
-        DDL_ASSERT(IS_ADDRESS_ALIGN_WORD((uint32_t)pu8Data));
+        DDL_ASSERT(IS_ADDRESS_ALIGN_WORD(pu8Data));
 
         enRet = EXMC_NFC_Write(u32Bank, u32Page, 0UL, (const uint32_t *)pu8Data, u32NumBytes/4UL, Disable, u32Timeout);
-        EXMC_NFC_DeselectChip();
     }
 
     return enRet;
@@ -1319,14 +1491,15 @@ en_result_t EXMC_NFC_WritePageMeta(uint32_t u32Bank,
 /**
  * @brief  NFC page read by hardware ECC
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32Page                 The specified page
  * @param  [out] pu8Data                The buffer for reading
  * @param  [in] u32NumBytes             The buffer size for bytes
@@ -1335,6 +1508,7 @@ en_result_t EXMC_NFC_WritePageMeta(uint32_t u32Bank,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Write timeout.
  *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_ReadPageHwEcc(uint32_t u32Bank,
                                     uint32_t u32Page,
@@ -1343,7 +1517,7 @@ en_result_t EXMC_NFC_ReadPageHwEcc(uint32_t u32Bank,
                                     uint32_t u32Timeout)
 {
     uint32_t u32PageSize = NFC_PAGE_SIZE;
-    uint32_t u32SpareSize = NFC_SPARE_SIZE;
+    uint32_t u32SpareSizeUserData = NFC_SPARE_SIZE_FOR_USER_DATA;
     en_result_t enRet = ErrorInvalidParameter;
 
     if (pu8Data && u32NumBytes)
@@ -1351,7 +1525,8 @@ en_result_t EXMC_NFC_ReadPageHwEcc(uint32_t u32Bank,
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
         DDL_ASSERT(IS_PARAM_ALIGN_WORD(u32NumBytes));
-        DDL_ASSERT(IS_ADDRESS_ALIGN_WORD((uint32_t)pu8Data));
+        DDL_ASSERT(IS_ADDRESS_ALIGN_WORD(pu8Data));
+        DDL_ASSERT(u32NumBytes <= (u32PageSize + u32SpareSizeUserData));
 
         enRet = EXMC_NFC_Read(u32Bank, u32Page, 0UL, (uint32_t *)pu8Data, u32NumBytes/4UL, Enable, u32Timeout);
     }
@@ -1362,14 +1537,15 @@ en_result_t EXMC_NFC_ReadPageHwEcc(uint32_t u32Bank,
 /**
  * @brief  NFC page  write by hardware ECC
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32Page                 The specified page
  * @param  [in] pu8Data                 The buffer for writing
  * @param  [in] u32NumBytes             The buffer size for bytes
@@ -1378,6 +1554,7 @@ en_result_t EXMC_NFC_ReadPageHwEcc(uint32_t u32Bank,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Write timeout.
  *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 en_result_t EXMC_NFC_WritePageHwEcc(uint32_t u32Bank,
                                     uint32_t u32Page,
@@ -1386,7 +1563,7 @@ en_result_t EXMC_NFC_WritePageHwEcc(uint32_t u32Bank,
                                     uint32_t u32Timeout)
 {
     uint32_t u32PageSize = NFC_PAGE_SIZE;
-    uint32_t u32SpareSize = NFC_SPARE_SIZE;
+    uint32_t u32SpareSizeUserData = NFC_SPARE_SIZE_FOR_USER_DATA;
     en_result_t enRet = ErrorInvalidParameter;
 
     if (pu8Data && u32NumBytes)
@@ -1395,6 +1572,7 @@ en_result_t EXMC_NFC_WritePageHwEcc(uint32_t u32Bank,
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
         DDL_ASSERT(IS_PARAM_ALIGN_WORD(u32NumBytes));
         DDL_ASSERT(IS_ADDRESS_ALIGN_WORD((uint32_t)pu8Data));
+        DDL_ASSERT(u32NumBytes <= (u32PageSize + u32SpareSizeUserData));
 
         enRet = EXMC_NFC_Write(u32Bank, u32Page, 0UL, (const uint32_t *)pu8Data, u32NumBytes/4UL, Enable, u32Timeout);
     }
@@ -1405,16 +1583,17 @@ en_result_t EXMC_NFC_WritePageHwEcc(uint32_t u32Bank,
 /**
  * @brief  NFC read operation
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32Page                 The specified page
- * @param  [in] u32Col                  The colomn address
+ * @param  [in] u32Col                  The column address
  * @param  [out] au32Data               The buffer for reading
  * @param  [in] u32NumWords             The buffer size for words
  * @param  [in] enEccState              Disable/enable ECC function
@@ -1423,6 +1602,7 @@ en_result_t EXMC_NFC_WritePageHwEcc(uint32_t u32Bank,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Write timeout.
  *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 static en_result_t EXMC_NFC_Read(uint32_t u32Bank,
                                     uint32_t u32Page,
@@ -1433,18 +1613,24 @@ static en_result_t EXMC_NFC_Read(uint32_t u32Bank,
                                     uint32_t u32Timeout)
 {
     uint32_t i;
-    uint64_t u64Val = 0UL;
-    uint32_t u32CapacityIndex = 0UL;
+    uint64_t u64Val;
     en_result_t enRet = ErrorInvalidParameter;
+    uint32_t u32CapacityIndex = EXMC_NFC_GetCapacityIndex();
 
     if (au32Data && u32NumWords)
     {
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
+        DDL_ASSERT(IS_EXMC_NFC_PAGE(u32Page, u32CapacityIndex));
+        DDL_ASSERT(IS_EXMC_NFC_COLUMN(u32Col));
         DDL_ASSERT(IS_FUNCTIONAL_STATE(enEccState));
 
         /* Clear Flag */
-        EXMC_NFC_ClearFlag(NFC_FLAG_RB_BANKx_MASK(u32Bank));
+        EXMC_NFC_ClearFlag(NFC_FLAG_RB_BANKx_MASK(u32Bank) | \
+                           EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR | \
+                           EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR | \
+                           EXMC_NFC_FLAG_ECC_CALC_COMPLETION | \
+                           EXMC_NFC_FLAG_ECC_ERROR);
 
         if (Enable == enEccState)
         {
@@ -1455,7 +1641,6 @@ static en_result_t EXMC_NFC_Read(uint32_t u32Bank,
             EXMC_NFC_DisableEcc();
         }
 
-        u32CapacityIndex = EXMC_NFC_GetCapacityIndex();
         u64Val = (NFC_IDXR_VAL(u32Bank, u32Page, u32Col, u32CapacityIndex) & NFC_IDXR_MASK);
 
         /* Read page step:
@@ -1514,16 +1699,17 @@ static en_result_t EXMC_NFC_Read(uint32_t u32Bank,
 /**
  * @brief  NFC write operation
  * @param  [in] u32Bank                 The specified bank
- *   @arg EXMC_NFC_BANK_0:              NFC device bank 0
- *   @arg EXMC_NFC_BANK_1:              NFC device bank 1
- *   @arg EXMC_NFC_BANK_2:              NFC device bank 2
- *   @arg EXMC_NFC_BANK_3:              NFC device bank 3
- *   @arg EXMC_NFC_BANK_4:              NFC device bank 4
- *   @arg EXMC_NFC_BANK_5:              NFC device bank 5
- *   @arg EXMC_NFC_BANK_6:              NFC device bank 6
- *   @arg EXMC_NFC_BANK_7:              NFC device bank 7
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_NFC_BANK_0:      NFC device bank 0
+ *           @arg EXMC_NFC_BANK_1:      NFC device bank 1
+ *           @arg EXMC_NFC_BANK_2:      NFC device bank 2
+ *           @arg EXMC_NFC_BANK_3:      NFC device bank 3
+ *           @arg EXMC_NFC_BANK_4:      NFC device bank 4
+ *           @arg EXMC_NFC_BANK_5:      NFC device bank 5
+ *           @arg EXMC_NFC_BANK_6:      NFC device bank 6
+ *           @arg EXMC_NFC_BANK_7:      NFC device bank 7
  * @param  [in] u32Page                 The specified page
- * @param  [in] u32Col                  The colomn address
+ * @param  [in] u32Col                  The column address
  * @param  [in] au32Data                The buffer for writing
  * @param  [in] u32NumWords             The buffer size for words
  * @param  [in] enEccState              Disable/enable ECC function
@@ -1532,6 +1718,7 @@ static en_result_t EXMC_NFC_Read(uint32_t u32Bank,
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorTimeout:                Write timeout.
  *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
+ * @note Block waiting until operation complete if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 static en_result_t EXMC_NFC_Write(uint32_t u32Bank,
                                     uint32_t u32Page,
@@ -1541,14 +1728,24 @@ static en_result_t EXMC_NFC_Write(uint32_t u32Bank,
                                     en_functional_state_t enEccState,
                                     uint32_t u32Timeout)
 {
-    uint64_t u64Val = 0UL;
-    uint32_t u32CapacityIndex = 0UL;
+    uint64_t u64Val;
     en_result_t enRet = Error;
+    uint32_t u32CapacityIndex = EXMC_NFC_GetCapacityIndex();
 
     if (au32Data && u32NumWords)
     {
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_NFC_BANK_NUM(u32Bank));
+        DDL_ASSERT(IS_EXMC_NFC_PAGE(u32Page, u32CapacityIndex));
+        DDL_ASSERT(IS_EXMC_NFC_COLUMN(u32Col));
+        DDL_ASSERT(IS_FUNCTIONAL_STATE(enEccState));
+
+        /* Check parameters */
+        EXMC_NFC_ClearFlag(NFC_FLAG_RB_BANKx_MASK(u32Bank) | \
+                           EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR | \
+                           EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR | \
+                           EXMC_NFC_FLAG_ECC_CALC_COMPLETION | \
+                           EXMC_NFC_FLAG_ECC_ERROR);
 
         /* Clear Flag */
         EXMC_NFC_ClearFlag(NFC_FLAG_RB_BANKx_MASK(u32Bank));
@@ -1562,7 +1759,6 @@ static en_result_t EXMC_NFC_Write(uint32_t u32Bank,
             EXMC_NFC_DisableEcc();
         }
 
-        u32CapacityIndex = EXMC_NFC_GetCapacityIndex();
         u64Val = (NFC_IDXR_VAL(u32Bank, u32Page, u32Col, u32CapacityIndex) & NFC_IDXR_MASK);
 
         /* Write page step:
@@ -1611,17 +1807,17 @@ static en_result_t EXMC_NFC_Write(uint32_t u32Bank,
  * @param  None
  * @retval Capacity index
  *   @arg NFC_CAPACITY_INDEX_512MBIT: NFC device capacity 512MBit
- *   @arg NFC_CAPACITY_INDEX_1GBIT: NFC device capacity 1GMBit
- *   @arg NFC_CAPACITY_INDEX_2GBIT: NFC device capacity 2GMBit
- *   @arg NFC_CAPACITY_INDEX_4GBIT: NFC device capacity 4GMBit
- *   @arg NFC_CAPACITY_INDEX_8GBIT: NFC device capacity 8GMBit
- *   @arg NFC_CAPACITY_INDEX_16GBIT: NFC device capacity 16GMBit
- *   @arg NFC_CAPACITY_INDEX_32GBIT: NFC device capacity 32GMBit
- *   @arg NFC_CAPACITY_INDEX_64GBIT: NFC device capacity 64GMBit
+ *   @arg NFC_CAPACITY_INDEX_1GBIT: NFC device capacity 1GBit
+ *   @arg NFC_CAPACITY_INDEX_2GBIT: NFC device capacity 2GBit
+ *   @arg NFC_CAPACITY_INDEX_4GBIT: NFC device capacity 4GBit
+ *   @arg NFC_CAPACITY_INDEX_8GBIT: NFC device capacity 8GBit
+ *   @arg NFC_CAPACITY_INDEX_16GBIT: NFC device capacity 16GBit
+ *   @arg NFC_CAPACITY_INDEX_32GBIT: NFC device capacity 32GBit
+ *   @arg NFC_CAPACITY_INDEX_64GBIT: NFC device capacity 64GBit
  */
 static uint32_t EXMC_NFC_GetCapacityIndex(void)
 {
-    uint32_t u32Index = 0UL;
+    uint32_t u32Index;
     uint32_t u32BacrSize = READ_REG32_BIT(M4_NFC->BACR, NFC_BACR_SIZE);
 
     switch (u32BacrSize)
@@ -1671,10 +1867,11 @@ static uint32_t EXMC_NFC_GetCapacityIndex(void)
  *   @arg EXMC_NFC_FLAG_RB_BANK6: NFC device bank 6 busy flag
  *   @arg EXMC_NFC_FLAG_RB_BANK7: NFC device bank 7 busy flag
  * @param  enStatus                     The waiting flag status (SET or RESET).
- * @param  u32Timeout                   Timeout duration(Systick)
+ * @param  u32Timeout                   Timeout duration
  * @retval An en_result_t enumeration value:
  *   @arg  Ok: Flag is right
  *   @arg  ErrorTimeout: Wait timeout
+ * @note Block checking flag if u32Timeout value is EXMC_NFC_MAX_TIMEOUT
  */
 static en_result_t EXMC_NFC_WaitFlagUntilTo(uint32_t u32Flag,
                                                     en_flag_status_t enStatus,
@@ -1685,7 +1882,6 @@ static en_result_t EXMC_NFC_WaitFlagUntilTo(uint32_t u32Flag,
 
     /* Check parameters */
     DDL_ASSERT(IS_EXMC_NFC_FLAG(u32Flag));
-
 
     while (EXMC_NFC_GetFlag(u32Flag) != enStatus)
     {

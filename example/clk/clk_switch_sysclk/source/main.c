@@ -148,8 +148,8 @@ static en_result_t PLLHInit(void)
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_6);
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
+    EFM_Lock();
 
     /* PLLH config */
     CLK_PLLHStrucInit(&stcPLLHInit);
@@ -181,9 +181,9 @@ int32_t main(void)
     BSP_KEY_Init();
     BSP_LED_Init();
 
-    /* Confiure clock output system clock */
+    /* Configure clock output system clock */
     CLK_MCO1Config(CLK_MCOSOURCCE_SYSCLK, CLK_MCODIV_128);
-    /* Confiure clock output pin */
+    /* Configure clock output pin */
     GPIO_SetFunc(MCO_PORT, MCO_PIN, GPIO_FUNC_1_MCO, Disable);
     /* MCO1 output enable */
     CLK_MCO1Cmd(Enable);
@@ -196,10 +196,6 @@ int32_t main(void)
 
     while(1)
     {
-//        BSP_LED_Toggle(LED_RED);
-//        DDL_Delay1ms(100UL);
-//        BSP_LED_Toggle(LED_BLUE);
-//        DDL_Delay1ms(100UL);
         /* MRC output */
         if (Set == BSP_KEY_GetStatus(BSP_KEY_1))
         {
@@ -238,15 +234,15 @@ int32_t main(void)
         }
         if (Set == BSP_KEY_GetStatus(BSP_KEY_7))
         {
-            BSP_LED_Toggle(LED_RED);
+            BSP_LED_Toggle(LED_BLUE);
         }
         if (Set == BSP_KEY_GetStatus(BSP_KEY_8))
         {
-            BSP_LED_Toggle(LED_BLUE);
+            BSP_LED_Toggle(LED_YELLOW);
         }
         if (Set == BSP_KEY_GetStatus(BSP_KEY_9))
         {
-            BSP_LED_Toggle(LED_RED | LED_BLUE);
+            BSP_LED_Toggle(LED_RED);
         }
     }
 }

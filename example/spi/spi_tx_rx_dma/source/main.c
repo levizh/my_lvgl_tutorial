@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * @file  spi/spi_master_base/source/main.c
+ * @file  spi/spi_tx_rx_dma/source/main.c
  * @brief Main program SPI master base for the Device Driver Library.
  @verbatim
    Change Logs:
@@ -117,7 +117,7 @@
 /* Interrupt source indicate that commnication finished */
 #define DMA_UNIT_RX_SRC (INT_DMA2_TC1)
 #define DMA_IRQn_RX     (Int000_IRQn)
-#define DMA_RX_TC_FLAG  (DMA_TC_INT1)
+#define DMA_RX_TC_FLAG  (DMA_TC_INT_CH1)
 
 #define BUF_LENGTH              128UL
 /*******************************************************************************
@@ -181,13 +181,13 @@ int32_t main(void)
     /* SPI FCG enable */
     PWC_Fcg1PeriphClockCmd(PWC_FCG1_SPI1, Enable);
     /* DMA/AOS FCG enable */
-    PWC_Fcg0PeriphClockCmd((PWC_FCG0_DMA2 | PWC_FCG0_PTDIS), Enable);
+    PWC_Fcg0PeriphClockCmd((PWC_FCG0_DMA2 | PWC_FCG0_AOS), Enable);
 
     /* Port configurate, High driving capacity for output pin. */
     GPIO_StructInit(&stcGpioCfg);
 
 #if (APP_TEST_MODE == COM_MASTER)
-    stcGpioCfg.u16PinDrv = PIN_HIGH_DRV;
+    stcGpioCfg.u16PinDrv = PIN_DRV_HIGH;
 #if (EXAMPLE_WIRE_MODE == SPI_WIRE_4)
     GPIO_Init(SPI_NSS_PORT,  SPI_NSS_PIN, &stcGpioCfg);
 #endif
@@ -206,7 +206,7 @@ int32_t main(void)
     GPIO_Init(SPI_SCK_PORT,  SPI_SCK_PIN, &stcGpioCfg);
     GPIO_Init(SPI_MOSI_PORT, SPI_MOSI_PIN, &stcGpioCfg);
 
-    stcGpioCfg.u16PinDrv = PIN_HIGH_DRV;
+    stcGpioCfg.u16PinDrv = PIN_DRV_HIGH;
     GPIO_Init(SPI_MISO_PORT, SPI_MISO_PIN, &stcGpioCfg);
 
 #endif
@@ -308,7 +308,7 @@ static void Master_Init(void)
     SPI_Init(SPI_UNIT, &stcSpiInit);
 
     /* DMA configurate for master tx*/
-    DMA_SetTrigSrc(DMA_UNIT, DMA_CH_TX, EVT_SPI1_SPTI);
+    DMA_SetTriggerSrc(DMA_UNIT, DMA_CH_TX, EVT_SPI1_SPTI);
     DMA_StructInit(&stcDmaInit);
     stcDmaInit.u32IntEn     = DMA_INT_ENABLE;
     stcDmaInit.u32BlockSize = 1UL;
@@ -326,7 +326,7 @@ static void Master_Init(void)
     }
 
     /* DMA configurate for master rx*/
-    DMA_SetTrigSrc(DMA_UNIT, DMA_CH_RX, EVT_SPI1_SPRI);
+    DMA_SetTriggerSrc(DMA_UNIT, DMA_CH_RX, EVT_SPI1_SPRI);
     DMA_StructInit(&stcDmaInit);
     stcDmaInit.u32IntEn     = DMA_INT_ENABLE;
     stcDmaInit.u32BlockSize = 1UL;
@@ -356,7 +356,7 @@ static void Master_Init(void)
     NVIC_SetPriority(DMA_IRQn_RX,DDL_IRQ_PRIORITY_DEFAULT);
     NVIC_EnableIRQ(DMA_IRQn_RX);
 
-    /* DMA moudle enable */
+    /* DMA module enable */
     DMA_Cmd(DMA_UNIT, Enable);
 
     /* DMA channel enable */
@@ -439,7 +439,7 @@ static void Slave_Init(void)
     NVIC_SetPriority(DMA_IRQn_RX,DDL_IRQ_PRIORITY_DEFAULT);
     NVIC_EnableIRQ(DMA_IRQn_RX);
 
-    /* DMA moudle enable */
+    /* DMA module enable */
     DMA_Cmd(DMA_UNIT, Enable);
 
     /* DMA channel enable */

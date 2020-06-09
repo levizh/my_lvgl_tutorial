@@ -163,7 +163,7 @@
     (EXMC_DMC_ADDR_MASK_64MB == (x))            ||                             \
     (EXMC_DMC_ADDR_MASK_128MB == (x)))
 
-#define IS_EXMC_DMC_CS_ADRESS_MATCH(x)                                         \
+#define IS_EXMC_DMC_CS_ADDRESS_MATCH(x)                                         \
 (   (EXMC_DMC_ADDR_MATCH_0X80000000 == (x))     ||                             \
     (EXMC_DMC_ADDR_MATCH_0X81000000 == (x))     ||                             \
     (EXMC_DMC_ADDR_MATCH_0X82000000 == (x))     ||                             \
@@ -175,6 +175,13 @@
 
 #define IS_EXMC_DMC_ADDRESS(match, mask)                                       \
 (   (~((((mask) >> DMC_CSCR_ADDMSK_POS) ^ ((match) >> DMC_CSCR_ADDMAT_POS)) << 24UL)) <= 0x87FFFFFFUL)
+
+#define IS_EXMC_DMC_STATE(x)                                                   \
+(   (EXMC_DMC_CTL_STATE_GO == (x))              ||                             \
+    (EXMC_DMC_CTL_STATE_SLEEP == (x))           ||                             \
+    (EXMC_DMC_CTL_STATE_WAKEUP == (x))          ||                             \
+    (EXMC_DMC_CTL_STATE_PAUSE == (x))           ||                             \
+    (EXMC_DMC_CTL_STATE_CONFIGURE == (x)))
 
 #define IS_EXMC_DMC_TIMING_CASL_CYCLE(x)        ((x) <= 7UL)
 
@@ -256,7 +263,7 @@
  */
 en_result_t EXMC_DMC_Init(const stc_exmc_dmc_init_t *pstcInit)
 {
-    uint32_t u32RegVal = 0UL;
+    uint32_t u32RegVal;
     en_result_t enRet = ErrorInvalidParameter;
 
     /* Check the pointer pstcInit */
@@ -330,10 +337,9 @@ en_result_t EXMC_DMC_Init(const stc_exmc_dmc_init_t *pstcInit)
 /**
  * @brief  De-Initialize EXMC DMC function.
  * @param  None
- * @retval An en_result_t enumeration value:
- *           - Ok: De-Initialize success
+ * @retval None
  */
-en_result_t EXMC_DMC_DeInit(void)
+void EXMC_DMC_DeInit(void)
 {
     /* Disable */
     WRITE_REG32(bM4_PERIC->EXMC_ENAR_b.DMCEN, 0UL);
@@ -355,8 +361,6 @@ en_result_t EXMC_DMC_DeInit(void)
     WRITE_REG32(M4_DMC->TMCR_T_XP, 0x00000001UL);
     WRITE_REG32(M4_DMC->TMCR_T_XSR, 0x0000000AUL);
     WRITE_REG32(M4_DMC->TMCR_T_ESR, 0x00000014UL);
-
-    return Ok;
 }
 
 /**
@@ -420,7 +424,7 @@ en_result_t EXMC_DMC_StructInit(stc_exmc_dmc_init_t *pstcInit)
 en_result_t EXMC_DMC_CsConfig(uint32_t u32Chip,
                                 const stc_exmc_dmc_cs_cfg_t *pstcCfg)
 {
-    uint32_t u32RegVal = 0UL;
+    uint32_t u32RegVal;
     __IO uint32_t *DMC_CSCRx;
     en_result_t enRet = ErrorInvalidParameter;
 
@@ -430,7 +434,7 @@ en_result_t EXMC_DMC_CsConfig(uint32_t u32Chip,
         /* Check parameters */
         DDL_ASSERT(IS_EXMC_DMC_CHIP(u32Chip));
         DDL_ASSERT(IS_EXMC_DMC_CS_ADDRESS_MASK(pstcCfg->u32AddrMask));
-        DDL_ASSERT(IS_EXMC_DMC_CS_ADRESS_MATCH(pstcCfg->u32AddrMatch));
+        DDL_ASSERT(IS_EXMC_DMC_CS_ADDRESS_MATCH(pstcCfg->u32AddrMatch));
         DDL_ASSERT(IS_EXMC_DMC_CS_DECODE_MODE(pstcCfg->u32AddrDecodeMode));
         DDL_ASSERT(IS_EXMC_DMC_ADDRESS(pstcCfg->u32AddrMatch, pstcCfg->u32AddrMask));
 
@@ -478,8 +482,8 @@ uint32_t EXMC_DMC_ChipStartAddress(uint32_t u32Chip)
  */
 uint32_t EXMC_DMC_ChipEndAddress(uint32_t u32Chip)
 {
-    uint32_t u32Mask = 0UL;
-    uint32_t u32Match = 0UL;
+    uint32_t u32Mask;
+    uint32_t u32Match;
     __IO uint32_t *DMC_CSCRx;
 
     /* Check parameters */
@@ -522,7 +526,7 @@ en_result_t EXMC_DMC_SetCommand(uint32_t u32Chip,
                                     uint32_t u32Cmd,
                                     uint32_t u32Address)
 {
-    uint32_t u32DmcCmdr = 0UL;
+    uint32_t u32DmcCmdr;
 
     /* Check parameters */
     DDL_ASSERT(IS_EXMC_DMC_CHIP(u32Chip));
@@ -538,6 +542,23 @@ en_result_t EXMC_DMC_SetCommand(uint32_t u32Chip,
     WRITE_REG32(M4_DMC->CMDR, u32DmcCmdr);
 
     return Ok;
+}
+
+/**
+ * @brief  Set EXMC DMC state.
+ * @param  [in] u32State                    The command chip number.
+ *           @arg EXMC_DMC_CTL_STATE_GO:        Go
+ *           @arg EXMC_DMC_CTL_STATE_SLEEP:     Sleep for low power
+ *           @arg EXMC_DMC_CTL_STATE_WAKEUP:    Wake up
+ *           @arg EXMC_DMC_CTL_STATE_PAUSE:     Pause
+ *           @arg EXMC_DMC_CTL_STATE_CONFIGURE: Configure
+ * @retval None
+ */
+void EXMC_DMC_SetState(uint32_t u32State)
+{
+    DDL_ASSERT(IS_EXMC_DMC_STATE(u32State));
+
+    WRITE_REG32(M4_DMC->STCR, u32State);
 }
 
 /**

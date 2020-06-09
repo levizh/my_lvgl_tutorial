@@ -2,13 +2,25 @@
 MemConfigValue=$PROJ_DIR$\..\..\..\..\mcu\EWARM\hdsc_hc32f4a0.svd
 [PlCacheRanges]
 CustomRanges0=0 0 2097152 1 2048
-CustomRangesText0=
+CustomRangesText0=Flash
 CustomRanges1=0 536739840 524288 0 2048
-CustomRangesText1=
+CustomRangesText1=SRAM
 CustomRanges2=0 1073741824 536870912 2 0
 CustomRangesText2=Peripheral
-CustomRanges3=0 3758096384 536870912 2 0
-CustomRangesText3=Private peripheral
+CustomRanges3=0 1610612736 536870912 0 2048
+CustomRangesText3=EXMC SRAM
+CustomRanges4=0 2147483648 134217728 0 2048
+CustomRangesText4=EXMC SDRAM
+CustomRanges5=0 2281701376 1024 2 1024
+CustomRangesText5=SRAM_REG
+CustomRanges6=0 2281702400 1024 2 1024
+CustomRangesText6=SDRAM_REG
+CustomRanges7=0 2282749952 1048576 1 2048
+CustomRangesText7=EXMC Nand Flash
+CustomRanges8=0 2550136832 134217728 1 2048
+CustomRangesText8=QSPI
+CustomRanges9=0 3758096384 536870912 2 0
+CustomRangesText9=Private peripheral
 [Stack]
 FillEnabled=0
 OverflowWarningsEnabled=1

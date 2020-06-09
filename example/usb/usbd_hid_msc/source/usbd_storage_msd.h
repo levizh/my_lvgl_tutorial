@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_hid_msc\source\usbd_storage_msd.h
+ * @brief Headfile for usbd_storage_msd.c.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,23 +48,32 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_storage_msd.h
- **
- ** A detailed description is available at
- ** @link Header file for usbd_storage_msd.c @endlink
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 #ifndef __USBD_STORAGE_MSD_H__
 #define __USBD_STORAGE_MSD_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbd_core.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_HID_MSC
+ * @{
+ */
+
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -71,6 +90,20 @@ int8_t STORAGE_IsWriteProtected(uint8_t lun);
 int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
 int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
 int8_t STORAGE_GetMaxLun(void);
+
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__USBD_STORAGE_MSD_H__*/
 

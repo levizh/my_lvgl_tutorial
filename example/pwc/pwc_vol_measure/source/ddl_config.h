@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  systick/source/ddl_config.h
+ * @file  pwc/pwc_vol_measure/source/ddl_config.h
  * @brief This file contains HC32 Series Device Driver Library usage management.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-03       Yangjp          First version
+   2020-05-14       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -86,7 +86,7 @@ extern "C"
 #define DDL_UTILITY_ENABLE                          (DDL_ON)
 #define DDL_PRINT_ENABLE                            (DDL_ON)
 
-#define DDL_ADC_ENABLE                              (DDL_OFF)
+#define DDL_ADC_ENABLE                              (DDL_ON)
 #define DDL_AES_ENABLE                              (DDL_OFF)
 #define DDL_CAN_ENABLE                              (DDL_OFF)
 #define DDL_CLK_ENABLE                              (DDL_ON)
@@ -144,8 +144,6 @@ extern "C"
  * @brief This is the list of midware modules to be used.
  * Select the modules you need to use to MW_ON.
  */
-#define MW_FS_ENABLE                                (MW_OFF)
-#define MW_LWIP_ENABLE                              (MW_OFF)
 
 /* BSP on-off define */
 #define BSP_ON                                      (1U)
@@ -155,6 +153,7 @@ extern "C"
  * @brief The following is a list of currently supported BSP boards.
  */
 #define BSP_EV_HC32F4A0_LQFP176                     (1U)
+#define BSP_MS_HC32F4A0_LQFP176_050_MEM             (2U)
 
 /**
  * @brief The macro BSP_EV_HC32F4A0 is used to specify the BSP board currently
@@ -169,9 +168,11 @@ extern "C"
  * @brief This is the list of BSP components to be used.
  * Select the components you need to use to BSP_ON.
  */
+#define BSP_CY62167EV30LL_ENABLE                    (BSP_OFF)
 #define BSP_IS42S16400J7TLI_ENABLE                  (BSP_OFF)
 #define BSP_IS62WV51216_ENABLE                      (BSP_OFF)
 #define BSP_MT29F2G08AB_ENABLE                      (BSP_OFF)
+#define BSP_S29GL064N90TFI03_ENABLE                 (BSP_OFF)
 #define BSP_TCA9539_ENABLE                          (BSP_ON)
 #define BSP_W25QXX_ENABLE                           (BSP_OFF)
 #define BSP_WM8731_ENABLE                           (BSP_OFF)

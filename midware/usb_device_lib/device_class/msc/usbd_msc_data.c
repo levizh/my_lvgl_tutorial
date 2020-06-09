@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_msc_data.c
+ * @brief Provides all the vital inquiry pages and sense data.
+ *       
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-05-15       zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,19 +48,34 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_msc_data.c
- **
- ** \brief This file provides all the vital inquiry pages and sense data.
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
+
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbd_msc_data.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @defgroup USBD_MSC_DATA
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -63,38 +88,46 @@
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
+/**
+ * @defgroup USBD_MSC_DATA_Global_Variables USBD MSC Data Global Variables
+ * @{
+ */
+
 /* USB Mass storage Page 0 Inquiry Data */
 const uint8_t MSC_Page00_Inquiry_Data[] = { //7
-    0x00,
-    0x00,
-    0x00,
-    (LENGTH_INQUIRY_PAGE00 - 4u),
-    0x00,
-    0x80,
-    0x83
+    0x00U,
+    0x00U,
+    0x00U,
+    (LENGTH_INQUIRY_PAGE00 - 4U),
+    0x00U,
+    0x80U,
+    0x83U
 };
 /* USB Mass storage sense 6  Data */
 const uint8_t MSC_Mode_Sense6_data[] = {
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00
+    0x00U,
+    0x00U,
+    0x00U,
+    0x00U,
+    0x00U,
+    0x00U,
+    0x00U,
+    0x00U
 };
 /* USB Mass storage sense 10  Data */
 const uint8_t MSC_Mode_Sense10_data[] = {
-    0x00,
-    0x06,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00
+    0x00U,
+    0x06U,
+    0x00U,
+    0x00U,
+    0x00U,
+    0x00U,
+    0x00U,
+    0x00U
 };
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Local function prototypes ('static')
@@ -107,6 +140,24 @@ const uint8_t MSC_Mode_Sense10_data[] = {
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

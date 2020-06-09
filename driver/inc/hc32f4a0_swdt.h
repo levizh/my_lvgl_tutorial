@@ -122,7 +122,7 @@ typedef struct
  * @defgroup SWDT_Counter_Cycle SWDT Counter Cycle
  * @{
  */
-#define SWDT_COUNTER_CYCLE_256                  (0x00000000UL)    /*!< 256 clock cycle   */
+#define SWDT_COUNTER_CYCLE_256                  (0UL)             /*!< 256 clock cycle   */
 #define SWDT_COUNTER_CYCLE_4096                 (SWDT_CR_PERI_0)  /*!< 4096 clock cycle  */
 #define SWDT_COUNTER_CYCLE_16384                (SWDT_CR_PERI_1)  /*!< 16384 clock cycle */
 #define SWDT_COUNTER_CYCLE_65536                (SWDT_CR_PERI)    /*!< 65536 clock cycle */
@@ -134,7 +134,7 @@ typedef struct
  * @defgroup SWDT_Clock_Division SWDT Clock Division
  * @{
  */
-#define SWDT_CLOCK_DIV1                         (0x00000000UL)                                    /*!< SWDTCLK      */
+#define SWDT_CLOCK_DIV1                         (0UL)                                             /*!< SWDTCLK      */
 #define SWDT_CLOCK_DIV16                        (SWDT_CR_CKS_2)                                   /*!< SWDTCLK/16   */
 #define SWDT_CLOCK_DIV32                        (SWDT_CR_CKS_2 | SWDT_CR_CKS_0)                   /*!< SWDTCLK/32   */
 #define SWDT_CLOCK_DIV64                        (SWDT_CR_CKS_2 | SWDT_CR_CKS_1)                   /*!< SWDTCLK/64   */
@@ -149,7 +149,7 @@ typedef struct
  * @defgroup SWDT_Refresh_Percent_Range SWDT Refresh Percent Range
  * @{
  */
-#define SWDT_RANGE_100PCT                       (0x00000000UL)                                      /*!< 100%               */
+#define SWDT_RANGE_0TO100PCT                    (0UL)                                               /*!< 0%~100%            */
 #define SWDT_RANGE_0TO25PCT                     (SWDT_CR_WDPT_0)                                    /*!< 0%~25%             */
 #define SWDT_RANGE_25TO50PCT                    (SWDT_CR_WDPT_1)                                    /*!< 25%~50%            */
 #define SWDT_RANGE_0TO50PCT                     (SWDT_CR_WDPT_1 | SWDT_CR_WDPT_0)                   /*!< 0%~50%             */
@@ -164,7 +164,6 @@ typedef struct
 #define SWDT_RANGE_50TO100PCT                   (SWDT_CR_WDPT_3 | SWDT_CR_WDPT_2)                   /*!< 50%~100%           */
 #define SWDT_RANGE_0TO25PCT_50TO100PCT          (SWDT_CR_WDPT_3 | SWDT_CR_WDPT_2 | SWDT_CR_WDPT_0)  /*!< 0%~25% & 50%~100%  */
 #define SWDT_RANGE_25TO100PCT                   (SWDT_CR_WDPT_3 | SWDT_CR_WDPT_2 | SWDT_CR_WDPT_1)  /*!< 25%~100%           */
-#define SWDT_RANGE_0TO100PCT                    (SWDT_CR_WDPT)                                      /*!< 0%~100%            */
 /**
  * @}
  */
@@ -174,7 +173,7 @@ typedef struct
  * @brief SWDT count control in the sleep/stop mode
  * @{
  */
-#define SWDT_LPW_MODE_COUNT_CONTINUE            (0x00000000UL)    /*!< SWDT count continue in the sleep/stop mode */
+#define SWDT_LPW_MODE_COUNT_CONTINUE            (0UL)             /*!< SWDT count continue in the sleep/stop mode */
 #define SWDT_LPW_MODE_COUNT_STOP                (SWDT_CR_SLPOFF)  /*!< SWDT count stop in the sleep/stop mode     */
 /**
  * @}
@@ -184,7 +183,7 @@ typedef struct
 * @defgroup SWDT_Trigger_Event_Type SWDT Trigger Event Type
 * @{
 */
-#define SWDT_TRIG_EVENT_INT                     (0x00000000UL)    /*!< SWDT trigger interrupt */
+#define SWDT_TRIG_EVENT_INT                     (0UL)             /*!< SWDT trigger interrupt */
 #define SWDT_TRIG_EVENT_RESET                   (SWDT_CR_ITS)     /*!< SWDT trigger reset     */
 /**
  * @}
@@ -216,10 +215,20 @@ typedef struct
  * @{
  */
 
+/**
+ * @brief  Get SWDT count value.
+ * @param  None
+ * @retval Count value
+ */
+__STATIC_INLINE uint16_t SWDT_GetCountValue(void)
+{
+    return (uint16_t)(READ_REG32(M4_SWDT->SR) & SWDT_SR_CNT);
+}
+
 /* Initialization and configuration functions */
-en_result_t SWDT_Init(const stc_swdt_init_t *pstcSwdtInit);
-void        SWDT_ReloadCounter(void);
-uint16_t    SWDT_GetCountValue(void);
+en_result_t      SWDT_Init(const stc_swdt_init_t *pstcSwdtInit);
+void             SWDT_ReloadCounter(void);
+uint16_t         SWDT_GetCountValue(void);
 
 /* Flags management functions */
 en_flag_status_t SWDT_GetStatus(uint32_t u32Flag);

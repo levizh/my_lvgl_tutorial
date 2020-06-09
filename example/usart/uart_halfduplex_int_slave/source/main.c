@@ -236,7 +236,9 @@ int32_t main(void)
                               CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Configure USART TX pin. */
+    GPIO_Unlock();
     GPIO_SetFunc(USART_SLAVE_TX_PORT, USART_SLAVE_TX_PIN, USART_SLAVE_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Enable peripheral clock */
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);
@@ -273,7 +275,6 @@ int32_t main(void)
 
     while (1)
     {
-        ;
     }
 }
 

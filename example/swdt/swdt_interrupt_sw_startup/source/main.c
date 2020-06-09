@@ -203,7 +203,7 @@ static void SW1_Config(void)
  */
 static void SWDT_Config(void)
 {
-    uint8_t u8Ret;
+    en_result_t enRet;
     stc_swdt_init_t stcSwdtInit;
     stc_irq_signin_config_t stcIrqConfig;
 
@@ -219,8 +219,8 @@ static void SWDT_Config(void)
     stcIrqConfig.enIntSrc    = INT_SWDT_REFUDF;
     stcIrqConfig.enIRQn      = Int050_IRQn;
     stcIrqConfig.pfnCallback = &SWDT_IrqCallback;
-    u8Ret = INTC_IrqSignIn(&stcIrqConfig);
-    if (Ok != u8Ret)
+    enRet = INTC_IrqSignIn(&stcIrqConfig);
+    if (Ok != enRet)
     {
         /* check parameter */
         while (1)

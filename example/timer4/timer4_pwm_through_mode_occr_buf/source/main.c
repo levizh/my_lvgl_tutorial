@@ -210,7 +210,9 @@ int32_t main(void)
     }
 
     /* Initialize PWM I/O */
+    GPIO_Unlock();
     GPIO_SetFunc(TIM4_OXH_PORT, TIM4_OXH_PIN, TIM4_OXH_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Timer4 PWM: Get pwm couple channel */
     u32PwmCh = TMR4_PWM_CH(TMR4_OCO_HIGH_CH);

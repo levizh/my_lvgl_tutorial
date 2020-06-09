@@ -136,15 +136,6 @@ extern "C"
 #define DDL_VBAT_ENABLE                             (DDL_OFF)
 #define DDL_WDT_ENABLE                              (DDL_OFF)
 
-/* Midware module on-off define */
-#define MW_ON                                       (1U)
-#define MW_OFF                                      (0U)
-
-/**
- * @brief This is the list of midware modules to be used.
- * Select the modules you need to use to MW_ON.
- */
-
 /* BSP on-off define */
 #define BSP_ON                                      (1U)
 #define BSP_OFF                                     (0U)

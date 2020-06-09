@@ -103,8 +103,6 @@ a lot of data that needs to be copied, this should be set high. */
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #define PBUF_POOL_BUFSIZE       1524
 
-/* ---------- IPv4 options ---------- */
-#define LWIP_IPV4               1
 
 /* ---------- TCP options ---------- */
 #define LWIP_TCP                1
@@ -128,6 +126,8 @@ a lot of data that needs to be copied, this should be set high. */
 /* TCP receive window. */
 #define TCP_WND                 (2*TCP_MSS)
 
+/* ---------- IPv4 options ---------- */
+#define LWIP_IPV4               1
 
 /* ---------- ICMP options ---------- */
 #define LWIP_ICMP               1

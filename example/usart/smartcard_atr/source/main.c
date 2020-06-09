@@ -128,7 +128,6 @@ typedef struct
 #define USART_UNIT_RX_INT_IRQn          (Int001_IRQn)
 
 /* Buffer size */
-#define BUFFER_SIZE                     (33U)
 #define IS_BUFFER_EMPYT(x)              (0U == ((x)->u16UsedSize))
 
 /* Smart-card initial character TS: 0x3B or 0x3F */
@@ -152,7 +151,7 @@ static en_result_t BufWrite(stc_buffer_t *pstcBuffer, uint8_t u8Data);
 static stc_buffer_t m_stcRxBuf = {
     .u16InIdx = 0,
     .u16UsedSize = 0,
-    .u16Capacity = BUFFER_SIZE,
+    .u16Capacity = sizeof (m_stcRxBuf.au8Buf),
 };
 
 /*******************************************************************************
@@ -247,6 +246,7 @@ int32_t main(void)
     BSP_LED_Init();
 
     /* Initialize smart card pin. */
+    GPIO_Unlock();
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinDir = PIN_DIR_OUT;
     GPIO_Init(SMARTCARD_RESET_PORT, SMARTCARD_RESET_PIN, &stcGpioInit);
@@ -254,6 +254,7 @@ int32_t main(void)
 
     GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(USART_CK_PORT, USART_CK_PIN, USART_CK_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     while (IS_CARD_REMOVED())
     {

@@ -158,8 +158,8 @@ int32_t main(void)
         u32MemAddr = m_u32MemStartAddr;
         for (i = 0UL; i < m_u32MemByteSize; i += DATA_BUFFER_LEN)
         {
-            CY62167EV30LL_WriteMem8(m_au8WriteData, u32MemAddr, DATA_BUFFER_LEN);
-            CY62167EV30LL_ReadMem8(m_au8ReadData, u32MemAddr, DATA_BUFFER_LEN);
+            CY62167EV30LL_WriteMem8(u32MemAddr, m_au8WriteData, DATA_BUFFER_LEN);
+            CY62167EV30LL_ReadMem8(u32MemAddr, m_au8ReadData, DATA_BUFFER_LEN);
 
             /* Verify write/read data. */
             for (j = 0UL; j < DATA_BUFFER_LEN; j++)
@@ -178,8 +178,8 @@ int32_t main(void)
         u32MemAddr = m_u32MemStartAddr;
         for (i = 0UL; i < m_u32MemHalfwordSize; i += DATA_BUFFER_LEN)
         {
-            CY62167EV30LL_WriteMem16(m_au16WriteData, u32MemAddr, DATA_BUFFER_LEN);
-            CY62167EV30LL_ReadMem16(m_au16ReadData, u32MemAddr, DATA_BUFFER_LEN);
+            CY62167EV30LL_WriteMem16(u32MemAddr, m_au16WriteData, DATA_BUFFER_LEN);
+            CY62167EV30LL_ReadMem16(u32MemAddr, m_au16ReadData, DATA_BUFFER_LEN);
 
             /* Verify write/read data. */
             for (j = 0UL; j < DATA_BUFFER_LEN; j++)
@@ -198,8 +198,8 @@ int32_t main(void)
         u32MemAddr = m_u32MemStartAddr;
         for (i = 0UL; i < m_u32MemWordSize; i += DATA_BUFFER_LEN)
         {
-            CY62167EV30LL_WriteMem32(m_au32WriteData, u32MemAddr, DATA_BUFFER_LEN);
-            CY62167EV30LL_ReadMem32(m_au32ReadData, u32MemAddr, DATA_BUFFER_LEN);
+            CY62167EV30LL_WriteMem32(u32MemAddr, m_au32WriteData, DATA_BUFFER_LEN);
+            CY62167EV30LL_ReadMem32(u32MemAddr, m_au32ReadData, DATA_BUFFER_LEN);
 
             /* Verify write/read data. */
             for (j = 0UL; j < DATA_BUFFER_LEN; j++)

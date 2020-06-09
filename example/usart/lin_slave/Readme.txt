@@ -42,21 +42,24 @@ EV_HC32F4A0_LQPF176_050_V10
 ================================================================================
 使用步骤
 ================================================================================
-1）LIN master板参考如下连接
+1）LIN master板参考如下连接：
+   J32跳冒连接DAP
    J18跳冒连接
    J15_2   <-----> J5_3跳冒连接
 2）LIN slave板参考如下连接：
+   J32跳冒连接DAP
    J18断开
    J15_2   <-----> J5_3跳冒连接
 3）LIN master/slave板参考如下连接：
    LIN master板     LIN slave板
    J16_LIN <-------> J16_LIN
    J16_GND <-------> J16_GND
-4）打开工程lin_master并重新编译，下载代码LIN master板，并且全速运行
-5）打开工程lin_slave并重新编译，下载代码LIN slave板，并且全速运行
-6）按LIN master板SW1按键
-7）观察LIN master板RGB LED灯，蓝色LED灯点亮
-8）重复步骤6）~7），观察LIN master板蓝色LED灯状态
+4）LIN master/slave板通过USB线连接J25 DAP
+5）打开工程lin_master并重新编译，下载代码LIN master板，并且全速运行
+6）打开工程lin_slave并重新编译，下载代码LIN slave板，并且全速运行
+7）按LIN master板SW1按键
+8）观察LIN master板RGB LED灯，蓝色LED灯点亮
+9）重复步骤7）~8），观察LIN master板蓝色LED灯状态
 
 ================================================================================
 注意

@@ -162,13 +162,13 @@ typedef struct
  * @defgroup TMRA_Input_Pin TIMERA Input Pin
  * @{
  */
-#define TMRA_PIN_TRIG                       (1Ul << 0U)                 /*!< Pin TIMA_<t>_TRIG. */
-#define TMRA_PIN_CLKA                       (1Ul << 1U)                 /*!< Pin TIMA_<t>_PWM1/TIMA_<t>_CLKA. */
-#define TMRA_PIN_CLKB                       (1Ul << 2U)                 /*!< Pin TIMA_<t>_PWM2/TIMA_<t>_CLKB. */
-#define TMRA_PIN_PWM1                       (1Ul << 3U)                 /*!< Pin TIMA_<t>_PWM1. */
-#define TMRA_PIN_PWM2                       (1Ul << 4U)                 /*!< Pin TIMA_<t>_PWM2. */
-#define TMRA_PIN_PWM3                       (1Ul << 5U)                 /*!< Pin TIMA_<t>_PWM3. */
-#define TMRA_PIN_PWM4                       (1Ul << 6U)                 /*!< Pin TIMA_<t>_PWM4. */
+#define TMRA_PIN_TRIG                       (1UL << 0U)                 /*!< Pin TIMA_<t>_TRIG. */
+#define TMRA_PIN_CLKA                       (1UL << 1U)                 /*!< Pin TIMA_<t>_PWM1/TIMA_<t>_CLKA. */
+#define TMRA_PIN_CLKB                       (1UL << 2U)                 /*!< Pin TIMA_<t>_PWM2/TIMA_<t>_CLKB. */
+#define TMRA_PIN_PWM1                       (1UL << 3U)                 /*!< Pin TIMA_<t>_PWM1. */
+#define TMRA_PIN_PWM2                       (1UL << 4U)                 /*!< Pin TIMA_<t>_PWM2. */
+#define TMRA_PIN_PWM3                       (1UL << 5U)                 /*!< Pin TIMA_<t>_PWM3. */
+#define TMRA_PIN_PWM4                       (1UL << 6U)                 /*!< Pin TIMA_<t>_PWM4. */
 #define TMRA_PIN_ALL                        (TMRA_PIN_TRIG | \
                                              TMRA_PIN_CLKA | \
                                              TMRA_PIN_CLKB | \
@@ -288,8 +288,8 @@ typedef struct
 #define TMRA_INT_CMP_CH2                    (1UL << 17U)                /*!< The interrupt of compare-match of channel 2. */
 #define TMRA_INT_CMP_CH3                    (1UL << 18U)                /*!< The interrupt of compare-match of channel 3. */
 #define TMRA_INT_CMP_CH4                    (1UL << 19U)                /*!< The interrupt of compare-match of channel 4. */
-#define TMRA_INT_ALL                        (TMRA_INT_OVF | \
-                                             TMRA_INT_UNF | \
+#define TMRA_INT_ALL                        (TMRA_INT_OVF     | \
+                                             TMRA_INT_UNF     | \
                                              TMRA_INT_CMP_CH1 | \
                                              TMRA_INT_CMP_CH2 | \
                                              TMRA_INT_CMP_CH3 | \
@@ -302,14 +302,14 @@ typedef struct
  * @defgroup TMRA_Event_Type TIMERA Event Type
  * @{
  */
-#define TMRA_EVENT_CMP_CH1                  (TMRA_ECONR_ITEN1)          /*!< The event of compare-match of channel 1. */
-#define TMRA_EVENT_CMP_CH2                  (TMRA_ECONR_ITEN2)          /*!< The event of compare-match of channel 2. */
-#define TMRA_EVENT_CMP_CH3                  (TMRA_ECONR_ITEN3)          /*!< The event of compare-match of channel 3. */
-#define TMRA_EVENT_CMP_CH4                  (TMRA_ECONR_ITEN4)          /*!< The event of compare-match of channel 4. */
-#define TMRA_EVENT_ALL                      (TMRA_CMP_MATCH_CH1 | \
-                                             TMRA_CMP_MATCH_CH2 | \
-                                             TMRA_CMP_MATCH_CH3 | \
-                                             TMRA_CMP_MATCH_CH4)
+#define TMRA_EVENT_CMP_CH1                  (TMRA_ECONR_ETEN1)          /*!< The event of compare-match of channel 1. */
+#define TMRA_EVENT_CMP_CH2                  (TMRA_ECONR_ETEN2)          /*!< The event of compare-match of channel 2. */
+#define TMRA_EVENT_CMP_CH3                  (TMRA_ECONR_ETEN3)          /*!< The event of compare-match of channel 3. */
+#define TMRA_EVENT_CMP_CH4                  (TMRA_ECONR_ETEN4)          /*!< The event of compare-match of channel 4. */
+#define TMRA_EVENT_ALL                      (TMRA_EVENT_CMP_CH1 | \
+                                             TMRA_EVENT_CMP_CH2 | \
+                                             TMRA_EVENT_CMP_CH3 | \
+                                             TMRA_EVENT_CMP_CH4)
 /**
  * @}
  */
@@ -541,10 +541,10 @@ typedef struct
  * @defgroup TMRA_Common_Trigger_Event_Command TIMERA Common Trigger Event Command
  * @{
  */
-#define TMRA_COM1_TRIG_DISABLE              ((uint32_t)0x00UL)
-#define TMRA_COM2_TRIG_DISABLE              ((uint32_t)0x00UL)
-#define TMRA_COM1_TRIG_ENABLE               ((uint32_t)(0x01UL << 30U))
-#define TMRA_COM2_TRIG_ENABLE               ((uint32_t)(0x01UL << 31U))
+#define TMRA_COM1_TRIG_DISABLE              (0x00UL)
+#define TMRA_COM2_TRIG_DISABLE              (0x00UL)
+#define TMRA_COM1_TRIG_ENABLE               (0x01UL << 30U)
+#define TMRA_COM2_TRIG_ENABLE               (0x01UL << 31U)
 /**
  * @}
  */
@@ -566,65 +566,65 @@ typedef struct
  */
      en_result_t TMRA_Init(M4_TMRA_TypeDef *TMRAx, const stc_tmra_init_t *pstcInit);
      en_result_t TMRA_StructInit(stc_tmra_init_t *pstcInit);
-     en_result_t TMRA_DeInit(M4_TMRA_TypeDef *TMRAx);
+            void TMRA_DeInit(M4_TMRA_TypeDef *TMRAx);
 
-     en_result_t TMRA_SetCntVal(M4_TMRA_TypeDef *TMRAx, uint32_t u32Val);
+            void TMRA_SetCntVal(M4_TMRA_TypeDef *TMRAx, uint32_t u32Val);
         uint32_t TMRA_GetCntVal(const M4_TMRA_TypeDef *TMRAx);
-     en_result_t TMRA_SetPeriodVal(M4_TMRA_TypeDef *TMRAx, uint32_t u32Val);
+            void TMRA_SetPeriodVal(M4_TMRA_TypeDef *TMRAx, uint32_t u32Val);
         uint32_t TMRA_GetPeriodVal(const M4_TMRA_TypeDef *TMRAx);
 
-     en_result_t TMRA_SetFuncMode(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32FuncMode);
+            void TMRA_SetFuncMode(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32FuncMode);
 
-     en_result_t TMRA_SetCmpVal(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Val);
+            void TMRA_SetCmpVal(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Val);
         uint32_t TMRA_GetCmpVal(const M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh);
 
      en_result_t TMRA_PWM_Config(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, const stc_tmra_pwm_cfg_t *pstcCfg);
      en_result_t TMRA_PWM_StructInit(stc_tmra_pwm_cfg_t *pstcCfg);
-     en_result_t TMRA_PWM_Cmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, en_functional_state_t enNewState);
+            void TMRA_PWM_Cmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, en_functional_state_t enNewState);
 
-     en_result_t TMRA_FilterConfig(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, uint32_t u32ClkDiv);
-     en_result_t TMRA_FilterCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, en_functional_state_t enNewState);
+            void TMRA_FilterConfig(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, uint32_t u32ClkDiv);
+            void TMRA_FilterCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, en_functional_state_t enNewState);
 
-     en_result_t TMRA_SetCaptCond(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Cond);
+            void TMRA_SetCaptCond(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Cond);
      en_result_t TMRA_SetTrigCond(M4_TMRA_TypeDef *TMRAx, const stc_tmra_trig_cond_t *pstcCfg);
      en_result_t TMRA_TrigCondStructInit(stc_tmra_trig_cond_t *pstcCfg);
-     en_result_t TMRA_SetCntEvent(M4_TMRA_TypeDef *TMRAx, en_event_src_t enEvent);
-     en_result_t TMRA_SetCaptEvent(M4_TMRA_TypeDef *TMRAx, en_event_src_t enEvent);
+            void TMRA_SetCntEvent(M4_TMRA_TypeDef *TMRAx, en_event_src_t enEvent);
+            void TMRA_SetCaptEvent(M4_TMRA_TypeDef *TMRAx, en_event_src_t enEvent);
 
-     en_result_t TMRA_SetTrigEvent(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, en_event_src_t enEvent);
-     en_result_t TMRA_ComTrigCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, uint32_t u32ComTrigEn);
+            void TMRA_SetTrigEvent(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, en_event_src_t enEvent);
+            void TMRA_ComTrigCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, uint32_t u32ComTrigEn);
 
-     en_result_t TMRA_CmpValCacheConfig(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32CacheCond);
-     en_result_t TMRA_CmpValCacheCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, en_functional_state_t enNewState);
+            void TMRA_CmpValCacheConfig(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32CacheCond);
+            void TMRA_CmpValCacheCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, en_functional_state_t enNewState);
 
-     en_result_t TMRA_SetOvfOperation(M4_TMRA_TypeDef *TMRAx, uint32_t u32OvfOp);
-     en_result_t TMRA_SyncStartCmd(M4_TMRA_TypeDef *TMRAx, en_functional_state_t enNewState);
+            void TMRA_SetOvfOperation(M4_TMRA_TypeDef *TMRAx, uint32_t u32OvfOp);
+            void TMRA_SyncStartCmd(M4_TMRA_TypeDef *TMRAx, en_functional_state_t enNewState);
 
-     en_result_t TMRA_IntCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32IntType, en_functional_state_t enNewState);
-     en_result_t TMRA_EventCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32EvtType, en_functional_state_t enNewState);
+            void TMRA_IntCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32IntType, en_functional_state_t enNewState);
+            void TMRA_EventCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32EvtType, en_functional_state_t enNewState);
 
 en_flag_status_t TMRA_GetStatus(const M4_TMRA_TypeDef *TMRAx, uint32_t u32Flag);
-     en_result_t TMRA_ClrStatus(M4_TMRA_TypeDef *TMRAx, uint32_t u32Flag);
+            void TMRA_ClrStatus(M4_TMRA_TypeDef *TMRAx, uint32_t u32Flag);
 
-     en_result_t TMRA_Start(M4_TMRA_TypeDef *TMRAx);
-     en_result_t TMRA_Stop(M4_TMRA_TypeDef *TMRAx);
+            void TMRA_Start(M4_TMRA_TypeDef *TMRAx);
+            void TMRA_Stop(M4_TMRA_TypeDef *TMRAx);
 
-     en_result_t TMRA_SetCntDir(M4_TMRA_TypeDef *TMRAx, uint32_t u32CntDir);
-     en_result_t TMRA_SetCntMode(M4_TMRA_TypeDef *TMRAx, uint32_t u32CntMode);
-     en_result_t TMRA_SetPCLKDiv(M4_TMRA_TypeDef *TMRAx, uint32_t u32ClkDiv);
-        uint32_t TMRA_GetCntDir(M4_TMRA_TypeDef *TMRAx);
+            void TMRA_SetCntDir(M4_TMRA_TypeDef *TMRAx, uint32_t u32CntDir);
+            void TMRA_SetCntMode(M4_TMRA_TypeDef *TMRAx, uint32_t u32CntMode);
+            void TMRA_SetPCLKDiv(M4_TMRA_TypeDef *TMRAx, uint32_t u32ClkDiv);
+        uint32_t TMRA_GetCntDir(const M4_TMRA_TypeDef *TMRAx);
 
-     en_result_t TMRA_SetClkSrc(M4_TMRA_TypeDef *TMRAx, uint32_t u32ClkSrc);
-     en_result_t TMRA_HwClkSrcCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32HwClkSrc, en_functional_state_t enNewState);
+            void TMRA_SetClkSrc(M4_TMRA_TypeDef *TMRAx, uint32_t u32ClkSrc);
+            void TMRA_HwClkSrcCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32HwClkSrc, en_functional_state_t enNewState);
 
-     en_result_t TMRA_PWM_SetStartPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
-     en_result_t TMRA_PWM_SetStopPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
-     en_result_t TMRA_PWM_SetCntMatchPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
-     en_result_t TMRA_PWM_SetPeriodMatchPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
-     en_result_t TMRA_PWM_SetForcePolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
+            void TMRA_PWM_SetStartPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
+            void TMRA_PWM_SetStopPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
+            void TMRA_PWM_SetCntMatchPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
+            void TMRA_PWM_SetPeriodMatchPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
+            void TMRA_PWM_SetForcePolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
 
-     en_result_t TMRA_CaptCondCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32CaptCond, en_functional_state_t enNewState);
-     en_result_t TMRA_TrigCondCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32TrigCond, en_functional_state_t enNewState);
+            void TMRA_CaptCondCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32CaptCond, en_functional_state_t enNewState);
+            void TMRA_TrigCondCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32TrigCond, en_functional_state_t enNewState);
 /**
  * @}
  */

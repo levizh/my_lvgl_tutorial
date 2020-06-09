@@ -83,8 +83,8 @@
 #define DDL_UART_CH                     (M4_USART1)
 #define DDL_UART_PWC_FCG                (PWC_FCG3_USART1)
 #define DDL_UART_GPIO_TX_PFSR           (M4_GPIO->PFSRH15)  /* PH15: USART1_TX */
-#define DDL_UART_GPIO_TX_FUNC           ((uint16_t)32U)     /* GPIO function: USART1_TX */
-#define DDL_UART_BAUDRATE               ((uint32_t)115200UL)
+#define DDL_UART_GPIO_TX_FUNC           (32U)               /* GPIO function: USART1_TX */
+#define DDL_UART_BAUDRATE               (115200UL)
 /**
  * @}
  */
@@ -133,10 +133,28 @@ __IO static uint32_t m_u32TickCount = 0UL;
 void DDL_Delay1ms(uint32_t u32Cnt)
 {
     __IO uint32_t i = 0UL;
-    uint32_t u32Cyc = 0UL;
+    uint32_t u32Cyc = HCLK_VALUE / 10000UL;
 
-    u32Cyc = SystemCoreClock;
-    u32Cyc = u32Cyc / 10000UL;
+    while (u32Cnt-- > 0UL)
+    {
+        i = u32Cyc;
+        while (i-- > 0UL)
+        {
+            ;
+        }
+    }
+}
+
+/**
+ * @brief Delay function, delay 1us approximately
+ * @param [in] u32Cnt                   us
+ * @retval None
+ */
+void DDL_Delay1us(uint32_t u32Cnt)
+{
+    __IO uint32_t i = 0UL;
+    uint32_t u32Cyc = HCLK_VALUE / 10000000UL;
+
     while (u32Cnt-- > 0UL)
     {
         i = u32Cyc;
@@ -162,7 +180,7 @@ __WEAKDEF en_result_t SysTick_Init(uint32_t u32Freq)
     {
         m_u32TickStep = 1000UL / u32Freq;
         /* Configure the SysTick interrupt */
-        if (0UL == SysTick_Config(SystemCoreClock / u32Freq))
+        if (0UL == SysTick_Config(HCLK_VALUE / u32Freq))
         {
             enRet = Ok;
         }
@@ -297,56 +315,56 @@ int32_t fputc(int32_t ch, FILE *f)
  * @param  None
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize successfully
- *           - Error: Initialize unsuccessfully
+ *           - Error: Don't permit write the GPIO configuration register or set baudrate unsuccessfully
  */
 en_result_t DDL_PrintfInit(void)
 {
-    en_result_t enRet;
+    en_result_t enRet = Error;
 
-    /* Configure USART TX pin. */
-    WRITE_REG16(M4_GPIO->PWPR, 0xA501U);  /* Unlock */
-    MODIFY_REG16(DDL_UART_GPIO_TX_PFSR, GPIO_PFSR_FSEL, DDL_UART_GPIO_TX_FUNC);
-    WRITE_REG16(M4_GPIO->PWPR, 0xA500U);  /* Lock */
-
-    /* Enable USART1 function clock gate */
-    WRITE_REG16(M4_PWC->FPRC, 0xA501U);  /* Unlock */
-    CLEAR_REG32_BIT(M4_PWC->FCG3, DDL_UART_PWC_FCG);
-    WRITE_REG16(M4_PWC->FPRC, 0xA500U);  /* Lock */
-
-    /***************************************************************************
-     * Configure UART
-     ***************************************************************************
-     * Baud rate: 115200
-     * Bit direction: LSB
-     * Data bits: 8
-     * Stop bits: 1
-     * Parity: None
-     * Sampling bits: 8
-     **************************************************************************/
-    /* Disbale TX/RX && clear flag */
-    WRITE_REG32(DDL_UART_CH->CR1, (USART_CR1_CPE | USART_CR1_CORE  | \
-                                   USART_CR1_CFE | USART_CR1_CRTOF | \
-                                   USART_CR1_CBE | USART_CR1_CWKUP | \
-                                   USART_CR1_CLBD));
-
-    /* Set CR1 */
-    WRITE_REG32(DDL_UART_CH->CR1, (USART_CR1_NFE | USART_CR1_SBS));
-
-    /* Set CR2: reset value */
-    WRITE_REG32(DDL_UART_CH->CR2, 0x00000600UL);
-
-    /* Set CR3: reset value */
-    WRITE_REG32(DDL_UART_CH->CR3, 0x00UL);
-
-    /* Set LBMC: reset value */
-    WRITE_REG32(DDL_UART_CH->LBMC, 0x00UL);
-
-    /* Set baudrate */
-    enRet = SetUartBaudrate(DDL_UART_CH, DDL_UART_BAUDRATE);
-    if (Ok == enRet)
+    /* Check whether permit write GPIO register */
+    if (READ_REG16_BIT(M4_GPIO->PWPR, GPIO_PWPR_WE))
     {
-        /* Enable TX function */
-        SET_REG32_BIT(DDL_UART_CH->CR1, USART_CR1_TE);
+        /* Configure USART TX pin. */
+        MODIFY_REG16(DDL_UART_GPIO_TX_PFSR, GPIO_PFSR_FSEL, DDL_UART_GPIO_TX_FUNC);
+
+        /* Enable USART function clock gate */
+        CLEAR_REG32_BIT(M4_PWC->FCG3, DDL_UART_PWC_FCG);
+
+        /***********************************************************************
+         * Configure UART
+         ***********************************************************************
+         * Baud rate: 115200
+         * Bit direction: LSB
+         * Data bits: 8
+         * Stop bits: 1
+         * Parity: None
+         * Sampling bits: 8
+         **********************************************************************/
+        /* Disbale TX/RX && clear flag */
+        WRITE_REG32(DDL_UART_CH->CR1, (USART_CR1_CPE | USART_CR1_CORE  | \
+                                       USART_CR1_CFE | USART_CR1_CRTOF | \
+                                       USART_CR1_CBE | USART_CR1_CWKUP | \
+                                       USART_CR1_CLBD));
+
+        /* Set CR1 */
+        WRITE_REG32(DDL_UART_CH->CR1, (USART_CR1_NFE | USART_CR1_SBS));
+
+        /* Set CR2: reset value */
+        WRITE_REG32(DDL_UART_CH->CR2, 0x00000600UL);
+
+        /* Set CR3: reset value */
+        WRITE_REG32(DDL_UART_CH->CR3, 0x00UL);
+
+        /* Set LBMC: reset value */
+        WRITE_REG32(DDL_UART_CH->LBMC, 0x00UL);
+
+        /* Set baudrate */
+        enRet = SetUartBaudrate(DDL_UART_CH, DDL_UART_BAUDRATE);
+        if (Ok == enRet)
+        {
+            /* Enable TX function */
+            SET_REG32_BIT(DDL_UART_CH->CR1, USART_CR1_TE);
+        }
     }
 
     return enRet;
@@ -374,16 +392,16 @@ en_result_t DDL_PrintfInit(void)
 static en_result_t SetUartBaudrate(M4_USART_TypeDef *USARTx,
                                     uint32_t u32Baudrate)
 {
-    uint32_t B = 0UL;
-    uint32_t C = 0UL;
-    uint32_t OVER8 = 0UL;
-    float32_t DIV = 0.0f;
-    uint32_t DIV_Integer = 0UL;
-    uint32_t DIV_Fraction = 0UL;
-    uint32_t u32Prescaler = 0UL;
-    uint32_t u32Pclk = 0UL;
-    uint64_t u64Temp = 0UL;
+    uint32_t B;
+    uint32_t C;
+    uint32_t OVER8;
+    float32_t DIV;
+    uint32_t DIV_Integer;
+    uint32_t u32Prescaler;
+    uint32_t u32Pclk;
+    uint64_t u64Temp;
     en_result_t enRet = Error;
+    uint32_t DIV_Fraction = 0UL;
 
     if (u32Baudrate)
     {

@@ -87,11 +87,11 @@ extern "C"
 /**
  * @brief  FCM Init structure definition
  */
-typedef struct stc_fcm_init
+typedef struct
 {
     uint16_t u16LowerLimit;     /*!< FCM lower limit value*/
 
-    uint16_t u16UpperLimit;     /*!< FCM uppert limit value*/
+    uint16_t u16UpperLimit;     /*!< FCM upper limit value*/
 
     uint32_t u32TarClk;         /*!< FCM target clock source selection,         \
                                      @ref FCM_Init_Config for details */
@@ -140,7 +140,7 @@ typedef struct stc_fcm_init
  * @defgroup FCM_Registers_Reset_Value FCM Registers Reset Value
  * @{
  */
-#define FCM_REG_RESET_VALUE     ((uint32_t)0x00000000UL)
+#define FCM_REG_RESET_VALUE     (0x00000000UL)
 /**
  * @}
  */
@@ -153,103 +153,103 @@ typedef struct stc_fcm_init
 /**
  * @brief FCM target clock source selection
  */
-#define FCM_TAR_CLK_XTAL        ((uint32_t)(0x00UL << FCM_MCCR_MCKS_POS))
-#define FCM_TAR_CLK_XTAL32      ((uint32_t)(0x01UL << FCM_MCCR_MCKS_POS))
-#define FCM_TAR_CLK_HRC         ((uint32_t)(0x02UL << FCM_MCCR_MCKS_POS))
-#define FCM_TAR_CLK_LRC         ((uint32_t)(0x03UL << FCM_MCCR_MCKS_POS))
-#define FCM_TAR_CLK_SWDTLRC     ((uint32_t)(0x04UL << FCM_MCCR_MCKS_POS))
-#define FCM_TAR_CLK_PCLK1       ((uint32_t)(0x05UL << FCM_MCCR_MCKS_POS))
-#define FCM_TAR_CLK_PLLAP       ((uint32_t)(0x06UL << FCM_MCCR_MCKS_POS))
-#define FCM_TAR_CLK_MRC         ((uint32_t)(0x07UL << FCM_MCCR_MCKS_POS))
-#define FCM_TAR_CLK_PLLHP       ((uint32_t)(0x08UL << FCM_MCCR_MCKS_POS))
-#define FCM_TAR_CLK_RTCLRC      ((uint32_t)(0x09UL << FCM_MCCR_MCKS_POS))
+#define FCM_TAR_CLK_XTAL        (0x00UL << FCM_MCCR_MCKS_POS)
+#define FCM_TAR_CLK_XTAL32      (0x01UL << FCM_MCCR_MCKS_POS)
+#define FCM_TAR_CLK_HRC         (0x02UL << FCM_MCCR_MCKS_POS)
+#define FCM_TAR_CLK_LRC         (0x03UL << FCM_MCCR_MCKS_POS)
+#define FCM_TAR_CLK_SWDTLRC     (0x04UL << FCM_MCCR_MCKS_POS)
+#define FCM_TAR_CLK_PCLK1       (0x05UL << FCM_MCCR_MCKS_POS)
+#define FCM_TAR_CLK_PLLAP       (0x06UL << FCM_MCCR_MCKS_POS)
+#define FCM_TAR_CLK_MRC         (0x07UL << FCM_MCCR_MCKS_POS)
+#define FCM_TAR_CLK_PLLHP       (0x08UL << FCM_MCCR_MCKS_POS)
+#define FCM_TAR_CLK_RTCLRC      (0x09UL << FCM_MCCR_MCKS_POS)
 
 /**
  * @brief FCM target clock division
  */
-#define FCM_TAR_CLK_DIV1        ((uint32_t)0x00UL)
-#define FCM_TAR_CLK_DIV4        ((uint32_t)0x01UL)
-#define FCM_TAR_CLK_DIV8        ((uint32_t)0x02UL)
-#define FCM_TAR_CLK_DIV32       ((uint32_t)0x03UL)
+#define FCM_TAR_CLK_DIV1        (0x00UL)
+#define FCM_TAR_CLK_DIV4        (0x01UL)
+#define FCM_TAR_CLK_DIV8        (0x02UL)
+#define FCM_TAR_CLK_DIV32       (0x03UL)
 
 /**
  * @brief FCM external reference clock function config
  */
-#define FCM_EX_REF_OFF          ((uint32_t)0x00UL)
-#define FCM_EX_REF_ON           ((uint32_t)(0x01UL << FCM_RCCR_EXREFE_POS))
+#define FCM_EX_REF_OFF          (0x00UL)
+#define FCM_EX_REF_ON           (FCM_RCCR_EXREFE)
 
 /**
  * @brief FCM reference clock edge config
  */
-#define FCM_REF_CLK_RISING      ((uint32_t)0x00UL)
-#define FCM_REF_CLK_FALLING     ((uint32_t)(0x01UL << FCM_RCCR_EDGES_POS))
-#define FCM_REF_CLK_BOTH        ((uint32_t)(0x02UL << FCM_RCCR_EDGES_POS))
+#define FCM_REF_CLK_RISING      (0x00UL)
+#define FCM_REF_CLK_FALLING     (FCM_RCCR_EDGES_0)
+#define FCM_REF_CLK_BOTH        (FCM_RCCR_EDGES_1)
 
 /**
  * @brief FCM digital filter function config
  */
-#define FCM_DF_OFF              ((uint32_t)0x00UL)
-#define FCM_DF_MCKS_DIV1        ((uint32_t)(0x01UL << FCM_RCCR_DNFS_POS))
-#define FCM_DF_MCKS_DIV4        ((uint32_t)(0x02UL << FCM_RCCR_DNFS_POS))
-#define FCM_DF_MCKS_DIV16       ((uint32_t)(0x03UL << FCM_RCCR_DNFS_POS))
+#define FCM_DF_OFF              (0x00UL)
+#define FCM_DF_MCKS_DIV1        (FCM_RCCR_DNFS_0)
+#define FCM_DF_MCKS_DIV4        (FCM_RCCR_DNFS_1)
+#define FCM_DF_MCKS_DIV16       (FCM_RCCR_DNFS)
 
 /**
- * @brief FCM reference clock sourrce selection
+ * @brief FCM reference clock source selection
  */
-#define FCM_REF_CLK_EXINPUT     ((uint32_t)(0x00UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_XTAL        ((uint32_t)(0x10UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_XTAL32      ((uint32_t)(0x11UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_HRC         ((uint32_t)(0x12UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_LRC         ((uint32_t)(0x13UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_SWDTLRC     ((uint32_t)(0x14UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_PCLK1       ((uint32_t)(0x15UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_PCLKAP      ((uint32_t)(0x16UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_MRC         ((uint32_t)(0x17UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_PLLHP       ((uint32_t)(0x18UL << FCM_RCCR_RCKS_POS))
-#define FCM_REF_CLK_RTCLRC      ((uint32_t)(0x19UL << FCM_RCCR_RCKS_POS))
+#define FCM_REF_CLK_EXINPUT     (0x00UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_XTAL        (0x10UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_XTAL32      (0x11UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_HRC         (0x12UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_LRC         (0x13UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_SWDTLRC     (0x14UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_PCLK1       (0x15UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_PCLKAP      (0x16UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_MRC         (0x17UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_PLLHP       (0x18UL << FCM_RCCR_RCKS_POS)
+#define FCM_REF_CLK_RTCLRC      (0x19UL << FCM_RCCR_RCKS_POS)
 
 /**
  * @brief FCM reference clock division
  */
-#define FCM_REF_CLK_DIV32       ((uint32_t)0x00UL)
-#define FCM_REF_CLK_DIV128      ((uint32_t)0x01UL)
-#define FCM_REF_CLK_DIV1024     ((uint32_t)0x02UL)
-#define FCM_REF_CLK_DIV8192     ((uint32_t)0x03UL)
+#define FCM_REF_CLK_DIV32       (0x00UL)
+#define FCM_REF_CLK_DIV128      (0x01UL)
+#define FCM_REF_CLK_DIV1024     (0x02UL)
+#define FCM_REF_CLK_DIV8192     (0x03UL)
 
 /**
  * @brief FCM abnormal reset function config
  */
-#define FCM_RST_OFF             ((uint32_t)0x00UL)
-#define FCM_RST_ON              ((uint32_t)(0x01UL << FCM_RIER_ERRE_POS))
+#define FCM_RST_OFF             (0x00UL)
+#define FCM_RST_ON              (FCM_RIER_ERRE)
 
 /**
  * @brief FCM abnormal behavior selection
  */
-#define FCM_ERR_INT             ((uint32_t)0x00UL)
-#define FCM_ERR_RESET           ((uint32_t)(0x01UL << FCM_RIER_ERRINTRS_POS))
+#define FCM_ERR_INT             (0x00UL)
+#define FCM_ERR_RESET           (FCM_RIER_ERRINTRS)
 
 /**
  * @brief FCM counter overflow interrupt config
  */
-#define FCM_OVF_INT_OFF         ((uint32_t)0x00UL)
-#define FCM_OVF_INT_ON          ((uint32_t)(0x01UL << FCM_RIER_OVFIE_POS))
+#define FCM_OVF_INT_OFF         (0x00UL)
+#define FCM_OVF_INT_ON          (FCM_RIER_OVFIE)
 
 /**
  * @brief FCM measure completed interrupt config
  */
-#define FCM_END_INT_OFF         ((uint32_t)0x00UL)
-#define FCM_END_INT_ON          ((uint32_t)(0x01UL << FCM_RIER_MENDIE_POS))
+#define FCM_END_INT_OFF         (0x00UL)
+#define FCM_END_INT_ON          (FCM_RIER_MENDIE)
 
 /**
  * @brief FCM error interrupt config
  */
-#define FCM_ERR_INT_OFF         ((uint32_t)0x00UL)
-#define FCM_ERR_INT_ON          ((uint32_t)(0x01UL << FCM_RIER_ERRIE_POS))
+#define FCM_ERR_INT_OFF         (0x00UL)
+#define FCM_ERR_INT_ON          (FCM_RIER_ERRIE)
 
 /**
  * @brief FCM interrupt mask
  */
-#define FCM_INT_MSK             (uint32_t)(FCM_OVF_INT_ON | FCM_END_INT_ON | FCM_ERR_INT_ON)
+#define FCM_INT_MSK             (FCM_OVF_INT_ON | FCM_END_INT_ON | FCM_ERR_INT_ON)
 /**
  * @}
  */
@@ -258,10 +258,10 @@ typedef struct stc_fcm_init
  * @defgroup FCM_Flag_Sel FCM status flag selection
  * @{
  */
-#define FCM_FLAG_ERR            (uint32_t)(FCM_SR_ERRF)
-#define FCM_FLAG_END            (uint32_t)(FCM_SR_MENDF)
-#define FCM_FLAG_OVF            (uint32_t)(FCM_SR_OVF)
-#define FCM_FLAG_MSK            (uint32_t)(FCM_SR_ERRF | FCM_SR_MENDF | FCM_SR_OVF)
+#define FCM_FLAG_ERR            (FCM_SR_ERRF)
+#define FCM_FLAG_END            (FCM_SR_MENDF)
+#define FCM_FLAG_OVF            (FCM_SR_OVF)
+#define FCM_FLAG_MSK            (FCM_SR_ERRF | FCM_SR_MENDF | FCM_SR_OVF)
 /**
  * @}
  */
@@ -285,14 +285,14 @@ typedef struct stc_fcm_init
 
 en_result_t FCM_Init(const stc_fcm_init_t *pstcFcmInit);
 en_result_t FCM_StructInit(stc_fcm_init_t *pstcFcmInit);
-en_result_t FCM_DeInit(void);
+void FCM_DeInit(void);
 uint16_t FCM_GetCounter(void);
 void FCM_SetUpLimit(uint16_t u16Lmt);
 void FCM_SetLowLimit(uint16_t u16Lmt);
 void FCM_SetTarClk(uint32_t u32Tar, uint32_t u32Div);
 void FCM_SetRefClk(uint32_t u32Ref, uint32_t u32Div);
-en_flag_status_t FCM_GetStatus(uint32_t u8Flag);
-void FCM_ClearStatus(uint32_t u8Flag);
+en_flag_status_t FCM_GetStatus(uint32_t u32Flag);
+void FCM_ClearStatus(uint32_t u32Flag);
 void FCM_Cmd(en_functional_state_t enNewState);
 
 /**

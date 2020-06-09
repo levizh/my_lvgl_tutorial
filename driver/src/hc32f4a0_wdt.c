@@ -82,25 +82,16 @@
  * @{
  */
 
-/**
- * @defgroup WDT_Registers_Clear_Mask WDT Registers Clear Mask
- * @{
- */
+/* WDT Registers Clear Mask */
 #define WDT_CR_CLEAR_MASK               (WDT_CR_PERI   | WDT_CR_CKS | WDT_CR_WDPT | \
                                          WDT_CR_SLPOFF | WDT_CR_ITS)
-/**
- * @}
- */
 
-/**
- * @defgroup WDT_Refresh_Key WDT Refresh Key
- * @{
- */
-#define WDT_REFRESH_KEY_START           ((uint32_t)0x0123UL)
-#define WDT_REFRESH_KEY_END             ((uint32_t)0x3210UL)
-/**
- * @}
- */
+/* WDT Refresh Key */
+#define WDT_REFRESH_KEY_START           (0x0123UL)
+#define WDT_REFRESH_KEY_END             (0x3210UL)
+
+/* WDT clear flag timeout(ms) */
+#define WDT_CLEAR_FLAG_TIMEOUT          (5UL)
 
 /**
  * @defgroup WDT_Check_Parameters_Validity WDT Check Parameters Validity
@@ -123,7 +114,7 @@
     ((x) == WDT_CLOCK_DIV8192))
 
 #define IS_WDT_ALLOW_REFRESH_RANGE(x)                                          \
-(   ((x) == WDT_RANGE_100PCT)                   ||                             \
+(   ((x) == WDT_RANGE_0TO100PCT)                ||                             \
     ((x) == WDT_RANGE_0TO25PCT)                 ||                             \
     ((x) == WDT_RANGE_25TO50PCT)                ||                             \
     ((x) == WDT_RANGE_0TO50PCT)                 ||                             \
@@ -137,8 +128,7 @@
     ((x) == WDT_RANGE_0TO50PCT_75TO100PCT)      ||                             \
     ((x) == WDT_RANGE_50TO100PCT)               ||                             \
     ((x) == WDT_RANGE_0TO25PCT_50TO100PCT)      ||                             \
-    ((x) == WDT_RANGE_25TO100PCT)               ||                             \
-    ((x) == WDT_RANGE_0TO100PCT))
+    ((x) == WDT_RANGE_25TO100PCT))
 
 #define IS_WDT_LPW_MODE_COUNT(x)                                               \
 (   ((x) == WDT_LPW_MODE_COUNT_CONTINUE)        ||                             \
@@ -149,8 +139,9 @@
     ((x) == WDT_TRIG_EVENT_RESET))
 
 #define IS_WDT_FLAG(x)                                                         \
-(   0UL != ((x) & (WDT_FLAG_UDF                 |                              \
-                   WDT_FLAG_REF)))
+(   (0UL != (x))                                &&                             \
+    (0UL == ((x) & ((uint32_t)(~(WDT_FLAG_UDF   | WDT_FLAG_REF))))))
+
 /**
  * @}
  */
@@ -226,16 +217,6 @@ void WDT_ReloadCounter(void)
 }
 
 /**
- * @brief  Get WDT count value.
- * @param  None
- * @retval Count value
- */
-uint16_t WDT_GetCountValue(void)
-{
-    return (uint16_t)(READ_REG32(M4_WDT->SR) & WDT_SR_CNT);
-}
-
-/**
  * @brief  Get WDT flag status.
  * @param  [in] u32Flag                 Specifies the WDT flag type.
  *         This parameter can be one or any combination of the following values:
@@ -272,7 +253,6 @@ en_flag_status_t WDT_GetStatus(uint32_t u32Flag)
  */
 en_result_t WDT_ClearStatus(uint32_t u32Flag)
 {
-    uint32_t u32RegSta, u32Timeout = 0UL;
     __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
@@ -281,17 +261,15 @@ en_result_t WDT_ClearStatus(uint32_t u32Flag)
 
     CLEAR_REG32_BIT(M4_WDT->SR, u32Flag);
     /* Waiting for FLAG bit clear */
-    u32Timeout = SystemCoreClock >> 8U;
+    u32Count = WDT_CLEAR_FLAG_TIMEOUT * (HCLK_VALUE / 20000UL);
     do
     {
-        u32RegSta = READ_REG32_BIT(M4_WDT->SR, u32Flag);
-        u32Count++;
-    } while ((u32Count < u32Timeout) && (0UL != u32RegSta));
-
-    if (0UL != u32RegSta)
-    {
-        enRet = ErrorTimeout;
-    }
+        if (--u32Count == 0UL)
+        {
+            enRet = ErrorTimeout;
+            break;
+        }
+    } while (0UL != READ_REG32_BIT(M4_WDT->SR, u32Flag));
 
     return enRet;
 }

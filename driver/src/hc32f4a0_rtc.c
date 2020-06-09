@@ -83,11 +83,17 @@
  */
 
 /* RTC TPCR register Mask */
-#define RTC_TPCR_CLEAR_MASK             (RTC_TPCR0_TPCT0   | RTC_TPCR0_TPNF0 | \
-                                         RTC_TPCR0_TPRSTE0 | RTC_TPCR0_TSTPE0)
+#define RTC_TPCR_CLEAR_MASK                 (RTC_TPCR0_TPCT0   | RTC_TPCR0_TPNF0 | \
+                                             RTC_TPCR0_TPRSTE0 | RTC_TPCR0_TSTPE0)
 
 /* Get the specified register address of the RTC Intrusion Control */
-#define RTC_TPCRx(__CH__)               ((uint32_t)(&(M4_RTC->TPCR0)) + (uint32_t)(__CH__))
+#define RTC_TPCRx(__CH__)                   ((uint32_t)(&(M4_RTC->TPCR0)) + (uint32_t)(__CH__))
+
+/* RTC software reset timeout(ms) */
+#define RTC_SOFTWARE_RESET_TIMEOUT          (100UL)
+
+/* RTC mode switch timeout(ms) */
+#define RTC_MODE_SWITCH_TIMEOUT             (100UL)
 
 /**
  * @defgroup RTC_Check_Parameters_Validity RTC Check Parameters Validity
@@ -99,7 +105,7 @@
 
 #define IS_RTC_CLOCK_SOURCE(x)                                                 \
 (   ((x) == RTC_CLOCK_SOURCE_XTAL32)                ||                         \
-    ((x) == RTC_CLOCK_SOURCE_LRC))
+    ((x) == RTC_CLOCK_SOURCE_RTCLRC))
 
 #define IS_RTC_HOUR_FORMAT(x)                                                  \
 (   ((x) == RTC_HOUR_FORMAT_12)                     ||                         \
@@ -150,25 +156,28 @@
     ((x) == RTC_DETECT_DEGE_RISING_FALLING))
 
 #define IS_RTC_GET_FLAG(x)                                                     \
-(   0UL != ((x) & (RTC_FLAG_PRDF                    |                          \
-                   RTC_FLAG_ALMF                    |                          \
-                   RTC_FLAG_RWEN                    |                          \
-                   RTC_FLAG_TPOVF                   |                          \
-                   RTC_FLAG_TPF1                    |                          \
-                   RTC_FLAG_TPF0)))
+(   (0UL != (x))                                    &&                         \
+    (0UL == ((x) & ((uint32_t)(~(RTC_FLAG_PRDF      |                          \
+                                RTC_FLAG_ALMF       |                          \
+                                RTC_FLAG_RWEN       |                          \
+                                RTC_FLAG_TPOVF      |                          \
+                                RTC_FLAG_TPF0       |                          \
+                                RTC_FLAG_TPF1))))))
 
 #define IS_RTC_CLEAR_FLAG(x)                                                   \
-(   0UL != ((x) & (RTC_FLAG_PRDF                    |                          \
-                   RTC_FLAG_ALMF                    |                          \
-                   RTC_FLAG_TPOVF                   |                          \
-                   RTC_FLAG_TPF1                    |                          \
-                   RTC_FLAG_TPF0)))
+(   (0UL != (x))                                    &&                         \
+    (0UL == ((x) & ((uint32_t)(~(RTC_FLAG_PRDF      |                          \
+                                 RTC_FLAG_ALMF      |                          \
+                                 RTC_FLAG_TPOVF     |                          \
+                                 RTC_FLAG_TPF0      |                          \
+                                 RTC_FLAG_TPF1))))))
 
 #define IS_RTC_INTERRUPT(x)                                                    \
-(   0UL != ((x) & (RTC_INT_PRDIE                    |                          \
-                   RTC_INT_ALMIE                    |                          \
-                   RTC_INT_TPIE1                    |                          \
-                   RTC_INT_TPIE0)))
+(   (0UL != (x))                                    &&                         \
+    (0UL == ((x) & ((uint32_t)(~(RTC_INT_PRDIE      |                          \
+                                 RTC_INT_ALMIE      |                          \
+                                 RTC_INT_TPIE0      |                          \
+                                 RTC_INT_TPIE1))))))
 
 #define IS_RTC_YEAR(x)                              ((x) <= 99U)
 
@@ -226,39 +235,35 @@
  */
 en_result_t RTC_DeInit(void)
 {
-    uint32_t u32RegSta, u32Timeout = 0UL;
     __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
-    bM4_RTC->CR0_b.RESET = Reset;
+    WRITE_REG32(bM4_RTC->CR0_b.RESET, Reset);
     /* Waiting for normal count status or end of RTC software reset */
-    u32Timeout = SystemCoreClock >> 8U;
+    u32Count = RTC_SOFTWARE_RESET_TIMEOUT * (HCLK_VALUE / 20000UL);
     do
     {
-        u32RegSta = bM4_RTC->CR0_b.RESET;
-        u32Count++;
-    } while ((u32Count < u32Timeout) && (0UL != u32RegSta));
-
-    if (0UL != u32RegSta)
-    {
-        enRet = ErrorTimeout;
-    }
-    else
-    {
-        /* Reset all RTC registers */
-        bM4_RTC->CR0_b.RESET = Set;
-        /* Waiting for RTC software reset to complete */
-        u32Timeout = SystemCoreClock >> 8U;
-        do
-        {
-            u32RegSta = bM4_RTC->CR0_b.RESET;
-            u32Count++;
-        } while ((u32Count < u32Timeout) && (0UL != u32RegSta));
-
-        if (0UL != u32RegSta)
+        if (--u32Count == 0UL)
         {
             enRet = ErrorTimeout;
+            break;
         }
+    } while (0UL != READ_REG32(bM4_RTC->CR0_b.RESET));
+
+    if (Ok == enRet)
+    {
+        /* Reset all RTC registers */
+        WRITE_REG32(bM4_RTC->CR0_b.RESET, Set);
+        /* Waiting for RTC software reset to complete */
+        u32Count = RTC_SOFTWARE_RESET_TIMEOUT * (HCLK_VALUE / 20000UL);
+        do
+        {
+            if (--u32Count == 0UL)
+            {
+                enRet = ErrorTimeout;
+                break;
+            }
+        } while (0UL != READ_REG32(bM4_RTC->CR0_b.RESET));
     }
 
     return enRet;
@@ -320,7 +325,7 @@ en_result_t RTC_StructInit(stc_rtc_init_t *pstcRtcInit)
     }
     else
     {
-        pstcRtcInit->u8ClockSource      = RTC_CLOCK_SOURCE_LRC;
+        pstcRtcInit->u8ClockSource      = RTC_CLOCK_SOURCE_RTCLRC;
         pstcRtcInit->u8HourFormat       = RTC_HOUR_FORMAT_24;
         pstcRtcInit->u8PeriodInterrupt  = RTC_PERIOD_INT_INVALID;
         pstcRtcInit->u8ClkCompenEn      = RTC_CLOCK_COMPEN_DISABLE;
@@ -340,26 +345,23 @@ en_result_t RTC_StructInit(stc_rtc_init_t *pstcRtcInit)
  */
 en_result_t RTC_EnterRwMode(void)
 {
-    uint32_t u32RegSta, u32Timeout = 0UL;
     __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
     /* Mode switch when RTC is running */
-    if (0UL != bM4_RTC->CR1_b.START)
+    if (0UL != READ_REG32(bM4_RTC->CR1_b.START))
     {
-        bM4_RTC->CR2_b.RWREQ = Set;
+        WRITE_REG32(bM4_RTC->CR2_b.RWREQ, Set);
         /* Waiting for RWEN bit set */
-        u32Timeout = SystemCoreClock >> 8U;
+        u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
         do
         {
-            u32RegSta = bM4_RTC->CR2_b.RWEN;
-            u32Count++;
-        } while ((u32Count < u32Timeout) && (1UL != u32RegSta));
-
-        if (1UL != u32RegSta)
-        {
-            enRet = ErrorTimeout;
-        }
+            if (--u32Count == 0UL)
+            {
+                enRet = ErrorTimeout;
+                break;
+            }
+        } while (1UL != READ_REG32(bM4_RTC->CR2_b.RWEN));
     }
 
     return enRet;
@@ -374,26 +376,23 @@ en_result_t RTC_EnterRwMode(void)
  */
 en_result_t RTC_ExitRwMode(void)
 {
-    uint32_t u32RegSta, u32Timeout = 0UL;
     __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
     /* Mode switch when RTC is running */
-    if (0UL != bM4_RTC->CR1_b.START)
+    if (0UL != READ_REG32(bM4_RTC->CR1_b.START))
     {
-        bM4_RTC->CR2_b.RWREQ = Reset;
+        WRITE_REG32(bM4_RTC->CR2_b.RWREQ, Reset);
         /* Waiting for RWEN bit reset */
-        u32Timeout = SystemCoreClock >> 8U;
+        u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
         do
         {
-            u32RegSta = bM4_RTC->CR2_b.RWEN;
-            u32Count++;
-        } while ((u32Count < u32Timeout) && (0UL != u32RegSta));
-
-        if (0UL != u32RegSta)
-        {
-            enRet = ErrorTimeout;
-        }
+            if (--u32Count == 0UL)
+            {
+                enRet = ErrorTimeout;
+                break;
+            }
+        } while (0UL != READ_REG32(bM4_RTC->CR2_b.RWEN));
     }
 
     return enRet;
@@ -419,21 +418,21 @@ void RTC_PeriodIntConfig(uint8_t u8IntCond)
     /* Check parameters */
     DDL_ASSERT(IS_RTC_PERIOD_INTERRUPT(u8IntCond));
 
-    u32RtcSta = bM4_RTC->CR1_b.START;
-    u32IntSta = bM4_RTC->CR2_b.PRDIE;
+    u32RtcSta = READ_REG32(bM4_RTC->CR1_b.START);
+    u32IntSta = READ_REG32(bM4_RTC->CR2_b.PRDIE);
     /* Disable period interrupt when START=1 and clear period flag after write */
     if ((0UL != u32IntSta) && (0UL != u32RtcSta))
     {
-        bM4_RTC->CR2_b.PRDIE = Reset;
+        WRITE_REG32(bM4_RTC->CR2_b.PRDIE, Reset);
     }
 
     /* RTC CR1 Configuration */
     MODIFY_REG8(M4_RTC->CR1, RTC_CR1_PRDS, u8IntCond);
-    bM4_RTC->CR2_b.PRDF = Reset;
+    WRITE_REG32(bM4_RTC->CR2_b.PRDF, Reset);
 
     if ((0UL != u32IntSta) && (0UL != u32RtcSta))
     {
-        bM4_RTC->CR2_b.PRDIE = Set;
+        WRITE_REG32(bM4_RTC->CR2_b.PRDIE, Set);
     }
 }
 
@@ -446,41 +445,37 @@ void RTC_PeriodIntConfig(uint8_t u8IntCond)
  */
 en_result_t RTC_LowPowerCheck(void)
 {
-    uint32_t u32RegSta, u32Timeout = 0UL;
     __IO uint32_t u32Count = 0UL;
     en_result_t enRet = Ok;
 
     /* Check RTC work status */
-    if (0UL != bM4_RTC->CR1_b.START)
+    if (0UL != READ_REG32(bM4_RTC->CR1_b.START))
     {
-        bM4_RTC->CR2_b.RWREQ = Set;
+        WRITE_REG32(bM4_RTC->CR2_b.RWREQ, Set);
         /* Waiting for RTC RWEN bit set */
-        u32Timeout = SystemCoreClock >> 8U;
+        u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
         do
         {
-            u32RegSta = bM4_RTC->CR2_b.RWEN;
-            u32Count++;
-        } while ((u32Count < u32Timeout) && (1UL != u32RegSta));
-
-        if (1UL != u32RegSta)
-        {
-            enRet = ErrorTimeout;
-        }
-        else
-        {
-            bM4_RTC->CR2_b.RWREQ = Reset;
-            /* Waiting for RTC RWEN bit reset */
-            u32Count = 0UL;
-            do
-            {
-                u32RegSta = bM4_RTC->CR2_b.RWEN;
-                u32Count++;
-            } while ((u32Count < u32Timeout) && (0UL != u32RegSta));
-
-            if (0UL != u32RegSta)
+            if (--u32Count == 0UL)
             {
                 enRet = ErrorTimeout;
+                break;
             }
+        } while (1UL != READ_REG32(bM4_RTC->CR2_b.RWEN));
+
+        if (Ok == enRet)
+        {
+            WRITE_REG32(bM4_RTC->CR2_b.RWREQ, Reset);
+            /* Waiting for RTC RWEN bit reset */
+            u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
+            do
+            {
+                if (--u32Count == 0UL)
+                {
+                    enRet = ErrorTimeout;
+                    break;
+                }
+            } while (0UL != READ_REG32(bM4_RTC->CR2_b.RWEN));
         }
     }
 
@@ -498,7 +493,7 @@ void RTC_SetClkCompenValue(uint16_t u16CompenVal)
     /* Check parameters */
     DDL_ASSERT(IS_RTC_COMPENSATION_VALUE(u16CompenVal));
 
-    bM4_RTC->ERRCRH_b.COMP8 = ((uint32_t)u16CompenVal >> 8U) & 0x01U;
+    WRITE_REG32(bM4_RTC->ERRCRH_b.COMP8, ((uint32_t)u16CompenVal >> 8U) & 0x01U);
     WRITE_REG8(M4_RTC->ERRCRL, (uint8_t)(u16CompenVal & 0x00FFU));
 }
 
@@ -513,7 +508,21 @@ void RTC_Cmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_RTC->CR1_b.START = enNewSta;
+    WRITE_REG32(bM4_RTC->CR1_b.START, enNewSta);
+}
+
+/**
+ * @brief  Enable or disable RTC LRC function.
+ * @param  [in] enNewSta                The function new state.
+ *           @arg This parameter can be: Enable or Disable.
+ * @retval None
+ */
+void RTC_LrcCmd(en_functional_state_t enNewSta)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
+
+    WRITE_REG32(bM4_RTC->CR3_b.LRCEN, enNewSta);
 }
 
 /**
@@ -525,7 +534,7 @@ void RTC_Cmd(en_functional_state_t enNewSta)
  */
 en_functional_state_t RTC_GetCounterState(void)
 {
-    return (en_functional_state_t)(bM4_RTC->CR1_b.START);
+    return (en_functional_state_t)(READ_REG32(bM4_RTC->CR1_b.START));
 }
 
 /**
@@ -539,7 +548,7 @@ void RTC_OneHzOutputCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_RTC->CR1_b.ONEHZOE = enNewSta;
+    WRITE_REG32(bM4_RTC->CR1_b.ONEHZOE, enNewSta);
 }
 
 /**
@@ -553,7 +562,7 @@ void RTC_ClkCompenCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_RTC->ERRCRH_b.COMPEN = enNewSta;
+    WRITE_REG32(bM4_RTC->ERRCRH_b.COMPEN, enNewSta);
 }
 
 /**
@@ -706,7 +715,7 @@ en_result_t RTC_SetTime(uint8_t u8Format, stc_rtc_time_t *pstcRtcTime)
         DDL_ASSERT(IS_RTC_DATA_FORMAT(u8Format));
         if (RTC_DATA_FORMAT_DEC != u8Format)
         {
-            if (RTC_HOUR_FORMAT_12 == bM4_RTC->CR1_b.AMPM)
+            if (RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM))
             {
                 DDL_ASSERT(IS_RTC_HOUR12(BCD2DEC(pstcRtcTime->u8Hour)));
                 DDL_ASSERT(IS_RTC_HOUR12_AM_PM(pstcRtcTime->u8AmPm));
@@ -720,7 +729,7 @@ en_result_t RTC_SetTime(uint8_t u8Format, stc_rtc_time_t *pstcRtcTime)
         }
         else
         {
-            if (RTC_HOUR_FORMAT_12 == bM4_RTC->CR1_b.AMPM)
+            if (RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM))
             {
                 DDL_ASSERT(IS_RTC_HOUR12(pstcRtcTime->u8Hour));
                 DDL_ASSERT(IS_RTC_HOUR12_AM_PM(pstcRtcTime->u8AmPm));
@@ -746,7 +755,7 @@ en_result_t RTC_SetTime(uint8_t u8Format, stc_rtc_time_t *pstcRtcTime)
                 pstcRtcTime->u8Minute = DEC2BCD(pstcRtcTime->u8Minute);
                 pstcRtcTime->u8Second = DEC2BCD(pstcRtcTime->u8Second);
             }
-            if ((RTC_HOUR_FORMAT_12 == bM4_RTC->CR1_b.AMPM) &&
+            if ((RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM)) &&
                 (RTC_HOUR12_PM == pstcRtcTime->u8AmPm))
             {
                 pstcRtcTime->u8Hour |= RTC_HOUR12_PM;
@@ -803,7 +812,7 @@ en_result_t RTC_GetTime(uint8_t u8Format, stc_rtc_time_t *pstcRtcTime)
             pstcRtcTime->u8Minute = READ_REG8(M4_RTC->MIN);
             pstcRtcTime->u8Second = READ_REG8(M4_RTC->SEC);
 
-            if (RTC_HOUR_FORMAT_12 == bM4_RTC->CR1_b.AMPM)
+            if (RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM))
             {
                 if (RTC_HOUR12_PM == (pstcRtcTime->u8Hour & RTC_HOUR12_PM))
                 {
@@ -864,7 +873,7 @@ en_result_t RTC_SetAlarm(uint8_t u8Format, stc_rtc_alarm_t *pstcRtcAlarm)
         DDL_ASSERT(IS_RTC_DATA_FORMAT(u8Format));
         if (RTC_DATA_FORMAT_DEC != u8Format)
         {
-            if (RTC_HOUR_FORMAT_12 == bM4_RTC->CR1_b.AMPM)
+            if (RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM))
             {
                 DDL_ASSERT(IS_RTC_HOUR12(BCD2DEC(pstcRtcAlarm->u8AlarmHour)));
                 DDL_ASSERT(IS_RTC_HOUR12_AM_PM(pstcRtcAlarm->u8AlarmAmPm));
@@ -877,7 +886,7 @@ en_result_t RTC_SetAlarm(uint8_t u8Format, stc_rtc_alarm_t *pstcRtcAlarm)
         }
         else
         {
-            if (RTC_HOUR_FORMAT_12 == bM4_RTC->CR1_b.AMPM)
+            if (RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM))
             {
                 DDL_ASSERT(IS_RTC_HOUR12(pstcRtcAlarm->u8AlarmHour));
                 DDL_ASSERT(IS_RTC_HOUR12_AM_PM(pstcRtcAlarm->u8AlarmAmPm));
@@ -896,7 +905,7 @@ en_result_t RTC_SetAlarm(uint8_t u8Format, stc_rtc_alarm_t *pstcRtcAlarm)
             pstcRtcAlarm->u8AlarmHour   = DEC2BCD(pstcRtcAlarm->u8AlarmHour);
             pstcRtcAlarm->u8AlarmMinute = DEC2BCD(pstcRtcAlarm->u8AlarmMinute);
         }
-        if ((RTC_HOUR_FORMAT_12 == bM4_RTC->CR1_b.AMPM) &&
+        if ((RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM)) &&
             (RTC_HOUR12_PM == pstcRtcAlarm->u8AlarmAmPm))
         {
             pstcRtcAlarm->u8AlarmHour |= RTC_HOUR12_PM;
@@ -939,7 +948,7 @@ en_result_t RTC_GetAlarm(uint8_t u8Format, stc_rtc_alarm_t *pstcRtcAlarm)
         pstcRtcAlarm->u8AlarmMinute  = READ_REG8(M4_RTC->ALMMIN);
         pstcRtcAlarm->u8AlarmHour    = READ_REG8(M4_RTC->ALMHOUR);
 
-        if (RTC_HOUR_FORMAT_12 == bM4_RTC->CR1_b.AMPM)
+        if (RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM))
         {
             if (RTC_HOUR12_PM == (pstcRtcAlarm->u8AlarmHour & RTC_HOUR12_PM))
             {
@@ -974,7 +983,7 @@ void RTC_AlarmCmd(en_functional_state_t enNewSta)
     /* Check parameters */
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
 
-    bM4_RTC->CR2_b.ALME = enNewSta;
+    WRITE_REG32(bM4_RTC->CR2_b.ALME, enNewSta);
 }
 
 /**
@@ -1047,7 +1056,7 @@ en_result_t RTC_GetIntrusionTimestamp(uint8_t u8Format, stc_rtc_timestamp_t *stc
         stcTimestamp->u8TSMonth          = READ_REG8(M4_RTC->MONTP);
         stcTimestamp->u8TSDay            = READ_REG8(M4_RTC->DAYTP);
 
-        if (RTC_HOUR_FORMAT_12 == bM4_RTC->CR1_b.AMPM)
+        if (RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM))
         {
             if (RTC_HOUR12_PM == (stcTimestamp->stcTSTime.u8Hour & RTC_HOUR12_PM))
             {
@@ -1096,11 +1105,11 @@ void RTC_IntrusionCmd(uint8_t u8Ch, en_functional_state_t enNewSta)
 
     if (RTC_INTRU_CH0 != u8Ch)
     {
-        bM4_RTC->TPCR1_b.TPEN1 = enNewSta;
+        WRITE_REG32(bM4_RTC->TPCR1_b.TPEN1, enNewSta);
     }
     else
     {
-        bM4_RTC->TPCR0_b.TPEN0 = enNewSta;
+        WRITE_REG32(bM4_RTC->TPCR0_b.TPEN0, enNewSta);
     }
 }
 
@@ -1110,8 +1119,8 @@ void RTC_IntrusionCmd(uint8_t u8Ch, en_functional_state_t enNewSta)
  *         This parameter can be one or any combination of the following values:
  *           @arg RTC_INT_PRDIE:    Period interrupt
  *           @arg RTC_INT_ALMIE:    Alarm interrupt
- *           @arg RTC_INT_TPIE1:    RTCIC1 invasion interrupt
  *           @arg RTC_INT_TPIE0:    RTCIC0 invasion interrupt
+ *           @arg RTC_INT_TPIE1:    RTCIC1 invasion interrupt
  * @param  [in] enNewSta                The function new state.
  *           @arg This parameter can be: Enable or Disable.
  * @retval None
@@ -1136,12 +1145,12 @@ void RTC_IntCmd(uint32_t u32IntSrc, en_functional_state_t enNewSta)
 
     if (0UL != (u32IntSrc & 0x00FF00UL))
     {
-        bM4_RTC->TPCR0_b.TPIE0 = enNewSta;
+        WRITE_REG32(bM4_RTC->TPCR0_b.TPIE0, enNewSta);
     }
 
     if (0UL != (u32IntSrc & 0xFF0000UL))
     {
-        bM4_RTC->TPCR1_b.TPIE1 = enNewSta;
+        WRITE_REG32(bM4_RTC->TPCR1_b.TPIE1, enNewSta);
     }
 }
 
@@ -1153,8 +1162,8 @@ void RTC_IntCmd(uint32_t u32IntSrc, en_functional_state_t enNewSta)
  *           @arg RTC_FLAG_ALMF:    Alarm flag
  *           @arg RTC_FLAG_RWEN:    Read and write permission flag
  *           @arg RTC_FLAG_TPOVF:   Invasion overflow flag
- *           @arg RTC_FLAG_TPF1:    RTCIC1 invasion flag
  *           @arg RTC_FLAG_TPF0:    RTCIC0 invasion flag
+ *           @arg RTC_FLAG_TPF1:    RTCIC1 invasion flag
  * @retval An en_flag_status_t enumeration value:
  *           - Set: Flag is set
  *           - Reset: Flag is reset
@@ -1194,8 +1203,8 @@ en_flag_status_t RTC_GetStatus(uint32_t u32Flag)
  *           @arg RTC_FLAG_PRDF:    Period flag
  *           @arg RTC_FLAG_ALMF:    Alarm flag
  *           @arg RTC_FLAG_TPOVF:   Invasion overflow flag
- *           @arg RTC_FLAG_TPF1:    RTCIC1 invasion flag
  *           @arg RTC_FLAG_TPF0:    RTCIC0 invasion flag
+ *           @arg RTC_FLAG_TPF1:    RTCIC1 invasion flag
  * @retval None
  */
 void RTC_ClearStatus(uint32_t u32Flag)

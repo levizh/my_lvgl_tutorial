@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * @file  template/source/main.c
+ * @file  timer6\timer6_define_pwm_number\source\main.c
  * @brief Main program template for the Device Driver Library.
  @verbatim
    Change Logs:
@@ -144,7 +144,7 @@ int32_t main(void)
 
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMR6_1, Enable);
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMR6_2, Enable);
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
 
     /* Timer6 PWM output port configuration */
     GPIO_SetFunc(TMR6_1_PWMA_PORT, TMR6_1_PWMA_PIN, GPIO_FUNC_3_TIM61_PWMA, PIN_SUBFUNC_DISABLE);

@@ -74,7 +74,7 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-
+/* Pin definitions. */
 #define QSPI_CS_PORT            (GPIO_PORT_C)
 #define QSPI_CS_PIN             (GPIO_PIN_07)
 #define QSPI_SCK_PORT           (GPIO_PORT_C)
@@ -96,7 +96,8 @@
 #define DBG(...)
 #endif
 
-#define WORD_2_BYTE(__word__, __au8__)                        \
+/* Macro of word-to-byte. */
+#define WORD_TO_BYTE(__word__, __au8__)                       \
         do {                                                  \
                 (__au8__)[0U] = (uint8_t)(__word__);          \
                 (__au8__)[1U] = (uint8_t)((__word__) >> 8U);  \
@@ -104,6 +105,11 @@
                 (__au8__)[3U] = (uint8_t)((__word__) >> 24U); \
         } while (0U)
 
+/* Data size definition for this example. */
+#define APP_TEST_DATA_SIZE                  (1024UL * 4UL)
+
+/* External QSPI flash address definition. */
+#define APP_TEST_ADDRESS                    (1024UL * 4UL)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -128,66 +134,19 @@ void W25Q64_WriteData(uint32_t u32Address, const uint8_t pu8WriteBuf[], uint32_t
 void W25Q64_ReadData(uint32_t u32Address, uint8_t pu8ReadBuf[], uint32_t u32NumByteToRead);
 void W25Q64_ReadDataStd(uint32_t u32Address, uint8_t pu8ReadBuf[], uint32_t u32NumByteToRead);
 
-
 void W25Q64_WriteCommand(uint8_t u8Instr, uint8_t pu8InstrData[], uint32_t u32InstrDataSize, uint32_t u32DummyBytes);
 en_result_t W25Q64_CheckProcessDone(void);
 
+void AppLoadData(void);
+void AppClearData(void);
+void AppCheckPageProgram(void);
+void AppCheckErase(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-#define APP_TEST_DATA_SIZE                  (1024UL * 4UL)
-#define APP_TEST_ADDRESS                    (1024UL * 4UL)
 uint8_t m_au8WriteData[APP_TEST_DATA_SIZE];
 uint8_t m_au8ReadData[APP_TEST_DATA_SIZE];
-
-
-void LoadData(void)
-{
-    uint32_t i;
-    for (i=0UL; i<APP_TEST_DATA_SIZE; i++)
-    {
-        m_au8WriteData[i] = (uint8_t)(i % 256);
-    }
-}
-
-void ClearData(void)
-{
-    uint32_t i;
-    for (i=0UL; i<APP_TEST_DATA_SIZE; i++)
-    {
-        m_au8ReadData[i] = 0U;
-    }
-}
-
-uint8_t CheckPageProgram(void)
-{
-    uint32_t i;
-    for (i=0UL; i<APP_TEST_DATA_SIZE; i++)
-    {
-        if (m_au8ReadData[i] != m_au8WriteData[i])
-        {
-            return 1U;
-        }
-    }
-
-    return 0U;
-}
-
-uint8_t CheckErase(uint32_t u32Szie)
-{
-    uint32_t i;
-    for (i=0UL; i<u32Szie; i++)
-    {
-        if (m_au8ReadData[i] != 0xFFU)
-        {
-            return 1U;
-        }
-    }
-
-    return 0U;
-}
-
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -419,7 +378,7 @@ void W25Q64_EraseChip(void)
 void W25Q64_EraseSector(uint32_t u32SectorAddress)
 {
     uint8_t au8Address[4U];
-    WORD_2_BYTE(u32SectorAddress, au8Address);
+    WORD_TO_BYTE(u32SectorAddress, au8Address);
     W25Q64_WriteEnable();
     W25Q64_WriteCommand(W25Q64_SECTOR_ERASE, au8Address, 3U, 0U);
     W25Q64_CheckProcessDone();
@@ -434,7 +393,7 @@ void W25Q64_EraseSector(uint32_t u32SectorAddress)
 void W25Q64_EraseBlock(uint8_t u8EraseBlockInstr, uint32_t u32BlockAddress)
 {
     uint8_t au8Address[4U];
-    WORD_2_BYTE(u32BlockAddress, au8Address);
+    WORD_TO_BYTE(u32BlockAddress, au8Address);
     W25Q64_WriteEnable();
     W25Q64_WriteCommand(u8EraseBlockInstr, au8Address, 3U, 0U);
     W25Q64_CheckProcessDone();
@@ -521,6 +480,51 @@ void W25Q64_ReadDataStd(uint32_t u32Address, uint8_t pu8ReadBuf[], uint32_t u32N
 }
 
 
+void AppLoadData(void)
+{
+    uint32_t i;
+    for (i=0UL; i<APP_TEST_DATA_SIZE; i++)
+    {
+        m_au8WriteData[i] = (uint8_t)(i % 256);
+    }
+}
+
+void AppClearData(void)
+{
+    uint32_t i;
+    for (i=0UL; i<APP_TEST_DATA_SIZE; i++)
+    {
+        m_au8ReadData[i] = 0U;
+    }
+}
+
+uint8_t AppCheckPageProgram(void)
+{
+    uint32_t i;
+    for (i=0UL; i<APP_TEST_DATA_SIZE; i++)
+    {
+        if (m_au8ReadData[i] != m_au8WriteData[i])
+        {
+            return 1U;
+        }
+    }
+
+    return 0U;
+}
+
+uint8_t AppCheckErase(uint32_t u32Szie)
+{
+    uint32_t i;
+    for (i=0UL; i<u32Szie; i++)
+    {
+        if (m_au8ReadData[i] != 0xFFU)
+        {
+            return 1U;
+        }
+    }
+
+    return 0U;
+}
 
 /**
  * @}

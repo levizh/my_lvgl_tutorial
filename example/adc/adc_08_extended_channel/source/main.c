@@ -163,7 +163,7 @@ int32_t main(void)
     {
         /* Get the internal reference voltage. */
         PWC_VBAT_MonitorCmd(Disable);
-        PWC_VBAT_VolMeasureCmd(Disable);
+        PWC_VBAT_MeasureVolCmd(Disable);
         PWC_AdcInternVolSel(PWC_AD_INTERN_REF);
         /* Delay 50us is needed. */
         DDL_Delay1ms(1U);
@@ -172,7 +172,7 @@ int32_t main(void)
 
         /* Get the half voltage of VBAT. */
         PWC_VBAT_MonitorCmd(Enable);
-        PWC_VBAT_VolMeasureCmd(Enable);
+        PWC_VBAT_MeasureVolCmd(Enable);
         PWC_AdcInternVolSel(PWC_AD_VBAT_DIV2);
         /* Delay 50us is needed. */
         DDL_Delay1ms(1U);

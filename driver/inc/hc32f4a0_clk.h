@@ -123,7 +123,7 @@ typedef struct
 /**
  * @brief  CLK XTAL32 configuration structure definition
  */
-typedef struct stc_clk_xtal32_init
+typedef struct
 {
     uint8_t u8Xtal32State;      /*!< Xtal32 new state,
                                     @ref CLK_XTAL32_Config for details */
@@ -138,7 +138,7 @@ typedef struct stc_clk_xtal32_init
 /**
  * @brief  CLK PLLH configuration structure definition
  */
-typedef struct stc_clk_pllh_init
+typedef struct
 {
     uint8_t u8PLLState;         /*!< PLLH new state,
                                     @ref CLK_PLLH_Config for details */
@@ -162,7 +162,7 @@ typedef struct stc_clk_pllh_init
 /**
  * @brief  CLK PLLA configuration structure definition
  */
-typedef struct stc_clk_plla_init
+typedef struct
 {
     uint8_t u8PLLState;         /*!< PLLA new state,
                                     @ref CLK_PLLA_Config for details */
@@ -185,7 +185,7 @@ typedef struct stc_clk_plla_init
 /**
  * @brief  CLK bus frequency structure definition
  */
-typedef struct stc_clk_freq
+typedef struct
 {
     uint32_t sysclkFreq;        /*!< System clock frequency. */
     uint32_t hclkFreq;          /*!< Hclk frequency. */
@@ -200,7 +200,7 @@ typedef struct stc_clk_freq
 /**
  * @brief  CLK PLL clock frequency structure definition
  */
-typedef struct stc_pll_clk_freq
+typedef struct
 {
     uint32_t pllhvcin;              /*!< pllh vcin clock frequency. */
     uint32_t pllhvco;               /*!< pllh vco clock frequency. */
@@ -229,8 +229,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLH_FREQ PLLH P/Q/R frequency range definition
  * @{
  */
-#define CLK_PLLH_FREQ_MIN           (uint32_t)(40UL*1000UL*1000UL)
-#define CLK_PLLH_FREQ_MAX           (uint32_t)(240UL*1000UL*1000UL)
+#define CLK_PLLH_FREQ_MIN           (40UL*1000UL*1000UL)
+#define CLK_PLLH_FREQ_MAX           (240UL*1000UL*1000UL)
 /**
  * @}
  */
@@ -239,8 +239,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLH_VCO_IN PLLH VCO in frequency range definition
  * @{
  */
-#define CLK_PLLH_VCO_IN_MIN         (uint32_t)(8UL*1000UL*1000UL)
-#define CLK_PLLH_VCO_IN_MAX         (uint32_t)(24UL*1000UL*1000UL)
+#define CLK_PLLH_VCO_IN_MIN         (8UL*1000UL*1000UL)
+#define CLK_PLLH_VCO_IN_MAX         (24UL*1000UL*1000UL)
 /**
  * @}
  */
@@ -249,8 +249,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLH_VCO_OUT PLLH VCO out frequency range definition
  * @{
  */
-#define CLK_PLLH_VCO_OUT_MIN        (uint32_t)(600UL*1000UL*1000UL)
-#define CLK_PLLH_VCO_OUT_MAX        (uint32_t)(1200UL*1000UL*1000UL)
+#define CLK_PLLH_VCO_OUT_MIN        (600UL*1000UL*1000UL)
+#define CLK_PLLH_VCO_OUT_MAX        (1200UL*1000UL*1000UL)
 /**
  * @}
  */
@@ -259,8 +259,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLHM_Div_Sel PLLH M divide range definition
  * @{
  */
-#define CLK_PLLHM_DIV_MIN           (uint32_t)(1UL)
-#define CLK_PLLHM_DIV_MAX           (uint32_t)(4UL)
+#define CLK_PLLHM_DIV_MIN           (1UL)
+#define CLK_PLLHM_DIV_MAX           (4UL)
 /**
  * @}
  */
@@ -269,8 +269,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLHN_Div_Sel PLLH N multi- range definition
  * @{
  */
-#define CLK_PLLHN_MULTI_MIN         (uint32_t)(25UL)
-#define CLK_PLLHN_MULTI_MAX         (uint32_t)(150UL)
+#define CLK_PLLHN_MULTI_MIN         (25UL)
+#define CLK_PLLHN_MULTI_MAX         (150UL)
 /**
  * @}
  */
@@ -279,8 +279,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLHR_Div_Sel PLLH R divide range definition
  * @{
  */
-#define CLK_PLLHR_DIV_MIN           (uint32_t)(2UL)
-#define CLK_PLLHR_DIV_MAX           (uint32_t)(16UL)
+#define CLK_PLLHR_DIV_MIN           (2UL)
+#define CLK_PLLHR_DIV_MAX           (16UL)
 /**
  * @}
  */
@@ -289,8 +289,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLHQ_Div_Sel PLLH Q divide range definition
  * @{
  */
-#define CLK_PLLHQ_DIV_MIN           (uint32_t)(2UL)
-#define CLK_PLLHQ_DIV_MAX           (uint32_t)(16UL)
+#define CLK_PLLHQ_DIV_MIN           (2UL)
+#define CLK_PLLHQ_DIV_MAX           (16UL)
 /**
  * @}
  */
@@ -299,8 +299,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLHP_Div_Sel PLLH P divide range definition
  * @{
  */
-#define CLK_PLLHP_DIV_MIN           (uint32_t)(2UL)
-#define CLK_PLLHP_DIV_MAX           (uint32_t)(16UL)
+#define CLK_PLLHP_DIV_MIN           (2UL)
+#define CLK_PLLHP_DIV_MAX           (16UL)
 /**
  * @}
  */
@@ -309,8 +309,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLA_FREQ PLLA P/Q/R frequency range definition
  * @{
  */
-#define CLK_PLLA_FREQ_MIN           (uint32_t)(15UL*1000UL*1000UL)
-#define CLK_PLLA_FREQ_MAX           (uint32_t)(240UL*1000UL*1000UL)
+#define CLK_PLLA_FREQ_MIN           (15UL*1000UL*1000UL)
+#define CLK_PLLA_FREQ_MAX           (240UL*1000UL*1000UL)
 /**
  * @}
  */
@@ -319,8 +319,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLA_VCO_IN PLLA VCO in frequency range definition
  * @{
  */
-#define CLK_PLLA_VCO_IN_MIN         (uint32_t)(1UL*1000UL*1000UL)
-#define CLK_PLLA_VCO_IN_MAX         (uint32_t)(24UL*1000UL*1000UL)
+#define CLK_PLLA_VCO_IN_MIN         (1UL*1000UL*1000UL)
+#define CLK_PLLA_VCO_IN_MAX         (24UL*1000UL*1000UL)
 /**
  * @}
  */
@@ -329,8 +329,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLA_VCO_OUT PLLA VCO out frequency range definition
  * @{
  */
-#define CLK_PLLA_VCO_OUT_MIN        (uint32_t)(240UL*1000UL*1000UL)
-#define CLK_PLLA_VCO_OUT_MAX        (uint32_t)(480UL*1000UL*1000UL)
+#define CLK_PLLA_VCO_OUT_MIN        (240UL*1000UL*1000UL)
+#define CLK_PLLA_VCO_OUT_MAX        (480UL*1000UL*1000UL)
 /**
  * @}
  */
@@ -339,8 +339,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLAM_Div_Sel PLLA M divide range definition
  * @{
  */
-#define CLK_PLLAM_DIV_MIN           (uint32_t)(1UL)
-#define CLK_PLLAM_DIV_MAX           (uint32_t)(24UL)
+#define CLK_PLLAM_DIV_MIN           (1UL)
+#define CLK_PLLAM_DIV_MAX           (24UL)
 /**
  * @}
  */
@@ -349,8 +349,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLAN_Div_Sel PLLA N multi- range definition
  * @{
  */
-#define CLK_PLLAN_MULTI_MIN         (uint32_t)(20UL)
-#define CLK_PLLAN_MULTI_MAX         (uint32_t)(480UL)
+#define CLK_PLLAN_MULTI_MIN         (20UL)
+#define CLK_PLLAN_MULTI_MAX         (480UL)
 /**
  * @}
  */
@@ -359,8 +359,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLAR_Div_Sel PLLA R divide range definition
  * @{
  */
-#define CLK_PLLAR_DIV_MIN           (uint32_t)(2UL)
-#define CLK_PLLAR_DIV_MAX           (uint32_t)(16UL)
+#define CLK_PLLAR_DIV_MIN           (2UL)
+#define CLK_PLLAR_DIV_MAX           (16UL)
 /**
  * @}
  */
@@ -369,8 +369,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLAQ_Div_Sel PLLA Q divide range definition
  * @{
  */
-#define CLK_PLLAQ_DIV_MIN           (uint32_t)(2UL)
-#define CLK_PLLAQ_DIV_MAX           (uint32_t)(16UL)
+#define CLK_PLLAQ_DIV_MIN           (2UL)
+#define CLK_PLLAQ_DIV_MAX           (16UL)
 /**
  * @}
  */
@@ -379,8 +379,8 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PLLAP_Div_Sel PLLA P divide range definition
  * @{
  */
-#define CLK_PLLAP_DIV_MIN           (uint32_t)(2UL)
-#define CLK_PLLAP_DIV_MAX           (uint32_t)(16UL)
+#define CLK_PLLAP_DIV_MIN           (2UL)
+#define CLK_PLLAP_DIV_MAX           (16UL)
 /**
  * @}
  */
@@ -393,15 +393,15 @@ typedef struct stc_pll_clk_freq
  * @brief Stable waiting time while switching system clock.
  * @note Approx. 1us based on 168M frequency.
  */
-#define CLK_SYSCLK_SW_STABLE        ((uint32_t)0xB0UL)
+#define CLK_SYSCLK_SW_STABLE        (0xB0UL)
 
 /**
  * @brief FCGx default value.
  */
-#define CLK_FCG0_DEFAULT            ((uint32_t)0xFFFFFA0EUL)
-#define CLK_FCG1_DEFAULT            ((uint32_t)0xFFFFFFFFUL)
-#define CLK_FCG2_DEFAULT            ((uint32_t)0xFFFFFFFFUL)
-#define CLK_FCG3_DEFAULT            ((uint32_t)0xFFFFFFFFUL)
+#define CLK_FCG0_DEFAULT            (0xFFFFFA0EUL)
+#define CLK_FCG1_DEFAULT            (0xFFFFFFFFUL)
+#define CLK_FCG2_DEFAULT            (0xFFFFFFFFUL)
+#define CLK_FCG3_DEFAULT            (0xFFFFFFFFUL)
 /**
  * @}
  */
@@ -414,16 +414,16 @@ typedef struct stc_pll_clk_freq
  * @brief PLLH function config.
  */
 #define CLK_PLLA_OFF                (CMU_PLLACR_PLLAOFF)
-#define CLK_PLLA_ON                 ((uint8_t)0x00U)
+#define CLK_PLLA_ON                 (0x00U)
 
 /**
  * @brief PLLH default config.
  */
-#define CLK_PLLAP_DFT               ((uint32_t)0x01UL)
-#define CLK_PLLAQ_DFT               ((uint32_t)0x01UL)
-#define CLK_PLLAR_DFT               ((uint32_t)0x01UL)
-#define CLK_PLLAN_DFT               ((uint32_t)0x13UL)
-#define CLK_PLLAM_DFT               ((uint32_t)0x01UL)
+#define CLK_PLLAP_DFT               (0x01UL)
+#define CLK_PLLAQ_DFT               (0x01UL)
+#define CLK_PLLAR_DFT               (0x01UL)
+#define CLK_PLLAN_DFT               (0x13UL)
+#define CLK_PLLAM_DFT               (0x01UL)
 /**
  * @}
  */
@@ -436,22 +436,22 @@ typedef struct stc_pll_clk_freq
  * @brief PLLH function config.
  */
 #define CLK_PLLH_OFF                (CMU_PLLHCR_PLLHOFF)
-#define CLK_PLLH_ON                 ((uint8_t)0x00U)
+#define CLK_PLLH_ON                 (0x00U)
 
 /**
  * @brief PLLH default config.
  */
-#define CLK_PLLHP_DFT               ((uint32_t)0x01UL)
-#define CLK_PLLHQ_DFT               ((uint32_t)0x01UL)
-#define CLK_PLLHR_DFT               ((uint32_t)0x01UL)
-#define CLK_PLLHN_DFT               ((uint32_t)0x13UL)
-#define CLK_PLLHM_DFT               ((uint32_t)0x01UL)
+#define CLK_PLLHP_DFT               (0x01UL)
+#define CLK_PLLHQ_DFT               (0x01UL)
+#define CLK_PLLHR_DFT               (0x01UL)
+#define CLK_PLLHN_DFT               (0x13UL)
+#define CLK_PLLHM_DFT               (0x01UL)
 
 /**
  * @brief PLLH/A source clock selction.
  */
-#define CLK_PLLSRC_XTAL             ((uint32_t)0x00UL)
-#define CLK_PLLSRC_HRC              ((uint32_t)0x01UL)
+#define CLK_PLLSRC_XTAL             (0x00UL)
+#define CLK_PLLSRC_HRC              (0x01UL)
 /**
  * @}
  */
@@ -464,36 +464,36 @@ typedef struct stc_pll_clk_freq
  * @brief XTAL function config.
  */
 #define CLK_XTAL_OFF                (CMU_XTALCR_XTALSTP)
-#define CLK_XTAL_ON                 ((uint8_t)0x00U)
+#define CLK_XTAL_ON                 (0x00U)
 
 /**
  * @brief XTAL driver ability
  * @note  High: 20 ~ 24MHz, Mid: 16~20MHz, Low: 8~16MHz, ULow 4 ~ 8MHz.
  */
-#define CLK_XTALDRV_HIGH            ((uint8_t)0x00U)
-#define CLK_XTALDRV_MID             ((uint8_t)0x01U)
-#define CLK_XTALDRV_LOW             ((uint8_t)0x02U)
-#define CLK_XTALDRV_ULOW            ((uint8_t)0x03U)
+#define CLK_XTALDRV_HIGH            (0x00U)
+#define CLK_XTALDRV_MID             (0x01U)
+#define CLK_XTALDRV_LOW             (0x02U)
+#define CLK_XTALDRV_ULOW            (0x03U)
 
 /**
  * @brief XTAL mode selection osc or exclk
  */
-#define CLK_XTALMODE_OSC            ((uint8_t)0x00U)
-#define CLK_XTALMODE_EXCLK          ((uint8_t)0x01U)
+#define CLK_XTALMODE_OSC            (0x00U)
+#define CLK_XTALMODE_EXCLK          (0x01U)
 
 /**
  * @brief XTAL stable time selection.
  * @note  a cycle of stable counter = a cycle of LRC divide by 8
  */
-#define CLK_XTALSTB_133US           ((uint8_t)0x01U)       /*!< 35 stable count cycle, approx. 133us */
-#define CLK_XTALSTB_255US           ((uint8_t)0x02U)       /*!< 67 stable count cycle, approx. 255us */
-#define CLK_XTALSTB_499US           ((uint8_t)0x03U)       /*!< 131 stable count cycle, approx. 499us */
-#define CLK_XTALSTB_988US           ((uint8_t)0x04U)       /*!< 259 stable count cycle, approx. 988us */
-#define CLK_XTALSTB_2MS             ((uint8_t)0x05U)       /*!< 547 stable count cycle, approx. 2ms  */
-#define CLK_XTALSTB_4MS             ((uint8_t)0x06U)       /*!< 1059 stable count cycle, approx. 4ms */
-#define CLK_XTALSTB_8MS             ((uint8_t)0x07U)       /*!< 2147 stable count cycle, approx. 8ms */
-#define CLK_XTALSTB_16MS            ((uint8_t)0x08U)       /*!< 4291 stable count cycle, approx. 16ms */
-#define CLK_XTALSTB_31MS            ((uint8_t)0x09U)       /*!< 8163 stable count cycle, approx. 32ms */
+#define CLK_XTALSTB_133US           (0x01U)       /*!< 35 stable count cycle, approx. 133us */
+#define CLK_XTALSTB_255US           (0x02U)       /*!< 67 stable count cycle, approx. 255us */
+#define CLK_XTALSTB_499US           (0x03U)       /*!< 131 stable count cycle, approx. 499us */
+#define CLK_XTALSTB_988US           (0x04U)       /*!< 259 stable count cycle, approx. 988us */
+#define CLK_XTALSTB_2MS             (0x05U)       /*!< 547 stable count cycle, approx. 2ms  */
+#define CLK_XTALSTB_4MS             (0x06U)       /*!< 1059 stable count cycle, approx. 4ms */
+#define CLK_XTALSTB_8MS             (0x07U)       /*!< 2147 stable count cycle, approx. 8ms */
+#define CLK_XTALSTB_16MS            (0x08U)       /*!< 4291 stable count cycle, approx. 16ms */
+#define CLK_XTALSTB_31MS            (0x09U)       /*!< 8163 stable count cycle, approx. 32ms */
 /**
  * @}
  */
@@ -506,25 +506,25 @@ typedef struct stc_pll_clk_freq
 /**
  * @brief XTAL error detection on or off
  */
-#define CLK_XTALSTD_OFF             ((uint8_t)0x00U)
+#define CLK_XTALSTD_OFF             (0x00U)
 #define CLK_XTALSTD_ON              (CMU_XTALSTDCR_XTALSTDE)
 
 /**
  * @brief XTALSTD mode selection
  */
 #define CLK_XTALSTD_MODE_RST        (CMU_XTALSTDCR_XTALSTDRIS)
-#define CLK_XTALSTD_MODE_INT        ((uint8_t)0x00U)
+#define CLK_XTALSTD_MODE_INT        (0x00U)
 
 /**
  * @brief XTALSTD reset on or off
  */
-#define CLK_XTALSTD_RST_OFF         ((uint8_t)0x00U)
+#define CLK_XTALSTD_RST_OFF         (0x00U)
 #define CLK_XTALSTD_RST_ON          (CMU_XTALSTDCR_XTALSTDRE)
 
 /**
  * @brief XTALSTD interrupt on or off
  */
-#define CLK_XTALSTD_INT_OFF         ((uint8_t)0x00U)
+#define CLK_XTALSTD_INT_OFF         (0x00U)
 #define CLK_XTALSTD_INT_ON          (CMU_XTALSTDCR_XTALSTDIE)
 /**
  * @}
@@ -538,20 +538,20 @@ typedef struct stc_pll_clk_freq
  * @brief XTAL32 function config.
  */
 #define CLK_XTAL32_OFF              (CMU_XTAL32CR_XTAL32STP)
-#define CLK_XTAL32_ON               ((uint8_t)0x00U)
+#define CLK_XTAL32_ON               (0x00U)
 
 /**
  * @brief XTAL32 driver ability.
  */
-#define CLK_XTAL32DRV_MID           ((uint8_t)0x00U)
-#define CLK_XTAL32DRV_HIGH          ((uint8_t)0x01U)
+#define CLK_XTAL32DRV_MID           (0x00U)
+#define CLK_XTAL32DRV_HIGH          (0x01U)
 
 /**
  * @brief XTAL32 filtering seletion.
  */
-#define CLK_XTAL32NF_FULL           ((uint8_t)0x00U)   /*!< Valid in run,stop,power down mode.     */
-#define CLK_XTAL32NF_PART           ((uint8_t)0x02U)   /*!< Valid in run mode.                     */
-#define CLK_XTAL32NF_NONE           ((uint8_t)0x03U)   /*!< Invalid in run,stop,power down mode.   */
+#define CLK_XTAL32NF_FULL           (0x00U)   /*!< Valid in run,stop,power down mode.     */
+#define CLK_XTAL32NF_PART           (0x02U)   /*!< Valid in run mode.                     */
+#define CLK_XTAL32NF_NONE           (0x03U)   /*!< Invalid in run,stop,power down mode.   */
 /**
  * @}
  */
@@ -561,7 +561,7 @@ typedef struct stc_pll_clk_freq
  * @{
  */
 #define CLK_HRC_OFF                 (CMU_HRCCR_HRCSTP)
-#define CLK_HRC_ON                  ((uint8_t)0x00U)
+#define CLK_HRC_ON                  (0x00U)
 /**
  * @}
  */
@@ -571,7 +571,7 @@ typedef struct stc_pll_clk_freq
  * @{
  */
 #define CLK_MRC_OFF                 (CMU_MRCCR_MRCSTP)
-#define CLK_MRC_ON                  ((uint8_t)0x00U)
+#define CLK_MRC_ON                  (0x00U)
 /**
  * @}
  */
@@ -581,7 +581,7 @@ typedef struct stc_pll_clk_freq
  * @{
  */
 #define CLK_LRC_OFF                 (CMU_LRCCR_LRCSTP)
-#define CLK_LRC_ON                  ((uint8_t)0x00U)
+#define CLK_LRC_ON                  (0x00U)
 /**
  * @}
  */
@@ -591,7 +591,7 @@ typedef struct stc_pll_clk_freq
  * @{
  */
 #define CLK_RTCLRC_OFF              (CMU_RTCLRCCR_RTCLRCSTP)
-#define CLK_RTCLRC_ON               ((uint8_t)0x00U)
+#define CLK_RTCLRC_ON               (0x00U)
 /**
  * @}
  */
@@ -600,10 +600,15 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_STB_Flag CLK stable Flags
  * @{
  */
-#define CLK_FLAG_HRCSTB             (CMU_OSCSTBSR_HRCSTBF)
-#define CLK_FLAG_XTALSTB            (CMU_OSCSTBSR_XTALSTBF)
-#define CLK_FLAG_PLLASTB            (CMU_OSCSTBSR_PLLASTBF)
-#define CLK_FLAG_PLLHSTB            (CMU_OSCSTBSR_PLLHSTBF)
+#define CLK_STB_FLAG_HRCSTB         (CMU_OSCSTBSR_HRCSTBF)
+#define CLK_STB_FLAG_XTALSTB        (CMU_OSCSTBSR_XTALSTBF)
+#define CLK_STB_FLAG_PLLASTB        (CMU_OSCSTBSR_PLLASTBF)
+#define CLK_STB_FLAG_PLLHSTB        (CMU_OSCSTBSR_PLLHSTBF)
+#define CLK_STB_FLAG_MASK           ((CMU_OSCSTBSR_HRCSTBF) |   \
+                                     (CMU_OSCSTBSR_XTALSTBF)|   \
+                                     (CMU_OSCSTBSR_PLLASTBF)|   \
+                                     (CMU_OSCSTBSR_PLLHSTBF))
+
 /**
  * @}
  */
@@ -612,12 +617,12 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_System_Clock_Source System Clock Source
  * @{
  */
-#define CLK_SYSCLKSOURCE_HRC        ((uint8_t)0x00U)
-#define CLK_SYSCLKSOURCE_MRC        ((uint8_t)0x01U)
-#define CLK_SYSCLKSOURCE_LRC        ((uint8_t)0x02U)
-#define CLK_SYSCLKSOURCE_XTAL       ((uint8_t)0x03U)
-#define CLK_SYSCLKSOURCE_XTAL32     ((uint8_t)0x04U)
-#define CLK_SYSCLKSOURCE_PLLH       ((uint8_t)0x05U)
+#define CLK_SYSCLKSOURCE_HRC        (0x00U)
+#define CLK_SYSCLKSOURCE_MRC        (0x01U)
+#define CLK_SYSCLKSOURCE_LRC        (0x02U)
+#define CLK_SYSCLKSOURCE_XTAL       (0x03U)
+#define CLK_SYSCLKSOURCE_XTAL32     (0x04U)
+#define CLK_SYSCLKSOURCE_PLLH       (0x05U)
 /**
  * @}
  */
@@ -626,17 +631,17 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_CATE_Sel Clock category selection
  * @{
  */
-#define CLK_CATE_PCLK0              ((uint8_t)0x01U)
-#define CLK_CATE_PCLK1              ((uint8_t)0x02U)
-#define CLK_CATE_PCLK2              ((uint8_t)0x04U)
-#define CLK_CATE_PCLK3              ((uint8_t)0x08U)
-#define CLK_CATE_PCLK4              ((uint8_t)0x10U)
-#define CLK_CATE_EXCLK              ((uint8_t)0x20U)
-#define CLK_CATE_HCLK               ((uint8_t)0x40U)
-#define CLK_CATE_ALL    (uint8_t)(CLK_CATE_PCLK0 | CLK_CATE_PCLK1 | \
-                                  CLK_CATE_PCLK2 | CLK_CATE_PCLK3 | \
-                                  CLK_CATE_PCLK4 | CLK_CATE_EXCLK | \
-                                  CLK_CATE_HCLK)
+#define CLK_CATE_PCLK0              (0x01U)
+#define CLK_CATE_PCLK1              (0x02U)
+#define CLK_CATE_PCLK2              (0x04U)
+#define CLK_CATE_PCLK3              (0x08U)
+#define CLK_CATE_PCLK4              (0x10U)
+#define CLK_CATE_EXCLK              (0x20U)
+#define CLK_CATE_HCLK               (0x40U)
+#define CLK_CATE_ALL                (CLK_CATE_PCLK0 | CLK_CATE_PCLK1 |  \
+                                     CLK_CATE_PCLK2 | CLK_CATE_PCLK3 |  \
+                                     CLK_CATE_PCLK4 | CLK_CATE_EXCLK |  \
+                                     CLK_CATE_HCLK)
 /**
  * @}
  */
@@ -645,12 +650,12 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_HCLK_Divider HCLK divider
  * @{
  */
-#define CLK_HCLK_DIV1               ((uint32_t)0x00U << CMU_SCFGR_HCLKS_POS)
-#define CLK_HCLK_DIV2               ((uint32_t)0x01U << CMU_SCFGR_HCLKS_POS)
-#define CLK_HCLK_DIV4               ((uint32_t)0x02U << CMU_SCFGR_HCLKS_POS)
-#define CLK_HCLK_DIV8               ((uint32_t)0x03U << CMU_SCFGR_HCLKS_POS)
-#define CLK_HCLK_DIV16              ((uint32_t)0x04U << CMU_SCFGR_HCLKS_POS)
-#define CLK_HCLK_DIV32              ((uint32_t)0x05U << CMU_SCFGR_HCLKS_POS)
+#define CLK_HCLK_DIV1               (0x00U << CMU_SCFGR_HCLKS_POS)
+#define CLK_HCLK_DIV2               (0x01U << CMU_SCFGR_HCLKS_POS)
+#define CLK_HCLK_DIV4               (0x02U << CMU_SCFGR_HCLKS_POS)
+#define CLK_HCLK_DIV8               (0x03U << CMU_SCFGR_HCLKS_POS)
+#define CLK_HCLK_DIV16              (0x04U << CMU_SCFGR_HCLKS_POS)
+#define CLK_HCLK_DIV32              (0x05U << CMU_SCFGR_HCLKS_POS)
 /**
  * @}
  */
@@ -659,12 +664,12 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_EXCLK_Divider EXCLK divider
  * @{
  */
-#define CLK_EXCLK_DIV1              ((uint32_t)0x00U << CMU_SCFGR_EXCKS_POS)
-#define CLK_EXCLK_DIV2              ((uint32_t)0x01U << CMU_SCFGR_EXCKS_POS)
-#define CLK_EXCLK_DIV4              ((uint32_t)0x02U << CMU_SCFGR_EXCKS_POS)
-#define CLK_EXCLK_DIV8              ((uint32_t)0x03U << CMU_SCFGR_EXCKS_POS)
-#define CLK_EXCLK_DIV16             ((uint32_t)0x04U << CMU_SCFGR_EXCKS_POS)
-#define CLK_EXCLK_DIV32             ((uint32_t)0x05U << CMU_SCFGR_EXCKS_POS)
+#define CLK_EXCLK_DIV1              (0x00U << CMU_SCFGR_EXCKS_POS)
+#define CLK_EXCLK_DIV2              (0x01U << CMU_SCFGR_EXCKS_POS)
+#define CLK_EXCLK_DIV4              (0x02U << CMU_SCFGR_EXCKS_POS)
+#define CLK_EXCLK_DIV8              (0x03U << CMU_SCFGR_EXCKS_POS)
+#define CLK_EXCLK_DIV16             (0x04U << CMU_SCFGR_EXCKS_POS)
+#define CLK_EXCLK_DIV32             (0x05U << CMU_SCFGR_EXCKS_POS)
 /**
  * @}
  */
@@ -673,12 +678,12 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PCLK4_Divider PCLK4 divider
  * @{
  */
-#define CLK_PCLK4_DIV1              ((uint32_t)0x00U << CMU_SCFGR_PCLK4S_POS)
-#define CLK_PCLK4_DIV2              ((uint32_t)0x01U << CMU_SCFGR_PCLK4S_POS)
-#define CLK_PCLK4_DIV4              ((uint32_t)0x02U << CMU_SCFGR_PCLK4S_POS)
-#define CLK_PCLK4_DIV8              ((uint32_t)0x03U << CMU_SCFGR_PCLK4S_POS)
-#define CLK_PCLK4_DIV16             ((uint32_t)0x04U << CMU_SCFGR_PCLK4S_POS)
-#define CLK_PCLK4_DIV32             ((uint32_t)0x05U << CMU_SCFGR_PCLK4S_POS)
+#define CLK_PCLK4_DIV1              (0x00U << CMU_SCFGR_PCLK4S_POS)
+#define CLK_PCLK4_DIV2              (0x01U << CMU_SCFGR_PCLK4S_POS)
+#define CLK_PCLK4_DIV4              (0x02U << CMU_SCFGR_PCLK4S_POS)
+#define CLK_PCLK4_DIV8              (0x03U << CMU_SCFGR_PCLK4S_POS)
+#define CLK_PCLK4_DIV16             (0x04U << CMU_SCFGR_PCLK4S_POS)
+#define CLK_PCLK4_DIV32             (0x05U << CMU_SCFGR_PCLK4S_POS)
 /**
  * @}
  */
@@ -687,12 +692,12 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PCLK3_Divider PCLK3 divider
  * @{
  */
-#define CLK_PCLK3_DIV1              ((uint32_t)0x00U << CMU_SCFGR_PCLK3S_POS)
-#define CLK_PCLK3_DIV2              ((uint32_t)0x01U << CMU_SCFGR_PCLK3S_POS)
-#define CLK_PCLK3_DIV4              ((uint32_t)0x02U << CMU_SCFGR_PCLK3S_POS)
-#define CLK_PCLK3_DIV8              ((uint32_t)0x03U << CMU_SCFGR_PCLK3S_POS)
-#define CLK_PCLK3_DIV16             ((uint32_t)0x04U << CMU_SCFGR_PCLK3S_POS)
-#define CLK_PCLK3_DIV32             ((uint32_t)0x05U << CMU_SCFGR_PCLK3S_POS)
+#define CLK_PCLK3_DIV1              (0x00U << CMU_SCFGR_PCLK3S_POS)
+#define CLK_PCLK3_DIV2              (0x01U << CMU_SCFGR_PCLK3S_POS)
+#define CLK_PCLK3_DIV4              (0x02U << CMU_SCFGR_PCLK3S_POS)
+#define CLK_PCLK3_DIV8              (0x03U << CMU_SCFGR_PCLK3S_POS)
+#define CLK_PCLK3_DIV16             (0x04U << CMU_SCFGR_PCLK3S_POS)
+#define CLK_PCLK3_DIV32             (0x05U << CMU_SCFGR_PCLK3S_POS)
 /**
  * @}
  */
@@ -701,12 +706,12 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PCLK2_Divider PCLK2 divider
  * @{
  */
-#define CLK_PCLK2_DIV1              ((uint32_t)0x00U << CMU_SCFGR_PCLK2S_POS)
-#define CLK_PCLK2_DIV2              ((uint32_t)0x01U << CMU_SCFGR_PCLK2S_POS)
-#define CLK_PCLK2_DIV4              ((uint32_t)0x02U << CMU_SCFGR_PCLK2S_POS)
-#define CLK_PCLK2_DIV8              ((uint32_t)0x03U << CMU_SCFGR_PCLK2S_POS)
-#define CLK_PCLK2_DIV16             ((uint32_t)0x04U << CMU_SCFGR_PCLK2S_POS)
-#define CLK_PCLK2_DIV32             ((uint32_t)0x05U << CMU_SCFGR_PCLK2S_POS)
+#define CLK_PCLK2_DIV1              (0x00U << CMU_SCFGR_PCLK2S_POS)
+#define CLK_PCLK2_DIV2              (0x01U << CMU_SCFGR_PCLK2S_POS)
+#define CLK_PCLK2_DIV4              (0x02U << CMU_SCFGR_PCLK2S_POS)
+#define CLK_PCLK2_DIV8              (0x03U << CMU_SCFGR_PCLK2S_POS)
+#define CLK_PCLK2_DIV16             (0x04U << CMU_SCFGR_PCLK2S_POS)
+#define CLK_PCLK2_DIV32             (0x05U << CMU_SCFGR_PCLK2S_POS)
 /**
  * @}
  */
@@ -715,12 +720,12 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PCLK1_Divider PCLK1 divider
  * @{
  */
-#define CLK_PCLK1_DIV1              ((uint32_t)0x00U << CMU_SCFGR_PCLK1S_POS)
-#define CLK_PCLK1_DIV2              ((uint32_t)0x01U << CMU_SCFGR_PCLK1S_POS)
-#define CLK_PCLK1_DIV4              ((uint32_t)0x02U << CMU_SCFGR_PCLK1S_POS)
-#define CLK_PCLK1_DIV8              ((uint32_t)0x03U << CMU_SCFGR_PCLK1S_POS)
-#define CLK_PCLK1_DIV16             ((uint32_t)0x04U << CMU_SCFGR_PCLK1S_POS)
-#define CLK_PCLK1_DIV32             ((uint32_t)0x05U << CMU_SCFGR_PCLK1S_POS)
+#define CLK_PCLK1_DIV1              (0x00U << CMU_SCFGR_PCLK1S_POS)
+#define CLK_PCLK1_DIV2              (0x01U << CMU_SCFGR_PCLK1S_POS)
+#define CLK_PCLK1_DIV4              (0x02U << CMU_SCFGR_PCLK1S_POS)
+#define CLK_PCLK1_DIV8              (0x03U << CMU_SCFGR_PCLK1S_POS)
+#define CLK_PCLK1_DIV16             (0x04U << CMU_SCFGR_PCLK1S_POS)
+#define CLK_PCLK1_DIV32             (0x05U << CMU_SCFGR_PCLK1S_POS)
 /**
  * @}
  */
@@ -729,12 +734,12 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PCLK0_Divider PCLK0 divider
  * @{
  */
-#define CLK_PCLK0_DIV1              ((uint32_t)0x00U << CMU_SCFGR_PCLK0S_POS)
-#define CLK_PCLK0_DIV2              ((uint32_t)0x01U << CMU_SCFGR_PCLK0S_POS)
-#define CLK_PCLK0_DIV4              ((uint32_t)0x02U << CMU_SCFGR_PCLK0S_POS)
-#define CLK_PCLK0_DIV8              ((uint32_t)0x03U << CMU_SCFGR_PCLK0S_POS)
-#define CLK_PCLK0_DIV16             ((uint32_t)0x04U << CMU_SCFGR_PCLK0S_POS)
-#define CLK_PCLK0_DIV32             ((uint32_t)0x05U << CMU_SCFGR_PCLK0S_POS)
+#define CLK_PCLK0_DIV1              (0x00U << CMU_SCFGR_PCLK0S_POS)
+#define CLK_PCLK0_DIV2              (0x01U << CMU_SCFGR_PCLK0S_POS)
+#define CLK_PCLK0_DIV4              (0x02U << CMU_SCFGR_PCLK0S_POS)
+#define CLK_PCLK0_DIV8              (0x03U << CMU_SCFGR_PCLK0S_POS)
+#define CLK_PCLK0_DIV16             (0x04U << CMU_SCFGR_PCLK0S_POS)
+#define CLK_PCLK0_DIV32             (0x05U << CMU_SCFGR_PCLK0S_POS)
 /**
  * @}
  */
@@ -743,18 +748,18 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_USB_CLK_Sel USB clock selection
  * @{
  */
-#define CLK_USB_CLK_MCLK_DIV2       ((uint8_t)0x01U << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_MCLK_DIV3       ((uint8_t)0x02U << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_MCLK_DIV4       ((uint8_t)0x03U << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_MCLK_DIV5       ((uint8_t)0x04U << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_MCLK_DIV6       ((uint8_t)0x05U << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_MCLK_DIV7       ((uint8_t)0x06U << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_MCLK_DIV8       ((uint8_t)0x07U << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_PLLHQ           ((uint8_t)0x08U << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_PLLHR           ((uint8_t)0x09U << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_PLLAP           ((uint8_t)0x0AU << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_PLLAQ           ((uint8_t)0x0BU << CMU_USBCKCFGR_USBCKS_POS)
-#define CLK_USB_CLK_PLLAR           ((uint8_t)0x0CU << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_MCLK_DIV2       (0x01U << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_MCLK_DIV3       (0x02U << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_MCLK_DIV4       (0x03U << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_MCLK_DIV5       (0x04U << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_MCLK_DIV6       (0x05U << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_MCLK_DIV7       (0x06U << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_MCLK_DIV8       (0x07U << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_PLLHQ           (0x08U << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_PLLHR           (0x09U << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_PLLAP           (0x0AU << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_PLLAQ           (0x0BU << CMU_USBCKCFGR_USBCKS_POS)
+#define CLK_USB_CLK_PLLAR           (0x0CU << CMU_USBCKCFGR_USBCKS_POS)
 /**
  * @}
  */
@@ -763,45 +768,45 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_CAN_CLK_Sel CAN clock selection
  * @{
  */
-#define CLK_CAN_CLK_MCLK_DIV2       ((uint8_t)0x01U)
-#define CLK_CAN_CLK_MCLK_DIV3       ((uint8_t)0x02U)
-#define CLK_CAN_CLK_MCLK_DIV4       ((uint8_t)0x03U)
-#define CLK_CAN_CLK_MCLK_DIV5       ((uint8_t)0x04U)
-#define CLK_CAN_CLK_MCLK_DIV6       ((uint8_t)0x05U)
-#define CLK_CAN_CLK_MCLK_DIV7       ((uint8_t)0x06U)
-#define CLK_CAN_CLK_MCLK_DIV8       ((uint8_t)0x07U)
-#define CLK_CAN_CLK_PLLHQ           ((uint8_t)0x08U)
-#define CLK_CAN_CLK_PLLHR           ((uint8_t)0x09U)
-#define CLK_CAN_CLK_PLLAP           ((uint8_t)0x0AU)
-#define CLK_CAN_CLK_PLLAQ           ((uint8_t)0x0BU)
-#define CLK_CAN_CLK_PLLAR           ((uint8_t)0x0CU)
-#define CLK_CAN_CLK_XTAL            ((uint8_t)0x0DU)
-#define CLK_CAN1_CLK_MCLK_DIV2      ((uint8_t)CLK_CAN_CLK_MCLK_DIV2)
-#define CLK_CAN1_CLK_MCLK_DIV3      ((uint8_t)CLK_CAN_CLK_MCLK_DIV3)
-#define CLK_CAN1_CLK_MCLK_DIV4      ((uint8_t)CLK_CAN_CLK_MCLK_DIV4)
-#define CLK_CAN1_CLK_MCLK_DIV5      ((uint8_t)CLK_CAN_CLK_MCLK_DIV5)
-#define CLK_CAN1_CLK_MCLK_DIV6      ((uint8_t)CLK_CAN_CLK_MCLK_DIV6)
-#define CLK_CAN1_CLK_MCLK_DIV7      ((uint8_t)CLK_CAN_CLK_MCLK_DIV7)
-#define CLK_CAN1_CLK_MCLK_DIV8      ((uint8_t)CLK_CAN_CLK_MCLK_DIV8)
-#define CLK_CAN1_CLK_PLLHQ          ((uint8_t)CLK_CAN_CLK_PLLHQ)
-#define CLK_CAN1_CLK_PLLHR          ((uint8_t)CLK_CAN_CLK_PLLHR)
-#define CLK_CAN1_CLK_PLLAP          ((uint8_t)CLK_CAN_CLK_PLLAP)
-#define CLK_CAN1_CLK_PLLAQ          ((uint8_t)CLK_CAN_CLK_PLLAQ)
-#define CLK_CAN1_CLK_PLLAR          ((uint8_t)CLK_CAN_CLK_PLLAR)
-#define CLK_CAN1_CLK_XTAL           ((uint8_t)CLK_CAN_CLK_XTAL)
-#define CLK_CAN2_CLK_MCLK_DIV2      ((uint8_t)CLK_CAN_CLK_MCLK_DIV2 << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_MCLK_DIV3      ((uint8_t)CLK_CAN_CLK_MCLK_DIV3 << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_MCLK_DIV4      ((uint8_t)CLK_CAN_CLK_MCLK_DIV4 << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_MCLK_DIV5      ((uint8_t)CLK_CAN_CLK_MCLK_DIV5 << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_MCLK_DIV6      ((uint8_t)CLK_CAN_CLK_MCLK_DIV6 << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_MCLK_DIV7      ((uint8_t)CLK_CAN_CLK_MCLK_DIV7 << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_MCLK_DIV8      ((uint8_t)CLK_CAN_CLK_MCLK_DIV8 << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_PLLHQ          ((uint8_t)CLK_CAN_CLK_PLLHQ << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_PLLHR          ((uint8_t)CLK_CAN_CLK_PLLHR << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_PLLAP          ((uint8_t)CLK_CAN_CLK_PLLAP << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_PLLAQ          ((uint8_t)CLK_CAN_CLK_PLLAQ << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_PLLAR          ((uint8_t)CLK_CAN_CLK_PLLAR << CMU_CANCKCFGR_CAN2CKS_POS)
-#define CLK_CAN2_CLK_XTAL           ((uint8_t)CLK_CAN_CLK_XTAL  << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN_CLK_MCLK_DIV2       (0x01U)
+#define CLK_CAN_CLK_MCLK_DIV3       (0x02U)
+#define CLK_CAN_CLK_MCLK_DIV4       (0x03U)
+#define CLK_CAN_CLK_MCLK_DIV5       (0x04U)
+#define CLK_CAN_CLK_MCLK_DIV6       (0x05U)
+#define CLK_CAN_CLK_MCLK_DIV7       (0x06U)
+#define CLK_CAN_CLK_MCLK_DIV8       (0x07U)
+#define CLK_CAN_CLK_PLLHQ           (0x08U)
+#define CLK_CAN_CLK_PLLHR           (0x09U)
+#define CLK_CAN_CLK_PLLAP           (0x0AU)
+#define CLK_CAN_CLK_PLLAQ           (0x0BU)
+#define CLK_CAN_CLK_PLLAR           (0x0CU)
+#define CLK_CAN_CLK_XTAL            (0x0DU)
+#define CLK_CAN1_CLK_MCLK_DIV2      (CLK_CAN_CLK_MCLK_DIV2)
+#define CLK_CAN1_CLK_MCLK_DIV3      (CLK_CAN_CLK_MCLK_DIV3)
+#define CLK_CAN1_CLK_MCLK_DIV4      (CLK_CAN_CLK_MCLK_DIV4)
+#define CLK_CAN1_CLK_MCLK_DIV5      (CLK_CAN_CLK_MCLK_DIV5)
+#define CLK_CAN1_CLK_MCLK_DIV6      (CLK_CAN_CLK_MCLK_DIV6)
+#define CLK_CAN1_CLK_MCLK_DIV7      (CLK_CAN_CLK_MCLK_DIV7)
+#define CLK_CAN1_CLK_MCLK_DIV8      (CLK_CAN_CLK_MCLK_DIV8)
+#define CLK_CAN1_CLK_PLLHQ          (CLK_CAN_CLK_PLLHQ)
+#define CLK_CAN1_CLK_PLLHR          (CLK_CAN_CLK_PLLHR)
+#define CLK_CAN1_CLK_PLLAP          (CLK_CAN_CLK_PLLAP)
+#define CLK_CAN1_CLK_PLLAQ          (CLK_CAN_CLK_PLLAQ)
+#define CLK_CAN1_CLK_PLLAR          (CLK_CAN_CLK_PLLAR)
+#define CLK_CAN1_CLK_XTAL           (CLK_CAN_CLK_XTAL)
+#define CLK_CAN2_CLK_MCLK_DIV2      (CLK_CAN_CLK_MCLK_DIV2 << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_MCLK_DIV3      (CLK_CAN_CLK_MCLK_DIV3 << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_MCLK_DIV4      (CLK_CAN_CLK_MCLK_DIV4 << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_MCLK_DIV5      (CLK_CAN_CLK_MCLK_DIV5 << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_MCLK_DIV6      (CLK_CAN_CLK_MCLK_DIV6 << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_MCLK_DIV7      (CLK_CAN_CLK_MCLK_DIV7 << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_MCLK_DIV8      (CLK_CAN_CLK_MCLK_DIV8 << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_PLLHQ          (CLK_CAN_CLK_PLLHQ << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_PLLHR          (CLK_CAN_CLK_PLLHR << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_PLLAP          (CLK_CAN_CLK_PLLAP << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_PLLAQ          (CLK_CAN_CLK_PLLAQ << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_PLLAR          (CLK_CAN_CLK_PLLAR << CMU_CANCKCFGR_CAN2CKS_POS)
+#define CLK_CAN2_CLK_XTAL           (CLK_CAN_CLK_XTAL  << CMU_CANCKCFGR_CAN2CKS_POS)
 /**
  * @}
  */
@@ -810,9 +815,9 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_CAN_CH_Sel CAN channel for clock selection
  * @{
  */
-#define CLK_CAN_CH1                 ((uint8_t)0x01U)
-#define CLK_CAN_CH2                 ((uint8_t)0x02U)
-#define CLK_CAN_CH_ALL              ((uint8_t)CLK_CAN_CH1 | CLK_CAN_CH2)
+#define CLK_CAN_CH1                 (0x01U)
+#define CLK_CAN_CH2                 (0x02U)
+#define CLK_CAN_CH_ALL              (CLK_CAN_CH1 | CLK_CAN_CH2)
 /**
  * @}
  */
@@ -821,36 +826,36 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_I2S_CLK_Sel I2S clock selection
  * @{
  */
-#define CLK_I2S_CLK_PCLK            ((uint16_t)0x0000U)
-#define CLK_I2S_CLK_PLLHQ           ((uint16_t)0x0008U)
-#define CLK_I2S_CLK_PLLHR           ((uint16_t)0x0009U)
-#define CLK_I2S_CLK_PLLAP           ((uint16_t)0x000AU)
-#define CLK_I2S_CLK_PLLAQ           ((uint16_t)0x000BU)
-#define CLK_I2S_CLK_PLLAR           ((uint16_t)0x000CU)
-#define CLK_I2S1_CLK_PCLK           ((uint16_t)CLK_I2S_CLK_PCLK)
-#define CLK_I2S1_CLK_PLLHQ          ((uint16_t)CLK_I2S_CLK_PLLHQ)
-#define CLK_I2S1_CLK_PLLHR          ((uint16_t)CLK_I2S_CLK_PLLHR)
-#define CLK_I2S1_CLK_PLLAP          ((uint16_t)CLK_I2S_CLK_PLLAP)
-#define CLK_I2S1_CLK_PLLAQ          ((uint16_t)CLK_I2S_CLK_PLLAQ)
-#define CLK_I2S1_CLK_PLLAR          ((uint16_t)CLK_I2S_CLK_PLLAR)
-#define CLK_I2S2_CLK_PCLK           ((uint16_t)CLK_I2S_CLK_PCLK  << CMU_I2SCKSEL_I2S2CKSEL_POS)
-#define CLK_I2S2_CLK_PLLHQ          ((uint16_t)CLK_I2S_CLK_PLLHQ << CMU_I2SCKSEL_I2S2CKSEL_POS)
-#define CLK_I2S2_CLK_PLLHR          ((uint16_t)CLK_I2S_CLK_PLLHR << CMU_I2SCKSEL_I2S2CKSEL_POS)
-#define CLK_I2S2_CLK_PLLAP          ((uint16_t)CLK_I2S_CLK_PLLAP << CMU_I2SCKSEL_I2S2CKSEL_POS)
-#define CLK_I2S2_CLK_PLLAQ          ((uint16_t)CLK_I2S_CLK_PLLAQ << CMU_I2SCKSEL_I2S2CKSEL_POS)
-#define CLK_I2S2_CLK_PLLAR          ((uint16_t)CLK_I2S_CLK_PLLAR << CMU_I2SCKSEL_I2S2CKSEL_POS)
-#define CLK_I2S3_CLK_PCLK           ((uint16_t)CLK_I2S_CLK_PCLK  << CMU_I2SCKSEL_I2S3CKSEL_POS)
-#define CLK_I2S3_CLK_PLLHQ          ((uint16_t)CLK_I2S_CLK_PLLHQ << CMU_I2SCKSEL_I2S3CKSEL_POS)
-#define CLK_I2S3_CLK_PLLHR          ((uint16_t)CLK_I2S_CLK_PLLHR << CMU_I2SCKSEL_I2S3CKSEL_POS)
-#define CLK_I2S3_CLK_PLLAP          ((uint16_t)CLK_I2S_CLK_PLLAP << CMU_I2SCKSEL_I2S3CKSEL_POS)
-#define CLK_I2S3_CLK_PLLAQ          ((uint16_t)CLK_I2S_CLK_PLLAQ << CMU_I2SCKSEL_I2S3CKSEL_POS)
-#define CLK_I2S3_CLK_PLLAR          ((uint16_t)CLK_I2S_CLK_PLLAR << CMU_I2SCKSEL_I2S3CKSEL_POS)
-#define CLK_I2S4_CLK_PCLK           ((uint16_t)CLK_I2S_CLK_PCLK  << CMU_I2SCKSEL_I2S4CKSEL_POS)
-#define CLK_I2S4_CLK_PLLHQ          ((uint16_t)CLK_I2S_CLK_PLLHQ << CMU_I2SCKSEL_I2S4CKSEL_POS)
-#define CLK_I2S4_CLK_PLLHR          ((uint16_t)CLK_I2S_CLK_PLLHR << CMU_I2SCKSEL_I2S4CKSEL_POS)
-#define CLK_I2S4_CLK_PLLAP          ((uint16_t)CLK_I2S_CLK_PLLAP << CMU_I2SCKSEL_I2S4CKSEL_POS)
-#define CLK_I2S4_CLK_PLLAQ          ((uint16_t)CLK_I2S_CLK_PLLAQ << CMU_I2SCKSEL_I2S4CKSEL_POS)
-#define CLK_I2S4_CLK_PLLAR          ((uint16_t)CLK_I2S_CLK_PLLAR << CMU_I2SCKSEL_I2S4CKSEL_POS)
+#define CLK_I2S_CLK_PCLK            (0x0000U)
+#define CLK_I2S_CLK_PLLHQ           (0x0008U)
+#define CLK_I2S_CLK_PLLHR           (0x0009U)
+#define CLK_I2S_CLK_PLLAP           (0x000AU)
+#define CLK_I2S_CLK_PLLAQ           (0x000BU)
+#define CLK_I2S_CLK_PLLAR           (0x000CU)
+#define CLK_I2S1_CLK_PCLK           (CLK_I2S_CLK_PCLK)
+#define CLK_I2S1_CLK_PLLHQ          (CLK_I2S_CLK_PLLHQ)
+#define CLK_I2S1_CLK_PLLHR          (CLK_I2S_CLK_PLLHR)
+#define CLK_I2S1_CLK_PLLAP          (CLK_I2S_CLK_PLLAP)
+#define CLK_I2S1_CLK_PLLAQ          (CLK_I2S_CLK_PLLAQ)
+#define CLK_I2S1_CLK_PLLAR          (CLK_I2S_CLK_PLLAR)
+#define CLK_I2S2_CLK_PCLK           (CLK_I2S_CLK_PCLK  << CMU_I2SCKSEL_I2S2CKSEL_POS)
+#define CLK_I2S2_CLK_PLLHQ          (CLK_I2S_CLK_PLLHQ << CMU_I2SCKSEL_I2S2CKSEL_POS)
+#define CLK_I2S2_CLK_PLLHR          (CLK_I2S_CLK_PLLHR << CMU_I2SCKSEL_I2S2CKSEL_POS)
+#define CLK_I2S2_CLK_PLLAP          (CLK_I2S_CLK_PLLAP << CMU_I2SCKSEL_I2S2CKSEL_POS)
+#define CLK_I2S2_CLK_PLLAQ          (CLK_I2S_CLK_PLLAQ << CMU_I2SCKSEL_I2S2CKSEL_POS)
+#define CLK_I2S2_CLK_PLLAR          (CLK_I2S_CLK_PLLAR << CMU_I2SCKSEL_I2S2CKSEL_POS)
+#define CLK_I2S3_CLK_PCLK           (CLK_I2S_CLK_PCLK  << CMU_I2SCKSEL_I2S3CKSEL_POS)
+#define CLK_I2S3_CLK_PLLHQ          (CLK_I2S_CLK_PLLHQ << CMU_I2SCKSEL_I2S3CKSEL_POS)
+#define CLK_I2S3_CLK_PLLHR          (CLK_I2S_CLK_PLLHR << CMU_I2SCKSEL_I2S3CKSEL_POS)
+#define CLK_I2S3_CLK_PLLAP          (CLK_I2S_CLK_PLLAP << CMU_I2SCKSEL_I2S3CKSEL_POS)
+#define CLK_I2S3_CLK_PLLAQ          (CLK_I2S_CLK_PLLAQ << CMU_I2SCKSEL_I2S3CKSEL_POS)
+#define CLK_I2S3_CLK_PLLAR          (CLK_I2S_CLK_PLLAR << CMU_I2SCKSEL_I2S3CKSEL_POS)
+#define CLK_I2S4_CLK_PCLK           (CLK_I2S_CLK_PCLK  << CMU_I2SCKSEL_I2S4CKSEL_POS)
+#define CLK_I2S4_CLK_PLLHQ          (CLK_I2S_CLK_PLLHQ << CMU_I2SCKSEL_I2S4CKSEL_POS)
+#define CLK_I2S4_CLK_PLLHR          (CLK_I2S_CLK_PLLHR << CMU_I2SCKSEL_I2S4CKSEL_POS)
+#define CLK_I2S4_CLK_PLLAP          (CLK_I2S_CLK_PLLAP << CMU_I2SCKSEL_I2S4CKSEL_POS)
+#define CLK_I2S4_CLK_PLLAQ          (CLK_I2S_CLK_PLLAQ << CMU_I2SCKSEL_I2S4CKSEL_POS)
+#define CLK_I2S4_CLK_PLLAR          (CLK_I2S_CLK_PLLAR << CMU_I2SCKSEL_I2S4CKSEL_POS)
 /**
  * @}
  */
@@ -859,11 +864,11 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_I2S_CH_Sel I2S channel for clock selection
  * @{
  */
-#define CLK_I2S_CH1                 ((uint8_t)0x01U)
-#define CLK_I2S_CH2                 ((uint8_t)0x02U)
-#define CLK_I2S_CH3                 ((uint8_t)0x04U)
-#define CLK_I2S_CH4                 ((uint8_t)0x08U)
-#define CLK_I2S_CH_ALL              ((uint8_t)(CLK_I2S_CH1 | CLK_I2S_CH2 | CLK_I2S_CH3 | CLK_I2S_CH4))
+#define CLK_I2S_CH1                 (0x01U)
+#define CLK_I2S_CH2                 (0x02U)
+#define CLK_I2S_CH3                 (0x04U)
+#define CLK_I2S_CH4                 (0x08U)
+#define CLK_I2S_CH_ALL              (CLK_I2S_CH1 | CLK_I2S_CH2 | CLK_I2S_CH3 | CLK_I2S_CH4)
 /**
  * @}
  */
@@ -872,12 +877,12 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_PCLK24_Sel PCLK2/4 selection
  * @{
  */
-#define CLK_PERI_CLK_PCLK           ((uint16_t)0x0000U)
-#define CLK_PERI_CLK_PLLHQ          ((uint16_t)0x0008U)
-#define CLK_PERI_CLK_PLLHR          ((uint16_t)0x0009U)
-#define CLK_PERI_CLK_PLLAP          ((uint16_t)0x000AU)
-#define CLK_PERI_CLK_PLLAQ          ((uint16_t)0x000BU)
-#define CLK_PERI_CLK_PLLAR          ((uint16_t)0x000CU)
+#define CLK_PERI_CLK_PCLK           (0x0000U)
+#define CLK_PERI_CLK_PLLHQ          (0x0008U)
+#define CLK_PERI_CLK_PLLHR          (0x0009U)
+#define CLK_PERI_CLK_PLLAP          (0x000AU)
+#define CLK_PERI_CLK_PLLAQ          (0x000BU)
+#define CLK_PERI_CLK_PLLAR          (0x000CU)
 /**
  * @}
  */
@@ -886,9 +891,9 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_TPIU_Divider TPIU clock divider
  * @{
  */
-#define CLK_TPIU_CLK_DIV1           ((uint8_t)0x00U)
-#define CLK_TPIU_CLK_DIV2           ((uint8_t)0x01U)
-#define CLK_TPIU_CLK_DIV4           ((uint8_t)0x02U)
+#define CLK_TPIU_CLK_DIV1           (0x00U)
+#define CLK_TPIU_CLK_DIV2           (0x01U)
+#define CLK_TPIU_CLK_DIV4           (0x02U)
 /**
  * @}
  */
@@ -897,17 +902,17 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_MCO_Clock_Source CLK MCO Clock Source
  * @{
  */
-#define CLK_MCOSOURCCE_HRC          ((uint8_t)0x00U)
-#define CLK_MCOSOURCCE_MRC          ((uint8_t)0x01U)
-#define CLK_MCOSOURCCE_LRC          ((uint8_t)0x02U)
-#define CLK_MCOSOURCCE_XTAL         ((uint8_t)0x03U)
-#define CLK_MCOSOURCCE_XTAL32       ((uint8_t)0x04U)
-#define CLK_MCOSOURCCE_PLLHP        ((uint8_t)0x06U)
-#define CLK_MCOSOURCCE_PLLAP        ((uint8_t)0x07U)
-#define CLK_MCOSOURCCE_PLLHQ        ((uint8_t)0x08U)
-#define CLK_MCOSOURCCE_PLLAQ        ((uint8_t)0x09U)
-#define CLK_MCOSOURCCE_PLLAR        ((uint8_t)0x0AU)
-#define CLK_MCOSOURCCE_SYSCLK       ((uint8_t)0x0BU)
+#define CLK_MCOSOURCCE_HRC          (0x00U)
+#define CLK_MCOSOURCCE_MRC          (0x01U)
+#define CLK_MCOSOURCCE_LRC          (0x02U)
+#define CLK_MCOSOURCCE_XTAL         (0x03U)
+#define CLK_MCOSOURCCE_XTAL32       (0x04U)
+#define CLK_MCOSOURCCE_PLLHP        (0x06U)
+#define CLK_MCOSOURCCE_PLLAP        (0x07U)
+#define CLK_MCOSOURCCE_PLLHQ        (0x08U)
+#define CLK_MCOSOURCCE_PLLAQ        (0x09U)
+#define CLK_MCOSOURCCE_PLLAR        (0x0AU)
+#define CLK_MCOSOURCCE_SYSCLK       (0x0BU)
 /**
  * @}
  */
@@ -916,32 +921,18 @@ typedef struct stc_pll_clk_freq
  * @defgroup CLK_MCO_Clock_Prescaler CLK MCO Clock Prescaler
  * @{
  */
-#define CLK_MCODIV_1                ((uint8_t)0x00U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_2                ((uint8_t)0x01U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_4                ((uint8_t)0x02U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_8                ((uint8_t)0x03U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_16               ((uint8_t)0x04U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_32               ((uint8_t)0x05U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_64               ((uint8_t)0x06U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_128              ((uint8_t)0x07U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCODIV_1                (0x00U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCODIV_2                (0x01U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCODIV_4                (0x02U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCODIV_8                (0x03U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCODIV_16               (0x04U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCODIV_32               (0x05U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCODIV_64               (0x06U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCODIV_128              (0x07U << CMU_MCO2CFGR_MCO2DIV_POS)
 /**
  * @}
  */
 
-
-/**
- * @}
- */
-
-/**
- * @defgroup CLK_REG_Write_Configuration CLK register write Configuration
- * @{
- */
-#define CLK_REG_WRITE_ENABLE()      (M4_PWC->FPRC |= 0xA501U)
-#define CLK_REG_WRITE_DISABLE()     (M4_PWC->FPRC = (0xA500U | (M4_PWC->FPRC & (uint16_t)(~1U))))
-
-#define CLK_REG1_WRITE_ENABLE()     (M4_PWC->FPRC |= 0xA502U)
-#define CLK_REG1_WRITE_DISABLE()    (M4_PWC->FPRC = (0xA500U | (M4_PWC->FPRC & (uint16_t)(~2U))))
 
 /**
  * @}
@@ -963,17 +954,16 @@ en_result_t CLK_XtalStdInit(const stc_clk_xtalstd_init_t* pstcXtalStdConfig);
 void CLK_ClearXtalStdFlag(void);
 en_flag_status_t CLK_GetXtalStdFlag(void);
 
-void CLK_HrcTrim(char TrimVal);
-void CLK_MrcTrim(char TrimVal);
-void CLK_LrcTrim(char TrimVal);
-void CLK_RtcLrcTrim(char TrimVal);
+void CLK_HrcTrim(int8_t i8TrimVal);
+void CLK_MrcTrim(int8_t i8TrimVal);
+void CLK_LrcTrim(int8_t i8TrimVal);
+void CLK_RtcLrcTrim(int8_t i8TrimVal);
 
 en_result_t CLK_XtalCmd(en_functional_state_t enNewState);
 en_result_t CLK_Xtal32Cmd(en_functional_state_t enNewState);
 en_result_t CLK_HrcCmd(en_functional_state_t enNewState);
 en_result_t CLK_MrcCmd(en_functional_state_t enNewState);
 en_result_t CLK_LrcCmd(en_functional_state_t enNewState);
-en_result_t CLK_RtcLrcCmd(en_functional_state_t enNewState);
 en_result_t CLK_PLLACmd(en_functional_state_t enNewState);
 en_result_t CLK_PLLHCmd(en_functional_state_t enNewState);
 
@@ -1009,7 +999,7 @@ void CLK_MCO2Cmd(en_functional_state_t enNewState);
 
 en_result_t CLK_GetClockFreq(stc_clk_freq_t *pstcClkFreq);
 en_result_t CLK_GetPllClockFreq(stc_pll_clk_freq_t *pstcPllClkFreq);
-void CLK_SetPLLSrc(uint8_t u8PllSrc);
+void CLK_SetPLLSrc(uint32_t u32PllSrc);
 
 
 /**

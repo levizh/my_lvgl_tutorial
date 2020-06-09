@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_hid_keybd.h
+ * @brief Header for the usbh_hid_keybd.c file
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-12-13       Zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,30 +48,49 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_hid_keybd.h
- **
- ** A detailed description is available at
- ** @link
-        This file contains all the prototypes for the usbh_hid_mouse.c。
-    @endlink
- **
- **   - 2019-12-13  1.0  zhangxl First version for USB hid mouse demo.
- **
- ******************************************************************************/
 #ifndef __USBH_HID_MOUSE_H__
 #define __USBH_HID_MOUSE_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbh_hid_core.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CLASS
+ * @{
+ */
+
+/** @addtogroup USBH_HID_MOUSE
+ * @{
+ */
+
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-typedef struct _HID_MOUSE_Data
+/**
+ * @defgroup USBH_HID_MOUSE_Global_Types USBH HID Mouse Global Types
+ * @{
+ */
+typedef struct
 {
   uint8_t              z; 
   uint8_t              button;
@@ -69,19 +98,55 @@ typedef struct _HID_MOUSE_Data
   uint8_t              y; 
 }
 HID_MOUSE_Data_TypeDef;
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+/**
+ * @defgroup USBH_HID_MOUSE_Global_Variable USBH HID Mouse Global Variable
+ * @{
+ */
 extern HID_cb_TypeDef HID_MOUSE_cb;
 extern HID_MOUSE_Data_TypeDef	 HID_MOUSE_Data;
+/**
+ * @}
+ */
 
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBH_HID_MOUSE_Global_Functions
+ * @{
+ */
 void  USR_MOUSE_Init (void);
 void  USR_MOUSE_ProcessData (HID_MOUSE_Data_TypeDef *data);
+/**
+ * @}
+ */
 
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBH_HID_MOUSE_H__ */
 

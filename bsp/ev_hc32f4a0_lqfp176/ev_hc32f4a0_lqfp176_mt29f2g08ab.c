@@ -131,13 +131,13 @@
  * @defgroup EV_EXMC_NFC_Operation_Timeout EXMC NFC Operation Timeout
  * @{
  */
-#define EV_NFC_ERASE_TIMEOUT                    ((uint32_t)2000000UL)
-#define EV_NFC_READ_TIMEOUT                     ((uint32_t)2000000UL)
-#define EV_NFC_READ_HWECC_TIMEOUT               ((uint32_t)9000000UL)
-#define EV_NFC_WRITE_TIMEOUT                    ((uint32_t)2000000UL)
-#define EV_NFC_WRITE_HWECC_TIMEOUT              ((uint32_t)2000000UL)
-#define EV_NFC_RESET_TIMEOUT                    ((uint32_t)2000000UL)
-#define EV_NFC_MAX_TIMEOUT                      ((uint32_t)0xFFFFFFFFUL)
+#define BSP_NFC_ERASE_TIMEOUT                    (2000000UL)
+#define BSP_NFC_READ_TIMEOUT                     (2000000UL)
+#define BSP_NFC_READ_HWECC_TIMEOUT               (9000000UL)
+#define BSP_NFC_WRITE_TIMEOUT                    (2000000UL)
+#define BSP_NFC_WRITE_HWECC_TIMEOUT              (2000000UL)
+#define BSP_NFC_RESET_TIMEOUT                    (2000000UL)
+#define BSP_NFC_MAX_TIMEOUT                      (0xFFFFFFFFUL)
 /**
  * @}
  */
@@ -179,7 +179,7 @@ static void EV_EXMC_NFC_PortInit(void);
  *   @arg  Ok:                          Initilize successfully.
  *   @arg  Error:                       Initilize unsuccessfully.
  */
-en_result_t EV_NFC_MT29F2G08AB_Init(void)
+en_result_t BSP_NFC_MT29F2G08AB_Init(void)
 {
     en_result_t enRet = Error;
     stc_exmc_nfc_init_t stcInit;
@@ -202,7 +202,7 @@ en_result_t EV_NFC_MT29F2G08AB_Init(void)
     stcInit.stcBaseCfg.u32WrProtect = EXMC_NFC_WR_PROTECT_DISABLE;
     stcInit.stcBaseCfg.u32EccMode = EXMC_NFC_ECC_1BIT;
     stcInit.stcBaseCfg.u32RowAddrCycle = EXMC_NFC_3_ROW_ADDRESS_CYCLES;
-    stcInit.stcBaseCfg.u32SpareColSize = (64UL/4UL); /* Unit: word */
+    stcInit.stcBaseCfg.u8SpareSizeForUserData = 0U;
 
     stcInit.stcTimingReg0.u32TS = 4UL;         /* CLOCK frequency @60MHz: 3.3V */
     stcInit.stcTimingReg0.u32TWP = 3UL;
@@ -221,7 +221,7 @@ en_result_t EV_NFC_MT29F2G08AB_Init(void)
     if (Ok == EXMC_NFC_Init(&stcInit))
     {
         /* Reset NFC device. */
-        if(Ok == EXMC_NFC_Reset(BSP_EV_HC32F4A0_MT29F2G08AB_BANK, EV_NFC_RESET_TIMEOUT))
+        if(Ok == EXMC_NFC_Reset(BSP_EV_HC32F4A0_MT29F2G08AB_BANK, BSP_NFC_RESET_TIMEOUT))
         {
             enRet = Ok;
         }
@@ -235,7 +235,7 @@ en_result_t EV_NFC_MT29F2G08AB_Init(void)
  * @param  None
  * @retval NAND Flash status
  */
-uint32_t EV_NFC_MT29F2G08AB_ReadStatus(void)
+uint32_t BSP_NFC_MT29F2G08AB_ReadStatus(void)
 {
     return EXMC_NFC_ReadStatus(BSP_EV_HC32F4A0_MT29F2G08AB_BANK);
 }
@@ -249,7 +249,7 @@ uint32_t EV_NFC_MT29F2G08AB_ReadStatus(void)
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorInvalidParameter:       au8DevId == NULL or u8NumWords == 0
  */
-en_result_t EV_NFC_MT29F2G08AB_ReadId(uint32_t u32IdAddr,
+en_result_t BSP_NFC_MT29F2G08AB_ReadId(uint32_t u32IdAddr,
                                         uint8_t au8DevId[],
                                         uint8_t u8NumBytes)
 {
@@ -275,13 +275,13 @@ en_result_t EV_NFC_MT29F2G08AB_ReadId(uint32_t u32IdAddr,
  *   @arg  ErrorTimeout:                Erase timeout.
  *   @arg  ErrorInvalidParameter:       The paramter is invalid.
  */
-en_result_t EV_NFC_MT29F2G08AB_EraseBlock(uint32_t u32BlockRowAddress)
+en_result_t BSP_NFC_MT29F2G08AB_EraseBlock(uint32_t u32BlockRowAddress)
 {
     en_result_t enRet;
 
     enRet = EXMC_NFC_EraseBlock(BSP_EV_HC32F4A0_MT29F2G08AB_BANK, \
                                 u32BlockRowAddress, \
-                                EV_NFC_ERASE_TIMEOUT);
+                                BSP_NFC_ERASE_TIMEOUT);
     return enRet;
 }
 
@@ -296,7 +296,7 @@ en_result_t EV_NFC_MT29F2G08AB_EraseBlock(uint32_t u32BlockRowAddress)
  *   @arg  ErrorTimeout:                Read timeout.
  *   @arg  ErrorInvalidParameter:       The paramter is invalid.
  */
-en_result_t EV_NFC_MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
+en_result_t BSP_NFC_MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
                                     uint8_t *pu8Data,
                                     uint32_t u32NumBytes)
 {
@@ -306,7 +306,7 @@ en_result_t EV_NFC_MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
                                   u32Page, \
                                   pu8Data, \
                                   u32NumBytes, \
-                                  EV_NFC_READ_TIMEOUT);
+                                  BSP_NFC_READ_TIMEOUT);
     return enRet;
 }
 
@@ -321,7 +321,7 @@ en_result_t EV_NFC_MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
  *   @arg  ErrorTimeout:                Write timeout.
  *   @arg  ErrorInvalidParameter:       The paramter is invalid.
  */
-en_result_t EV_NFC_MT29F2G08AB_WritePageMeta(uint32_t u32Page,
+en_result_t BSP_NFC_MT29F2G08AB_WritePageMeta(uint32_t u32Page,
                                     const uint8_t *pu8Data,
                                     uint32_t u32NumBytes)
 {
@@ -331,7 +331,7 @@ en_result_t EV_NFC_MT29F2G08AB_WritePageMeta(uint32_t u32Page,
                                     u32Page, \
                                     pu8Data, \
                                     u32NumBytes, \
-                                    EV_NFC_WRITE_TIMEOUT);
+                                    BSP_NFC_WRITE_TIMEOUT);
     return enRet;
 }
 
@@ -346,7 +346,7 @@ en_result_t EV_NFC_MT29F2G08AB_WritePageMeta(uint32_t u32Page,
  *   @arg  ErrorTimeout:                Read timeout.
  *   @arg  ErrorInvalidParameter:       The paramter is invalid.
  */
-en_result_t EV_NFC_MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
+en_result_t BSP_NFC_MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
                                     uint8_t *pu8Data,
                                     uint32_t u32NumBytes)
 {
@@ -356,7 +356,7 @@ en_result_t EV_NFC_MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
                                     u32Page, \
                                     pu8Data, \
                                     u32NumBytes, \
-                                    EV_NFC_READ_HWECC_TIMEOUT);
+                                    BSP_NFC_READ_HWECC_TIMEOUT);
     return enRet;
 }
 
@@ -371,7 +371,7 @@ en_result_t EV_NFC_MT29F2G08AB_ReadPageHwEcc(uint32_t u32Page,
  *   @arg  ErrorTimeout:                Write timeout.
  *   @arg  ErrorInvalidParameter:       The paramter is invalid.
  */
-en_result_t EV_NFC_MT29F2G08AB_WritePageHwEcc(uint32_t u32Page,
+en_result_t BSP_NFC_MT29F2G08AB_WritePageHwEcc(uint32_t u32Page,
                                     const uint8_t *pu8Data,
                                     uint32_t u32NumBytes)
 {
@@ -381,7 +381,7 @@ en_result_t EV_NFC_MT29F2G08AB_WritePageHwEcc(uint32_t u32Page,
                                     u32Page, \
                                     pu8Data, \
                                     u32NumBytes, \
-                                    EV_NFC_WRITE_HWECC_TIMEOUT);
+                                    BSP_NFC_WRITE_HWECC_TIMEOUT);
     return enRet;
 }
 
@@ -403,10 +403,11 @@ static void EV_EXMC_NFC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
+    GPIO_Unlock();
+
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;
-    stcGpioInit.u16PinDrv = PIN_MID_DRV;
+    stcGpioInit.u16PinDrv = PIN_DRV_MID;
 
     /* NFC_CE */
     GPIO_Init(NFC_CE_PORT, NFC_CE_PIN, &stcGpioInit);
@@ -438,7 +439,6 @@ static void EV_EXMC_NFC_PortInit(void)
     GPIO_Init(NFC_DATA7_PORT, NFC_DATA7_PIN, &stcGpioInit);
 
     /* NFC_RB */
-    stcGpioInit.u16PullUp = PIN_PU_ON;
     GPIO_Init(NFC_RB_PORT, NFC_RB_PIN, &stcGpioInit);
 
     /************************** Set EXMC pin function *************************/
@@ -472,6 +472,8 @@ static void EV_EXMC_NFC_PortInit(void)
     GPIO_SetFunc(NFC_DATA5_PORT, NFC_DATA5_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(NFC_DATA6_PORT, NFC_DATA6_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(NFC_DATA7_PORT, NFC_DATA7_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
+
+    GPIO_Lock();
 }
 
 #endif /* BSP_EV_HC32F4A0_LQFP176/BSP_MT29F2G08AB_ENABLE */

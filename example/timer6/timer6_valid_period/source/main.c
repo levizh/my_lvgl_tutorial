@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * @file  template/source/main.c
+ * @file  timer6\timer6_valid_period\source\main.c
  * @brief Main program template for the Device Driver Library.
  @verbatim
    Change Logs:
@@ -127,7 +127,7 @@ static void AdcConfig(void);
 static void AdcClockConfig(void);
 static void AdcInitConfig(void);
 static void AdcChannelConfig(void);
-static void AdcIrqConfig();
+static void AdcIrqConfig(void);
 static void AdcTrigSrcConfig(void);
 
 static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32Channel);
@@ -354,7 +354,7 @@ static void AdcTrigSrcConfig(void)
      * If select an event as the trigger source of sequence A or sequence B, \
      *    the AOS function must be enabled at first.
      */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
 
     /*
      * Configures the trigger source of sequence A.

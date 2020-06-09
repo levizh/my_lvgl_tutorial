@@ -93,9 +93,9 @@
  */
 
 /* NOR operations Timeout definitions */
-#define PROGRAM_TIMEOUT                     ((uint32_t)0x01000000)  /* Program NOR  timeout */
-#define ERASECHIP_TIMEOUT                   ((uint32_t)0x30000000)  /* Erase NOR chip timeout */
-#define ERASESECTOR_TIMEOUT                 ((uint32_t)0x01000000)  /* Erase NOR block timeout */
+#define PROGRAM_TIMEOUT                     (0x01000000UL)  /* Program NOR  timeout */
+#define ERASECHIP_TIMEOUT                   (0x30000000UL)  /* Erase NOR chip timeout */
+#define ERASESECTOR_TIMEOUT                 (0x01000000UL)  /* Erase NOR block timeout */
 /**
  * @}
  */
@@ -143,8 +143,8 @@ static uint32_t m_u32MemStartAddr = 0UL;
  */
 en_result_t S29GL064_Init(void)
 {
-    EV_SMC_S29GL064_Init();
-    EV_SMC_S29GL064_GetMemInfo(&m_u32MemStartAddr, NULL, NULL, NULL);
+    BSP_SMC_S29GL064_Init();
+    BSP_SMC_S29GL064_GetMemInfo(&m_u32MemStartAddr, NULL, NULL, NULL);
 
     return Ok;
 }
@@ -162,7 +162,7 @@ void S29GL064_GetMemInfo(uint32_t *pu32MemStartAddr,
                                         uint32_t *pu32BytesPerSector,
                                         uint32_t *pu32BytesPerBufProgram)
 {
-    EV_SMC_S29GL064_GetMemInfo(pu32MemStartAddr,
+    BSP_SMC_S29GL064_GetMemInfo(pu32MemStartAddr,
                                 pu32SectorsNumber,
                                 pu32BytesPerSector,
                                 pu32BytesPerBufProgram);
@@ -175,7 +175,7 @@ void S29GL064_GetMemInfo(uint32_t *pu32MemStartAddr,
  */
 void S29GL064_Reset(void)
 {
-    EV_SMC_S29GL064_Reset(S29GL064_START_ADDRESS);
+    BSP_SMC_S29GL064_Reset(S29GL064_START_ADDRESS);
 }
 
 /**
@@ -188,7 +188,7 @@ void S29GL064_Reset(void)
  */
 en_result_t S29GL064_ReadId(uint16_t au16Id[], uint32_t u32Length)
 {
-    return EV_SMC_S29GL064_ReadId(S29GL064_START_ADDRESS, au16Id, u32Length);
+    return BSP_SMC_S29GL064_ReadId(S29GL064_START_ADDRESS, au16Id, u32Length);
 }
 
 /**
@@ -202,7 +202,7 @@ en_result_t S29GL064_ReadId(uint16_t au16Id[], uint32_t u32Length)
  */
 en_result_t S29GL064_ReadCfiId(uint16_t au16Id[], uint32_t u32Length)
 {
-    return EV_SMC_S29GL064_ReadCfiId(S29GL064_START_ADDRESS, au16Id, u32Length);
+    return BSP_SMC_S29GL064_ReadCfiId(S29GL064_START_ADDRESS, au16Id, u32Length);
 }
 
 /**
@@ -216,10 +216,10 @@ en_result_t S29GL064_EraseChip(void)
 {
     en_result_t enRet = Ok;
 
-    EV_SMC_S29GL064_EraseChip(S29GL064_START_ADDRESS);
+    BSP_SMC_S29GL064_EraseChip(S29GL064_START_ADDRESS);
 
    /* Return the NOR memory status */
-    if (EV_SMC_S29GL064_GetStatus(S29GL064_START_ADDRESS, ERASECHIP_TIMEOUT) != Ok)
+    if (BSP_SMC_S29GL064_GetStatus(S29GL064_START_ADDRESS, ERASECHIP_TIMEOUT) != Ok)
     {
         enRet = Error;
     }
@@ -240,10 +240,10 @@ en_result_t S29GL064_EraseSector(uint32_t u32SectorAddress)
 
     DDL_ASSERT(u32SectorAddress >= S29GL064_START_ADDRESS);
 
-    EV_SMC_S29GL064_EraseSector(S29GL064_START_ADDRESS, u32SectorAddress);
+    BSP_SMC_S29GL064_EraseSector(S29GL064_START_ADDRESS, u32SectorAddress);
 
     /* Return the NOR memory status */
-    if (EV_SMC_S29GL064_GetStatus(S29GL064_START_ADDRESS, ERASESECTOR_TIMEOUT) != Ok)
+    if (BSP_SMC_S29GL064_GetStatus(S29GL064_START_ADDRESS, ERASESECTOR_TIMEOUT) != Ok)
     {
         enRet = Error;
     }
@@ -266,10 +266,10 @@ en_result_t S29GL064_Program(uint32_t u32ProgramAddress, uint16_t u16Data)
     DDL_ASSERT(IS_ADDRESS_ALIGN_HALFWORD(u32ProgramAddress));
     DDL_ASSERT(u32ProgramAddress >= S29GL064_START_ADDRESS);
 
-    EV_SMC_S29GL064_Program(S29GL064_START_ADDRESS, u32ProgramAddress, u16Data);
+    BSP_SMC_S29GL064_Program(S29GL064_START_ADDRESS, u32ProgramAddress, u16Data);
 
     /* Return the NOR memory status */
-    if (EV_SMC_S29GL064_GetStatus(S29GL064_START_ADDRESS, ERASESECTOR_TIMEOUT) != Ok)
+    if (BSP_SMC_S29GL064_GetStatus(S29GL064_START_ADDRESS, ERASESECTOR_TIMEOUT) != Ok)
     {
         enRet = Error;
     }
@@ -298,13 +298,13 @@ en_result_t S29GL064_ProgramBuffer(uint32_t u32ProgramAddress,
         DDL_ASSERT(IS_ADDRESS_ALIGN_HALFWORD(u32ProgramAddress));
         DDL_ASSERT(u32ProgramAddress >= S29GL064_START_ADDRESS);
 
-        EV_SMC_S29GL064_ProgramBuffer(S29GL064_START_ADDRESS,
+        BSP_SMC_S29GL064_ProgramBuffer(S29GL064_START_ADDRESS,
                                 u32ProgramAddress,
                                 au16Data,
                                 u32NumHalfWords);
 
         /* Return the NOR memory status */
-        if (EV_SMC_S29GL064_GetStatus(S29GL064_START_ADDRESS, ERASESECTOR_TIMEOUT) == Ok)
+        if (BSP_SMC_S29GL064_GetStatus(S29GL064_START_ADDRESS, ERASESECTOR_TIMEOUT) == Ok)
         {
             enRet = Ok;
         }
@@ -327,7 +327,7 @@ uint16_t S29GL064_Read(uint32_t u32ReadAddress)
     DDL_ASSERT(IS_ADDRESS_ALIGN_HALFWORD(u32ReadAddress));
     DDL_ASSERT(u32ReadAddress >= S29GL064_START_ADDRESS);
 
-    return EV_SMC_S29GL064_Read(S29GL064_START_ADDRESS, u32ReadAddress);
+    return BSP_SMC_S29GL064_Read(S29GL064_START_ADDRESS, u32ReadAddress);
 }
 
 /**
@@ -351,7 +351,7 @@ en_result_t S29GL064_ReadBuffer(uint32_t u32ReadAddress,
         DDL_ASSERT(IS_ADDRESS_ALIGN_HALFWORD(u32ReadAddress));
         DDL_ASSERT(u32ReadAddress >= S29GL064_START_ADDRESS);
 
-        enRet = EV_SMC_S29GL064_ReadBuffer(S29GL064_START_ADDRESS,
+        enRet = BSP_SMC_S29GL064_ReadBuffer(S29GL064_START_ADDRESS,
                                             u32ReadAddress,
                                             au16Data,
                                             u32NumHalfwords);

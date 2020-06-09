@@ -81,11 +81,14 @@
 #define TEST_PORT2  GPIO_PORT_E
 #define TEST_PIN2   GPIO_PIN_03
 
+#define LCD_BKL_PORT            (GPIO_PORT_I)
+#define LCD_BKL_PIN             (GPIO_PIN_00)
+
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
 #define DVP_BUF_SIZE    480U
-uint8_t u8Tmp[10];
+//uint8_t u8Tmp[10];
 uint16_t x,y,gt_reg;
 uint16_t test_buf[10];
 uint8_t reg_val;
@@ -162,7 +165,7 @@ void key_serve(void)
 
         if (Set == BSP_KEY_GetStatus(BSP_KEY_6))
         {
-
+            BSP_CAM_StandbyCmd(EIO_PIN_SET);
         }
         if (Set == BSP_KEY_GetStatus(BSP_KEY_7))
         {
@@ -202,7 +205,7 @@ void draw_bmp(void)
     static uint8_t i = 0;
 
 
-//    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_PTDIS, Enable);
+//    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_AOS, Enable);
 
     DMA_StructInit(&stcDmaInit);
     if(i%2)
@@ -222,7 +225,7 @@ void draw_bmp(void)
     stcDmaInit.u32TransCnt  = 480*272/4;
     stcDmaInit.u32BlockSize = 4;
     DMA_Init(M4_DMA1, DMA_CH2, &stcDmaInit);
-    DMA_SetTrigSrc(M4_DMA1, DMA_CH2, EVT_AOS_STRG);
+    DMA_SetTriggerSrc(M4_DMA1, DMA_CH2, EVT_AOS_STRG);
     DMA_Cmd(M4_DMA1, Enable);
 
     if (0 == dis_title)
@@ -231,7 +234,7 @@ void draw_bmp(void)
         NT35510_SetCursor(0, 592);
 
         /* Prepare to write to LCD RAM */
-        LCD_WriteReg(NT35510_WRITE_RAM);
+        LCD_WriteReg(lcddev.wramcmd);
 
         LCD_WriteMultipleData((uint16_t*)&gImage_RGB480x208[0], 480*208);
 
@@ -243,7 +246,7 @@ void draw_bmp(void)
     NT35510_SetCursor(0, 320);
 
     /* Prepare to write to LCD RAM */
-    LCD_WriteReg(NT35510_WRITE_RAM);
+    LCD_WriteReg(lcddev.wramcmd);
 
 //    for(uint32_t bmp_cnt = 0; bmp_cnt < 480x272; bmp_cnt++)
 //    {
@@ -285,14 +288,14 @@ void Draw_bmp_init(void)
     NT35510_SetCursor(0, 320);
 
     /* Prepare to write to LCD RAM */
-    LCD_WriteReg(NT35510_WRITE_RAM);
+    LCD_WriteReg(lcddev.wramcmd);
     DMA_ChannelCmd(M4_DMA1, DMA_CH2, Enable);
     AOS_SW_Trigger();
-    while(Reset == DMA_GetTransIntStatus(M4_DMA1, DMA_TC_INT2))
+    while(Reset == DMA_GetTransIntStatus(M4_DMA1, DMA_TC_INT_CH2))
     {
         AOS_SW_Trigger();
     }
-    DMA_ClearTransIntStatus(M4_DMA1, DMA_TC_INT2);
+    DMA_ClearTransIntStatus(M4_DMA1, DMA_TC_INT_CH2);
 }
 
 void DVP_Init(void)
@@ -354,7 +357,7 @@ void DVP_FrameStart_IrqCallback(void)
 //        __asm("nop");
         NT35510_SetCursor(0U, 0U);
         /* Prepare to write to LCD RAM */
-        LCD_WriteReg(NT35510_WRITE_RAM);
+        LCD_WriteReg(lcddev.wramcmd);
 //        dvp_frame_cnt=0;
         cam_state=1;
     }
@@ -472,13 +475,13 @@ void DVP_DMA_Init(void)
     stcDmaRptInit.u32DestRptEn      = DMA_DEST_RPT_ENABLE;
     stcDmaRptInit.u32DestRptSize    = DVP_BUF_SIZE/2;
     DMA_RepeatInit(M4_DMA1, DMA_CH0, &stcDmaRptInit);
-    DMA_SetTrigSrc(M4_DMA1, DMA_CH0, EVT_TMRA_1_OVF);
+    DMA_SetTriggerSrc(M4_DMA1, DMA_CH0, EVT_TMRA_1_OVF);
 
     /* DMA1_1 for line */
     stcDmaInit.u32DestAddr  = (uint32_t)&DVP_Buf2[0];
     DMA_Init(M4_DMA1, DMA_CH1, &stcDmaInit);
     DMA_RepeatInit(M4_DMA1, DMA_CH1, &stcDmaRptInit);
-    DMA_SetTrigSrc(M4_DMA1, DMA_CH1, EVT_TMRA_1_OVF);
+    DMA_SetTriggerSrc(M4_DMA1, DMA_CH1, EVT_TMRA_1_OVF);
 
     /* DMA2_0 for LCD DVP_Buf1 */
     stcDmaInit.u32SrcAddr   = (uint32_t)&DVP_Buf1[0];
@@ -493,14 +496,14 @@ void DVP_DMA_Init(void)
     stcDmaRptInit.u32SrcRptEn       = DMA_SRC_RPT_ENABLE;
     stcDmaRptInit.u32DestRptEn      = DMA_DEST_RPT_DISABLE;
     DMA_RepeatInit(M4_DMA2, DMA_CH0, &stcDmaRptInit);
-    DMA_SetTrigSrc(M4_DMA2, DMA_CH0, EVT_DMA1_TC0);
+    DMA_SetTriggerSrc(M4_DMA2, DMA_CH0, EVT_DMA1_TC0);
 
     /* DMA2_1 for LCD DVP_Buf2 */
     stcDmaInit.u32SrcAddr   = (uint32_t)&DVP_Buf2[0];
 //    stcDmaInit.u32DestAddr  = 0UL;// test
     DMA_Init(M4_DMA2, DMA_CH1, &stcDmaInit);
     DMA_RepeatInit(M4_DMA2, DMA_CH1, &stcDmaRptInit);
-    DMA_SetTrigSrc(M4_DMA2, DMA_CH1, EVT_DMA1_TC1);
+    DMA_SetTriggerSrc(M4_DMA2, DMA_CH1, EVT_DMA1_TC1);
 
     DMA_Cmd(M4_DMA1, Enable);
     DMA_Cmd(M4_DMA2, Enable);
@@ -531,8 +534,6 @@ void DVP_Int_Init(void)
     NVIC_ClearPendingIRQ(Int007_IRQn);
     NVIC_SetPriority(Int007_IRQn,DDL_IRQ_PRIORITY_02);
     NVIC_EnableIRQ(Int007_IRQn);
-
-
 
     /* DMA1 Ch.0 BTC */
     stcIrqSignConfig.enIntSrc   = INT_DMA1_BTC0;
@@ -608,7 +609,11 @@ void DVP_Int_Init(void)
  */
 int32_t main(void)
 {
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_DMA2 | PWC_FCG0_PTDIS, Enable);
+    GPIO_Unlock();
+    PWC_Unlock(0xA50B);
+    PWC_FCG0_Unlock();
+
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_DMA2 | PWC_FCG0_AOS, Enable);
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMRA_1, Enable);
 
     BSP_CLK_Init();
@@ -619,12 +624,15 @@ int32_t main(void)
     CLK_ClkDiv(CLK_CATE_EXCLK, CLK_EXCLK_DIV2);
 
     GPIO_OE(TEST_PORT, (TEST_PIN | TEST_PIN2),Enable);
+
+    GPIO_OE(LCD_BKL_PORT, (LCD_BKL_PIN),Enable);
+
     BSP_IO_Init();
     BSP_LED_Init();
     BSP_CAM_IO_Init();
     BSP_LCD_IO_Init();
     BSP_KEY_Init();
-    BSP_TS_Init();
+//    BSP_TS_Init();
 
     DDL_PrintfInit();
 
@@ -633,12 +641,12 @@ int32_t main(void)
 
     /* HW Reset LCD */
     BSP_LCD_ResetCmd(EIO_PIN_RESET);
-    BSP_CAM_ResetCmd(EIO_PIN_RESET);
+    BSP_CAM_ResetCmd(EIO_PIN_SET);  // RST# to low
 //    BSP_CT_ResetCmd(EIO_PIN_RESET);
     DDL_Delay1ms(100UL);
     BSP_LCD_ResetCmd(EIO_PIN_SET);
-    BSP_CAM_ResetCmd(EIO_PIN_SET);
-    BSP_CAM_StandbyCmd(EIO_PIN_RESET);
+    BSP_CAM_ResetCmd(EIO_PIN_RESET);// RST# to high
+    BSP_CAM_StandbyCmd(EIO_PIN_SET);// STB# to low
 
     DDL_Delay1ms(100UL);
 
@@ -672,6 +680,11 @@ int32_t main(void)
     lv_init();
 
     lv_port_disp_init();
+
+    if (lcddev.id == 0x5510)
+    {
+        BSP_TS_Init();
+    }
 
     lv_port_indev_init();
 
@@ -727,7 +740,7 @@ int32_t main(void)
     gt_reg = 0x0;
 
     /* Prepare to write to LCD RAM */
-    LCD_WriteReg(NT35510_WRITE_RAM);
+    LCD_WriteReg(lcddev.wramcmd);
 //    draw_bmp();
     DVP_Init();
 //    DVP_CaptureOn();

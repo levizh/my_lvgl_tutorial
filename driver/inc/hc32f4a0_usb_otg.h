@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  hc32f4a0_usb_otg.h
+ * @brief A detailed description is available at OTG Core Header
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,30 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usb_otg.h
- **
- ** A detailed description is available at
- ** @link OTG Core Header @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
-#ifndef __USB_OTG__
-#define __USB_OTG__
+
+#ifndef __HC32F4A0_USB_OTG_H__
+#define __HC32F4A0_USB_OTG_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
+/**
+ * @addtogroup HC32F4A0_DDL_Driver
+ * @{
+ */
+
+/**
+ * @addtogroup DDL_USB_OTG
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 
 /*******************************************************************************
@@ -72,10 +94,24 @@
 //void USB_OTG_Switchback (USB_OTG_CORE_DEVICE *pdev);
 //uint32_t  USB_OTG_GetCurrentState (USB_OTG_CORE_DEVICE *pdev);
 
-#endif //__USB_OTG__
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif /* __HC32F4A0_USB_OTG_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)
  ******************************************************************************/
-
-

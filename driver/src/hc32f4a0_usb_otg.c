@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  hc32f4a0_usb_otg.c
+ * @brief USB Core Layer.
+ *       
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.c
- **
- ** A detailed description is available at
- ** @link
-        OTG Core Layer.
-    @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -60,6 +60,18 @@
 #include "hc32f4a0_usb_core.h"
 #include "hc32f4a0_usb_otg.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Driver
+ * @{
+ */
+
+/**
+ * @defgroup DDL_USB_OTG USB OTG
+ * @brief USB Core Layer.
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -76,12 +88,18 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-uint32_t USB_OTG_HandleOTG_ISR(USB_OTG_CORE_HANDLE *pdev);
+/**
+ * @defgroup USB_OTG_Local_Functions USB OTG Local Functions
+ * @{
+ */
 #ifdef USE_OTG_MODE
 static uint32_t USB_OTG_HandleConnectorIDStatusChange_ISR(USB_OTG_CORE_HANDLE *pdev);
 static uint32_t USB_OTG_HandleSessionRequest_ISR(USB_OTG_CORE_HANDLE *pdev);
 #endif
 static uint32_t USB_OTG_Read_itr(USB_OTG_CORE_HANDLE *pdev);
+/**
+ * @}
+ */
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -89,25 +107,29 @@ static uint32_t USB_OTG_Read_itr(USB_OTG_CORE_HANDLE *pdev);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/*                           OTG Interrupt Handler                         */
+
 /**
- *******************************************************************************
- ** \brief  USBO_OTG_ISR_Handler
- **
- ** \param  pdev
- ** \retval : uint32_t
- ******************************************************************************/
+ * @defgroup USB_OTG_Global_Functions USB OTG Global Functions
+ * @{
+ */
+
+/**
+ * @brief  USBO_OTG_ISR_Handler
+ *
+ * @param  pdev
+ * @retval : uint32_t
+ */
 uint32_t USBO_OTG_ISR_Handler(USB_OTG_CORE_HANDLE *pdev)
 {
-    uint32_t retval = 0ul;
+    uint32_t retval = 0UL;
     USB_OTG_GINTSTS_TypeDef  gintsts ;
-    gintsts.d32 = 0ul;
+    gintsts.d32 = 0UL;
 
     gintsts.d32 = USB_OTG_Read_itr(pdev);
-    if (gintsts.d32 == 0ul)
+    if (gintsts.d32 == 0UL)
     {
-        //return 0ul;   /* MISRAC 2004*/
-        retval = 0ul;
+        //return 0UL;   /* MISRAC 2004*/
+        retval = 0UL;
     }
 
 #ifdef USE_OTG_MODE
@@ -123,52 +145,116 @@ uint32_t USBO_OTG_ISR_Handler(USB_OTG_CORE_HANDLE *pdev)
     return retval;
 }
 
-/**
- *******************************************************************************
- ** \brief  USB_OTG_Read_itr
- **         returns the Core Interrupt register
- ** \param  None
- ** \retval : status
- ******************************************************************************/
-static uint32_t USB_OTG_Read_itr(USB_OTG_CORE_HANDLE *pdev)
-{
-    USB_OTG_GINTSTS_TypeDef  gintsts;
-    USB_OTG_GINTMSK_TypeDef  gintmsk;
-    USB_OTG_GINTMSK_TypeDef  gintmsk_common;
 
-    gintsts.d32 = 0ul;
-    gintmsk.d32 = 0ul;
-    gintmsk_common.d32 = 0ul;
-
-    /* OTG interrupts */
-    gintmsk_common.b.vbusvint = 1u;
-    gintmsk_common.b.conidstschng = 1u;
-
-    gintsts.d32 = USB_OTG_READ_REG32(&pdev->regs.GREGS->GINTSTS);
-    gintmsk.d32 = USB_OTG_READ_REG32(&pdev->regs.GREGS->GINTMSK);
-    return ((gintsts.d32 & gintmsk.d32 ) & gintmsk_common.d32);
-}
 
 #ifdef USE_OTG_MODE
+
 /**
- *******************************************************************************
- ** \brief  USB_OTG_HandleConnectorIDStatusChange_ISR
- **         handles the Connector ID Status Change Interrupt
- ** \param  None
- ** \retval : status
- ******************************************************************************/
+ * @brief  USB_OTG_InitiateSRP
+ *         Initiate an srp session
+ * @param  None
+ * @retval : None
+ */
+void USB_OTG_InitiateSRP(USB_OTG_CORE_HANDLE *pdev)
+{
+    USB_OTG_GOTGCTL_TypeDef  otgctl;
+
+    otgctl.d32 = 0UL;
+
+    otgctl.d32 = USB_OTG_READ_REG32( &pdev->regs.GREGS->GOTGCTL );
+    if (otgctl.b.sesreq)
+    {
+        return; /* SRP in progress */
+    }
+    otgctl.b.sesreq = 1U;
+    USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GOTGCTL, otgctl.d32);
+}
+
+
+/**
+ * @brief  USB_OTG_InitiateHNP
+ *         Initiate HNP
+ * @param  None
+ * @retval : None
+ */
+void USB_OTG_InitiateHNP(USB_OTG_CORE_HANDLE *pdev , uint8_t state, uint8_t mode)
+{
+    USB_OTG_GOTGCTL_TypeDef   otgctl;
+    USB_OTG_HPRT0_TypeDef    hprt0;
+
+    otgctl.d32 = 0UL;
+    hprt0.d32  = 0UL;
+
+    otgctl.d32 = USB_OTG_READ_REG32( &pdev->regs.GREGS->GOTGCTL );
+    if (mode)
+    {
+        /* Device mode */
+        if (state)
+        {
+            otgctl.b.devhnpen = 1U; /* B-Dev has been enabled to perform HNP         */
+            otgctl.b.hnpreq   = 1U; /* Initiate an HNP req. to the connected USB host*/
+            USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GOTGCTL, otgctl.d32);
+        }
+    }
+    else
+    {
+        /* Host mode */
+        if (state)
+        {
+            otgctl.b.hstsethnpen = 1U; /* A-Dev has enabled B-device for HNP       */
+            USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GOTGCTL, otgctl.d32);
+            /* Suspend the bus so that B-dev will disconnect indicating the initial condition for HNP to DWC_Core */
+            hprt0.d32  = USB_OTG_ReadHPRT0(pdev);
+            hprt0.b.prtsusp = 1U; /* The core clear this bit when disconnect interrupt generated (GINTSTS.DisconnInt = '1') */
+            USB_OTG_WRITE_REG32(pdev->regs.HPRT0, hprt0.d32);
+        }
+    }
+}
+
+/**
+ * @brief  USB_OTG_GetCurrentState
+ *         Return current OTG State
+ * @param  None
+ * @retval : None
+ */
+uint32_t USB_OTG_GetCurrentState (USB_OTG_CORE_HANDLE *pdev)
+{
+    return pdev->otg.OTG_State;
+}
+
+#endif
+
+/**
+ * @}
+ */
+
+
+/**
+ * @addtogroup USB_OTG_Local_Functions USB OTG Local Functions
+ * @{
+ */
+
+
+#ifdef  USE_OTG_MODE
+
+/**
+ * @brief  USB_OTG_HandleConnectorIDStatusChange_ISR
+ *         handles the Connector ID Status Change Interrupt
+ * @param  None
+ * @retval : status
+ */
 static uint32_t USB_OTG_HandleConnectorIDStatusChange_ISR(USB_OTG_CORE_HANDLE *pdev)
 {
     USB_OTG_GINTMSK_TypeDef  gintmsk;
     USB_OTG_GOTGCTL_TypeDef   gotgctl;
     USB_OTG_GINTSTS_TypeDef  gintsts;
 
-    gintsts.d32 = 0ul ;
-    gintmsk.d32 = 0ul ;
-    gotgctl.d32 = 0ul ;
-    gintmsk.b.sofintr = 1u;
+    gintsts.d32 = 0UL ;
+    gintmsk.d32 = 0UL ;
+    gotgctl.d32 = 0UL ;
+    gintmsk.b.sofintr = 1U;
 
-    USB_OTG_MODIFY_REG32(&pdev->regs.GREGS->GINTMSK, gintmsk.d32, 0);
+    USB_OTG_MODIFY_REG32(&pdev->regs.GREGS->GINTMSK, gintmsk.d32, 0U);
     gotgctl.d32 = USB_OTG_READ_REG32(&pdev->regs.GREGS->GOTGCTL);
 
     /* B-Device connector (Device Mode) */
@@ -185,29 +271,28 @@ static uint32_t USB_OTG_HandleConnectorIDStatusChange_ISR(USB_OTG_CORE_HANDLE *p
         USB_OTG_CoreInitHost(pdev);
         USB_OTG_EnableGlobalInt(pdev);
         pdev->otg.OTG_State = A_HOST;
-        USB_OTG_DriveVbus(pdev, 1);
+        USB_OTG_DriveVbus(pdev, 1U);
     }
     /* Set flag and clear interrupt */
-    gintsts.b.conidstschng = 1u;
+    gintsts.b.conidstschng = 1U;
     USB_OTG_WRITE_REG32 (&pdev->regs.GREGS->GINTSTS, gintsts.d32);
-    return 1ul;
+    return 1UL;
 }
 
 /**
- *******************************************************************************
- ** \brief  USB_OTG_HandleSessionRequest_ISR
- **           Initiating the Session Request Protocol
- ** \param  None
- ** \retval : status
- ******************************************************************************/
+ * @brief  USB_OTG_HandleSessionRequest_ISR
+ *           Initiating the Session Request Protocol
+ * @param  None
+ * @retval : status
+ */
 static uint32_t USB_OTG_HandleSessionRequest_ISR(USB_OTG_CORE_HANDLE *pdev)
 {
     USB_OTG_GINTSTS_TypeDef  gintsts;
     USB_OTG_GOTGCTL_TypeDef   gotgctl;
 
     printf("SRP IRQ\n");
-    gotgctl.d32 = 0ul;
-    gintsts.d32 = 0ul;
+    gotgctl.d32 = 0UL;
+    gintsts.d32 = 0UL;
 
     gotgctl.d32 = USB_OTG_READ_REG32( &pdev->regs.GREGS->GOTGCTL );
     if (USB_OTG_IsDeviceMode(pdev) && (gotgctl.b.bsesvld))
@@ -216,92 +301,54 @@ static uint32_t USB_OTG_HandleSessionRequest_ISR(USB_OTG_CORE_HANDLE *pdev)
     else if (gotgctl.b.asesvld)
     {
     }
-    USB_OTG_DriveVbus(pdev, 1u);
+    USB_OTG_DriveVbus(pdev, 1U);
     /* Clear interrupt */
-    gintsts.d32 = 0ul;
-    gintsts.b.vbusvint = 1u;
+    gintsts.d32 = 0UL;
+    gintsts.b.vbusvint = 1U;
     USB_OTG_WRITE_REG32 (&pdev->regs.GREGS->GINTSTS, gintsts.d32);
-    return 1ul;
+    return 1UL;
 }
 #endif
-#ifdef  USE_OTG_MODE
+
 /**
- *******************************************************************************
- ** \brief  USB_OTG_InitiateSRP
- **         Initiate an srp session
- ** \param  None
- ** \retval : None
- ******************************************************************************/
-void USB_OTG_InitiateSRP(USB_OTG_CORE_HANDLE *pdev)
+ * @brief  USB_OTG_Read_itr
+ *         returns the Core Interrupt register
+ * @param  None
+ * @retval : status
+ */
+static uint32_t USB_OTG_Read_itr(USB_OTG_CORE_HANDLE *pdev)
 {
-    USB_OTG_GOTGCTL_TypeDef  otgctl;
+    USB_OTG_GINTSTS_TypeDef  gintsts;
+    USB_OTG_GINTMSK_TypeDef  gintmsk;
+    USB_OTG_GINTMSK_TypeDef  gintmsk_common;
 
-    otgctl.d32 = 0ul;
+    gintsts.d32 = 0UL;
+    gintmsk.d32 = 0UL;
+    gintmsk_common.d32 = 0UL;
 
-    otgctl.d32 = USB_OTG_READ_REG32( &pdev->regs.GREGS->GOTGCTL );
-    if (otgctl.b.sesreq)
-    {
-        return; /* SRP in progress */
-    }
-    otgctl.b.sesreq = 1u;
-    USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GOTGCTL, otgctl.d32);
+    /* OTG interrupts */
+    gintmsk_common.b.vbusvint = 1U;
+    gintmsk_common.b.conidstschng = 1U;
+
+    gintsts.d32 = USB_OTG_READ_REG32(&pdev->regs.GREGS->GINTSTS);
+    gintmsk.d32 = USB_OTG_READ_REG32(&pdev->regs.GREGS->GINTMSK);
+    return ((gintsts.d32 & gintmsk.d32 ) & gintmsk_common.d32);
 }
 
 
 /**
- *******************************************************************************
- ** \brief  USB_OTG_InitiateHNP
- **         Initiate HNP
- ** \param  None
- ** \retval : None
- ******************************************************************************/
-void USB_OTG_InitiateHNP(USB_OTG_CORE_HANDLE *pdev , uint8_t state, uint8_t mode)
-{
-    USB_OTG_GOTGCTL_TypeDef   otgctl;
-    USB_OTG_HPRT0_TypeDef    hprt0;
+ * @}
+ */
 
-    otgctl.d32 = 0ul;
-    hprt0.d32  = 0ul;
-
-    otgctl.d32 = USB_OTG_READ_REG32( &pdev->regs.GREGS->GOTGCTL );
-    if (mode)
-    {
-        /* Device mode */
-        if (state)
-        {
-            otgctl.b.devhnpen = 1u; /* B-Dev has been enabled to perform HNP         */
-            otgctl.b.hnpreq   = 1u; /* Initiate an HNP req. to the connected USB host*/
-            USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GOTGCTL, otgctl.d32);
-        }
-    }
-    else
-    {
-        /* Host mode */
-        if (state)
-        {
-            otgctl.b.hstsethnpen = 1u; /* A-Dev has enabled B-device for HNP       */
-            USB_OTG_WRITE_REG32(&pdev->regs.GREGS->GOTGCTL, otgctl.d32);
-            /* Suspend the bus so that B-dev will disconnect indicating the initial condition for HNP to DWC_Core */
-            hprt0.d32  = USB_OTG_ReadHPRT0(pdev);
-            hprt0.b.prtsusp = 1; /* The core clear this bit when disconnect interrupt generated (GINTSTS.DisconnInt = '1') */
-            USB_OTG_WRITE_REG32(pdev->regs.HPRT0, hprt0.d32);
-        }
-    }
-}
-
+#endif /* DDL_USBFS_ENABLE */
 
 /**
- *******************************************************************************
- ** \brief  USB_OTG_GetCurrentState
- **         Return current OTG State
- ** \param  None
- ** \retval : None
- ******************************************************************************/
-uint32_t USB_OTG_GetCurrentState (USB_OTG_CORE_HANDLE *pdev)
-{
-    return pdev->otg.OTG_State;
-}
-#endif
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

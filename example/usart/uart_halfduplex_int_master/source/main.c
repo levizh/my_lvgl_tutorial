@@ -240,9 +240,6 @@ int32_t main(void)
                               CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
                               CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
-    /* Initialize UART for debug print function. */
-    DDL_PrintfInit();
-
     /* Initialize IO. */
     BSP_IO_Init();
 
@@ -252,8 +249,17 @@ int32_t main(void)
     /* Initialize key. */
     BSP_KEY_Init();
 
+    /* Permit write the GPIO configuration register */
+    GPIO_Unlock();
+
+    /* Initialize UART for debug print function. */
+    DDL_PrintfInit();
+
     /* Configure USART TX pin. */
     GPIO_SetFunc(USART_MASTER_TX_PORT, USART_MASTER_TX_PIN, USART_MASTER_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+
+    /* Don't permit write GPIO configuration register */
+    GPIO_Lock();
 
     /* Enable peripheral clock */
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);

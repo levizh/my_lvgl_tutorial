@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_core.h
+ * @brief Header file for usbh_core.c
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,36 +48,52 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_core.h
- **
- ** A detailed description is available at
- ** @link header file for the usbh_core.c @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 #ifndef __USBH_CORE_H
 #define __USBH_CORE_H
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
-#include "usb_hcd.h"
+#include "hc32f4a0_usb_hcd.h"
 #include "usbh_def.h"
 #include "usbh_conf.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CORE
+ * @{
+ */
+
+/** @addtogroup USBH_CORE
+ * @{
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
 /**
- *******************************************************************************
- ** \brief USBH_CORE_Exported_Types
- **
- ******************************************************************************/
+ * @defgroup USBH_CORE_Global_Types USBH Define Global Types
+ * @{
+ */
 typedef enum {
-    USBH_OK   = 0,
+    USBH_OK = 0U,
     USBH_BUSY,
     USBH_FAIL,
     USBH_NOT_SUPPORTED,
@@ -78,7 +104,7 @@ typedef enum {
 
 /* Following states are used for gState */
 typedef enum {
-    HOST_IDLE =0,
+    HOST_IDLE = 0U,
     HOST_DEV_ATTACHED,
     HOST_DEV_DISCONNECTED,
     HOST_DETECT_DEVICE_SPEED,
@@ -93,7 +119,7 @@ typedef enum {
 
 /* Following states are used for EnumerationState */
 typedef enum {
-    ENUM_IDLE = 0,
+    ENUM_IDLE = 0U,
     ENUM_GET_FULL_DEV_DESC,
     ENUM_SET_ADDR,
     ENUM_GET_CFG_DESC,
@@ -107,7 +133,7 @@ typedef enum {
 
 /* Following states are used for CtrlXferStateMachine */
 typedef enum {
-    CTRL_IDLE =0,
+    CTRL_IDLE = 0U,
     CTRL_SETUP,
     CTRL_SETUP_WAIT,
     CTRL_DATA_IN,
@@ -124,18 +150,18 @@ typedef enum {
 }CTRL_State;
 
 typedef enum {
-    USBH_USR_NO_RESP   = 0,
-    USBH_USR_RESP_OK = 1,
+    USBH_USR_NO_RESP = 0U,
+    USBH_USR_RESP_OK = 1U,
 }USBH_USR_Status;
 
 /* Following states are used for RequestState */
 typedef enum {
-    CMD_IDLE =0,
+    CMD_IDLE = 0U,
     CMD_SEND,
     CMD_WAIT
 } CMD_State;
 
-typedef struct _Ctrl
+typedef struct
 {
     uint8_t               hc_num_in;
     uint8_t               hc_num_out;
@@ -149,7 +175,7 @@ typedef struct _Ctrl
     CTRL_State            state;
 } USBH_Ctrl_TypeDef;
 
-typedef struct _DeviceProp
+typedef struct
 {
     uint8_t                           address;
     uint8_t                           speed;
@@ -160,7 +186,7 @@ typedef struct _DeviceProp
     USBH_HIDDesc_TypeDef              HID_Desc;
 }USBH_Device_TypeDef;
 
-typedef struct _USBH_Class_cb
+typedef struct
 {
     USBH_Status  (*Init)    (USB_OTG_CORE_HANDLE *pdev , void *phost);
     void         (*DeInit)  (USB_OTG_CORE_HANDLE *pdev , void *phost);
@@ -168,7 +194,7 @@ typedef struct _USBH_Class_cb
     USBH_Status  (*Machine)   (USB_OTG_CORE_HANDLE *pdev , void *phost);
 } USBH_Class_cb_TypeDef;
 
-typedef struct _USBH_USR_PROP
+typedef struct
 {
     void (*Init)(void);       /* HostLibInitialized */
     void (*DeInit)(void);       /* HostLibInitialized */
@@ -193,7 +219,7 @@ typedef struct _USBH_USR_PROP
     void (*UnrecoveredError)(void);
 }USBH_Usr_cb_TypeDef;
 
-typedef struct _Host_TypeDef
+typedef struct
 {
     HOST_State            gState;       /*  Host State Machine Value */
     HOST_State            gStateBkp;    /* backup of previous State machine value */
@@ -203,25 +229,32 @@ typedef struct _Host_TypeDef
 
     USBH_Device_TypeDef   device_prop;
 
-    USBH_Class_cb_TypeDef               *class_cb;
-    USBH_Usr_cb_TypeDef                   *usr_cb;
+    USBH_Class_cb_TypeDef    *class_cb;
+    USBH_Usr_cb_TypeDef      *usr_cb;
 } USBH_HOST, *pUSBH_HOST;
+
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- *******************************************************************************
- ** \brief USBH_CORE_Exported_Defines
- **
- ******************************************************************************/
-#define MSC_CLASS                         (0x08u)
-#define HID_CLASS                         (0x03u)
-#define MSC_PROTOCOL                      (0x50u)
-#define CBI_PROTOCOL                      (0x01u)
+ * @defgroup USBH_CORE_Global_Macros USBH Define Global Macros
+ * @{
+ */
+#define MSC_CLASS                         (0x08U)
+#define HID_CLASS                         (0x03U)
+#define MSC_PROTOCOL                      (0x50U)
+#define CBI_PROTOCOL                      (0x01U)
 
-#define USBH_MAX_ERROR_COUNT                            (2u)
-#define USBH_DEVICE_ADDRESS_DEFAULT                     (0u)
-#define USBH_DEVICE_ADDRESS                             (1u)
+#define USBH_MAX_ERROR_COUNT              (2U)
+#define USBH_DEVICE_ADDRESS_DEFAULT       (0U)
+#define USBH_DEVICE_ADDRESS               (1U)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -230,6 +263,10 @@ typedef struct _Host_TypeDef
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBH_CORE_Global_Functions
+ * @{
+ */
 void USBH_Init(USB_OTG_CORE_HANDLE *pdev,
                USB_OTG_CORE_ID_TypeDef coreID,
                USBH_HOST *phost,
@@ -241,6 +278,30 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev ,
                   USBH_HOST *phost);
 void USBH_ErrorHandle(USBH_HOST *phost,
                       USBH_Status errType);
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBH_CORE_H */
 

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Wuze            First version
+   2020-03-21       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -130,10 +130,10 @@ typedef struct
  * @defgroup OTS_Common_Trigger_Event_Command OTS Common Trigger Event Command
  * @{
  */
-#define OTS_COM1_TRIG_DISABLE       ((uint32_t)0x00UL)
-#define OTS_COM2_TRIG_DISABLE       ((uint32_t)0x00UL)
-#define OTS_COM1_TRIG_ENABLE        ((uint32_t)(0x01UL << 30U))
-#define OTS_COM2_TRIG_ENABLE        ((uint32_t)(0x01UL << 31U))
+#define OTS_COM1_TRIG_DISABLE       (0x00UL)
+#define OTS_COM2_TRIG_DISABLE       (0x00UL)
+#define OTS_COM1_TRIG_ENABLE        (0x01UL << 30U)
+#define OTS_COM2_TRIG_ENABLE        (0x01UL << 31U)
 /**
  * @}
  */

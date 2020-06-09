@@ -183,7 +183,7 @@ static void RTC_DisplayWeekday(uint8_t u8Weekday)
  */
 static void RTC_Config(void)
 {
-    uint8_t u8Ret;
+    en_result_t enRet;
     stc_rtc_init_t stcRtcInit;
     stc_irq_signin_config_t stcIrqConfig;
 
@@ -192,8 +192,8 @@ static void RTC_Config(void)
     stcIrqConfig.enIRQn      = Int052_IRQn;
     stcIrqConfig.pfnCallback = &RTC_Period_IrqCallback;
     INTC_IrqSignOut(stcIrqConfig.enIRQn);
-    u8Ret = INTC_IrqSignIn(&stcIrqConfig);
-    if (Ok != u8Ret)
+    enRet = INTC_IrqSignIn(&stcIrqConfig);
+    if (Ok != enRet)
     {
         /* check parameter */
         while (1)
@@ -211,6 +211,8 @@ static void RTC_Config(void)
     /* RTC stopped */
     if (Disable == RTC_GetCounterState())
     {
+        /* Reset the VBAT area */
+        PWC_VBAT_Reset();
         /* Reset RTC counter */
         if (ErrorTimeout == RTC_DeInit())
         {
@@ -222,7 +224,7 @@ static void RTC_Config(void)
             RTC_StructInit(&stcRtcInit);
 
             /* Configuration RTC structure */
-            stcRtcInit.u8ClockSource     = RTC_CLOCK_SOURCE_XTAL32;
+            stcRtcInit.u8ClockSource     = RTC_CLOCK_SOURCE_RTCLRC;
             stcRtcInit.u8HourFormat      = RTC_HOUR_FORMAT_24;
             stcRtcInit.u8PeriodInterrupt = RTC_PERIOD_INT_ONE_SECOND;
             RTC_Init(&stcRtcInit);
@@ -238,24 +240,6 @@ static void RTC_Config(void)
 }
 
 /**
- * @brief  XTAL32 clock initialize.
- * @param  None
- * @retval None
- */
-static void XTAL32_ClkInit(void)
-{
-    stc_clk_xtal32_init_t stcXtal32Init;
-
-    /* Xtal32 config */
-    stcXtal32Init.u8Xtal32State = CLK_XTAL32_ON;
-    stcXtal32Init.u8Xtal32Drv   = CLK_XTAL32DRV_HIGH;
-    stcXtal32Init.u8Xtal32NF    = CLK_XTAL32NF_PART;
-    CLK_Xtal32Init(&stcXtal32Init);
-    /* Waiting for XTAL32 stabilization */
-    DDL_Delay1ms(1000U);
-}
-
-/**
  * @brief  Main function of RTC Calendar.
  * @param  None
  * @retval int32_t return value, if needed
@@ -267,7 +251,6 @@ int32_t main(void)
 
     /* Configure clock */
     BSP_CLK_Init();
-    XTAL32_ClkInit();
     /* Configure BSP */
     BSP_IO_Init();
     BSP_LED_Init();
@@ -275,7 +258,7 @@ int32_t main(void)
     DDL_PrintfInit();
     /* Configure RTC */
     RTC_Config();
-    
+
     while (1)
     {
         if (1U == u8SecIntFlag)

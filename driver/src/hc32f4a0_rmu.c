@@ -82,10 +82,7 @@
  * @{
  */
 
-#define RMU_FLAG_TIMEOUT            ((uint16_t)0x1000U)
-/* RMU register write Configuration */
-#define RMU_REG_WRITE_ENABLE()      (M4_PWC->FPRC = (uint16_t)0xa502U)
-#define RMU_REG_WRITE_DISABLE()     (M4_PWC->FPRC = (uint16_t)0xa500U)
+#define RMU_FLAG_TIMEOUT            (0x40U)
 
 /**
  * @}
@@ -114,16 +111,14 @@
 /**
  * @brief  Get the reset cause.
  * @param  [in] pstcData    Pointer to return reset cause structure.
- *   @arg  See the definition for stc_rmu_rstcause_t
- *
+ *                          See the definition for stc_rmu_rstcause_t
  * @retval Ok: Get successfully.
- *         ErrorInvalidParameter: Invalid parameter
+ *         ErrorInvalidParameter: NULL pointer
  */
-
 en_result_t RMU_GetStatus(stc_rmu_rstcause_t *pstcData)
 {
     en_result_t enRet = Ok;
-    uint32_t u32RstReg = 0U;
+    uint32_t u32RstReg;
 
     if(NULL == pstcData)
     {
@@ -131,7 +126,7 @@ en_result_t RMU_GetStatus(stc_rmu_rstcause_t *pstcData)
     }
     else
     {
-        u32RstReg = M4_RMU->RSTF0;
+        u32RstReg = READ_REG32(M4_RMU->RSTF0);
         pstcData->enMultiRst = u32RstReg & RMU_RSTF0_MULTIRF ? Set : Reset;
         pstcData->enCpuLockErrRst = u32RstReg & RMU_RSTF0_LKUPRF ? Set : Reset;
         pstcData->enXtalErrRst = u32RstReg & RMU_RSTF0_XTALERF ? Set : Reset;
@@ -153,48 +148,40 @@ en_result_t RMU_GetStatus(stc_rmu_rstcause_t *pstcData)
 }
 
 /**
- * @brief Clear reset Status.
- *
- * @param None
+ * @brief  Clear reset Status.
+ * @param  None
  * @retval Ok: Clear successfully.
  *         ErrorTimeout: Process timeout
- * @note   clear reset flag should be done after read RMU_RSTF0 register.
+ * @note   Clear reset flag should be done after read RMU_RSTF0 register.
  */
 en_result_t RMU_ClrStatus(void)
 {
     en_result_t enRet = Ok;
-    uint32_t u32status  = 0U;
-    uint32_t u32timeout = 0U;
-
-    RMU_REG_WRITE_ENABLE();
-
+    uint32_t u32Status;
+    uint8_t  u8Timeout = 0U;
     do
     {
-        u32timeout++;
-        bM4_RMU->RSTF0_b.CLRF = 1U;
-        u32status = M4_RMU->RSTF0;
-    }while((u32timeout != RMU_FLAG_TIMEOUT) && u32status);
+        u8Timeout++;
+        SET_REG32_BIT(M4_RMU->RSTF0, RMU_RSTF0_CLRF);
+        u32Status = READ_REG32(M4_RMU->RSTF0);
+    }while((u8Timeout != RMU_FLAG_TIMEOUT) && u32Status);
 
-    RMU_REG_WRITE_DISABLE();
-
-     if(u32timeout >= RMU_FLAG_TIMEOUT)
+     if(u8Timeout >= RMU_FLAG_TIMEOUT)
     {
         enRet = ErrorTimeout;
     }
-
     return enRet;
 }
 
 /**
- * @brief Enable or disable LOCKUP reset.
- *
+ * @brief  Enable or disable LOCKUP reset.
  * @param  [in] enNewState    Enable or disable LOCKUP reset.
- *
  * @retval None
  */
 void RMU_CPULockUpCmd(en_functional_state_t enNewState)
 {
-    bM4_RMU->PRSTCR0_b.LKUPREN = enNewState;
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    WRITE_REG8(bM4_RMU->PRSTCR0_b.LKUPREN, enNewState);
 }
 
 /**

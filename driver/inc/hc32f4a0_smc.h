@@ -50,8 +50,8 @@
  * at all times.
  *******************************************************************************
  */
-#ifndef __HC32F4A0_EXMC_SMC_H__
-#define __HC32F4A0_EXMC_SMC_H__
+#ifndef __HC32F4A0_SMC_H__
+#define __HC32F4A0_SMC_H__
 
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus
@@ -173,10 +173,10 @@ typedef struct
  * @defgroup EXMC_SMC_Chip EXMC SMC Chip
  * @{
  */
-#define EXMC_SMC_CHIP_0                         ((uint32_t)0UL)     /*!< Chip 0 */
-#define EXMC_SMC_CHIP_1                         ((uint32_t)1UL)     /*!< Chip 1 */
-#define EXMC_SMC_CHIP_2                         ((uint32_t)2UL)     /*!< Chip 2 */
-#define EXMC_SMC_CHIP_3                         ((uint32_t)3UL)     /*!< Chip 3 */
+#define EXMC_SMC_CHIP_0                         (0UL)     /*!< Chip 0 */
+#define EXMC_SMC_CHIP_1                         (1UL)     /*!< Chip 1 */
+#define EXMC_SMC_CHIP_2                         (2UL)     /*!< Chip 2 */
+#define EXMC_SMC_CHIP_3                         (3UL)     /*!< Chip 3 */
 /**
  * @}
  */
@@ -185,7 +185,7 @@ typedef struct
  * @defgroup EXMC_SMC_Memory_Read_Mode EXMC SMC Memory Read Mode
  * @{
  */
-#define EXMC_SMC_MEM_READ_ASYNC                 ((uint32_t)0UL)
+#define EXMC_SMC_MEM_READ_ASYNC                 (0UL)
 #define EXMC_SMC_MEM_READ_SYNC                  (SMC_CPCR_RSYN)
 /**
  * @}
@@ -195,7 +195,7 @@ typedef struct
  * @defgroup EXMC_SMC_Memory_Write_Mode EXMC SMC Memory Write Mode
  * @{
  */
-#define EXMC_SMC_MEM_WRITE_ASYNC                ((uint32_t)0UL)
+#define EXMC_SMC_MEM_WRITE_ASYNC                (0UL)
 #define EXMC_SMC_MEM_WRITE_SYNC                 (SMC_CPCR_WSYN)
 /**
  * @}
@@ -205,14 +205,14 @@ typedef struct
  * @defgroup EXMC_SMC_Memory_Read_Burst_Length EXMC SMC Memory Read Burst Length
  * @{
  */
-#define EXMC_SMC_MEM_READ_BURST_1               ((uint32_t)0UL)         /*!< 1 beat */
-#define EXMC_SMC_MEM_READ_BURST_4               (SMC_CPCR_RBL_0)        /*!< 4 beats */
-#define EXMC_SMC_MEM_READ_BURST_8               (SMC_CPCR_RBL_1)        /*!< 8 beats */
+#define EXMC_SMC_MEM_READ_BURST_1               (0UL)               /*!< 1 beat */
+#define EXMC_SMC_MEM_READ_BURST_4               (SMC_CPCR_RBL_0)    /*!< 4 beats */
+#define EXMC_SMC_MEM_READ_BURST_8               (SMC_CPCR_RBL_1)    /*!< 8 beats */
 #define EXMC_SMC_MEM_READ_BURST_16              (SMC_CPCR_RBL_1 | \
-                                                 SMC_CPCR_RBL_0)        /*!< 16 beats */
-#define EXMC_SMC_MEM_READ_BURST_32              (SMC_CPCR_RBL_2)        /*!< 32 beats */
+                                                 SMC_CPCR_RBL_0)    /*!< 16 beats */
+#define EXMC_SMC_MEM_READ_BURST_32              (SMC_CPCR_RBL_2)    /*!< 32 beats */
 #define EXMC_SMC_MEM_READ_BURST_CONTINUOUS      (SMC_CPCR_RBL_2 | \
-                                                 SMC_CPCR_RBL_0)        /*!< continuous */
+                                                 SMC_CPCR_RBL_0)    /*!< continuous */
 /**
  * @}
  */
@@ -221,14 +221,14 @@ typedef struct
  * @defgroup EXMC_SMC_Memory_Write_Burst_Length EXMC SMC Memory Write Burst Length
  * @{
  */
-#define EXMC_SMC_MEM_WRITE_BURST_1              ((uint32_t)0UL)         /*!< 1 beat */
-#define EXMC_SMC_MEM_WRITE_BURST_4              (SMC_CPCR_WBL_0)        /*!< 4 beats */
-#define EXMC_SMC_MEM_WRITE_BURST_8              (SMC_CPCR_WBL_1)        /*!< 8 beats */
+#define EXMC_SMC_MEM_WRITE_BURST_1              (0UL)               /*!< 1 beat */
+#define EXMC_SMC_MEM_WRITE_BURST_4              (SMC_CPCR_WBL_0)    /*!< 4 beats */
+#define EXMC_SMC_MEM_WRITE_BURST_8              (SMC_CPCR_WBL_1)    /*!< 8 beats */
 #define EXMC_SMC_MEM_WRITE_BURST_16             (SMC_CPCR_WBL_1 | \
-                                                 SMC_CPCR_WBL_0)        /*!< 16 beats */
-#define EXMC_SMC_MEM_WRITE_BURST_32             (SMC_CPCR_WBL_2)        /*!< 32 beats */
+                                                 SMC_CPCR_WBL_0)    /*!< 16 beats */
+#define EXMC_SMC_MEM_WRITE_BURST_32             (SMC_CPCR_WBL_2)    /*!< 32 beats */
 #define EXMC_SMC_MEM_WRITE_BURST_CONTINUOUS     (SMC_CPCR_WBL_2 | \
-                                                 SMC_CPCR_WBL_0)        /*!< continuous */
+                                                 SMC_CPCR_WBL_0)    /*!< continuous */
 /**
  * @}
  */
@@ -247,7 +247,7 @@ typedef struct
  * @defgroup EXMC_SMC_BAA_Port_Selecton EXMC SMC BAA Port Selecton
  * @{
  */
-#define EXMC_SMC_BAA_PORT_DISABLE               ((uint32_t)0UL)
+#define EXMC_SMC_BAA_PORT_DISABLE               (0UL)
 #define EXMC_SMC_BAA_PORT_ENABLE                (SMC_CPCR_BAAS)
 /**
  * @}
@@ -257,7 +257,7 @@ typedef struct
  * @defgroup EXMC_SMC_ADV_Port_Selecton EXMC SMC ADV Port Selecton
  * @{
  */
-#define EXMC_SMC_ADV_PORT_DISABLE               ((uint32_t)0UL)
+#define EXMC_SMC_ADV_PORT_DISABLE               (0UL)
 #define EXMC_SMC_ADV_PORT_ENABLE                (SMC_CPCR_ADVS)
 /**
  * @}
@@ -267,7 +267,7 @@ typedef struct
  * @defgroup EXMC_SMC_BLS_Synchronization_Selection EXMC SMC BLS Synchronization Selection
  * @{
  */
-#define EXMC_SMC_BLS_SYNC_CS                    ((uint32_t)0UL)
+#define EXMC_SMC_BLS_SYNC_CS                    (0UL)
 #define EXMC_SMC_BLS_SYNC_WE                    (SMC_CPCR_BLSS)
 /**
  * @}
@@ -288,8 +288,8 @@ typedef struct
  * @defgroup EXMC_SMC_CRE_Polarity EXMC SMC CRE Polarity
  * @{
  */
-#define EXMC_SMC_CRE_POLARITY_LOW               ((uint32_t)0UL)     /*!< CRE is LOW */
-#define EXMC_SMC_CRE_POLARITY_HIGH              (SMC_CMDR_CRES)     /*!< CRE is HIGH when ModeReg write occurs */
+#define EXMC_SMC_CRE_POLARITY_LOW               (0UL)           /*!< CRE is LOW */
+#define EXMC_SMC_CRE_POLARITY_HIGH              (SMC_CMDR_CRES) /*!< CRE is HIGH when ModeReg write occurs */
 /**
  * @}
  */
@@ -298,7 +298,7 @@ typedef struct
  * @defgroup EXMC_SMC_Status EXMC SMC Status
  * @{
  */
-#define EXMC_SMC_READY                          ((uint32_t)0UL)     /*!< SMC is ready */
+#define EXMC_SMC_READY                          (0UL)               /*!< SMC is ready */
 #define EXMC_SMC_LOWPOWER                       (SMC_STSR_STATUS)   /*!< SMC is low power */
 /**
  * @}
@@ -385,13 +385,13 @@ __STATIC_INLINE uint32_t EXMC_SMC_GetStatus(void)
 
 /* Initialization and configuration EXMC SMC functions */
 en_result_t EXMC_SMC_Init(uint32_t u32Chip, const stc_exmc_smc_init_t *pstcInit);
-en_result_t EXMC_SMC_DeInit(void);
+void EXMC_SMC_DeInit(void);
 en_result_t EXMC_SMC_StructInit(stc_exmc_smc_init_t *pstcInit);
 
-en_result_t EXMC_SMC_SetCommand(uint32_t u32Chip,
-                                    uint32_t u32Cmd,
-                                    uint32_t u32CrePolarity,
-                                    uint32_t u32Addr);
+void EXMC_SMC_SetCommand(uint32_t u32Chip,
+                                uint32_t u32Cmd,
+                                uint32_t u32CrePolarity,
+                                uint32_t u32Address);
 
 uint32_t EXMC_SMC_ChipStartAddress(uint32_t u32Chip);
 uint32_t EXMC_SMC_ChipEndAddress(uint32_t u32Chip);
@@ -422,7 +422,7 @@ void EXMC_SMC_SetRefreshPeriod(uint32_t u32PeriodVal);
 }
 #endif
 
-#endif /* __HC32F4A0_EXMC_SMC_H__ */
+#endif /* __HC32F4A0_SMC_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)

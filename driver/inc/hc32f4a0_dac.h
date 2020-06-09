@@ -64,6 +64,7 @@ extern "C"
  ******************************************************************************/
 #include "hc32_common.h"
 #include "ddl_config.h"
+#include "hc32f4a0_utility.h"
 
 /**
  * @addtogroup HC32F4A0_DDL_Driver
@@ -135,8 +136,8 @@ typedef enum
  * @defgroup DAC_Global_Macros DAC Global Macros
  * @{
  */
-#define DAC_PARAM_MAX           (4096)
-#define DAC_ADPCR_CONFIG_ALL   (uint16_t)(DAC_DAADPCR_ADPSL1 | DAC_DAADPCR_ADPSL2 | DAC_DAADPCR_ADPSL3)
+#define DAC_PARAM_MAX           (4096UL)
+#define DAC_ADPCR_CONFIG_ALL    (uint16_t)(DAC_DAADPCR_ADPSL1 | DAC_DAADPCR_ADPSL2 | DAC_DAADPCR_ADPSL3)
 
 /**
  * @}
@@ -165,7 +166,11 @@ typedef enum
  */
 __STATIC_INLINE void DAC_SetChannel1Data(M4_DAC_TypeDef* pstcDACx, uint16_t data)
 {
-  WRITE_REG16(pstcDACx->DADR1,data);
+    DDL_ASSERT((pstcDACx == M4_DAC1) || (pstcDACx == M4_DAC2));
+    DDL_ASSERT((READ_REG16_BIT(pstcDACx->DACR, DAC_DACR_DPSEL) == DAC_Align_12b_L) && (data & 0xFU));
+    DDL_ASSERT((READ_REG16_BIT(pstcDACx->DACR, DAC_DACR_DPSEL) == DAC_Align_12b_R) && (data & 0xF000U));
+
+    WRITE_REG16(pstcDACx->DADR1,data);
 }
 
 /**
@@ -179,6 +184,10 @@ __STATIC_INLINE void DAC_SetChannel1Data(M4_DAC_TypeDef* pstcDACx, uint16_t data
  */
 __STATIC_INLINE void DAC_SetChannel2Data(M4_DAC_TypeDef* pstcDACx, uint16_t data)
 {
+    DDL_ASSERT((pstcDACx == M4_DAC1) || (pstcDACx == M4_DAC2));
+    DDL_ASSERT((READ_REG16_BIT(pstcDACx->DACR, DAC_DACR_DPSEL) == DAC_Align_12b_L) && (data & 0xFU));
+    DDL_ASSERT((READ_REG16_BIT(pstcDACx->DACR, DAC_DACR_DPSEL) == DAC_Align_12b_R) && (data & 0xF000U));
+
     WRITE_REG16(pstcDACx->DADR2,data);
 }
 
@@ -194,6 +203,12 @@ __STATIC_INLINE void DAC_SetChannel2Data(M4_DAC_TypeDef* pstcDACx, uint16_t data
  */
 __STATIC_INLINE void DAC_SetChannelAllData(M4_DAC_TypeDef* pstcDACx, uint16_t data2, uint16_t data1)
 {
+    DDL_ASSERT((pstcDACx == M4_DAC1) || (pstcDACx == M4_DAC2));
+    DDL_ASSERT((READ_REG16_BIT(pstcDACx->DACR, DAC_DACR_DPSEL) == DAC_Align_12b_L) && (data1 & 0xFU));
+    DDL_ASSERT((READ_REG16_BIT(pstcDACx->DACR, DAC_DACR_DPSEL) == DAC_Align_12b_R) && (data1 & 0xF000U));
+    DDL_ASSERT((READ_REG16_BIT(pstcDACx->DACR, DAC_DACR_DPSEL) == DAC_Align_12b_L) && (data2 & 0xFU));
+    DDL_ASSERT((READ_REG16_BIT(pstcDACx->DACR, DAC_DACR_DPSEL) == DAC_Align_12b_R) && (data2 & 0xF000U));
+
     WRITE_REG16(pstcDACx->DADR1,data1);
     WRITE_REG16(pstcDACx->DADR2,data2);
 }
@@ -211,11 +226,15 @@ __STATIC_INLINE void DAC_SetChannelAllData(M4_DAC_TypeDef* pstcDACx, uint16_t da
  */
 __STATIC_INLINE en_dac_conv_sate_t  DAC_GetChannel1ConvState(M4_DAC_TypeDef* const pstcDACx)
 {
+    DDL_ASSERT((pstcDACx == M4_DAC1) || (pstcDACx == M4_DAC2));
+
     en_dac_conv_sate_t enStat = DAC_Mode_Err;
-    if(pstcDACx->DAADPCR & DAC_DAADPCR_ADPEN)
+
+    if(READ_REG16_BIT(pstcDACx->DAADPCR, DAC_DAADPCR_ADPEN))
     {
         enStat = DAC_Convert_Ongoing;
-        if(((pstcDACx->DAADPCR >> DAC_DAADPCR_DA1SF_POS) & 1U) == 0U)
+
+        if(READ_REG16_BIT(pstcDACx->DAADPCR, DAC_DAADPCR_DA1SF) == 0U)
         {
             enStat = DAC_Convert_Completed;
         }
@@ -237,10 +256,12 @@ __STATIC_INLINE en_dac_conv_sate_t  DAC_GetChannel1ConvState(M4_DAC_TypeDef* con
 __STATIC_INLINE en_dac_conv_sate_t DAC_GetChannel2ConvState(M4_DAC_TypeDef * const pstcDACx)
 {
     en_dac_conv_sate_t enStat = DAC_Mode_Err;
-    if(pstcDACx->DAADPCR & DAC_DAADPCR_ADPEN)
+    DDL_ASSERT((pstcDACx == M4_DAC1) || (pstcDACx == M4_DAC2));
+    if(READ_REG16_BIT(pstcDACx->DAADPCR, DAC_DAADPCR_ADPEN))
     {
         enStat = DAC_Convert_Ongoing;
-        if(((pstcDACx->DAADPCR >> DAC_DAADPCR_DA2SF_POS) & 1U) == 0U)
+
+        if(READ_REG16_BIT(pstcDACx->DAADPCR, DAC_DAADPCR_DA2SF) == 0U)
         {
             enStat = DAC_Convert_Completed;
         }

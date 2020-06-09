@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<project>
+  <fileVersion>2</fileVersion>
+  <fileChecksum>1057634414</fileChecksum>
+  <configuration>
+    <name>Debug</name>
+    <outputs>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_gpio.c</file>
+      <file>$PROJ_DIR$\output\debug\Obj\tca9539.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\ev_hc32f4a0_lqfp176.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\system_hc32f4a0.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\ev_hc32f4a0_lqfp176_tca9539.o</file>
+      <file>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\bsp\components\tca9539\tca9539.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_pwc.c</file>
+      <file>$PROJ_DIR$\output\debug\Exe\dmac_base.out</file>
+      <file>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_tca9539.c</file>
+      <file>$PROJ_DIR$\startup_hc32f4a0.s</file>
+      <file>$PROJ_DIR$\..\..\..\..\mcu\common\system_hc32f4a0.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_i2c.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_keyscan.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_icg.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_efm.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_clk.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_dma.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_interrupts.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_sram.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_utility.c</file>
+      <file>$PROJ_DIR$\..\source\main.c</file>
+      <file>$PROJ_DIR$\..\Readme.txt</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Product.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\stdint.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_tca9539.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\ysizet.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\mcu\common\system_hc32f4a0.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\stddef.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_pwc.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_gpio.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\mcu\common\hc32_common.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\cmsis_iar.h</file>
+      <file>$TOOLKIT_DIR$\CMSIS\Include\core_cmInstr.h</file>
+      <file>$PROJ_DIR$\..\source\ddl_config.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_icg.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Product_string.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_utility.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\ycheck.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\yvals.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_clk.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</file>
+      <file>$PROJ_DIR$\output\debug\Obj\dmac_base.pbd</file>
+      <file>$PROJ_DIR$\output\debug\Obj\main.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_utility.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_sram.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_pwc.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_keyscan.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_interrupts.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_icg.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_i2c.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_gpio.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_efm.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_dma.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_clk.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\system_hc32f4a0.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\tca9539.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\ev_hc32f4a0_lqfp176_tca9539.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\ev_hc32f4a0_lqfp176.pbi</file>
+      <file>$PROJ_DIR$\output\debug\Obj\main.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\startup_hc32f4a0.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_utility.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_sram.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_pwc.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_keyscan.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_interrupts.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_icg.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_i2c.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_dma.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_gpio.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_clk.o</file>
+      <file>$PROJ_DIR$\output\debug\Obj\hc32f4a0_efm.o</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_sram.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_keyscan.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_i2c.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_efm.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_interrupts.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\string.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\mcu\common\hc32f4a0.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Defaults.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\xencoding_limits.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Threads.h</file>
+      <file>$TOOLKIT_DIR$\CMSIS\Include\core_cm4.h</file>
+      <file>$TOOLKIT_DIR$\CMSIS\Include\core_cmSimd.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\bsp\components\tca9539\tca9539.h</file>
+      <file>$TOOLKIT_DIR$\CMSIS\Include\core_cmFunc.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\intrinsics.h</file>
+      <file>$TOOLKIT_DIR$\lib\m7M_tl.a</file>
+      <file>$PROJ_DIR$\output\debug\List\dmac_base.map</file>
+      <file>$PROJ_DIR$\HC32F4A0.icf</file>
+      <file>$TOOLKIT_DIR$\lib\shb_l.a</file>
+      <file>$TOOLKIT_DIR$\lib\rt7M_tl.a</file>
+      <file>$TOOLKIT_DIR$\lib\dl7M_tln.a</file>
+      <file>$PROJ_DIR$\..\..\..\..\mcu\common\hc32_ddl.h</file>
+      <file>$PROJ_DIR$\..\..\..\..\driver\inc\hc32f4a0_dma.h</file>
+    </outputs>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_gpio.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 69</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 51</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 30 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 24 41 38 39 36 83 31 28 27 26 23 37 34 77 78 79 80 81 82 33 32 30 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 2</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 58</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 86 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 40 34 75 30 74 35 76 29 72 37 73 25 84</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 40 41 37 38 39 36 34 35 33 32 31 30 29 28 27 26 23 24 25 75 74 76 72 73 77 78 79 80 81 82 83 84 86 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\bsp\components\tca9539\tca9539.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 1</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 56</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 84 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 27 41 39 38 36 32 28 31 26 23 24 33 77 78 79 80 81 82 83 84 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_pwc.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 63</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 46</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 29 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 24 38 34 83 41 39 36 31 28 27 26 23 37 77 78 79 80 81 82 33 32 29 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>[ROOT_NODE]</name>
+      <outputs>
+        <tool>
+          <name>ILINK</name>
+          <file> 8 89</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\output\debug\Exe\dmac_base.out</name>
+      <outputs>
+        <tool>
+          <name>ILINK</name>
+          <file> 89</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ILINK</name>
+          <file> 90 2 4 70 68 71 69 67 66 65 64 63 62 61 59 60 3 1 91 92 88 93</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_tca9539.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 4</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 57</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 25 86 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 40 34 75 30 74 35 76 29 72 37 73 84</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 41 40 37 38 39 36 31 84 35 32 30 29 28 27 26 23 24 33 34 86 75 74 76 72 73 77 78 79 80 81 82 83 25 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\startup_hc32f4a0.s</name>
+      <outputs>
+        <tool>
+          <name>AARM</name>
+          <file> 60</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\mcu\common\system_hc32f4a0.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 3</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 55</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 38 39 78 81 32 79 77 80 82 33 28 27 26 41 23 36 24 83 31 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_i2c.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 67</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 50</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 74 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 38 77 81 79 31 78 39 80 82 83 24 37 34 28 27 26 41 23 36 33 32 74 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_keyscan.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 64</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 47</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 73 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 28 38 27 41 39 36 31 34 26 23 24 83 37 77 78 79 80 81 82 33 32 73 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_icg.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 66</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 49</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 35 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 81 78 38 24 79 31 77 39 80 82 85 34 28 27 26 41 23 36 87 35 33 83 32</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_efm.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 71</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 52</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 75 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 24 38 77 81 83 79 31 34 78 39 80 82 37 28 27 26 41 23 36 33 32 75 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_clk.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 70</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 54</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 40 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 79 34 77 81 38 78 39 80 82 83 24 31 37 28 27 26 41 23 36 33 32 40 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_dma.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 68</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 53</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 95 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 24 28 38 26 83 31 27 23 41 39 36 37 34 77 78 79 80 81 82 33 32 95 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_interrupts.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 65</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 48</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 76 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 80 82 39 34 78 77 79 81 38 83 24 31 37 28 27 26 41 23 36 33 32 76 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_sram.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 62</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 45</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 72 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 39 77 80 82 31 78 79 81 38 83 24 37 34 28 27 26 41 23 36 33 32 72 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_utility.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 61</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 44</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 37 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 39 24 77 80 82 31 78 79 81 38 85 34 28 27 26 41 23 36 87 37 33 83 32</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\source\main.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 59</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 43</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 94 31 28 38 39 79 41 23 80 81 26 77 36 78 82 24 33 32 87 85 83 27 34 40 95 75 30 74 35 76 73 29 72 37 86 25 84</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 26 31 34 25 37 27 23 74 76 28 38 24 40 75 29 41 39 36 83 73 95 30 35 72 86 84 77 78 79 80 81 82 33 32 94 85 87</file>
+        </tool>
+      </inputs>
+    </file>
+  </configuration>
+  <configuration>
+    <name>Release</name>
+    <outputs/>
+    <forcedrebuild>
+      <name>[MULTI_TOOL]</name>
+      <tool>ILINK</tool>
+    </forcedrebuild>
+  </configuration>
+</project>
+
+

@@ -181,7 +181,7 @@
         <debug>0</debug>
         <option>
           <name>CCDefines</name>
-          <state>__DEBUG_</state>
+          <state>__DEBUG_X</state>
           <state>HC32F4A0</state>
           <state>USE_DDL_DRIVER</state>
         </option>

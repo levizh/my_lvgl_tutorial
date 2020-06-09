@@ -82,7 +82,7 @@
  * @{
  */
 
-#define I2C_BAUDRATE_MAX                400000UL
+#define I2C_BAUDRATE_MAX               (400000UL)
 
 #define I2C_CLR_MASK                   ((uint32_t)0x00F052DF)
 
@@ -104,6 +104,12 @@
 
 #define IS_VALID_DIGITAL_FILTER(x)             ((x) <= I2C_DIG_FILTMODE_4CYCLE)
 
+#define IS_VALID_TIMOUT_SWITCH(x)                                              \
+(   ((x) == TimeoutFunOff)                         ||                          \
+    ((x) == LowTimerOutOn)                         ||                          \
+    ((x) == HighTimeOutOn)                         ||                          \
+    ((x) == BothTimeOutOn))
+
 #define IS_VALID_RD_STATUS_BIT(x)                                              \
 (   ((x) == I2C_SR_STARTF)                         ||                          \
     ((x) == I2C_SR_SLADDR0F)                       ||                          \
@@ -124,9 +130,7 @@
     ((x) == I2C_SR_SMBHOSTF)                       ||                          \
     ((x) == I2C_SR_SMBALRTF))
 
-#define IS_VALID_WR_STATUS_BIT(x)                                              \
-(   ((x) == I2C_SR_MSL)                            ||                          \
-    ((x) == I2C_SR_TRA))
+#define IS_VALID_WR_STATUS_BIT(x)    ( 0U == ((x) & ~(uint32_t)(I2C_SR_MSL | I2C_SR_TRA)))                        
 
 #define IS_VALID_SMBUS_CONFIG(x)     ( 0U == ((x) & (~(uint32_t)I2C_SMBUS_CONFIG_CLEARMASK)))
 
@@ -217,7 +221,7 @@ en_result_t I2C_BaudrateConfig(M4_I2C_TypeDef* pstcI2Cx, const stc_i2c_init_t* p
     float32_t WidthHL;
     float32_t fErr = 0.0f;
 
-    if ((NULL == pstcI2C_InitStruct)||(NULL == pf32Err))
+    if ((NULL == pstcI2C_InitStruct) || (NULL == pf32Err))
     {
         enRet = ErrorInvalidParameter;
     }
@@ -236,7 +240,7 @@ en_result_t I2C_BaudrateConfig(M4_I2C_TypeDef* pstcI2Cx, const stc_i2c_init_t* p
         /* Judge digital filter status*/
         if(0U != READ_REG32_BIT(pstcI2Cx->FLTR, I2C_FLTR_DNFEN))
         {
-            dnfsum = ((pstcI2Cx->FLTR & I2C_FLTR_DNF) >> I2C_FLTR_DNF_POS) + 1U;
+            dnfsum = (READ_REG32_BIT(pstcI2Cx->FLTR, I2C_FLTR_DNF) >> I2C_FLTR_DNF_POS) + 1U;
         }
         else
         {
@@ -260,28 +264,27 @@ en_result_t I2C_BaudrateConfig(M4_I2C_TypeDef* pstcI2Cx, const stc_i2c_init_t* p
         if(WidthTotal <= SumTotal)
         {
             /* Err, Should set a smaller division value for pstcI2C_InitStruct->u32I2cClkDiv */
-            //DDL_ASSERT(NULL);
             enRet = ErrorInvalidParameter;
         }
         else if(WidthHL > ((float32_t)0x1F*(float32_t)2))
         {
             /* Err, Should set a bigger division value for pstcI2C_InitStruct->u32I2cClkDiv */
-            //DDL_ASSERT(NULL);
             enRet = ErrorInvalidParameter;
         }
         else
         {
             fErr =(WidthHL - (float32_t)((uint32_t)WidthHL)) / WidthHL;
-
-            pstcI2Cx->CCR = (pstcI2C_InitStruct->u32I2cClkDiv << I2C_CCR_FREQ_POS)     \
+            WRITE_REG32(pstcI2Cx->CCR, (pstcI2C_InitStruct->u32I2cClkDiv << I2C_CCR_FREQ_POS)     \
                            | (((uint32_t)WidthHL/2U) << I2C_CCR_SLOWW_POS)              \
-                           | (((uint32_t)WidthHL - (uint32_t)WidthHL/2U) << I2C_CCR_SHIGHW_POS);
+                           | (((uint32_t)WidthHL - (uint32_t)WidthHL/2U) << I2C_CCR_SHIGHW_POS));
         }
     }
+
     if((NULL != pf32Err)&&(Ok == enRet))
     {
         *pf32Err = fErr;
     }
+
     return enRet;
 }
 
@@ -300,6 +303,7 @@ en_result_t I2C_BaudrateConfig(M4_I2C_TypeDef* pstcI2Cx, const stc_i2c_init_t* p
 void I2C_DeInit(M4_I2C_TypeDef* pstcI2Cx)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
+
     /* Reset peripheral register and internal status*/
     CLEAR_REG32_BIT(pstcI2Cx->CR1,I2C_CR1_PE);
     SET_REG32_BIT(pstcI2Cx->CR1,I2C_CR1_SWRST);
@@ -337,6 +341,7 @@ en_result_t I2C_Init(M4_I2C_TypeDef* pstcI2Cx, const stc_i2c_init_t* pstcI2C_Ini
 {
     en_result_t enRet = Ok;
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
+
     if (NULL == pstcI2C_InitStruct )
     {
         enRet = ErrorInvalidParameter;
@@ -385,6 +390,58 @@ void I2C_Cmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState)
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     MODIFY_REG32(pstcI2Cx->CR1, I2C_CR1_PE, (uint32_t)enNewState << I2C_CR1_PE_POS);
+}
+
+/**
+ *******************************************************************************
+ ** \brief I2C fast ACK config
+ **
+ ** \param [in] pstcI2Cx            Pointer to the I2C peripheral register, can
+ ** \                               be M4_I2C1,M4_I2C2 or M4_I2C3.
+ ** \param [in] enNewState          New state of the fast ACK function, can be
+ **                                 Disable or Enable the function
+ **
+ ** \retval None
+ **
+ ******************************************************************************/
+void I2C_FastAckConfig(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState)
+{
+    DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    MODIFY_REG32(pstcI2Cx->CR3, I2C_CR3_FACKEN, ((~(uint32_t)enNewState) << I2C_CR3_FACKEN_POS));
+}
+
+/**
+ *******************************************************************************
+ ** \brief I2C clock timer out function config
+ **
+ ** \param [in] pstcI2Cx            Pointer to the I2C peripheral register, can
+ ** \                               be M4_I2C1,M4_I2C2 or M4_I2C3.
+ ** \param [in] pstcTimoutInit      Pointer to I2C timeout function structure
+ **
+ ** \retval Ok                      Process finished.
+ ** \retval ErrorInvalidParameter   Parameter error.
+ **
+ ******************************************************************************/
+en_result_t I2C_ClkTimeOutConfig(M4_I2C_TypeDef* pstcI2Cx, const stc_clock_timeout_init_t* pstcTimoutInit)
+{
+    en_result_t enRet = Ok;
+
+    if(pstcTimoutInit)
+    {
+        DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
+        DDL_ASSERT(IS_VALID_TIMOUT_SWITCH(pstcTimoutInit->enClkTimeOutSwitch));
+
+        WRITE_REG32(pstcI2Cx->SLTR, ((uint32_t)pstcTimoutInit->u16TimeOutHigh << 16U | pstcTimoutInit->u16TimeOutLow));
+        MODIFY_REG32(pstcI2Cx->CR3, BothTimeOutOn, pstcTimoutInit->enClkTimeOutSwitch);
+    }
+    else
+    {
+        enRet = ErrorInvalidParameter;
+    }
+
+    return enRet;
 }
 
 /**
@@ -566,14 +623,14 @@ void I2C_SlaveAdrConfig(M4_I2C_TypeDef* pstcI2Cx, en_i2c_adr_t enAdrNum, uint32_
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
     DDL_ASSERT(IS_VALID_ADRCONFIG(u32AdrConfig));
 
-    uint32_t u32AdrReg = (uint32_t)&pstcI2Cx->SLR0 + enAdrNum * 4;
+    uint32_t u32AdrReg = (uint32_t)&pstcI2Cx->SLR0 + enAdrNum * 4UL;
+
     if(I2C_ADR_CONFIG_10BIT == u32AdrConfig)
     {
         /* if 10 bit address mode */
         DDL_ASSERT(IS_VALIDE_10BIT_ADR(u32Adr));
         WRITE_REG16(*(__IO uint32_t*)(u32AdrReg), u32AdrConfig + u32Adr);
     }
-    //else if(I2C_ADR_CONFIG_7BIT == u32AdrConfig)
     else
     {
         /* if 7 bit address mode */
@@ -619,11 +676,11 @@ void I2C_IntCmd(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32IntEn, en_functional_state
 
     if(Enable == enNewState)
     {
-        pstcI2Cx->CR2 |= u32IntEn;
+        SET_REG32_BIT(pstcI2Cx->CR2, u32IntEn);
     }
     else
     {
-        pstcI2Cx->CR2 &= (uint32_t)~u32IntEn;
+        CLEAR_REG32_BIT(pstcI2Cx->CR2, u32IntEn);
     }
 }
 
@@ -643,7 +700,8 @@ void I2C_IntCmd(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32IntEn, en_functional_state
 void I2C_WriteDataReg(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Data)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
-    pstcI2Cx->DTR = u8Data;
+
+    WRITE_REG8(pstcI2Cx->DTR, u8Data);
 }
 
 /**
@@ -661,7 +719,8 @@ void I2C_WriteDataReg(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Data)
 uint8_t I2C_ReadDataReg(M4_I2C_TypeDef* const pstcI2Cx)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
-    return (uint8_t)pstcI2Cx->DRR;
+
+    return READ_REG8(pstcI2Cx->DRR);
 }
 
 /**
@@ -684,6 +743,63 @@ void I2C_NackConfig(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState)
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     MODIFY_REG32(pstcI2Cx->CR1, I2C_CR1_ACK, (uint32_t)enNewState << I2C_CR1_ACK_POS);
+}
+
+/**
+ * @brief  I2C generate start condition
+ * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
+ *         This parameter can be one of the following values:
+ *         @arg M4_I2C1
+ *         @arg M4_I2C2
+ *         @arg M4_I2C3
+ *         @arg M4_I2C4
+ *         @arg M4_I2C5
+ *         @arg M4_I2C6
+ * @retval None
+ */
+void I2C_GenerateStart(M4_I2C_TypeDef* pstcI2Cx)
+{
+    DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
+
+    SET_REG32_BIT(pstcI2Cx->CR1, I2C_CR1_START);
+}
+
+/**
+ * @brief  I2C generate restart condition
+ * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
+ *         This parameter can be one of the following values:
+ *         @arg M4_I2C1
+ *         @arg M4_I2C2
+ *         @arg M4_I2C3
+ *         @arg M4_I2C4
+ *         @arg M4_I2C5
+ *         @arg M4_I2C6
+ * @retval None
+ */
+void I2C_GenerateReStart(M4_I2C_TypeDef* pstcI2Cx)
+{
+    DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
+
+    SET_REG32_BIT(pstcI2Cx->CR1, I2C_CR1_RESTART);
+}
+
+/**
+ * @brief  I2C generate stop condition
+ * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
+ *         This parameter can be one of the following values:
+ *         @arg M4_I2C1
+ *         @arg M4_I2C2
+ *         @arg M4_I2C3
+ *         @arg M4_I2C4
+ *         @arg M4_I2C5
+ *         @arg M4_I2C6
+ * @retval None
+ */
+void I2C_GenerateStop(M4_I2C_TypeDef* pstcI2Cx)
+{
+    DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
+
+    SET_REG32_BIT(pstcI2Cx->CR1, I2C_CR1_STOP);
 }
 
 /**
@@ -723,11 +839,11 @@ en_flag_status_t I2C_GetStatus(M4_I2C_TypeDef * const pstcI2Cx, uint32_t u32Stat
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
     DDL_ASSERT(IS_VALID_RD_STATUS_BIT(u32StatusBit));
 
-    return ((pstcI2Cx->SR & u32StatusBit) ? Set : Reset);
+    return (READ_REG32_BIT(pstcI2Cx->SR, u32StatusBit) ? Set : Reset);
 }
 
 /**
- * @brief  I2C status bit get
+ * @brief  I2C status bit write
  * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
  *         This parameter can be one of the following values:
  *         @arg M4_I2C1
@@ -751,11 +867,11 @@ void I2C_WriteStatus(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32StatusBit, en_flag_st
 
     if(Set == enStatus)
     {
-        pstcI2Cx->SR |= u32StatusBit;
+        SET_REG32_BIT(pstcI2Cx->SR, u32StatusBit);
     }
     else
     {
-        pstcI2Cx->SR &= (~u32StatusBit);
+        CLEAR_REG32_BIT(pstcI2Cx->SR, u32StatusBit);
     }
 }
 
@@ -792,7 +908,7 @@ void I2C_ClearStatus(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32StatusBit)
     DDL_ASSERT(IS_VALID_UNIT(pstcI2Cx));
     DDL_ASSERT(IS_VALID_CLEARBIT(u32StatusBit));
 
-    pstcI2Cx->CLR |= u32StatusBit;
+    WRITE_REG32(pstcI2Cx->CLR,u32StatusBit);
 }
 
 /**
@@ -805,6 +921,7 @@ void I2C_ClearStatus(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32StatusBit)
 en_result_t I2C_StructInit(stc_i2c_init_t* pstcI2C_InitStruct)
 {
     en_result_t enRet = Ok;
+
     if (pstcI2C_InitStruct == NULL)
     {
         enRet = ErrorInvalidParameter;
@@ -819,9 +936,10 @@ en_result_t I2C_StructInit(stc_i2c_init_t* pstcI2C_InitStruct)
 }
 
 /**
- * @brief  Try to get a status of a specified flag
- * @param  [in] u32StatusBit         specifies the flag to check,
- *         This parameter can be one of the following values:
+ * @brief  Try to wait a status of specified flags
+ * @param  [in] u32Flags             specifies the flags to check
+ * @param  [in] enStatus             expected status
+ *         This parameter can be any combination of the following values:
  *         @arg   I2C_SR_STARTF     : Start condition detected flag
  *         @arg   I2C_SR_SLADDR0F   : Address 0 detected flag
  *         @arg   I2C_SR_SLADDR1F   : Address 1 detected flag
@@ -841,21 +959,33 @@ en_result_t I2C_StructInit(stc_i2c_init_t* pstcI2C_InitStruct)
  *         @arg   I2C_SR_SMBHOSTF   : Smbus host address detected flag
  *         @arg   I2C_SR_SMBALRTF   : Smbus alarm address detected flag
  * @retval  Process result
- *          - ErrorTimeout  Failed to get expected status of specified flag
- *          - Ok            successfully gotten the expected status of the specified flag 
+ *          - Error         Failed to get expected status of specified flags
+ *          - Ok            successfully gotten the expected status of the specified flags 
  */
-__STATIC_INLINE en_result_t I2C_WaitStatus(M4_I2C_TypeDef* const pstcI2Cx, uint32_t u32SRFlag,en_flag_status_t enStatus, uint32_t u32TimeOut)
+static en_result_t I2C_WaitStatus(M4_I2C_TypeDef* const pstcI2Cx, uint32_t u32Flags, en_flag_status_t enStatus, uint32_t u32TimeOut)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet = Error;
+    uint32_t u32RegStatusBit;
 
-    while(enStatus != ((pstcI2Cx->SR & u32SRFlag) ? Set : Reset))
+    while(1U)
     {
-        if(0U == (u32TimeOut--))
+        u32RegStatusBit = (READ_REG32_BIT(pstcI2Cx->SR, u32Flags));
+        if(((enStatus == Set) && (u32Flags == u32RegStatusBit))
+           || ((enStatus == Reset) && (0UL == u32RegStatusBit)))
         {
-            enRet = ErrorTimeout;
+            enRet = Ok;
+        }
+
+        if((Ok == enRet) || (0UL == u32TimeOut))
+        {
             break;
         }
+        else
+        {
+            u32TimeOut--;
+        }
     }
+
     return enRet;
 }
 
@@ -873,39 +1003,22 @@ __STATIC_INLINE en_result_t I2C_WaitStatus(M4_I2C_TypeDef* const pstcI2Cx, uint3
  *               specified flag in status register
  * @retval An en_result_t enumeration value:
  *            - Ok: Start successfully
- *            - ErrorTimeout: Start unsuccessfully, Time Out error occurred
+ *            - Error: Start unsuccessfully
  */
 en_result_t I2C_Start(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut)
 {
-    uint32_t u32TimeOutTemp = u32TimeOut;
-    en_flag_status_t enBusyFlag, enStartFlag;
-    en_result_t u8Ret = Ok;
+    en_result_t enRet = Error;
 
-    u8Ret = I2C_WaitStatus(pstcI2Cx, I2C_SR_BUSY, Reset, u32TimeOut);
-    if(Ok == u8Ret)
+    enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_BUSY, Reset, u32TimeOut);
+    if(Ok == enRet)
     {
         /* generate start signal */
         I2C_GenerateStart(pstcI2Cx);
-        
         /* Judge if start success*/
-        u32TimeOutTemp = u32TimeOut;
-        while(1)
-        {
-            enBusyFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_BUSY);
-            enStartFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_STARTF);
-            u32TimeOutTemp--;
-            if(((Set == enBusyFlag) && (Set == enStartFlag))||(0UL == u32TimeOutTemp))
-            {
-                break;
-            }
-        }
-        if(0UL == u32TimeOutTemp)
-        {
-            u8Ret = ErrorTimeout;
-        }
+        enRet = I2C_WaitStatus(pstcI2Cx, (I2C_SR_BUSY | I2C_SR_STARTF), Set, u32TimeOut);
     }
 
-    return u8Ret;
+    return enRet;
 }
 
 /**
@@ -921,35 +1034,20 @@ en_result_t I2C_Start(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut)
  * @param  [in]  u32Timeout  Maximum count of trying to get a status of a specified flag
  * @retval An en_result_t enumeration value:
  *            - Ok: Restart successfully
- *            - ErrorTimeout: Restart unsuccessfully, Time Out error occurred
+ *            - Error: Restart unsuccessfully
  */
 en_result_t I2C_Restart(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut)
 {
-    en_flag_status_t enBusyFlag, enStartFlag;
-    en_result_t u8Ret = Ok;
+    en_result_t enRet = Error;
 
-    /* generate restart signal */
     /* Clear start status flag */
     I2C_ClearStatus(pstcI2Cx, I2C_CLR_STARTFCLR);
     /* Send restart condition */
     I2C_GenerateReStart(pstcI2Cx);
-
     /* Judge if start success*/
-    while(1)
-    {
-        enBusyFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_BUSY);
-        enStartFlag = I2C_GetStatus(pstcI2Cx, I2C_SR_STARTF);
-        u32TimeOut--;
-        if(((Set == enBusyFlag) && (Set == enStartFlag))||(0UL == u32TimeOut))
-        {
-            break;
-        }
-    }
-    if(0UL == u32TimeOut)
-    {
-        u8Ret = ErrorTimeout;
-    }
-    return u8Ret;
+    enRet = I2C_WaitStatus(pstcI2Cx, (I2C_SR_BUSY | I2C_SR_STARTF), Set, u32TimeOut);
+
+    return enRet;
 }
 
 /**
@@ -973,20 +1071,24 @@ en_result_t I2C_SendAddr(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Adr, uint32_t u32Ti
     en_result_t enRet = ErrorTimeout;
 
     enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_TEMPTYF, Set, u32TimeOut);
+
     if(enRet == Ok)
     {
         /* Send I2C address */
         I2C_WriteDataReg(pstcI2Cx, u8Adr);
+
         if(0U == (u8Adr & 0x01U))
         {
-            /* If in master transfer process, Need wait transfer end*/
+            /* If in master transfer process, Need wait transfer end */
             enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_TENDF, Set, u32TimeOut);
-        }
-        if(enRet == Ok)
-        {
-            enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_ACKRF, Reset, u32TimeOut);
+
+            if(enRet == Ok)
+            {
+                enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_ACKRF, Reset, u32TimeOut);
+            }
         }
     }
+
     return enRet;
 }
 
@@ -1010,27 +1112,24 @@ en_result_t I2C_SendAddr(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Adr, uint32_t u32Ti
 en_result_t I2C_SendData(M4_I2C_TypeDef* pstcI2Cx, uint8_t const pTxData[], uint32_t u32Size, uint32_t u32TimeOut)
 {
     en_result_t enRet = Ok;
-    uint32_t u32Cnt = 0U;
+    uint32_t u32Cnt = 0UL;
+
     while((u32Cnt != u32Size) && (enRet == Ok))
     {
         /* Wait tx buffer empty */
-        if(I2C_WaitStatus(pstcI2Cx, I2C_SR_TEMPTYF, Set, u32TimeOut) == Ok)
+        enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_TEMPTYF, Set, u32TimeOut);
+
+        if(enRet == Ok)
         {
             /* Send one byte data */
             I2C_WriteDataReg(pstcI2Cx, pTxData[u32Cnt++]);
             /* Wait transfer end*/
-            if(I2C_WaitStatus(pstcI2Cx, I2C_SR_TENDF, Set, u32TimeOut) == Ok)
+            enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_TENDF, Set, u32TimeOut);
+
+            if(enRet == Ok)
             {
                 enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_ACKRF, Reset, u32TimeOut);
             }
-            else
-            {
-                enRet = ErrorTimeout;
-            }
-        }
-        else
-        {
-            enRet = ErrorTimeout;
         }
     }
 
@@ -1057,23 +1156,32 @@ en_result_t I2C_SendData(M4_I2C_TypeDef* pstcI2Cx, uint8_t const pTxData[], uint
 en_result_t I2C_RcvData(M4_I2C_TypeDef* pstcI2Cx, uint8_t pRxData[], uint32_t u32Size, uint32_t u32TimeOut)
 {
     en_result_t enRet = Ok;
-    for(uint32_t i=0u; i<u32Size; i++)
+
+    for(uint32_t i=0UL; i<u32Size; i++)
     {
         if(i == (u32Size - 1UL))
         {
             I2C_NackConfig(pstcI2Cx, Enable);
         }
-        enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_RFULLF,Set,u32TimeOut);
+
+        enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_RFULLF, Set, u32TimeOut);
+
         if(enRet == Ok)
         {
-             /* read data from register*/
+             /* read data from register */
             pRxData[i] = I2C_ReadDataReg(pstcI2Cx);
+            /* manually send ack if FACKEN is set to 1(1:manually ack;0:fast ack) */
+            if(READ_REG32_BIT(pstcI2Cx->CR3, I2C_CR3_FACKEN) && (i != (u32Size - 1UL)))
+            {
+                I2C_NackConfig(pstcI2Cx, Disable);
+            }
         }
         else
         {
             break;
         }
     }
+
     return enRet;
 }
 
@@ -1102,9 +1210,9 @@ en_result_t I2C_Stop(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut)
         I2C_ClearStatus(pstcI2Cx, I2C_CLR_STOPFCLR);
     }
     I2C_GenerateStop(pstcI2Cx);
+    /* Wait stop flag */
+    enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_STOPF, Set, u32TimeOut);
 
-    /* Wait STOPF */
-    enRet = I2C_WaitStatus(pstcI2Cx, I2C_SR_STOPF,Set,u32TimeOut);
     return enRet;
 }
 /**

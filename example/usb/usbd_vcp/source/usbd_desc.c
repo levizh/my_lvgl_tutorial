@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_vcp\source\usbd_desc.c
+ * @brief This file provides the USBD descriptors and string formating method.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,28 +48,28 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
 
-/******************************************************************************/
-/** \file usbd_desc.c
- **
- ** A detailed description is available at
- ** @link
-        This file provides the USBD descriptors and string formating method.
-    @endlink
- **
- **   - 2019-6-3  1.0  Zhangxl First version for USB CDC VCP device demo.
- **
- ******************************************************************************/
-
 /*******************************************************************************
- * Local pre-processor symbols/macros ('#define')
+ * Include files
  ******************************************************************************/
 #include "usbd_core.h"
 #include "usbd_desc.h"
 #include "usbd_req.h"
 #include "usbd_conf.h"
 #include "hc32f4a0_usb_otg_regs.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_VCP
+ * @{
+ */
+
 
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
@@ -281,6 +291,14 @@ uint8_t *  USBD_USR_InterfaceStrDescriptor( uint8_t speed , uint16_t *length)
     }
     return USBD_StrDesc;
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

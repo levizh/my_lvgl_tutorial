@@ -124,6 +124,11 @@ extern "C"
     #define XTAL32_VALUE                ((uint32_t)32768UL)     /*!< External low speed OSC freq.  */
 #endif
 
+#if !defined (HCLK_VALUE)
+#define HCLK_VALUE      (SystemCoreClock >> ((M4_CMU->SCFGR & CMU_SCFGR_HCLKS) >> CMU_SCFGR_HCLKS_POS))
+#endif
+
+
 /**
  * @}
  */

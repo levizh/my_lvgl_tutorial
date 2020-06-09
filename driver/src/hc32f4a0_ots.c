@@ -77,7 +77,7 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup ADC_Miscellaneous_Definitions OTS Local Definitions
+ * @defgroup OTS_Configuration_Bit_Mask OTS Configuration Bit Mask
  * @{
  */
 #define OTS_CTL_INIT_MSK            (OTS_CTL_OTSCK | OTS_CTL_TSSTP)
@@ -126,10 +126,12 @@ static float32_t m_f32ParaM = 0.0f;
  */
 
 /**
- * @brief
- * @param  [in]
- * @param  [out]
- * @retval None
+ * @brief  Initializes OTS according to the specified parameters in the structure stc_ots_init_t.
+ * @param  [in]  pstcInit               Pointer to a stc_ots_init_t structure value that
+ *                                      contains the configuration information for OTS.
+ * @retval An en_result_t enumeration value.
+ *   @arg  Ok:                          No errors occurred.
+ *   @arg  ErrorInvalidParameter:       pstcInit == NULL.
  */
 en_result_t OTS_Init(const stc_ots_init_t *pstcInit)
 {
@@ -160,10 +162,12 @@ en_result_t OTS_Init(const stc_ots_init_t *pstcInit)
 }
 
 /**
- * @brief
- * @param  [in]
- * @param  [out]
- * @retval None
+ * @brief  Set a default value for OTS initialization structure.
+ * @param  [in]  pstcInit               Pointer to a stc_ots_init_t structure that
+ *                                      contains configuration information.
+ * @retval An en_result_t enumeration value.
+ *   @arg  Ok:                          No errors occurred.
+ *   @arg  ErrorInvalidParameter:       pstcInit == NULL.
  */
 en_result_t OTS_StructInit(stc_ots_init_t *pstcInit)
 {
@@ -185,9 +189,8 @@ en_result_t OTS_StructInit(stc_ots_init_t *pstcInit)
 }
 
 /**
- * @brief
- * @param  [in]
- * @param  [out]
+ * @brief  De-initializes OTS peripheral. Reset the registers of OTS.
+ * @param  None
  * @retval None
  */
 void OTS_DeInit(void)
@@ -218,7 +221,7 @@ en_result_t OTS_Polling(float32_t *pf32Temp, uint32_t u32Timeout)
     if ((pf32Temp != NULL) && (u32Timeout != 0U))
     {
         /* 10 is the number of required instructions cycles for the below loop statement. */
-        u32TimeCnt = u32Timeout * (SystemCoreClock / 10u / 1000u);
+        u32TimeCnt = u32Timeout * (SystemCoreClock / 10U / 1000U);
         enRet = ErrorTimeout;
 
         OTS_Start();
@@ -278,9 +281,11 @@ void OTS_ComTrigCmd(uint32_t u32ComTrigEn)
 }
 
 /**
- * @brief
- * @param  [in]
- * @param  [out]
+ * @brief  OTS scaling experiment. Get the value of the data register at the specified temperature to calculate K and M.
+ * @param  [out] pu16Dr1:               Pointer to an address to store the value of data register 1.
+ * @param  [out] pu16Dr2:               Pointer to an address to store the value of data register 2.
+ * @param  [out] pu16Ecr:               Pointer to an address to store the value of register ECR.
+ * @param  [out] pf32A:                 Pointer to an address to store the parameter A.
  * @retval None
  */
 void OTS_ScalingExperiment(uint16_t *pu16Dr1, uint16_t *pu16Dr2, \

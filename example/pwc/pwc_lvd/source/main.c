@@ -72,7 +72,11 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define LVD_IRQn        (Int142_IRQn)
+#define LVD1_INT_SRC    (INT_PVD_PVD1)
+#define LVD1_IRQn       (Int003_IRQn)
+
+#define LVD2_INT_SRC    (INT_PVD_PVD2)
+#define LVD2_IRQn       (Int002_IRQn)
 
 #define DLY_MS          (500UL)
 /*******************************************************************************
@@ -92,38 +96,96 @@
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @brief  LVD1 IRQ handler
+ * @brief  LVD1 IRQ callback function
  * @param  None
  * @retval None
  */
-void PWC_Lvd1_IrqHandler(void)
+void PWC_LVD1_IrqCallback(void)
 {
     uint8_t u8Cnt = 10U;
-    PWC_LVD_ClrFlag(PWC_PVDDSR_PVD1DETFLG);
-
     do
     {
         BSP_LED_Toggle(LED_RED);
         DDL_Delay1ms(DLY_MS);
     } while(--u8Cnt);
-    PWC_LVD_ClrFlag(PWC_PVDDSR_PVD1DETFLG);
+
+    PWC_LVD_ClrFlag();
 }
 
 /**
- * @brief  LVD2 IRQ handler
+ * @brief  LVD2 IRQ callback function
  * @param  None
  * @retval None
  */
-void PWC_Lvd2_IrqHandler(void)
+void PWC_LVD2_IrqCallback(void)
 {
     uint8_t u8Cnt = 10U;
-    PWC_LVD_ClrFlag(PWC_PVDDSR_PVD2DETFLG);
-
     do
     {
         BSP_LED_Toggle(LED_BLUE);
         DDL_Delay1ms(DLY_MS);
     } while(--u8Cnt);
+
+    PWC_LVD_ClrFlag();
+}
+
+void LVD_IntInit(void)
+{
+    stc_irq_signin_config_t stcIrqSignConfig;
+
+    /* Clear LVD flag */
+    PWC_LVD_ClrFlag();
+
+    /* Set LVD interrupt. */
+    INTC_ShareIrqCmd(INT_PVD_PVD1, Enable);
+
+    /* LVD1 IRQ sign-in */
+    stcIrqSignConfig.enIntSrc = LVD1_INT_SRC;
+    stcIrqSignConfig.enIRQn   = LVD1_IRQn;
+    stcIrqSignConfig.pfnCallback = &PWC_LVD1_IrqCallback;
+    INTC_IrqSignIn(&stcIrqSignConfig);
+
+    /* LVD2 IRQ sign-in */
+    stcIrqSignConfig.enIntSrc = LVD2_INT_SRC;
+    stcIrqSignConfig.enIRQn   = LVD2_IRQn;
+    stcIrqSignConfig.pfnCallback = &PWC_LVD2_IrqCallback;
+    INTC_IrqSignIn(&stcIrqSignConfig);
+
+    /* Enable interrupt. */
+    NVIC_ClearPendingIRQ(LVD1_IRQn);
+    NVIC_SetPriority(LVD1_IRQn,DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(LVD1_IRQn);
+
+    /* Enable interrupt. */
+    NVIC_ClearPendingIRQ(LVD2_IRQn);
+    NVIC_SetPriority(LVD2_IRQn,DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(LVD2_IRQn);
+}
+
+en_result_t LVD_Init(void)
+{
+    en_result_t enRet;
+    stc_pwc_lvd_config_t  stcPwcLvdConfig;
+    
+    PWC_LVD_StructInit(&stcPwcLvdConfig);
+    /* Config LVD */
+    /* LVD1: 2.8V */
+    stcPwcLvdConfig.u8LvdVoltage  = PWC_LVD1_2V8_LVD2_2V9;
+    stcPwcLvdConfig.u8LvdCmpOutEn = PWC_LVD_CMP_ON;
+    stcPwcLvdConfig.u8LvdEn       = PWC_LVD_ON;
+    stcPwcLvdConfig.u8LvdIntRstEn = PWC_LVD_IR_ON;
+    stcPwcLvdConfig.u8LvdIntRstSel= PWC_LVD_INT;
+    stcPwcLvdConfig.u8LvdNmiEn    = PWC_LVD_INT_MASK;
+    stcPwcLvdConfig.u8FilterEn    = PWC_LVD_DF_OFF;
+    stcPwcLvdConfig.u8FilterClk   = PWC_LVD_DFS_DIV1;
+    enRet = PWC_LVD_Init(PWC_LVD_CH1, &stcPwcLvdConfig);
+    if (Ok == enRet)
+    {
+        /* LVD2: 2.3V */
+        stcPwcLvdConfig.u8LvdVoltage  = PWC_LVD1_2V1_LVD2_2V3;
+        enRet = PWC_LVD_Init(PWC_LVD_CH2, &stcPwcLvdConfig);
+    }
+    return enRet;
 }
 
 /**
@@ -133,30 +195,15 @@ void PWC_Lvd2_IrqHandler(void)
  */
 int32_t main(void)
 {
-    stc_pwc_lvd_config_t  stcPwcLvdConfig;
-
+    /* unlock GPIO register in advance */
+    GPIO_Unlock();
+    
     BSP_IO_Init();
     BSP_LED_Init();
 
-    PWC_LVD_StructInit(&stcPwcLvdConfig);
-    /* Config LVD */
-    /* LVD1: 2.8V; LVD2: 2.3V */
-    stcPwcLvdConfig.u8LvdVoltage  = PWC_LVD1_2V8 | PWC_LVD2_2V3;
-    stcPwcLvdConfig.u8LvdCmpOutEn = PWC_LVD1_CMP_ON | PWC_LVD2_CMP_ON;
-    stcPwcLvdConfig.u8LvdEn       = PWC_LVD1_ON | PWC_LVD2_ON;
-    stcPwcLvdConfig.u8LvdIntRstEn = PWC_LVD1_IR_ON | PWC_LVD2_IR_ON;
-    stcPwcLvdConfig.u8LvdIntRstSel= PWC_LVD1_INT | PWC_LVD2_INT;
-    stcPwcLvdConfig.u8LvdNmiEn    = PWC_LVD1_INT_MASK | PWC_LVD2_INT_MASK;
-    PWC_LVD_Init(&stcPwcLvdConfig);
+    LVD_Init();
 
-    /* Set LVD interrupt. */
-    INTC_ShareIrqCmd(INT_PVD_PVD1, Enable);
-    INTC_ShareIrqCmd(INT_PVD_PVD2, Enable);
-
-    /* Enable interrupt. */
-    NVIC_ClearPendingIRQ(LVD_IRQn);
-    NVIC_SetPriority(LVD_IRQn,DDL_IRQ_PRIORITY_DEFAULT);
-    NVIC_EnableIRQ(LVD_IRQn);
+    LVD_IntInit();
 
     while(1)
     {

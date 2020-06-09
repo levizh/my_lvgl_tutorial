@@ -160,10 +160,10 @@ int32_t main(void)
     stcTmr4OcoInit.u16CompareVal = stcTmr4CntInit.u16CycleVal/2U;
 
     TMR4_OCO_Init(TMR4_UNIT, TMR4_OCO_HIGH_CH, &stcTmr4OcoInit);
-    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_HIGH_CH, TMR4_OCO_INT_MATCH, Enable);
+    TMR4_OCO_IntCmd(TMR4_UNIT, TMR4_OCO_HIGH_CH, Enable);
 
     TMR4_OCO_Init(TMR4_UNIT, u32OcoLowCh, &stcTmr4OcoInit);
-    TMR4_OCO_IntCmd(TMR4_UNIT, u32OcoLowCh, TMR4_OCO_INT_MATCH, Enable);
+    TMR4_OCO_IntCmd(TMR4_UNIT, u32OcoLowCh, Enable);
 
     if (!(TMR4_OCO_HIGH_CH % 2UL))
     {
@@ -210,8 +210,10 @@ int32_t main(void)
     }
 
     /* Initialize PWM I/O */
+    GPIO_Unlock();
     GPIO_SetFunc(TIM4_OXH_PORT, TIM4_OXH_PIN, TIM4_OXH_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(TIM4_OXL_PORT, TIM4_OXL_PIN, TIM4_OXL_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Timer4 PWM: Get pwm couple channel */
     u32PwmCh = TMR4_PWM_CH(TMR4_OCO_HIGH_CH);

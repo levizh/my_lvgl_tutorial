@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-07-16       Heqb            First version
+   2020-05-27       Heqb            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -72,30 +72,12 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* Enable CRC. */
-#define ENABLE_CRC()                (CLK_FcgPeriphClockCmd(CLK_FCG_CRC, Enable))
+#define ByteCnt1                      (1U)
+#define ByteCnt2                      (2U)
+#define ByteCnt4                      (4U)
 
-/* Disable CRC. */
-#define DISABLE_CRC()               (CLK_FcgPeriphClockCmd(CLK_FCG_CRC, Disable))
-
-#define LED_R_PORT      (GPIO_PORT_12)
-#define LED_G_PORT      (GPIO_PORT_7)
-
-#define LED_R_PIN       (GPIO_PIN_0)
-#define LED_G_PIN       (GPIO_PIN_0)
-
-#define LED_R_ON()      (GPIO_ResetPins(LED_R_PORT, LED_R_PIN))
-#define LED_G_ON()      (GPIO_ResetPins(LED_G_PORT, LED_G_PIN))
-
-#define LED_R_OFF()     (GPIO_SetPins(LED_R_PORT, LED_R_PIN))
-#define LED_G_OFF()     (GPIO_SetPins(LED_G_PORT, LED_G_PIN))
-
-#define ByteCnt1        (1u)
-#define ByteCnt2        (2u)
-#define ByteCnt4        (4u)
-
-#define CRC16_InitVal                 (0xFFFFu)
-#define CRC32_InitVal                 (0xFFFFFFFFul)
+#define CRC16_InitVal                 (0xFFFFU)
+#define CRC32_InitVal                 (0xFFFFFFFFUL)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -104,7 +86,6 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void CrcConfig(void);
 static uint16_t CalaCRC16(const uint8_t *pu8Data, uint32_t u32InitVal, uint8_t ByteWidth, uint32_t Length);
 static uint32_t CalaCRC32(const uint8_t *pu8Data, uint32_t u32InitVal, uint8_t ByteWidth, uint32_t Length);
 /*******************************************************************************
@@ -114,24 +95,6 @@ static uint32_t CalaCRC32(const uint8_t *pu8Data, uint32_t u32InitVal, uint8_t B
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @brief  Led Init
- * @param  None
- * @retval None
- */
-static void Led_Init(void)
-{
-    stc_gpio_init_t stcGpioInit;
-
-    /* LED initialize */
-    GPIO_StructInit(&stcGpioInit);
-    GPIO_Init(LED_R_PORT, LED_R_PIN, &stcGpioInit);
-    GPIO_Init(LED_G_PORT, LED_G_PIN, &stcGpioInit);
-
-    /* Output enable */
-    GPIO_OE(LED_R_PORT, LED_R_PIN, Enable);
-    GPIO_OE(LED_G_PORT, LED_G_PIN, Enable);
-}
 
 /**
  * @brief  Main function of CRC project
@@ -140,84 +103,75 @@ static void Led_Init(void)
  */
 int32_t main(void)
 {
-    uint8_t  au8SrcData [3u] = {0x12u,0x21u,0u};
-    uint16_t au16SrcData[3u] = {0x1234u,0x4321u,0u};
-    uint32_t au32SrcData[3u] = {0x12345678u,0x87654321u,0u}; 
+    uint8_t  u8SrcData [3u] = {0x12U,0x21U,0U};
+    uint16_t u16SrcData[3u] = {0x1234U,0x4321U,0U};
+    uint32_t u32SrcData[3u] = {0x12345678UL,0x87654321UL,0UL};
     uint32_t u16Checksum;
     uint32_t u32Checksum;
     uint32_t u32CRC16Data;
     uint32_t u32CRC32Data;
 
-    /* Configures CRC. */
-    CrcConfig();
-    
-    Led_Init();
-    LED_R_OFF();
-    LED_G_ON();    
-    
+    /* Enable CRC. */
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_CRC, Enable); /* Enable CRC */
+    /* LED Init */
+    BSP_IO_Init();
+    BSP_LED_Init();
+    /* Turn on LED_B */
+    BSP_LED_On(LED_BLUE);
+
     /***************** Configuration end, application start **************/
     while (1)
     {
         /* Calculates byte data's CRC16 checksum and CRC32 checksum. */
-        u32CRC16Data    = CalaCRC16((uint8_t *)&au8SrcData, CRC16_InitVal, ByteCnt1, 3u);
-        u16Checksum     = (uint16_t)CRC_Calculate(CRC_CRC16, (uint8_t *)&au8SrcData, CRC16_InitVal, 3u, CRC_BW_8);
+        u32CRC16Data = CalaCRC16((uint8_t *)&u8SrcData, CRC16_InitVal, ByteCnt1, sizeof(u8SrcData));
+        u16Checksum  = (uint16_t)CRC_Calculate(CRC_CRC16, (uint8_t *)&u8SrcData, CRC16_InitVal, sizeof(u8SrcData), CRC_BW_8);
         if(u32CRC16Data != u16Checksum)
         {
-            LED_R_ON();
-            LED_G_OFF();   
+            BSP_LED_On(LED_RED);
+            BSP_LED_Off(LED_BLUE);
         }
-        u32CRC32Data    = CalaCRC32((uint8_t *)&au8SrcData, CRC32_InitVal, ByteCnt1, 3u);
-        u32Checksum     = CRC_Calculate(CRC_CRC32, (uint8_t *)&au8SrcData, CRC32_InitVal, 3u, CRC_BW_8);
+        u32CRC32Data = CalaCRC32((uint8_t *)&u8SrcData, CRC32_InitVal, ByteCnt1, sizeof(u8SrcData));
+        u32Checksum  = CRC_Calculate(CRC_CRC32, (uint8_t *)&u8SrcData, CRC32_InitVal, sizeof(u8SrcData), CRC_BW_8);
         if(u32CRC32Data != u32Checksum)
         {
-            LED_R_ON();
-            LED_G_OFF();
+            BSP_LED_On(LED_RED);
+            BSP_LED_Off(LED_BLUE);
         }
 
         /* Calculates half word data's CRC16 checksum and CRC32 checksum. */
-        u32CRC16Data    = CalaCRC16((uint8_t *)&au16SrcData, CRC16_InitVal, ByteCnt2, 3u);
-        u16Checksum     = (uint16_t)CRC_Calculate(CRC_CRC16, (uint16_t *)&au16SrcData, CRC16_InitVal, 3u, CRC_BW_16);
+        u32CRC16Data = CalaCRC16((uint8_t *)&u16SrcData, CRC16_InitVal, ByteCnt2, sizeof(u16SrcData)/2U);
+        u16Checksum  = (uint16_t)CRC_Calculate(CRC_CRC16, (uint16_t *)&u16SrcData, CRC16_InitVal, sizeof(u16SrcData)/2U, CRC_BW_16);
         if(u32CRC16Data != u16Checksum)
         {
-            LED_R_ON();
-            LED_G_OFF();
+            BSP_LED_On(LED_RED);
+            BSP_LED_Off(LED_BLUE);
         }
-        u32CRC32Data    = CalaCRC32((uint8_t *)&au16SrcData, CRC32_InitVal, ByteCnt2, 3u);
-        u32Checksum     = CRC_Calculate(CRC_CRC32, (uint16_t *)&au16SrcData, CRC32_InitVal, 3u, CRC_BW_16);
+        u32CRC32Data = CalaCRC32((uint8_t *)&u16SrcData, CRC32_InitVal, ByteCnt2, sizeof(u16SrcData)/2U);
+        u32Checksum  = CRC_Calculate(CRC_CRC32, (uint16_t *)&u16SrcData, CRC32_InitVal, sizeof(u16SrcData)/2U, CRC_BW_16);
         if(u32CRC32Data != u32Checksum)
         {
-            LED_R_ON();
-            LED_G_OFF();
+            BSP_LED_On(LED_RED);
+            BSP_LED_Off(LED_BLUE);
         }
-              
+
         /* Calculates word data's CRC16 checksum and CRC32 checksum. */
-        u32CRC16Data    = CalaCRC16((uint8_t *)&au32SrcData, CRC16_InitVal, ByteCnt4, 3u);        
-        u16Checksum     = (uint16_t)CRC_Calculate(CRC_CRC16, (uint32_t *)&au32SrcData, CRC16_InitVal, 3u, CRC_BW_32);
+        u32CRC16Data = CalaCRC16((uint8_t *)&u32SrcData, CRC16_InitVal, ByteCnt4, sizeof(u32SrcData)/4U);
+        u16Checksum  = (uint16_t)CRC_Calculate(CRC_CRC16, (uint32_t *)&u32SrcData, CRC16_InitVal, sizeof(u32SrcData)/4U, CRC_BW_32);
         if(u32CRC16Data != u16Checksum)
         {
-            LED_R_ON();
-            LED_G_OFF();
+            BSP_LED_On(LED_RED);
+            BSP_LED_Off(LED_BLUE);
         }
-        u32CRC32Data    = CalaCRC32((uint8_t *)&au32SrcData, CRC32_InitVal,ByteCnt4, 3u);
-        u32Checksum     = CRC_Calculate(CRC_CRC32, (uint32_t *)&au32SrcData, CRC32_InitVal, 3u, CRC_BW_32);
+        u32CRC32Data = CalaCRC32((uint8_t *)&u32SrcData, CRC32_InitVal,ByteCnt4, sizeof(u32SrcData)/4U);
+        u32Checksum  = CRC_Calculate(CRC_CRC32, (uint32_t *)&u32SrcData, CRC32_InitVal, sizeof(u32SrcData)/4U, CRC_BW_32);
         if(u32CRC32Data != u32Checksum)
         {
-            LED_R_ON();
-            LED_G_OFF();
+            BSP_LED_On(LED_RED);
+            BSP_LED_Off(LED_BLUE);
         }
     }
 }
 
-/**
- * @brief  CRC configuration.
- * @param  None
- * @retval None
- */
-static void CrcConfig(void)
-{
-    ENABLE_CRC();
-
-}
 
 /**
  * @brief CRC-16 calculation.
@@ -229,30 +183,31 @@ static void CrcConfig(void)
  */
 
 uint16_t CalaCRC16(const uint8_t *pu8Data, uint32_t u32InitVal, uint8_t u8ByteWidth, uint32_t u32Length)
-{ 
-    uint32_t i = 0u,j = 0u;
-    uint16_t crc = (uint16_t)u32InitVal;       /*  Initial value */ 
+{
+    uint32_t i = 0U,j = 0U;
+    uint32_t Temp = (uint32_t)pu8Data;
+    uint16_t crc = (uint16_t)u32InitVal; /*  Initial value */
 
-    while(u32Length--) 
-    {   
+    while(u32Length--)
+    {
         i = u8ByteWidth;
         while(i--)
         {
-            crc ^= (*pu8Data++);   
-            for (j = 0u; j < 8u; j++)  
+            crc ^= *(uint8_t *)Temp;
+            Temp ++;
+            for (j = 0U; j < 8U; j++)
             {     
-                if (crc & 0x1u)    
-                {   
-                    crc >>= 1u;
-                    crc ^= 0x8408u;  /* 0x8408 = reverse 0x1021 */ 
-                }   
+                if (crc & 0x1U)
+                {
+                    crc >>= 1U;
+                    crc ^= 0x8408U;  /* 0x8408 = reverse 0x1021 */
+                }
                 else
                 {
-                    crc >>= 1u;
+                    crc >>= 1U;
                 }
-            } 
-       }  
-        
+            }
+       }
 
     }
 
@@ -271,32 +226,34 @@ uint16_t CalaCRC16(const uint8_t *pu8Data, uint32_t u32InitVal, uint8_t u8ByteWi
  * @retval crc
  */
 uint32_t CalaCRC32(const uint8_t *pu8Data, uint32_t u32InitVal, uint8_t u8ByteWidth, uint32_t u32Length)  
-{  
-    uint32_t i = 0u, j = 0u;
-    uint32_t crc = u32InitVal;     /*  Initial value */ 
+{
+    uint32_t i = 0U, j = 0U;
+    uint32_t Temp = (uint32_t)pu8Data;
+    uint32_t crc = u32InitVal; /*  Initial value */ 
 
-    while(u32Length--) 
-    {  
+    while(u32Length--)
+    {
         i = u8ByteWidth;
         while(i--)
         {
-            crc ^= (*pu8Data++);         
-            for (j = 0u; j < 8u; j++)  
-            {  
-                if (crc & 0x1u) 
+            crc ^= *(uint8_t *)Temp;
+            Temp ++;
+            for (j = 0U; j < 8U; j++)
+            {
+                if (crc & 0x1U)
                 {
-                    crc = (crc >> 1u) ^ 0xEDB88320ul; /*0xEDB88320= reverse 0x04C11DB7*/ 
+                    crc = (crc >> 1U) ^ 0xEDB88320UL; /*0xEDB88320= reverse 0x04C11DB7*/
                 }
                 else
                 {
-                crc = (crc >> 1u);  
+                crc = (crc >> 1U);
                 }
-            } 
+            }
         }
-    }  
+    }
     crc =~crc;
 
-    return crc; 
+    return crc;
 }  
 /**
  * @}

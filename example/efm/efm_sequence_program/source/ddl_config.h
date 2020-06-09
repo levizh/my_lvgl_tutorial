@@ -107,15 +107,15 @@ extern "C"
 #define DDL_GPIO_ENABLE                             (DDL_ON)
 #define DDL_HASH_ENABLE                             (DDL_OFF)
 #define DDL_HRPWM_ENABLE                            (DDL_OFF)
-#define DDL_I2C_ENABLE                              (DDL_ON)
+#define DDL_I2C_ENABLE                              (DDL_OFF)
 #define DDL_I2S_ENABLE                              (DDL_OFF)
-#define DDL_INTERRUPTS_ENABLE                       (DDL_ON)
-#define DDL_KEYSCAN_ENABLE                          (DDL_ON)
+#define DDL_INTERRUPTS_ENABLE                       (DDL_OFF)
+#define DDL_KEYSCAN_ENABLE                          (DDL_OFF)
 #define DDL_MAU_ENABLE                              (DDL_OFF)
 #define DDL_MPU_ENABLE                              (DDL_OFF)
 #define DDL_NFC_ENABLE                              (DDL_OFF)
 #define DDL_OTS_ENABLE                              (DDL_OFF)
-#define DDL_PWC_ENABLE                              (DDL_ON)
+#define DDL_PWC_ENABLE                              (DDL_OFF)
 #define DDL_QSPI_ENABLE                             (DDL_OFF)
 #define DDL_RMU_ENABLE                              (DDL_OFF)
 #define DDL_RTC_ENABLE                              (DDL_OFF)
@@ -164,7 +164,7 @@ extern "C"
  * @note  If there is no supported BSP board or the BSP function is not used,
  * the value needs to be set to BSP_EV_HC32F4A0.
  */
-#define BSP_EV_HC32F4A0                             (BSP_EV_HC32F4A0_LQFP176)
+#define BSP_EV_HC32F4A0                             (BSP_EV_HC32F4A0)
 
 /**
  * @brief This is the list of BSP components to be used.
@@ -175,7 +175,7 @@ extern "C"
 #define BSP_IS62WV51216_ENABLE                      (BSP_OFF)
 #define BSP_MT29F2G08AB_ENABLE                      (BSP_OFF)
 #define BSP_S29GL064N90TFI03_ENABLE                 (BSP_OFF)
-#define BSP_TCA9539_ENABLE                          (BSP_ON)
+#define BSP_TCA9539_ENABLE                          (BSP_OFF)
 #define BSP_W25QXX_ENABLE                           (BSP_OFF)
 #define BSP_WM8731_ENABLE                           (BSP_OFF)
 

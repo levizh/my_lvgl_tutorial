@@ -127,8 +127,8 @@ void SYS_CLK_Init(void)
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }

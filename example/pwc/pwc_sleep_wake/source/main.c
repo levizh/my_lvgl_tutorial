@@ -72,10 +72,10 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define KEY10_PORT      (GPIO_PORT_I)
-#define KEY10_PIN       (GPIO_PIN_08)
-#define KEY10_EXINT_CH  (EXINT_CH08)
-#define KEY10_INT_SRC   (INT_PORT_EIRQ8)
+#define KEY10_PORT      (GPIO_PORT_A)
+#define KEY10_PIN       (GPIO_PIN_00)
+#define KEY10_EXINT_CH  (EXINT_CH00)
+#define KEY10_INT_SRC   (INT_PORT_EIRQ0)
 #define KEY10_IRQn      (Int000_IRQn)
 
 #define DLY_MS          (500UL)
@@ -97,8 +97,8 @@ uint8_t u8Cnt = 10U;
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @brief  KEY10 External interrupt Ch.8 callback function
- *         IRQ No.0 in Global IRQ entry No.0~31 is used for EXINT8
+ * @brief  KEY10 External interrupt Ch.0 callback function
+ *         IRQ No.0 in Global IRQ entry No.0~31 is used for EXINT0
  * @param  None
  * @retval None
  */
@@ -110,7 +110,7 @@ void EXINT_KEY10_IrqCallback(void)
         BSP_LED_Init();
         BSP_LED_Off(LED_RED);
 
-        while (Pin_Reset == GPIO_ReadInputPortPin(KEY10_PORT, KEY10_PIN))
+        while (Pin_Reset == GPIO_ReadInputPins(KEY10_PORT, KEY10_PIN))
         {
         }
         EXINT_ClrExIntSrc(KEY10_EXINT_CH);
@@ -118,7 +118,7 @@ void EXINT_KEY10_IrqCallback(void)
 }
 
 /**
- * @brief  SW2 Init
+ * @brief  KEY10 Init
  * @param  None
  * @retval None
  */
@@ -161,11 +161,14 @@ static void Key10_Init(void)
  */
 int32_t main(void)
 {
+    /* unlock GPIO register in advance */
+    GPIO_Unlock();
+
     BSP_IO_Init();
     BSP_LED_Init();
 
     /* KEY10 */
-    while(Pin_Reset != GPIO_ReadInputPortPin(KEY10_PORT, KEY10_PIN))
+    while(Pin_Reset != GPIO_ReadInputPins(KEY10_PORT, KEY10_PIN))
     {
         ;
     }

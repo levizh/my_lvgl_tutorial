@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_msc_core.h
+ * @brief Header for the usbd_msc_core.c file
+ *
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-05-15       Zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,33 +48,58 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_msc_core.h
- **
- ** A detailed description is available at
- ** @link header file for the usbd_msc_core.c @endlink
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 #ifndef __USB_MSC_CORE_H__
 #define __USB_MSC_CORE_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include  "usbd_ioreq.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @addtogroup USBD_MSC_CORE
+ * @{
+ */
+
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define BOT_GET_MAX_LUN              (0xFEu)
-#define BOT_RESET                    (0xFFu)
-#define USB_MSC_CONFIG_DESC_SIZ      (32u)
+/**
+ * @defgroup USBD_MSC_CORE_Global_Macros USBD MSC Core Global Macros
+ * @{
+ */
+
+#define BOT_GET_MAX_LUN              (0xFEU)
+#define BOT_RESET                    (0xFFU)
+#define USB_MSC_CONFIG_DESC_SIZ      (32U)
 
 #define MSC_EPIN_SIZE                (MSC_MAX_PACKET)
 #define MSC_EPOUT_SIZE               (MSC_MAX_PACKET)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -73,6 +108,11 @@
 /*******************************************************************************
  * Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBD_MSC_CORE_Global_Functions
+ * @{
+ */
+
 uint8_t  USBD_MSC_Init(void  *pdev,
                        uint8_t cfgidx);
 
@@ -100,6 +140,30 @@ uint8_t  *USBD_MSC_GetOtherCfgDesc(uint8_t speed,
 extern uint8_t USBD_MSC_CfgDesc[USB_MSC_CONFIG_DESC_SIZ];
 
 extern USBD_Class_cb_TypeDef USBD_MSC_cb;
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* __USB_MSC_CORE_H__ */
 

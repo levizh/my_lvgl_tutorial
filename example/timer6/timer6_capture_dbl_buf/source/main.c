@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * @file  template/source/main.c
+ * @file  timer6\timer6_capture_dbl_buf\source\main.c
  * @brief Main program template for the Device Driver Library.
  @verbatim
    Change Logs:
@@ -170,7 +170,7 @@ int32_t main(void)
 
     /* Timer6 general count function configuration */
     stcTIM6BaseCntCfg.u32CntMode = TMR6_MODE_SAWTOOTH;
-    stcTIM6BaseCntCfg.u32CntDir = TMR6_CNT_INCREASE;B
+    stcTIM6BaseCntCfg.u32CntDir = TMR6_CNT_INCREASE;
     stcTIM6BaseCntCfg.u32CntClkDiv = TMR6_CLK_PCLK0_DIV1024;
     stcTIM6BaseCntCfg.u32CntStpAftOvf = TMR6_CNT_CONTINUOUS;
     TMR6_Init(M4_TMR6_1, &stcTIM6BaseCntCfg);

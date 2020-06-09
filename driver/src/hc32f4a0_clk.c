@@ -80,7 +80,7 @@
  * @defgroup CLK_Local_Macros CLK Local Macros
  * @{
  */
-#define CLK_XTAL_TIMEOUT                    ((uint16_t)0x1000U)
+#define CLK_XTAL_TIMEOUT                    (SystemCoreClock/0x1000U)
 #define CLK_XTAL32_TIMEOUT                  ((uint8_t)0x05U)
 #define CLK_HRC_TIMEOUT                     ((uint16_t)0x1000U)
 #define CLK_MRC_TIMEOUT                     ((uint8_t)0x05U)
@@ -92,6 +92,13 @@
  * @defgroup CLK_Check_Parameters_Validity CLK Check Parameters Validity
  * @{
  */
+
+/*  Check CLK register lock status. */
+#define IS_CLK_UNLOCKED()       ((M4_PWC->FPRC & PWC_FPRC_FPRCB0) == PWC_FPRC_FPRCB0)
+
+/*  Check CLK register lock status. */
+#define IS_CLK_SEL_UNLOCKED()   ((M4_PWC->FPRC & PWC_FPRC_FPRCB1) == PWC_FPRC_FPRCB1)
+
 /* Parameter valid check for XTAL state */
 #define IS_CLK_XTAL_STATE(sta)                                                  \
 (   ((sta) == CLK_XTAL_OFF)                         ||                          \
@@ -165,11 +172,6 @@
 #define IS_CLK_LRC_STATE(sta)                                                   \
 (   ((sta) == CLK_LRC_OFF)                          ||                          \
     ((sta) == CLK_LRC_ON))
-
-/* Parameter valid check for RTCLRC state */
-#define IS_CLK_RTCLRC_STATE(sta)                                                \
-(   ((sta) == CLK_RTCLRC_OFF)                       ||                          \
-    ((sta) == CLK_RTCLRC_ON))
 
 /* Parameter valid check for PLLA state */
 #define IS_CLK_PLLA_STATE(sta)                                                  \
@@ -293,10 +295,8 @@
 
 /* Parameter valid check for CLK stable flag. */
 #define IS_CLK_STB_FLAG(flag)                                                   \
-(   ((flag) == CLK_FLAG_HRCSTB)                     ||                          \
-    ((flag) == CLK_FLAG_XTALSTB)                    ||                          \
-    ((flag) == CLK_FLAG_PLLASTB)                    ||                          \
-    ((flag) == CLK_FLAG_PLLHSTB))
+(   ((flag) != 0x00U)                               &&                          \
+    (((flag) | CLK_STB_FLAG_MASK) == CLK_STB_FLAG_MASK))
 
 /* Parameter valid check for clock category */
 #define IS_CLK_CATE(cate)       (((cate) & CLK_CATE_ALL) != (uint8_t)(0x00U))
@@ -510,26 +510,22 @@
  */
 /**
  * @brief  Set PLLH/A source clock.
- * @param  u8PllSrc PLLH/A source clock.
+ * @param  [in] u32PllSrc PLLH/A source clock.
  *   @arg  CLK_PLLSRC_XTAL
  *   @arg  CLK_PLLSRC_HRC
  * @retval None
  */
-void CLK_SetPLLSrc(uint8_t u8PllSrc)
+void CLK_SetPLLSrc(uint32_t u32PllSrc)
 {
-    DDL_ASSERT(IS_CLK_PLL_SRC(u8PllSrc));
-    /* Enable register write. */
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_PLL_SRC(u32PllSrc));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
-    WRITE_REG32(bM4_CMU->PLLHCFGR_b.PLLSRC, u8PllSrc);
-
-    /* Disbale register write. */
-    CLK_REG_WRITE_DISABLE();
+    WRITE_REG32(bM4_CMU->PLLHCFGR_b.PLLSRC, u32PllSrc);
 }
 
 /**
  * @brief  Init PLLA initial structure with default value.
- * @param  pstcPLLAInit specifies the Parameter of PLLA.
+ * @param  [in] pstcPLLAInit specifies the Parameter of PLLA.
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize success
  *           - ErrorInvalidParameter: NULL pointer
@@ -572,11 +568,11 @@ en_result_t CLK_PLLAStrucInit(stc_clk_plla_init_t* pstcPLLAInit)
 en_result_t CLK_PLLAInit(const stc_clk_plla_init_t *pstcPLLAInit)
 {
     en_result_t enRet = Ok;
-    uint8_t NewState = 0U;
+    uint8_t NewState;
 
 #ifdef __DEBUG
-    uint32_t vcoIn = 0UL;
-    uint32_t vcoOut = 0UL;
+    uint32_t vcoIn;
+    uint32_t vcoOut;
 #endif
 
     if (NULL == pstcPLLAInit)
@@ -602,19 +598,13 @@ en_result_t CLK_PLLAInit(const stc_clk_plla_init_t *pstcPLLAInit)
         DDL_ASSERT(IS_CLK_PLLA_FREQ(vcoOut/(pstcPLLAInit->PLLCFGR_f.PLLQ + 1UL)));
         DDL_ASSERT(IS_CLK_PLLA_FREQ(vcoOut/(pstcPLLAInit->PLLCFGR_f.PLLP + 1UL)));
 #endif
-
-        /* Enable register write. */
-        CLK_REG_WRITE_ENABLE();
+        DDL_ASSERT(IS_CLK_PLLA_STATE(pstcPLLAInit->u8PLLState));
+        DDL_ASSERT(IS_CLK_UNLOCKED());
 
         WRITE_REG32(M4_CMU->PLLACFGR, pstcPLLAInit->PLLCFGR);
 
-        DDL_ASSERT(IS_CLK_PLLA_STATE(pstcPLLAInit->u8PLLState));
         NewState = !(pstcPLLAInit->u8PLLState);
         enRet = CLK_PLLACmd((en_functional_state_t)(NewState));
-
-        /* Disbale register write. */
-        /* Already disabled in CLK_PLLACmd() above */
-        //CLK_REG_WRITE_DISABLE();
     }
     return enRet;
 }
@@ -666,11 +656,11 @@ en_result_t CLK_PLLHStrucInit(stc_clk_pllh_init_t* pstcPLLHInit)
 en_result_t CLK_PLLHInit(const stc_clk_pllh_init_t *pstcPLLHInit)
 {
     en_result_t enRet = Ok;
-    uint8_t NewState = 0U;
+    uint8_t NewState;
 
 #ifdef __DEBUG
-    uint32_t vcoIn = 0UL;
-    uint32_t vcoOut = 0UL;
+    uint32_t vcoIn;
+    uint32_t vcoOut;
 #endif
 
     if (NULL == pstcPLLHInit)
@@ -697,21 +687,15 @@ en_result_t CLK_PLLHInit(const stc_clk_pllh_init_t *pstcPLLHInit)
         DDL_ASSERT(IS_CLK_PLLH_FREQ(vcoOut/(pstcPLLHInit->PLLCFGR_f.PLLQ + 1UL)));
         DDL_ASSERT(IS_CLK_PLLH_FREQ(vcoOut/(pstcPLLHInit->PLLCFGR_f.PLLP + 1UL)));
 #endif
-        /* Enable register write. */
-        CLK_REG_WRITE_ENABLE();
+        DDL_ASSERT(IS_CLK_PLLH_STATE(pstcPLLHInit->u8PLLState));
+        DDL_ASSERT(IS_CLK_UNLOCKED());
 
         /* set PLL source in advance */
         WRITE_REG32(bM4_CMU->PLLHCFGR_b.PLLSRC, pstcPLLHInit->PLLCFGR_f.PLLSRC);
         WRITE_REG32(M4_CMU->PLLHCFGR, pstcPLLHInit->PLLCFGR);
 
-        DDL_ASSERT(IS_CLK_PLLH_STATE(pstcPLLHInit->u8PLLState));
-
         NewState = !(pstcPLLHInit->u8PLLState);
         enRet = CLK_PLLHCmd((en_functional_state_t)(NewState));
-
-        /* Disbale register write. */
-        /* Already disabled in CLK_PLLHCmd() above */
-        //CLK_REG_WRITE_DISABLE();
     }
 
     return enRet;
@@ -719,7 +703,7 @@ en_result_t CLK_PLLHInit(const stc_clk_pllh_init_t *pstcPLLHInit)
 
 /**
  * @brief  Init Xtal initial structure with default value.
- * @param  pstcXtalInit specifies the Parameter of XTAL.
+ * @param  [in] pstcXtalInit specifies the Parameter of XTAL.
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize success
  *           - ErrorInvalidParameter: NULL pointer
@@ -761,7 +745,7 @@ en_result_t CLK_XtalStrucInit(stc_clk_xtal_init_t* pstcXtalInit)
 en_result_t CLK_XtalInit(const stc_clk_xtal_init_t *pstcXtalInit)
 {
     en_result_t enRet = Ok;
-    uint8_t NewState = 0U;
+    uint8_t NewState;
 
     if (NULL == pstcXtalInit)
     {
@@ -773,9 +757,7 @@ en_result_t CLK_XtalInit(const stc_clk_xtal_init_t *pstcXtalInit)
         DDL_ASSERT(IS_CLK_XTALDRV_MODE(pstcXtalInit->u8XtalDrv));
         DDL_ASSERT(IS_CLK_XTAL_MODE(pstcXtalInit->u8XtalMode));
         DDL_ASSERT(IS_CLK_XTALSTB_SEL(pstcXtalInit->u8XtalStb));
-
-        /* Enable register write. */
-        CLK_REG_WRITE_ENABLE();
+        DDL_ASSERT(IS_CLK_UNLOCKED());
 
         WRITE_REG8(M4_CMU->XTALSTBCR, pstcXtalInit->u8XtalStb);
         WRITE_REG8(M4_CMU->XTALCFGR, (0x80U | pstcXtalInit->u8XtalDrv | pstcXtalInit->u8XtalMode));
@@ -783,9 +765,6 @@ en_result_t CLK_XtalInit(const stc_clk_xtal_init_t *pstcXtalInit)
         NewState = !(pstcXtalInit->u8XtalState);
         enRet = CLK_XtalCmd((en_functional_state_t)(NewState));
 
-        /* Disbale register write. */
-        /* already disabled in Cmd function */
-        //CLK_REG_WRITE_DISABLE();
     }
 
     return enRet;
@@ -793,7 +772,7 @@ en_result_t CLK_XtalInit(const stc_clk_xtal_init_t *pstcXtalInit)
 
 /**
  * @brief  Init Xtal32 initial structure with default value.
- * @param  pstcXtal32 specifies the Parameter of XTAL32.
+ * @param  [in] pstcXtal32 specifies the Parameter of XTAL32.
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize success
  *           - ErrorInvalidParameter: NULL pointer
@@ -833,7 +812,7 @@ en_result_t CLK_Xtal32StrucInit(stc_clk_xtal32_init_t* pstcXtal32Init)
 en_result_t CLK_Xtal32Init(const stc_clk_xtal32_init_t *pstcXtal32Init)
 {
     en_result_t enRet = Ok;
-    uint8_t NewState = 0U;
+    uint8_t NewState;
 
     if (NULL == pstcXtal32Init)
     {
@@ -841,21 +820,16 @@ en_result_t CLK_Xtal32Init(const stc_clk_xtal32_init_t *pstcXtal32Init)
     }
     else
     {
-        /* Enable register write. */
-        CLK_REG_WRITE_ENABLE();
         /* Parameters check */
         DDL_ASSERT(IS_CLK_XTAL32DRV_MODE(pstcXtal32Init->u8Xtal32Drv));
         DDL_ASSERT(IS_CLK_XTAL32_FILT_SEL(pstcXtal32Init->u8Xtal32NF));
+        DDL_ASSERT(IS_CLK_UNLOCKED());
 
         WRITE_REG8(M4_CMU->XTAL32CFGR, pstcXtal32Init->u8Xtal32Drv);
         WRITE_REG8(M4_CMU->XTAL32NFR, pstcXtal32Init->u8Xtal32NF);
 
         NewState = !(pstcXtal32Init->u8Xtal32State);
         enRet = CLK_Xtal32Cmd((en_functional_state_t)(NewState));
-
-        /* Disbale register write. */
-        /* already disabled in Cmd function */
-        //CLK_REG_WRITE_DISABLE();
     }
 
     return enRet;
@@ -875,11 +849,12 @@ en_result_t CLK_Xtal32Init(const stc_clk_xtal32_init_t *pstcXtal32Init)
  */
 en_result_t CLK_XtalCmd(en_functional_state_t enNewState)
 {
-    en_result_t enRet = Ok;
 
+    en_result_t enRet = Ok;
     __IO uint32_t timeout = 0UL;
 
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     if (Disable == enNewState)
     {
@@ -919,7 +894,6 @@ en_result_t CLK_XtalCmd(en_functional_state_t enNewState)
             timeout++;
         }
     }
-    CLK_REG_WRITE_DISABLE();
 
     return enRet;
 }
@@ -937,10 +911,10 @@ en_result_t CLK_XtalCmd(en_functional_state_t enNewState)
 en_result_t CLK_Xtal32Cmd(en_functional_state_t enNewState)
 {
     en_result_t enRet = Ok;
-
     __IO uint32_t timeout = 0UL;
 
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     if (Disable == enNewState)
     {
@@ -962,7 +936,6 @@ en_result_t CLK_Xtal32Cmd(en_functional_state_t enNewState)
             timeout++;
         }
     }
-    CLK_REG_WRITE_DISABLE();
 
     return enRet;
 }
@@ -982,10 +955,10 @@ en_result_t CLK_Xtal32Cmd(en_functional_state_t enNewState)
 en_result_t CLK_HrcCmd(en_functional_state_t enNewState)
 {
     en_result_t enRet = Ok;
-
     __IO uint32_t timeout = 0UL;
 
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     if (Disable == enNewState)
     {
@@ -1025,7 +998,6 @@ en_result_t CLK_HrcCmd(en_functional_state_t enNewState)
             timeout++;
         }
     }
-    CLK_REG_WRITE_DISABLE();
 
     return enRet;
 }
@@ -1043,10 +1015,10 @@ en_result_t CLK_HrcCmd(en_functional_state_t enNewState)
 en_result_t CLK_MrcCmd(en_functional_state_t enNewState)
 {
     en_result_t enRet = Ok;
-
     __IO uint32_t timeout = 0UL;
 
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     if (Disable == enNewState)
     {
@@ -1068,7 +1040,6 @@ en_result_t CLK_MrcCmd(en_functional_state_t enNewState)
             timeout++;
         }
     }
-    CLK_REG_WRITE_DISABLE();
 
     return enRet;
 }
@@ -1086,10 +1057,10 @@ en_result_t CLK_MrcCmd(en_functional_state_t enNewState)
 en_result_t CLK_LrcCmd(en_functional_state_t enNewState)
 {
     en_result_t enRet = Ok;
-
     __IO uint32_t timeout = 0UL;
 
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     if (Disable == enNewState)
     {
@@ -1111,34 +1082,6 @@ en_result_t CLK_LrcCmd(en_functional_state_t enNewState)
             timeout++;
         }
     }
-    CLK_REG_WRITE_DISABLE();
-
-    return enRet;
-}
-
-/**
- * @brief  RTC LRC function enable/disbale.
- * @param  [in] enNewState specifies the new state of LRC.
- *   @arg  Enable
- *   @arg  Disable
- * @retval en_result_t
- *         OK, RTC LRC operate successfully
- */
-en_result_t CLK_RtcLrcCmd(en_functional_state_t enNewState)
-{
-    en_result_t enRet = Ok;
-
-    CLK_REG_WRITE_ENABLE();
-
-    if (Disable == enNewState)
-    {
-        WRITE_REG32(bM4_CMU->RTCLRCCR_b.RTCLRCSTP, CLK_RTCLRC_OFF);
-    }
-    else
-    {
-        WRITE_REG32(bM4_CMU->RTCLRCCR_b.RTCLRCSTP, CLK_RTCLRC_ON);
-    }
-    CLK_REG_WRITE_DISABLE();
 
     return enRet;
 }
@@ -1156,10 +1099,10 @@ en_result_t CLK_RtcLrcCmd(en_functional_state_t enNewState)
 en_result_t CLK_PLLACmd(en_functional_state_t enNewState)
 {
     en_result_t enRet = Ok;
-
     __IO uint32_t timeout = 0UL;
 
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     if (Disable == enNewState)
     {
@@ -1180,7 +1123,6 @@ en_result_t CLK_PLLACmd(en_functional_state_t enNewState)
             timeout++;
         }
     }
-    CLK_REG_WRITE_DISABLE();
 
     return enRet;
 }
@@ -1201,7 +1143,8 @@ en_result_t CLK_PLLHCmd(en_functional_state_t enNewState)
     en_result_t enRet = Ok;
     __IO uint32_t timeout = 0UL;
 
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     if (Disable == enNewState)
     {
@@ -1229,14 +1172,13 @@ en_result_t CLK_PLLHCmd(en_functional_state_t enNewState)
             timeout++;
         }
     }
-    CLK_REG_WRITE_DISABLE();
 
     return enRet;
 }
 
 /**
  * @brief  Init XtalStd initial structure with default value.
- * @param  pstcXtalStdInit specifies the Parameter of XTALSTD.
+ * @param  [in] pstcXtalStdInit specifies the Parameter of XTALSTD.
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize success
  *           - ErrorInvalidParameter: Invalid parameter
@@ -1264,7 +1206,7 @@ en_result_t CLK_XtalStdStrucInit(stc_clk_xtalstd_init_t* pstcXtalStdInit)
 
 /**
  * @brief  Initialise the XTAL status detection.
- * @param  pstcXtalStdInit specifies the Parameter of XTALSTD.
+ * @param  [in] pstcXtalStdInit specifies the Parameter of XTALSTD.
  *   @arg  u8XtalStdState: The new state of the XTALSTD.
  *   @arg  u8XtalStdMode:  The XTAL status detection occur interrupt or reset.
  *   @arg  u8XtalStdInt:   The XTAL status detection interrupt on or off.
@@ -1286,9 +1228,7 @@ en_result_t CLK_XtalStdInit(const stc_clk_xtalstd_init_t* pstcXtalStdInit)
     {
         /* Parameter valid check */
         DDL_ASSERT(IS_CLK_XTALSTD_STATE(pstcXtalStdInit->u8XtalStdState));
-
-        /* Enable register write. */
-        CLK_REG_WRITE_ENABLE();
+        DDL_ASSERT(IS_CLK_UNLOCKED());
 
         if(CLK_XTALSTD_OFF == pstcXtalStdInit->u8XtalStdState)
         {
@@ -1302,15 +1242,12 @@ en_result_t CLK_XtalStdInit(const stc_clk_xtalstd_init_t* pstcXtalStdInit)
             DDL_ASSERT(IS_CLK_XTALSTD_INT_STATE(pstcXtalStdInit->u8XtalStdInt));
             DDL_ASSERT(IS_CLK_XTALSTD_RST_STATE(pstcXtalStdInit->u8XtalStdRst));
 
-            /* Confiure XTALSTD and enable XTALSTD */
+            /* Configure and enable XTALSTD */
             WRITE_REG8(M4_CMU->XTALSTDCR, (pstcXtalStdInit->u8XtalStdState |   \
                                            pstcXtalStdInit->u8XtalStdMode  |   \
                                            pstcXtalStdInit->u8XtalStdInt   |   \
                                            pstcXtalStdInit->u8XtalStdRst));
         }
-
-        /* Disbale register write. */
-        CLK_REG_WRITE_DISABLE();
     }
 
     return enRet;
@@ -1324,17 +1261,13 @@ en_result_t CLK_XtalStdInit(const stc_clk_xtalstd_init_t* pstcXtalStdInit)
  */
 void CLK_ClearXtalStdFlag(void)
 {
-    /* Enable register write. */
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     if(1UL == READ_REG32(bM4_CMU->XTALSTDSR_b.XTALSTDF))
     {
         /* Clear the XTAL STD flag */
         WRITE_REG32(bM4_CMU->XTALSTDSR_b.XTALSTDF, 0UL);
     }
-
-    /* Disbale register write. */
-    CLK_REG_WRITE_DISABLE();
 }
 
 /**
@@ -1349,67 +1282,59 @@ en_flag_status_t CLK_GetXtalStdFlag(void)
 
 /**
  * @brief  Set HRC trimming value.
- * @param  [in] TrimVal specifies the trimming value for HRC.
+ * @param  [in] i8TrimVal specifies the trimming value for HRC.
  * @retval None
  */
-void CLK_HrcTrim(char TrimVal)
+void CLK_HrcTrim(int8_t i8TrimVal)
 {
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
-    WRITE_REG8(M4_CMU->HRCTRM, TrimVal);
-
-    CLK_REG_WRITE_DISABLE();
+    WRITE_REG8(M4_CMU->HRCTRM, i8TrimVal);
 }
 
 /**
  * @brief  Set MRC trimming value.
- * @param  [in] TrimVal specifies the trimming value for MRC.
+ * @param  [in] i8TrimVal specifies the trimming value for MRC.
  * @retval None
  */
-void CLK_MrcTrim(char TrimVal)
+void CLK_MrcTrim(int8_t i8TrimVal)
 {
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
-    WRITE_REG8(M4_CMU->MRCTRM, TrimVal);
-
-    CLK_REG_WRITE_DISABLE();
+    WRITE_REG8(M4_CMU->MRCTRM, i8TrimVal);
 }
 
 /**
  * @brief  Set LRC trimming value.
- * @param  [in] TrimVal specifies the trimming value for LRC.
+ * @param  [in] i8TrimVal specifies the trimming value for LRC.
  * @retval None
  */
-void CLK_LrcTrim(char TrimVal)
+void CLK_LrcTrim(int8_t i8TrimVal)
 {
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
-    WRITE_REG8(M4_CMU->LRCTRM, TrimVal);
-
-    CLK_REG_WRITE_DISABLE();
+    WRITE_REG8(M4_CMU->LRCTRM, i8TrimVal);
 }
 
 /**
  * @brief  Set RTC LRC trimming value.
- * @param  [in] TrimVal specifies the trimming value for RTC LRC.
+ * @param  [in] i8TrimVal specifies the trimming value for RTC LRC.
  * @retval None
  */
-void CLK_RtcLrcTrim(char TrimVal)
+void CLK_RtcLrcTrim(int8_t i8TrimVal)
 {
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
-    WRITE_REG8(M4_CMU->RTCLRCTRM, TrimVal);
-
-    CLK_REG_WRITE_DISABLE();
+    WRITE_REG8(M4_CMU->RTCLRCTRM, i8TrimVal);
 }
 
 /**
  * @brief  PLL/XTAL/HRC stable flag read.
  * @param  [in] u8StableFlag specifies the stable flag to be read.
- *   @arg  CMU_OSCSTBSR_HRCSTBF
- *   @arg  CMU_OSCSTBSR_XTALSTBF
- *   @arg  CMU_OSCSTBSR_PLLHSTBF
- *   @arg  CMU_OSCSTBSR_PLLASTBF
+ *   @arg  CLK_STB_FLAG_HRCSTB
+ *   @arg  CLK_STB_FLAG_XTALSTB
+ *   @arg  CLK_STB_FLAG_PLLASTB
+ *   @arg  CLK_STB_FLAG_PLLHSTB
  * @retval en_flag_status_t
  */
 en_flag_status_t CLK_GetStableFlag(uint8_t u8StableFlag)
@@ -1421,7 +1346,7 @@ en_flag_status_t CLK_GetStableFlag(uint8_t u8StableFlag)
 
 /**
  * @brief  Set the system clock source.
- * @param  u8Src specifies the source of system clock.
+ * @param  [in] u8Src specifies the source of system clock.
  *          This parameter can be one of the following values:
  *            @arg    CLK_SYSCLKSOURCE_HRC    : select HRC as system clock source
  *            @arg    CLK_SYSCLKSOURCE_MRC    : select MHRC as system clock source
@@ -1442,6 +1367,7 @@ void CLK_SetSysClkSrc(uint8_t u8Src)
     uint8_t u8TmpFlag = 0U;
 
     DDL_ASSERT(IS_CLK_SYSCLK_SRC(u8Src));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     /* Only current system clock source or target system clock source is MPLL
     need to close fcg0~fcg3 and open fcg0~fcg3 during switch system clock source.
@@ -1465,14 +1391,8 @@ void CLK_SetSysClkSrc(uint8_t u8Src)
         } while(timeout < CLK_SYSCLK_SW_STABLE);
     }
 
-    /* Enable register write. */
-    CLK_REG_WRITE_ENABLE();
-
     /* Set system clock source */
     WRITE_REG8(M4_CMU->CKSWR, u8Src);
-
-    /* Disbale register write. */
-    CLK_REG_WRITE_DISABLE();
 
     if (1U == u8TmpFlag)
     {
@@ -1505,7 +1425,7 @@ void CLK_SetSysClkSrc(uint8_t u8Src)
 en_result_t CLK_GetClockFreq(stc_clk_freq_t *pstcClkFreq)
 {
     en_result_t enRet = Ok;
-    uint32_t plln = 0UL, pllp = 0UL, pllm = 0UL;
+    uint32_t plln, pllp, pllm;
 
     if (NULL == pstcClkFreq)
     {
@@ -1583,9 +1503,7 @@ en_result_t CLK_GetClockFreq(stc_clk_freq_t *pstcClkFreq)
         pstcClkFreq->pclk4Freq = pstcClkFreq->sysclkFreq >> \
                     (READ_REG32_BIT(M4_CMU->SCFGR, CMU_SCFGR_PCLK4S) >> CMU_SCFGR_PCLK4S_POS);
     }
-
     return enRet;
-
 }
 
 /**
@@ -1598,9 +1516,9 @@ en_result_t CLK_GetClockFreq(stc_clk_freq_t *pstcClkFreq)
 en_result_t CLK_GetPllClockFreq(stc_pll_clk_freq_t *pstcPllClkFreq)
 {
     en_result_t enRet = Ok;
-    uint32_t pllhn = 0UL, pllhm = 0UL, pllhp = 0UL, pllhq = 0UL, pllhr = 0UL;
-    uint32_t pllan = 0UL, pllam = 0UL, pllap = 0UL, pllaq = 0UL, pllar = 0UL;
-    uint32_t pllin = 0UL;
+    uint32_t pllhn, pllhm, pllhp, pllhq, pllhr;
+    uint32_t pllan, pllam, pllap, pllaq, pllar;
+    uint32_t pllin;
 
     if (NULL == pstcPllClkFreq)
     {
@@ -1641,7 +1559,6 @@ en_result_t CLK_GetPllClockFreq(stc_pll_clk_freq_t *pstcPllClkFreq)
         pstcPllClkFreq->pllaq = ((pllin/(pllam + 1UL))*pllan)/(pllaq + 1UL);
         pstcPllClkFreq->pllar = ((pllin/(pllam + 1UL))*pllan)/(pllar + 1UL);
     }
-
     return enRet;
 }
 
@@ -1696,6 +1613,7 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
     DDL_ASSERT(IS_CLK_PCLK3_DIV(u32Div & CMU_SCFGR_PCLK3S));
     DDL_ASSERT(IS_CLK_PCLK4_DIV(u32Div & CMU_SCFGR_PCLK4S));
     DDL_ASSERT(IS_CLK_CATE(u8ClkCate));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     /* Only current system clock source or target system clock source is MPLL
     need to close fcg0~fcg3 and open fcg0~fcg3 during switch system clock source.
@@ -1705,7 +1623,7 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
         u8TmpFlag = 1U;
 
         /* FCG0 write enable */
-        WRITE_REG32(M4_PWC->FCG0PC, 0xA5A50001UL);
+//        WRITE_REG32(M4_PWC->FCG0PC, 0xA5A50001UL); //todo
         /* Close FCGx. */
         M4_PWC->FCG0 = CLK_FCG0_DEFAULT;
         M4_PWC->FCG1 = CLK_FCG1_DEFAULT;
@@ -1719,8 +1637,6 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
         } while(timeout < CLK_SYSCLK_SW_STABLE);
     }
 
-    /* Enable register write. */
-    CLK_REG_WRITE_ENABLE();
     /* PCLK0 div */
     if(CLK_CATE_PCLK0 & u8ClkCate)
     {
@@ -1756,8 +1672,6 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
     {
         MODIFY_REG32(M4_CMU->SCFGR, CMU_SCFGR_HCLKS, u32Div);
     }
-    CLK_REG_WRITE_DISABLE();
-
     if (1U == u8TmpFlag)
     {
         M4_PWC->FCG0 = fcg0;
@@ -1766,7 +1680,7 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
         M4_PWC->FCG3 = fcg3;
 
         /* FCG0 write protected */
-        WRITE_REG32(M4_PWC->FCG0PC, 0xA5A50000UL);
+//        WRITE_REG32(M4_PWC->FCG0PC, 0xA5A50000UL);    //todo
         /* Wait stable after open fcg. */
         timeout = 0UL;
         do
@@ -1796,12 +1710,9 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
 void CLK_USB_ClkConfig(uint8_t u8UsbClk)
 {
     DDL_ASSERT(IS_CLK_USB_CLK(u8UsbClk));
-
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     WRITE_REG8(M4_CMU->USBCKCFGR, u8UsbClk);
-
-    CLK_REG_WRITE_DISABLE();
 }
 
 /**
@@ -1842,8 +1753,7 @@ void CLK_CAN_ClkConfig(uint8_t u8CanCh, uint8_t u8CanClk)
 {
     DDL_ASSERT(IS_CLK_CAN_CH(u8CanCh));
     DDL_ASSERT(IS_CLK_CAN_CLK(u8CanClk));
-
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     if (CLK_CAN_CH1 & u8CanCh)
     {
@@ -1853,8 +1763,6 @@ void CLK_CAN_ClkConfig(uint8_t u8CanCh, uint8_t u8CanClk)
     {
         MODIFY_REG8(M4_CMU->CANCKCFGR, CMU_CANCKCFGR_CAN2CKS, u8CanClk);
     }
-
-    CLK_REG_WRITE_DISABLE();
 }
 
 /**
@@ -1895,8 +1803,7 @@ void CLK_I2S_ClkConfig(uint8_t u8I2sCh, uint16_t u16I2sClk)
 {
     DDL_ASSERT(IS_CLK_I2S_CH(u8I2sCh));
     DDL_ASSERT(IS_CLK_I2S_CLK(u16I2sClk));
-
-    CLK_REG1_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_SEL_UNLOCKED());
 
     if (CLK_I2S_CH1 & u8I2sCh)
     {
@@ -1914,8 +1821,6 @@ void CLK_I2S_ClkConfig(uint8_t u8I2sCh, uint16_t u16I2sClk)
     {
         MODIFY_REG16(M4_CMU->I2SCKSEL, CMU_I2SCKSEL_I2S4CKSEL, u16I2sClk);
     }
-
-    CLK_REG1_WRITE_DISABLE();
 }
 
 /**
@@ -1933,12 +1838,9 @@ void CLK_I2S_ClkConfig(uint8_t u8I2sCh, uint16_t u16I2sClk)
 void CLK_PERI_ClkConfig(uint16_t u16Periclk)
 {
     DDL_ASSERT(IS_CLK_PERI_CLK(u16Periclk));
-
-    CLK_REG1_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_SEL_UNLOCKED());
 
     WRITE_REG16(M4_CMU->PERICKSEL, u16Periclk);
-
-    CLK_REG1_WRITE_DISABLE();
 }
 
 /**
@@ -1950,11 +1852,10 @@ void CLK_PERI_ClkConfig(uint16_t u16Periclk)
  */
 void CLK_TpiuClkCmd(en_functional_state_t enNewState)
 {
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     WRITE_REG32(bM4_CMU->TPIUCKCFGR_b.TPIUCKOE, enNewState);
-
-    CLK_REG_WRITE_DISABLE();
 }
 
 /**
@@ -1968,17 +1869,14 @@ void CLK_TpiuClkCmd(en_functional_state_t enNewState)
 void CLK_TpiuClkConfig(uint8_t u8TpiuDiv)
 {
     DDL_ASSERT(IS_CLK_TPIU_CLK_DIV(u8TpiuDiv));
-
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     MODIFY_REG8(M4_CMU->TPIUCKCFGR, CMU_TPIUCKCFGR_TPIUCKS, u8TpiuDiv);
-
-    CLK_REG_WRITE_DISABLE();
 }
 
 /**
  * @brief  Selects the clock source to output on MCO1 pin.
- * @param  CLK_MCOSource specifies the clock source to output.
+ * @param  [in] CLK_MCOSource specifies the clock source to output.
  *   @arg CLK_MCOSOURCCE_HRC       HRC clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_MRC       MRC clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_LRC       LRC clock selected as MCOx source
@@ -1990,7 +1888,7 @@ void CLK_TpiuClkConfig(uint8_t u8TpiuDiv)
  *   @arg CLK_MCOSOURCCE_PLLAQ     PLLAQ clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_PLLAR     PLLAR clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_SYSCLK    System clock selected as MCOx source
- * @param  CLK_MCODiv specifies the MCOx prescaler.
+ * @param  [in] CLK_MCODiv specifies the MCOx prescaler.
  *   @arg CLK_MCODIV_1:   no division applied to MCOx clock
  *   @arg CLK_MCODIV_2:   division by 2 applied to MCOx clock
  *   @arg CLK_MCODIV_4:   division by 4 applied to MCOx clock
@@ -2009,18 +1907,15 @@ void CLK_MCO1Config(uint8_t CLK_MCOSource, uint8_t CLK_MCODiv)
     DDL_ASSERT(IS_CLK_MCODIV(CLK_MCODiv));
 
     /* Enable register write. */
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     /* Config the MCO1 */
     MODIFY_REG8(M4_CMU->MCO1CFGR, (CMU_MCO1CFGR_MCO1SEL | CMU_MCO1CFGR_MCO1DIV), (CLK_MCODiv | CLK_MCOSource));
-
-    /* Disbale register write. */
-    CLK_REG_WRITE_DISABLE();
 }
 
 /**
  * @brief  Enable or disable the MCO1 output.
- * @param  enNewState specifies the new state of the clock output.
+ * @param  [in] enNewState specifies the new state of the clock output.
  *   @arg Enable:   Enable clock output.
  *   @arg Disable:  Disable clock output.
  * @retval None
@@ -2028,20 +1923,15 @@ void CLK_MCO1Config(uint8_t CLK_MCOSource, uint8_t CLK_MCODiv)
 void CLK_MCO1Cmd(en_functional_state_t enNewState)
 {
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-
-    /* Enable register write. */
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     /* Enable or disable clock output. */
     WRITE_REG32(bM4_CMU->MCO1CFGR_b.MCO1EN, enNewState);
-
-    /* Disbale register write. */
-    CLK_REG_WRITE_DISABLE();
 }
 
 /**
  * @brief  Selects the clock source to output on MCO2 pin.
- * @param  CLK_MCOSource specifies the clock source to output.
+ * @param  [in] CLK_MCOSource specifies the clock source to output.
  *   @arg CLK_MCOSOURCCE_HRC       HRC clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_MRC       MRC clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_LRC       LRC clock selected as MCOx source
@@ -2053,7 +1943,7 @@ void CLK_MCO1Cmd(en_functional_state_t enNewState)
  *   @arg CLK_MCOSOURCCE_PLLAQ     PLLAQ clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_PLLAR     PLLAR clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_SYSCLK    System clock selected as MCOx source
- * @param  CLK_MCODiv specifies the MCOx prescaler.
+ * @param  [in] CLK_MCODiv specifies the MCOx prescaler.
  *   @arg CLK_MCODIV_1:   no division applied to MCOx clock
  *   @arg CLK_MCODIV_2:   division by 2 applied to MCOx clock
  *   @arg CLK_MCODIV_4:   division by 4 applied to MCOx clock
@@ -2070,20 +1960,15 @@ void CLK_MCO2Config(uint8_t CLK_MCOSource, uint8_t CLK_MCODiv)
     /* Check the parameters. */
     DDL_ASSERT(IS_CLK_MCOSOURCE(CLK_MCOSource));
     DDL_ASSERT(IS_CLK_MCODIV(CLK_MCODiv));
-
-    /* Enable register write. */
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     /* Config the MCO */
     MODIFY_REG8(M4_CMU->MCO2CFGR, (CMU_MCO2CFGR_MCO2SEL | CMU_MCO2CFGR_MCO2DIV), (CLK_MCODiv | CLK_MCOSource));
-
-    /* Disbale register write. */
-    CLK_REG_WRITE_DISABLE();
 }
 
 /**
  * @brief  Enable or disable the MCO2 output.
- * @param  enNewState specifies the new state of the clock output.
+ * @param  [in] enNewState specifies the new state of the clock output.
  *   @arg Enable:   Enable clock output.
  *   @arg Disable:  Disable clock output.
  * @retval None
@@ -2091,15 +1976,10 @@ void CLK_MCO2Config(uint8_t CLK_MCOSource, uint8_t CLK_MCODiv)
 void CLK_MCO2Cmd(en_functional_state_t enNewState)
 {
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-
-    /* Enable register write. */
-    CLK_REG_WRITE_ENABLE();
+    DDL_ASSERT(IS_CLK_UNLOCKED());
 
     /* Enable or disable clock output. */
     WRITE_REG32(bM4_CMU->MCO2CFGR_b.MCO2EN, enNewState);
-
-    /* Disbale register write. */
-    CLK_REG_WRITE_DISABLE();
 }
 
 /**

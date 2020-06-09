@@ -148,7 +148,6 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
 static void CmpConfig(void);
 #if (CMP_TW_PWM_SOURCE == CMP_TW_PWM_TMRA)
     static void TMRAConfig(void);
@@ -173,8 +172,8 @@ static void CmpConfig(void);
  */
 int32_t main(void)
 {
-    /* Configure system clock. */
-    SystemClockConfig();
+    /* Configure system clock. HClK = 240MHZ PCLK3 = 60MHZ*/
+    BSP_CLK_Init();
 #if (CMP_TW_PWM_SOURCE == CMP_TW_PWM_TMRA)
     /* Configure TMRA */
     TMRAConfig();
@@ -194,62 +193,6 @@ int32_t main(void)
 }
 
 /**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_pllh_init_t stcPLLHInit;
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Configures XTAL. PLLH input source is XTAL. */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    stcXtalInit.u8XtalDrv   = CLK_XTALDRV_LOW;
-    stcXtalInit.u8XtalMode  = CLK_XTALMODE_OSC;
-    stcXtalInit.u8XtalStb   = CLK_XTALSTB_499US;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* PCLK0, HCLK  Max 240MHz */
-    /* PCLK1, PCLK4 Max 120MHz */
-    /* PCLK2, PCLK3 Max 60MHz  */
-    /* EX BUS Max 120MHz */
-    CLK_ClkDiv(CLK_CATE_ALL,                                       \
-               (CLK_PCLK0_DIV4 | CLK_PCLK1_DIV4 | CLK_PCLK2_DIV4 | \
-                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 | \
-                CLK_HCLK_DIV1));
-
-    CLK_PLLHStrucInit(&stcPLLHInit);
-    /*
-     * PLLP_freq = ((PLL_source / PLLM) * PLLN) / PLLP
-     *           = (8 / 1) * 120 / 4
-     *           = 240
-     */
-    stcPLLHInit.u8PLLState = CLK_PLLH_ON;
-    stcPLLHInit.PLLCFGR = 0UL;
-    stcPLLHInit.PLLCFGR_f.PLLM = (1UL   - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLN = (120UL - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLP = (4UL   - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLQ = (16UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLR = (16UL  - 1UL);
-
-    /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
-    CLK_PLLHInit(&stcPLLHInit);
-
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
-    EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
-    EFM_Unlock();
-
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
-}
-
-/**
  * @brief  Configure CMP.
  * @param  None
  * @retval None
@@ -260,6 +203,7 @@ static void CmpConfig(void)
     stc_cmp_timerwindow_t stcCmptimerWindow;
     stc_gpio_init_t stcGpioInit;
     /* Enable peripheral Clock */
+    PWC_Fcg3PeriphClockCmd(PWC_FCG3_CMBIAS, Enable);
     PWC_Fcg3PeriphClockCmd(CMP_PERIP_CLK, Enable);
     /* Port function configuration for CMP*/
     GPIO_StructInit(&stcGpioInit);
@@ -278,7 +222,7 @@ static void CmpConfig(void)
     stcCmpInit.u16CmpVol        = CMP1_INP3_CMP1_INP3;
     stcCmpInit.u8RefVol         = CMP_RVSL_INM4;
     stcCmpInit.u8OutDetectEdges = CMP_DETECT_EDGS_BOTH;
-    stcCmpInit.u8OutFilter      = CMP_OUT_FILTER_PCLKDIV32;
+    stcCmpInit.u8OutFilter      = CMP_OUT_FILTER_PCLK3_DIV32;
     stcCmpInit.u8OutPolarity    = CMP_OUT_REVERSE_OFF;
     CMP_NormalModeInit(CMP_TEST_UNIT, &stcCmpInit);
     /* Configuration for timer window function */

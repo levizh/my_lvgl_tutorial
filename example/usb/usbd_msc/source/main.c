@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+
+/**
+ *******************************************************************************
+ * @file  usb\usbd_msc\source\main.c
+ * @brief Main program of USB MSC device example.
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,15 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file main.c
- **
- ** \brief USB MSC device example.
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -55,6 +58,16 @@
 #include "usbd_usr.h"
 #include "usbd_desc.h"
 #include "usb_bsp.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_MSC
+ * @{
+ */
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -67,6 +80,14 @@
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
+extern USBD_Class_cb_TypeDef USBD_MSC_HID_cb;
+
+#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
+    #if defined ( __ICCARM__ )      /* !< IAR Compiler */
+        #pragma data_alignment=4
+    #endif
+#endif                          /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
+__USB_ALIGN_BEGIN USB_OTG_CORE_HANDLE USB_OTG_dev __USB_ALIGN_END;
 
 /*******************************************************************************
  * Local function prototypes ('static')
@@ -75,27 +96,23 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-USB_OTG_CORE_HANDLE  USB_OTG_dev;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
 /**
- *******************************************************************************
- ** \brief  main function for MSC device function
- **
- ** \param [in]  None
- **
- ** \retval int32_t Return value, if needed
- **
- ******************************************************************************/
+ * @brief  main function
+ * @param [in]  None
+ * @retval int32_t Return value, if needed
+ */
 int32_t main (void)
 {
     USBD_Init(&USB_OTG_dev,
-#ifdef USE_USB_OTG_FS
-              USB_OTG_FS_CORE_ID,
+#ifdef USE_USB_OTG_HS
+            USB_OTG_HS_CORE_ID,
 #else
-              USB_OTG_HS_CORE_ID,
+            USB_OTG_FS_CORE_ID,
 #endif
               &USR_desc,
               &USBD_MSC_cb,
@@ -105,6 +122,14 @@ int32_t main (void)
         ;
     }
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

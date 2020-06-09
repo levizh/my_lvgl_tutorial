@@ -197,6 +197,9 @@ typedef enum
     #define __RAM_FUNC                  __attribute__((long_call, section(".ramfunc")))
     /* Usage: void __RAM_FUNC foo(void) */
   #endif /* __RAM_FUNC */
+  #ifndef __NO_INIT
+    #define __NO_INIT                   __attribute__((section(".noinit")))
+  #endif /* __NO_INIT */
 #elif defined (__ICCARM__)                /*!< IAR Compiler */
   #ifndef __WEAKDEF
     #define __WEAKDEF                   __weak
@@ -210,6 +213,9 @@ typedef enum
   #ifndef __RAM_FUNC
     #define __RAM_FUNC                  __ramfunc
   #endif /* __RAM_FUNC */
+#ifndef __NO_INIT
+    #define __NO_INIT                   __no_init
+#endif /* __NO_INIT */
 #elif defined (__CC_ARM)                /*!< ARM Compiler */
   #ifndef __WEAKDEF
     #define __WEAKDEF                   __attribute__((weak))
@@ -225,6 +231,9 @@ typedef enum
     Using the 'Options for File' dialog you can simply change the 'Code / Const'
     area of a module to a memory space in physical RAM. */
     #define __RAM_FUNC
+  #ifndef __NO_INIT
+    #define __NO_INIT                   __attribute__((section("NoInit"), zero_init))
+  #endif /* __NO_INIT */
 #else
     #error  "unsupported compiler!!"
 #endif
@@ -284,9 +293,9 @@ typedef enum
 #define WRITE_REG16(REG, VAL)           ((REG) = ((uint16_t)(VAL)))
 #define WRITE_REG32(REG, VAL)           ((REG) = ((uint32_t)(VAL)))
 
-#define READ_REG8(REG)                  ((uint8_t)(REG))
-#define READ_REG16(REG)                 ((uint16_t)(REG))
-#define READ_REG32(REG)                 ((uint32_t)(REG))
+#define READ_REG8(REG)                  (REG)
+#define READ_REG16(REG)                 (REG)
+#define READ_REG32(REG)                 (REG)
 
 #define MODIFY_REG8(REGS, CLEARMASK, SETMASK)   (WRITE_REG8((REGS), (((READ_REG8((REGS))) & ((uint8_t)(~((uint8_t)(CLEARMASK))))) | ((uint8_t)(SETMASK) & (uint8_t)(CLEARMASK)))))
 #define MODIFY_REG16(REGS, CLEARMASK, SETMASK)  (WRITE_REG16((REGS), (((READ_REG16((REGS))) & ((uint16_t)(~((uint16_t)(CLEARMASK))))) | ((uint16_t)(SETMASK) & (uint16_t)(CLEARMASK)))))

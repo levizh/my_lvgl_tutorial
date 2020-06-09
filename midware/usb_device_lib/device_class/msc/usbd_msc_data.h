@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_msc_data.h
+ * @brief Header for the usbd_msc_data.c file
+ *
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-05-15       Zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,8 +48,9 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
+
 /** \file usbd_msc_data.h
  **
  ** A detailed description is available at
@@ -51,11 +62,36 @@
 #ifndef __USBD_MSC_DATA_H__
 #define __USBD_MSC_DATA_H__
 
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "hc32_ddl.h"
 #include "usbd_conf.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @addtogroup USBD_MSC_DATA
+ * @{
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -64,21 +100,56 @@
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define MODE_SENSE6_LEN                 (8u)
-#define MODE_SENSE10_LEN                (8u)
-#define LENGTH_INQUIRY_PAGE00           (7u)
-#define LENGTH_FORMAT_CAPACITIES        (20u)
+/**
+ * @defgroup USBD_MSC_DATA_Global_Macros
+ * @{
+ */
+
+#define MODE_SENSE6_LEN                 (8U)
+#define MODE_SENSE10_LEN                (8U)
+#define LENGTH_INQUIRY_PAGE00           (7U)
+#define LENGTH_FORMAT_CAPACITIES        (20U)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+/**
+ * @addtogroup USBD_MSC_DATA_Global_Variables
+ * @{
+ */
 extern const uint8_t MSC_Page00_Inquiry_Data[LENGTH_INQUIRY_PAGE00];
 extern const uint8_t MSC_Mode_Sense6_data[MODE_SENSE6_LEN];
 extern const uint8_t MSC_Mode_Sense10_data[MODE_SENSE10_LEN];
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global function prototypes (definition in C source)
  ******************************************************************************/
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBD_MSC_DATA_H__ */
 

@@ -243,18 +243,18 @@
 (   ((x) == EMB_DETECT_TMR6_7_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_7_PWM_BOTH_HIGH))
 
-#define IS_VALID_EMB_DETECT_TMR6_8_PWM_LEVEL(x)                              \
+#define IS_VALID_EMB_DETECT_TMR6_8_PWM_LEVEL(x)                                \
 (   ((x) == EMB_DETECT_TMR6_8_PWM_BOTH_LOW)     ||                             \
     ((x) == EMB_DETECT_TMR6_8_PWM_BOTH_HIGH))
 
-#define IS_VALID_EMB_INT(x)                                                    \
-(   (EMB_INT_PWMS                               |                              \
-     EMB_INT_CMP                                |                              \
-     EMB_INT_OSC                                |                              \
-     EMB_INT_PORT1                              |                              \
-     EMB_INT_PORT2                              |                              \
-     EMB_INT_PORT3                              |                              \
-     EMB_INT_PORT4) & x)
+#define IS_VALID_EMB_INT(x)                     ((x) &&                        \
+                                                 (!((x) & (~IS_EMB_INT_MASK))))
+
+#define IS_VALID_EMB_FLAG(x)                    ((x) &&                        \
+                                                 (!((x) & (~IS_EMB_FLAG_MASK))))
+
+#define IS_VALID_EMB_STATUS(x)                  ((x) &&                        \
+                                                 (!((x) & (~IS_EMB_STATUS_MASK))))
 
 #define IS_VALID_EMB_PORT1_FILTER_DIV(x)                                       \
 (   ((x) == EMB_PORT1_FILTER_NONE)              ||                             \
@@ -284,9 +284,9 @@
     ((x) == EMB_PORT4_FILTER_CLK_DIV32)         ||                             \
     ((x) == EMB_PORT4_FILTER_CLK_DIV128))
 
-#define IS_VALID_EMB_RELEALSE_PWM_SEL(x)                                       \
-(   ((x) == EMB_RELEALSE_PWM_SEL_FLAG_ZERO)     ||                             \
-    ((x) == EMB_RELEALSE_PWM_SEL_STATE_ZERO))
+#define IS_VALID_EMB_RELEASE_PWM_SEL(x)                                        \
+(   ((x) == EMB_RELEASE_PWM_SEL_FLAG_ZERO)      ||                             \
+    ((x) == EMB_RELEASE_PWM_SEL_STATE_ZERO))
 
 #define IS_VALID_EMB_MONITOR_EVENT(x)                                          \
 (   ((x) == EMB_EVENT_PWMS)                     ||                             \
@@ -296,6 +296,51 @@
     ((x) == EMB_EVENT_PORT2)                    ||                             \
     ((x) == EMB_EVENT_PORT3)                    ||                             \
     ((x) == EMB_EVENT_PORT4))
+/**
+ * @}
+ */
+
+/**
+ * @defgroup EMB interrupt mask definition
+ * @{
+ */
+#define IS_EMB_INT_MASK                         (EMB_INT_PWMS  |               \
+                                                 EMB_INT_CMP   |               \
+                                                 EMB_INT_OSC   |               \
+                                                 EMB_INT_PORT1 |               \
+                                                 EMB_INT_PORT2 |               \
+                                                 EMB_INT_PORT3 |               \
+                                                 EMB_INT_PORT4)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup EMB flag mask definition
+ * @{
+ */
+#define IS_EMB_FLAG_MASK                        (EMB_FLAG_PWMS  |              \
+                                                 EMB_FLAG_CMP   |              \
+                                                 EMB_FLAG_OSC   |              \
+                                                 EMB_FLAG_PORT1 |              \
+                                                 EMB_FLAG_PORT2 |              \
+                                                 EMB_FLAG_PORT3 |              \
+                                                 EMB_FLAG_PORT4)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup EMB status mask definition
+ * @{
+ */
+#define IS_EMB_STATUS_MASK                      (EMB_STATE_PWMS  |             \
+                                                 EMB_STATE_CMP   |             \
+                                                 EMB_STATE_OSC   |             \
+                                                 EMB_STATE_PORT1 |             \
+                                                 EMB_STATE_PORT2 |             \
+                                                 EMB_STATE_PORT3 |             \
+                                                 EMB_STATE_PORT4)
 /**
  * @}
  */
@@ -335,13 +380,13 @@
  * @param  [in] pstcInit                Pointer to a @ref stc_emb_tmr4_init_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize successfully
- *           - Error: Initialize unsuccessfully
+ *           - ErrorInvalidParameter: pstcInit = NULL
  * @note   Timer4 feature is supported by M4_EMB4/M4_EMB5/M4_EMB6
  */
-en_result_t EMB_Timer4Init(M4_EMB_TypeDef *EMBx,
+en_result_t EMB_Tmr4Init(M4_EMB_TypeDef *EMBx,
                             const stc_emb_tmr4_init_t *pstcInit)
 {
-    uint32_t u32RegVal = 0UL;
+    uint32_t u32RegVal;
     en_result_t enRet = ErrorInvalidParameter;
 
     /* Check structure pointer */
@@ -366,12 +411,12 @@ en_result_t EMB_Timer4Init(M4_EMB_TypeDef *EMBx,
         DDL_ASSERT(IS_VALID_EMB_PORT4_SEL(pstcInit->stcPort4.u32PortSel));
         DDL_ASSERT(IS_VALID_EMB_DETECT_PORT4_LEVEL(pstcInit->stcPort4.u32PortLevel));
         DDL_ASSERT(IS_VALID_EMB_PORT4_FILTER_DIV(pstcInit->stcPort4.u32PortFilterDiv));
-        DDL_ASSERT(IS_VALID_EMB_TMR4_PWM_U_SEL(pstcInit->stcTimer4PmwU.u32Timer4PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_U_LEVEL(pstcInit->stcTimer4PmwU.u32Timer4PwmLvl));
-        DDL_ASSERT(IS_VALID_EMB_TMR4_PWM_V_SEL(pstcInit->stcTimer4PmwV.u32Timer4PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_V_LEVEL(pstcInit->stcTimer4PmwV.u32Timer4PwmLvl));
-        DDL_ASSERT(IS_VALID_EMB_TMR4_PWM_W_SEL(pstcInit->stcTimer4PmwW.u32Timer4PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_W_LEVEL(pstcInit->stcTimer4PmwW.u32Timer4PwmLvl));
+        DDL_ASSERT(IS_VALID_EMB_TMR4_PWM_U_SEL(pstcInit->stcTmr4PwmU.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_U_LEVEL(pstcInit->stcTmr4PwmU.u32PwmLevel));
+        DDL_ASSERT(IS_VALID_EMB_TMR4_PWM_V_SEL(pstcInit->stcTmr4PwmV.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_V_LEVEL(pstcInit->stcTmr4PwmV.u32PwmLevel));
+        DDL_ASSERT(IS_VALID_EMB_TMR4_PWM_W_SEL(pstcInit->stcTmr4PwmW.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR4_PWM_W_LEVEL(pstcInit->stcTmr4PwmW.u32PwmLevel));
 
         /* Set default value && clear flag */
         WRITE_REG32(EMBx->SOE, 0x00UL);
@@ -391,9 +436,9 @@ en_result_t EMB_Timer4Init(M4_EMB_TypeDef *EMBx,
                      pstcInit->u32Cmp3 | \
                      pstcInit->u32Cmp4 | \
                      pstcInit->u32Osc | \
-                     pstcInit->stcTimer4PmwW.u32Timer4PwmSel | \
-                     pstcInit->stcTimer4PmwV.u32Timer4PwmSel | \
-                     pstcInit->stcTimer4PmwU.u32Timer4PwmSel | \
+                     pstcInit->stcTmr4PwmW.u32PwmSel | \
+                     pstcInit->stcTmr4PwmV.u32PwmSel | \
+                     pstcInit->stcTmr4PwmU.u32PwmSel | \
                      pstcInit->stcPort1.u32PortSel | \
                      pstcInit->stcPort2.u32PortSel | \
                      pstcInit->stcPort3.u32PortSel | \
@@ -407,9 +452,9 @@ en_result_t EMB_Timer4Init(M4_EMB_TypeDef *EMBx,
         /* Check writing EMB_CTL1 because EMB_CTL1 can write once only after reset */
         if (READ_REG32(EMBx->CTL1) == u32RegVal)
         {
-            u32RegVal = (pstcInit->stcTimer4PmwW.u32Timer4PwmLvl | \
-                         pstcInit->stcTimer4PmwV.u32Timer4PwmLvl | \
-                         pstcInit->stcTimer4PmwU.u32Timer4PwmLvl | \
+            u32RegVal = (pstcInit->stcTmr4PwmW.u32PwmLevel | \
+                         pstcInit->stcTmr4PwmV.u32PwmLevel | \
+                         pstcInit->stcTmr4PwmU.u32PwmLevel | \
                          pstcInit->stcPort1.u32PortFilterDiv | \
                          pstcInit->stcPort2.u32PortFilterDiv | \
                          pstcInit->stcPort3.u32PortFilterDiv | \
@@ -434,7 +479,7 @@ en_result_t EMB_Timer4Init(M4_EMB_TypeDef *EMBx,
  *           - Ok: Initialize successfully
  *           - ErrorInvalidParameter: pstcInit = NULL
  */
-en_result_t EMB_Timer4StructInit(stc_emb_tmr4_init_t *pstcInit)
+en_result_t EMB_Tmr4StructInit(stc_emb_tmr4_init_t *pstcInit)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
@@ -458,12 +503,12 @@ en_result_t EMB_Timer4StructInit(stc_emb_tmr4_init_t *pstcInit)
         pstcInit->stcPort4.u32PortSel = EMB_PORT4_DISABLE;
         pstcInit->stcPort4.u32PortLevel = EMB_DETECT_PORT4_LEVEL_HIGH;
         pstcInit->stcPort4.u32PortFilterDiv = EMB_PORT4_FILTER_NONE;
-        pstcInit->stcTimer4PmwU.u32Timer4PwmSel = EMB_TMR4_PWM_U_DISABLE;
-        pstcInit->stcTimer4PmwU.u32Timer4PwmLvl = EMB_DETECT_TMR4_PWM_U_BOTH_LOW;
-        pstcInit->stcTimer4PmwV.u32Timer4PwmSel = EMB_TMR4_PWM_V_DISABLE;
-        pstcInit->stcTimer4PmwV.u32Timer4PwmLvl = EMB_DETECT_TMR4_PWM_V_BOTH_LOW;
-        pstcInit->stcTimer4PmwW.u32Timer4PwmSel = EMB_TMR4_PWM_W_DISABLE;
-        pstcInit->stcTimer4PmwW.u32Timer4PwmLvl = EMB_DETECT_TMR4_PWM_W_BOTH_LOW;
+        pstcInit->stcTmr4PwmU.u32PwmSel = EMB_TMR4_PWM_U_DISABLE;
+        pstcInit->stcTmr4PwmU.u32PwmLevel = EMB_DETECT_TMR4_PWM_U_BOTH_LOW;
+        pstcInit->stcTmr4PwmV.u32PwmSel = EMB_TMR4_PWM_V_DISABLE;
+        pstcInit->stcTmr4PwmV.u32PwmLevel = EMB_DETECT_TMR4_PWM_V_BOTH_LOW;
+        pstcInit->stcTmr4PwmW.u32PwmSel = EMB_TMR4_PWM_W_DISABLE;
+        pstcInit->stcTmr4PwmW.u32PwmLevel = EMB_DETECT_TMR4_PWM_W_BOTH_LOW;
         enRet = Ok;
     }
 
@@ -481,10 +526,10 @@ en_result_t EMB_Timer4StructInit(stc_emb_tmr4_init_t *pstcInit)
  * @param  [in] pstcInit                Pointer to a @ref stc_emb_tmr6_init_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize successfully
- *           - Error: Initialize unsuccessfully
+ *           - ErrorInvalidParameter: pstcInit = NULL
  * @note   Timer6 feature is supported by M4_EMB0/M4_EMB1/M4_EMB2/M4_EMB3
  */
-en_result_t EMB_Timer6Init(M4_EMB_TypeDef *EMBx,
+en_result_t EMB_Tmr6Init(M4_EMB_TypeDef *EMBx,
                             const stc_emb_tmr6_init_t *pstcInit)
 {
     uint32_t u32RegVal = 0UL;
@@ -512,22 +557,22 @@ en_result_t EMB_Timer6Init(M4_EMB_TypeDef *EMBx,
         DDL_ASSERT(IS_VALID_EMB_PORT4_SEL(pstcInit->stcPort4.u32PortSel));
         DDL_ASSERT(IS_VALID_EMB_DETECT_PORT4_LEVEL(pstcInit->stcPort4.u32PortLevel));
         DDL_ASSERT(IS_VALID_EMB_PORT4_FILTER_DIV(pstcInit->stcPort4.u32PortFilterDiv));
-        DDL_ASSERT(IS_VALID_EMB_TIMER6_1_PWM_SEL(pstcInit->stcTimer6_1.u32Timer6PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_1_PWM_LEVEL(pstcInit->stcTimer6_1.u32Timer6PwmLvl));
-        DDL_ASSERT(IS_VALID_EMB_TIMER6_2_PWM_SEL(pstcInit->stcTimer6_2.u32Timer6PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_2_PWM_LEVEL(pstcInit->stcTimer6_2.u32Timer6PwmLvl));
-        DDL_ASSERT(IS_VALID_EMB_TIMER6_3_PWM_SEL(pstcInit->stcTimer6_3.u32Timer6PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_3_PWM_LEVEL(pstcInit->stcTimer6_3.u32Timer6PwmLvl));
-        DDL_ASSERT(IS_VALID_EMB_TIMER6_4_PWM_SEL(pstcInit->stcTimer6_4.u32Timer6PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_4_PWM_LEVEL(pstcInit->stcTimer6_4.u32Timer6PwmLvl));
-        DDL_ASSERT(IS_VALID_EMB_TIMER6_5_PWM_SEL(pstcInit->stcTimer6_5.u32Timer6PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_5_PWM_LEVEL(pstcInit->stcTimer6_5.u32Timer6PwmLvl));
-        DDL_ASSERT(IS_VALID_EMB_TIMER6_6_PWM_SEL(pstcInit->stcTimer6_6.u32Timer6PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_6_PWM_LEVEL(pstcInit->stcTimer6_6.u32Timer6PwmLvl));
-        DDL_ASSERT(IS_VALID_EMB_TIMER6_7_PWM_SEL(pstcInit->stcTimer6_7.u32Timer6PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_7_PWM_LEVEL(pstcInit->stcTimer6_7.u32Timer6PwmLvl));
-        DDL_ASSERT(IS_VALID_EMB_TIMER6_8_PWM_SEL(pstcInit->stcTimer6_8.u32Timer6PwmSel));
-        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_8_PWM_LEVEL(pstcInit->stcTimer6_8.u32Timer6PwmLvl));
+        DDL_ASSERT(IS_VALID_EMB_TIMER6_1_PWM_SEL(pstcInit->stcTmr6_1.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_1_PWM_LEVEL(pstcInit->stcTmr6_1.u32PwmLevel));
+        DDL_ASSERT(IS_VALID_EMB_TIMER6_2_PWM_SEL(pstcInit->stcTmr6_2.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_2_PWM_LEVEL(pstcInit->stcTmr6_2.u32PwmLevel));
+        DDL_ASSERT(IS_VALID_EMB_TIMER6_3_PWM_SEL(pstcInit->stcTmr6_3.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_3_PWM_LEVEL(pstcInit->stcTmr6_3.u32PwmLevel));
+        DDL_ASSERT(IS_VALID_EMB_TIMER6_4_PWM_SEL(pstcInit->stcTmr6_4.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_4_PWM_LEVEL(pstcInit->stcTmr6_4.u32PwmLevel));
+        DDL_ASSERT(IS_VALID_EMB_TIMER6_5_PWM_SEL(pstcInit->stcTmr6_5.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_5_PWM_LEVEL(pstcInit->stcTmr6_5.u32PwmLevel));
+        DDL_ASSERT(IS_VALID_EMB_TIMER6_6_PWM_SEL(pstcInit->stcTmr6_6.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_6_PWM_LEVEL(pstcInit->stcTmr6_6.u32PwmLevel));
+        DDL_ASSERT(IS_VALID_EMB_TIMER6_7_PWM_SEL(pstcInit->stcTmr6_7.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_7_PWM_LEVEL(pstcInit->stcTmr6_7.u32PwmLevel));
+        DDL_ASSERT(IS_VALID_EMB_TIMER6_8_PWM_SEL(pstcInit->stcTmr6_8.u32PwmSel));
+        DDL_ASSERT(IS_VALID_EMB_DETECT_TMR6_8_PWM_LEVEL(pstcInit->stcTmr6_8.u32PwmLevel));
 
         /* Set default value && clear flag */
         WRITE_REG32(EMBx->SOE, 0x00UL);
@@ -546,14 +591,15 @@ en_result_t EMB_Timer6Init(M4_EMB_TypeDef *EMBx,
                      pstcInit->u32Cmp2 | \
                      pstcInit->u32Cmp3 | \
                      pstcInit->u32Cmp4 | \
-                     pstcInit->stcTimer6_1.u32Timer6PwmSel | \
-                     pstcInit->stcTimer6_2.u32Timer6PwmSel | \
-                     pstcInit->stcTimer6_3.u32Timer6PwmSel | \
-                     pstcInit->stcTimer6_4.u32Timer6PwmSel | \
-                     pstcInit->stcTimer6_5.u32Timer6PwmSel | \
-                     pstcInit->stcTimer6_6.u32Timer6PwmSel | \
-                     pstcInit->stcTimer6_7.u32Timer6PwmSel | \
-                     pstcInit->stcTimer6_8.u32Timer6PwmSel | \
+                     pstcInit->u32Osc | \
+                     pstcInit->stcTmr6_1.u32PwmSel | \
+                     pstcInit->stcTmr6_2.u32PwmSel | \
+                     pstcInit->stcTmr6_3.u32PwmSel | \
+                     pstcInit->stcTmr6_4.u32PwmSel | \
+                     pstcInit->stcTmr6_5.u32PwmSel | \
+                     pstcInit->stcTmr6_6.u32PwmSel | \
+                     pstcInit->stcTmr6_7.u32PwmSel | \
+                     pstcInit->stcTmr6_8.u32PwmSel | \
                      pstcInit->stcPort1.u32PortSel | \
                      pstcInit->stcPort2.u32PortSel | \
                      pstcInit->stcPort3.u32PortSel | \
@@ -567,14 +613,14 @@ en_result_t EMB_Timer6Init(M4_EMB_TypeDef *EMBx,
         /* Check writing EMB_CTL1 because EMB_CTL1 can write once only after reset */
         if (READ_REG32(EMBx->CTL1) == u32RegVal)
         {
-            u32RegVal = (pstcInit->stcTimer6_1.u32Timer6PwmLvl | \
-                         pstcInit->stcTimer6_2.u32Timer6PwmLvl | \
-                         pstcInit->stcTimer6_3.u32Timer6PwmLvl | \
-                         pstcInit->stcTimer6_4.u32Timer6PwmLvl | \
-                         pstcInit->stcTimer6_5.u32Timer6PwmLvl | \
-                         pstcInit->stcTimer6_6.u32Timer6PwmLvl | \
-                         pstcInit->stcTimer6_7.u32Timer6PwmLvl | \
-                         pstcInit->stcTimer6_8.u32Timer6PwmLvl | \
+            u32RegVal = (pstcInit->stcTmr6_1.u32PwmLevel | \
+                         pstcInit->stcTmr6_2.u32PwmLevel | \
+                         pstcInit->stcTmr6_3.u32PwmLevel | \
+                         pstcInit->stcTmr6_4.u32PwmLevel | \
+                         pstcInit->stcTmr6_5.u32PwmLevel | \
+                         pstcInit->stcTmr6_6.u32PwmLevel | \
+                         pstcInit->stcTmr6_7.u32PwmLevel | \
+                         pstcInit->stcTmr6_8.u32PwmLevel | \
                          pstcInit->stcPort1.u32PortFilterDiv | \
                          pstcInit->stcPort2.u32PortFilterDiv | \
                          pstcInit->stcPort3.u32PortFilterDiv | \
@@ -599,7 +645,7 @@ en_result_t EMB_Timer6Init(M4_EMB_TypeDef *EMBx,
  *           - Ok: Initialize successfully
  *           - ErrorInvalidParameter: pstcInit = NULL
  */
-en_result_t EMB_Timer6StructInit(stc_emb_tmr6_init_t *pstcInit)
+en_result_t EMB_Tmr6StructInit(stc_emb_tmr6_init_t *pstcInit)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
@@ -623,22 +669,22 @@ en_result_t EMB_Timer6StructInit(stc_emb_tmr6_init_t *pstcInit)
         pstcInit->stcPort4.u32PortSel = EMB_PORT4_DISABLE;
         pstcInit->stcPort4.u32PortLevel = EMB_DETECT_PORT4_LEVEL_HIGH;
         pstcInit->stcPort4.u32PortFilterDiv = EMB_PORT4_FILTER_NONE;
-        pstcInit->stcTimer6_1.u32Timer6PwmSel = EMB_TMR6_1_PWM_DISABLE;
-        pstcInit->stcTimer6_1.u32Timer6PwmLvl = EMB_DETECT_TMR6_1_PWM_BOTH_LOW;
-        pstcInit->stcTimer6_2.u32Timer6PwmSel = EMB_TMR6_2_PWM_DISABLE;
-        pstcInit->stcTimer6_2.u32Timer6PwmLvl = EMB_DETECT_TMR6_2_PWM_BOTH_LOW;
-        pstcInit->stcTimer6_3.u32Timer6PwmSel = EMB_TMR6_3_PWM_DISABLE;
-        pstcInit->stcTimer6_3.u32Timer6PwmLvl = EMB_DETECT_TMR6_3_PWM_BOTH_LOW;
-        pstcInit->stcTimer6_4.u32Timer6PwmSel = EMB_TMR6_4_PWM_DISABLE;
-        pstcInit->stcTimer6_4.u32Timer6PwmLvl = EMB_DETECT_TMR6_4_PWM_BOTH_LOW;
-        pstcInit->stcTimer6_5.u32Timer6PwmSel = EMB_TMR6_5_PWM_DISABLE;
-        pstcInit->stcTimer6_5.u32Timer6PwmLvl = EMB_DETECT_TMR6_5_PWM_BOTH_LOW;
-        pstcInit->stcTimer6_6.u32Timer6PwmSel = EMB_TMR6_6_PWM_DISABLE;
-        pstcInit->stcTimer6_6.u32Timer6PwmLvl = EMB_DETECT_TMR6_6_PWM_BOTH_LOW;
-        pstcInit->stcTimer6_7.u32Timer6PwmSel = EMB_TMR6_7_PWM_DISABLE;
-        pstcInit->stcTimer6_7.u32Timer6PwmLvl = EMB_DETECT_TMR6_7_PWM_BOTH_LOW;
-        pstcInit->stcTimer6_8.u32Timer6PwmSel = EMB_TMR6_8_PWM_DISABLE;
-        pstcInit->stcTimer6_8.u32Timer6PwmLvl = EMB_DETECT_TMR6_8_PWM_BOTH_LOW;
+        pstcInit->stcTmr6_1.u32PwmSel = EMB_TMR6_1_PWM_DISABLE;
+        pstcInit->stcTmr6_1.u32PwmLevel = EMB_DETECT_TMR6_1_PWM_BOTH_LOW;
+        pstcInit->stcTmr6_2.u32PwmSel = EMB_TMR6_2_PWM_DISABLE;
+        pstcInit->stcTmr6_2.u32PwmLevel = EMB_DETECT_TMR6_2_PWM_BOTH_LOW;
+        pstcInit->stcTmr6_3.u32PwmSel = EMB_TMR6_3_PWM_DISABLE;
+        pstcInit->stcTmr6_3.u32PwmLevel = EMB_DETECT_TMR6_3_PWM_BOTH_LOW;
+        pstcInit->stcTmr6_4.u32PwmSel = EMB_TMR6_4_PWM_DISABLE;
+        pstcInit->stcTmr6_4.u32PwmLevel = EMB_DETECT_TMR6_4_PWM_BOTH_LOW;
+        pstcInit->stcTmr6_5.u32PwmSel = EMB_TMR6_5_PWM_DISABLE;
+        pstcInit->stcTmr6_5.u32PwmLevel = EMB_DETECT_TMR6_5_PWM_BOTH_LOW;
+        pstcInit->stcTmr6_6.u32PwmSel = EMB_TMR6_6_PWM_DISABLE;
+        pstcInit->stcTmr6_6.u32PwmLevel = EMB_DETECT_TMR6_6_PWM_BOTH_LOW;
+        pstcInit->stcTmr6_7.u32PwmSel = EMB_TMR6_7_PWM_DISABLE;
+        pstcInit->stcTmr6_7.u32PwmLevel = EMB_DETECT_TMR6_7_PWM_BOTH_LOW;
+        pstcInit->stcTmr6_8.u32PwmSel = EMB_TMR6_8_PWM_DISABLE;
+        pstcInit->stcTmr6_8.u32PwmLevel = EMB_DETECT_TMR6_8_PWM_BOTH_LOW;
         enRet = Ok;
     }
 
@@ -649,10 +695,10 @@ en_result_t EMB_Timer6StructInit(stc_emb_tmr6_init_t *pstcInit)
  * @brief  De-Initialize EMB function
  * @param  [in] EMBx                    Pointer to EMB instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_EMB0:              EMB group 4 instance register base
- *           @arg M4_EMB1:              EMB group 5 instance register base
- *           @arg M4_EMB2:              EMB group 6 instance register base
- *           @arg M4_EMB3:              EMB group 4 instance register base
+ *           @arg M4_EMB0:              EMB group 0 instance register base
+ *           @arg M4_EMB1:              EMB group 1 instance register base
+ *           @arg M4_EMB2:              EMB group 2 instance register base
+ *           @arg M4_EMB3:              EMB group 3 instance register base
  *           @arg M4_EMB4:              EMB group 4 instance register base
  *           @arg M4_EMB5:              EMB group 5 instance register base
  *           @arg M4_EMB6:              EMB group 6 instance register base
@@ -680,10 +726,10 @@ void EMB_DeInit(M4_EMB_TypeDef *EMBx)
  * @brief  Set the EMB interrupt function
  * @param  [in] EMBx                    Pointer to EMB instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_EMB0:              EMB group 4 instance register base
- *           @arg M4_EMB1:              EMB group 5 instance register base
- *           @arg M4_EMB2:              EMB group 6 instance register base
- *           @arg M4_EMB3:              EMB group 4 instance register base
+ *           @arg M4_EMB0:              EMB group 0 instance register base
+ *           @arg M4_EMB1:              EMB group 1 instance register base
+ *           @arg M4_EMB2:              EMB group 2 instance register base
+ *           @arg M4_EMB3:              EMB group 3 instance register base
  *           @arg M4_EMB4:              EMB group 4 instance register base
  *           @arg M4_EMB5:              EMB group 5 instance register base
  *           @arg M4_EMB6:              EMB group 6 instance register base
@@ -696,20 +742,20 @@ void EMB_DeInit(M4_EMB_TypeDef *EMBx)
  *           @arg EMB_INT_PORT2:        Port2 input event interrupt
  *           @arg EMB_INT_PORT3:        Port3 input event interrupt
  *           @arg EMB_INT_PORT4:        Port4 input event interrupt
- * @param  [in] enNewSta                The function new state
+ * @param  [in] enNewState              The function new state
  *           @arg  This parameter can be: Enable or Disable
  * @retval None
  */
 void EMB_IntCmd(M4_EMB_TypeDef *EMBx,
                     uint32_t u32IntSource,
-                    en_functional_state_t enNewSta)
+                    en_functional_state_t enNewState)
 {
     /* Check parameters */
     DDL_ASSERT(IS_VALID_EMB(EMBx));
     DDL_ASSERT(IS_VALID_EMB_INT(u32IntSource));
-    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewSta));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    if (Enable == enNewSta)
+    if (Enable == enNewState)
     {
         SET_REG32_BIT(EMBx->INTEN, u32IntSource);
     }
@@ -723,15 +769,15 @@ void EMB_IntCmd(M4_EMB_TypeDef *EMBx,
  * @brief  Set EMB release PWM mode
  * @param  [in] EMBx                    Pointer to EMB instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_EMB0:              EMB group 4 instance register base
- *           @arg M4_EMB1:              EMB group 5 instance register base
- *           @arg M4_EMB2:              EMB group 6 instance register base
- *           @arg M4_EMB3:              EMB group 4 instance register base
+ *           @arg M4_EMB0:              EMB group 0 instance register base
+ *           @arg M4_EMB1:              EMB group 1 instance register base
+ *           @arg M4_EMB2:              EMB group 2 instance register base
+ *           @arg M4_EMB3:              EMB group 3 instance register base
  *           @arg M4_EMB4:              EMB group 4 instance register base
  *           @arg M4_EMB5:              EMB group 5 instance register base
  *           @arg M4_EMB6:              EMB group 6 instance register base
- * @param  [in] u32MonitorEvent         Monitor event
- *         This parameter can be one of the following values:
+ * @param  [in] u32Event                Monitor event
+ *         This parameter can be any composed value of the following values:
  *           @arg EMB_EVENT_PWMS:       PWM same phase event
  *           @arg EMB_EVENT_CMP:        CMP result event
  *           @arg EMB_EVENT_OSC:        OSC stop event
@@ -741,8 +787,8 @@ void EMB_IntCmd(M4_EMB_TypeDef *EMBx,
  *           @arg EMB_EVENT_PORT4:      Port4 input event
  * @param  [in] u32Mode                 Release mode
  *         This parameter can be one of the following values:
- *           @arg EMB_RELEALSE_PWM_SEL_FLAG_ZERO: Release PWM when flag bit is zero
- *           @arg EMB_RELEALSE_PWM_SEL_STATE_ZERO: Release PWM when state bit is zero
+ *           @arg EMB_RELEASE_PWM_SEL_FLAG_ZERO: Release PWM when flag bit is zero
+ *           @arg EMB_RELEASE_PWM_SEL_STATE_ZERO: Release PWM when state bit is zero
  * @retval None
  */
 void EMB_SetReleasePwmMode(M4_EMB_TypeDef *EMBx,
@@ -752,9 +798,9 @@ void EMB_SetReleasePwmMode(M4_EMB_TypeDef *EMBx,
     /* Check parameters */
     DDL_ASSERT(IS_VALID_EMB(EMBx));
     DDL_ASSERT(IS_VALID_EMB_MONITOR_EVENT(u32Event));
-    DDL_ASSERT(IS_VALID_EMB_RELEALSE_PWM_SEL(u32Mode));
+    DDL_ASSERT(IS_VALID_EMB_RELEASE_PWM_SEL(u32Mode));
 
-    if (EMB_RELEALSE_PWM_SEL_FLAG_ZERO == u32Mode)
+    if (EMB_RELEASE_PWM_SEL_FLAG_ZERO == u32Mode)
     {
         CLEAR_REG32_BIT(EMBx->RLSSEL, u32Event);
     }
@@ -762,6 +808,128 @@ void EMB_SetReleasePwmMode(M4_EMB_TypeDef *EMBx,
     {
         SET_REG32_BIT(EMBx->RLSSEL, u32Event);
     }
+}
+
+/**
+ * @brief  Get EMB status
+ * @param  [in] EMBx                    Pointer to EMB instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_EMB0:              EMB group 0 instance register base
+ *           @arg M4_EMB1:              EMB group 1 instance register base
+ *           @arg M4_EMB2:              EMB group 2 instance register base
+ *           @arg M4_EMB3:              EMB group 3 instance register base
+ *           @arg M4_EMB4:              EMB group 4 instance register base
+ *           @arg M4_EMB5:              EMB group 5 instance register base
+ *           @arg M4_EMB6:              EMB group 6 instance register base
+ * @param  [in] u32Flag                 EMB flag
+ *         This parameter can be one of the following values:
+ *           @arg EMB_FLAG_PWMS: PWM same phase trigger stop PWM
+ *           @arg EMB_FLAG_CMP: CMP trigger stop PWM
+ *           @arg EMB_FLAG_OSC: OSC trigger stop PWM
+ *           @arg EMB_FLAG_PORT1: EMB Port1 input trigger stop PWM
+ *           @arg EMB_FLAG_PORT2: EMB Port2 input trigger stop PWM
+ *           @arg EMB_FLAG_PORT3: EMB Port3 input trigger stop PWM
+ *           @arg EMB_FLAG_PORT4: EMB Port4 input trigger stop PWM
+ * @retval An en_flag_status_t enumeration value:
+ *           - Set: Flag is set
+ *           - Reset: Flag is reset
+ */
+en_flag_status_t EMB_GetFlag(const M4_EMB_TypeDef *EMBx, uint32_t u32Flag)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_EMB(EMBx));
+    DDL_ASSERT(IS_VALID_EMB_FLAG(u32Flag));
+
+    return READ_REG32_BIT(EMBx->STAT, u32Flag) ? Set : Reset;
+}
+
+/**
+ * @brief  Get EMB status
+ * @param  [in] EMBx                    Pointer to EMB instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_EMB0:              EMB group 0 instance register base
+ *           @arg M4_EMB1:              EMB group 1 instance register base
+ *           @arg M4_EMB2:              EMB group 2 instance register base
+ *           @arg M4_EMB3:              EMB group 3 instance register base
+ *           @arg M4_EMB4:              EMB group 4 instance register base
+ *           @arg M4_EMB5:              EMB group 5 instance register base
+ *           @arg M4_EMB6:              EMB group 6 instance register base
+ * @param  [in] u32Flag                 EMB flag
+ *         This parameter can be one of the following values:
+ *           @arg EMB_FLAG_PWMS: PWM same phase trigger stop PWM
+ *           @arg EMB_FLAG_CMP: CMP trigger stop PWM
+ *           @arg EMB_FLAG_OSC: OSC trigger stop PWM
+ *           @arg EMB_FLAG_PORT1: EMB Port1 input trigger stop PWM
+ *           @arg EMB_FLAG_PORT2: EMB Port2 input trigger stop PWM
+ *           @arg EMB_FLAG_PORT3: EMB Port3 input trigger stop PWM
+ *           @arg EMB_FLAG_PORT4: EMB Port4 input trigger stop PWM
+ * @retval None
+ */
+void EMB_ClearFlag(M4_EMB_TypeDef *EMBx, uint32_t u32Flag)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_EMB(EMBx));
+    DDL_ASSERT(IS_VALID_EMB_FLAG(u32Flag));
+
+    SET_REG32_BIT(EMBx->STATCLR, u32Flag);
+}
+
+/**
+ * @brief  Get EMB status
+ * @param  [in] EMBx                    Pointer to EMB instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_EMB0:              EMB group 0 instance register base
+ *           @arg M4_EMB1:              EMB group 1 instance register base
+ *           @arg M4_EMB2:              EMB group 2 instance register base
+ *           @arg M4_EMB3:              EMB group 3 instance register base
+ *           @arg M4_EMB4:              EMB group 4 instance register base
+ *           @arg M4_EMB5:              EMB group 5 instance register base
+ *           @arg M4_EMB6:              EMB group 6 instance register base
+ * @param  [in] u32Status               EMB state
+ *         This parameter can be one of the following values:
+ *           @arg EMB_STATE_PWMS: PWM same phase occur
+ *           @arg EMB_STATE_CMP: CMP comapre event occur
+ *           @arg EMB_STATE_OSC: OSC stop event occur
+ *           @arg EMB_STATE_PORT1: EMB Port1 input control state
+ *           @arg EMB_STATE_PORT2: EMB Port2 input control state
+ *           @arg EMB_STATE_PORT3: EMB Port3 input control state
+ *           @arg EMB_STATE_PORT4: EMB Port4 input control state
+ * @retval An en_flag_status_t enumeration value:
+ *           - Set: Flag is set
+ *           - Reset: Flag is reset
+ */
+en_flag_status_t EMB_GetStatus(const M4_EMB_TypeDef *EMBx,
+                                    uint32_t u32Status)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_EMB(EMBx));
+    DDL_ASSERT(IS_VALID_EMB_STATUS(u32Status));
+
+    return READ_REG32_BIT(EMBx->STAT, u32Status) ? Set : Reset;
+}
+
+/**
+ * @brief  Start/stop EMB software brake
+ * @param  [in] EMBx                    Pointer to EMB instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_EMB0:              EMB group 0 instance register base
+ *           @arg M4_EMB1:              EMB group 1 instance register base
+ *           @arg M4_EMB2:              EMB group 2 instance register base
+ *           @arg M4_EMB3:              EMB group 3 instance register base
+ *           @arg M4_EMB4:              EMB group 4 instance register base
+ *           @arg M4_EMB5:              EMB group 5 instance register base
+ *           @arg M4_EMB6:              EMB group 6 instance register base
+ * @param  [in] enNewState              The function new state
+ *           @arg  This parameter can be: Enable or Disable
+ * @retval None
+ */
+void EMB_SwBrake(M4_EMB_TypeDef *EMBx, en_functional_state_t enNewState)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_EMB(EMBx));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    WRITE_REG32(EMBx->SOE, enNewState);
 }
 
 /**

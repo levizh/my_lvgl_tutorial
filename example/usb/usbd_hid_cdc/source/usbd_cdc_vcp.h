@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_hid_cdc\source\usbd_cdc_vcp.h
+ * @brief Header for usbd_cdc_vcp.c file.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,17 +48,16 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_cdc_vcp.h
- **
- ** Header for usbd_cdc_vcp.c file.
- **
- **   - 2019-6-3  1.0  zhangxl First version for USB CDC VCP demo.
- **
- ******************************************************************************/
 #ifndef __USBD_CDC_VCP_H__
 #define __USBD_CDC_VCP_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
@@ -57,11 +66,15 @@
 #include "usbd_cdc_vcp_core.h"
 #include "usbd_conf.h"
 
-/* C binding of definitions if building with C++ compiler */
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_HID_CDC
+ * @{
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -96,6 +109,13 @@ typedef struct
  * Global function prototypes (definition in C source)
  ******************************************************************************/
 
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

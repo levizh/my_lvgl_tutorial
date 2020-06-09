@@ -147,7 +147,7 @@ void TcpServer_Init(void)
  * @brief  This function is the implementation of tcp_accept LwIP callback
  * @param  arg: not used
  * @param  newpcb: pointer on tcp_pcb struct for the newly created tcp connection
- * @param  err: not used 
+ * @param  err: not used
  * @retval err_t: error status
  */
 static err_t TcpServer_Accept(void *arg, struct tcp_pcb *newpcb, err_t err)
@@ -171,7 +171,7 @@ static err_t TcpServer_Accept(void *arg, struct tcp_pcb *newpcb, err_t err)
 
         /* pass newly allocated stc_tcp_server_param_t structure as argument to newpcb */
         tcp_arg(newpcb, tcpServer);
-        /* initialize lwip tcp_recv callback function for newpcb  */ 
+        /* initialize lwip tcp_recv callback function for newpcb  */
         tcp_recv(newpcb, TcpServer_Recv);
         /* initialize lwip tcp_err callback function for newpcb  */
         tcp_err(newpcb, TcpServer_Error);
@@ -201,7 +201,7 @@ static err_t TcpServer_Accept(void *arg, struct tcp_pcb *newpcb, err_t err)
  * @retval err_t: error code
  */
 static err_t TcpServer_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
-{ 
+{
     stc_tcp_server_param_t *tcpServer;
     err_t ret_err;
     struct pbuf *ptr;
@@ -227,7 +227,7 @@ static err_t TcpServer_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err
             TcpServer_Send(tpcb, tcpServer);
         }
         ret_err = ERR_OK;
-    }   
+    }
     /* else : a non empty frame was received from client but for some reason err != ERR_OK */
     else if (err != ERR_OK)
     {
@@ -290,8 +290,8 @@ static err_t TcpServer_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err
 
 /**
  * @brief  This function implements the tcp_err callback function (called
- *         when a fatal tcp_connection error occurs. 
- * @param  arg: pointer on argument parameter 
+ *         when a fatal tcp_connection error occurs.
+ * @param  arg: pointer on argument parameter
  * @param  err: not used
  * @retval None
  */
@@ -327,7 +327,7 @@ static void TcpServer_Send(struct tcp_pcb *tpcb, stc_tcp_server_param_t * tcpSer
     u8_t freed;
 
     while ((wr_err == ERR_OK) &&
-            (tcpServer->p_tx != NULL) && 
+            (tcpServer->p_tx != NULL) &&
             (tcpServer->p_tx->len <= tcp_sndbuf(tpcb)))
     {
         /* get pointer on pbuf from stc_tcp_server_param_t structure */
@@ -336,7 +336,7 @@ static void TcpServer_Send(struct tcp_pcb *tpcb, stc_tcp_server_param_t * tcpSer
         wr_err = tcp_write(tpcb, ptr->payload, ptr->len, 1U);
 
         if (wr_err == ERR_OK)
-        { 
+        {
             plen = ptr->len;
             /* continue with next pbuf in chain (if any) */
             tcpServer->p_tx = ptr->next;
@@ -411,7 +411,7 @@ static err_t TcpServer_Poll(void *arg, struct tcp_pcb *tpcb)
 
 /**
  * @brief  This function implements the tcp_sent LwIP callback (called when ACK
- *         is received from remote host for sent u8TransData) 
+ *         is received from remote host for sent u8TransData)
  * @param  None
  * @retval err_t: Returned error code
  */

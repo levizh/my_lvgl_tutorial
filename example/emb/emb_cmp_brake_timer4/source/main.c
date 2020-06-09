@@ -87,7 +87,7 @@
  * Local function prototypes ('static')
  ******************************************************************************/
 static uint32_t Tmr4PclkFreq(void);
-static void Timer4PwmConfig(void);
+static void Tmr4PwmConfig(void);
 static void CmpConfig(void);
 static void DacConfig(void);
 static void EMB_IrqCallback(void);
@@ -118,7 +118,7 @@ static uint32_t Tmr4PclkFreq(void)
  * @param  None
  * @retval None
  */
-static void Timer4PwmConfig(void)
+static void Tmr4PwmConfig(void)
 {
     stc_tmr4_cnt_init_t stcTmr4CntInit;
     stc_tmr4_oco_init_t stcTmr4OcoInit;
@@ -178,8 +178,10 @@ static void Timer4PwmConfig(void)
     TMR4_OCO_SetLowChCompareMode(M4_TMR4_1, TMR4_OCO_UL, &stcLowChCmpMode);  /* Set OCO low channel compare mode */
 
     /* Initialize PWM I/O */
+    GPIO_Unlock();
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_09, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_08, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Initialize Timer4 PWM */
     TMR4_PWM_StructInit(&stcTmr4PwmInit);
@@ -209,9 +211,11 @@ static void CmpConfig(void)
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_CMP1, Enable);
 
     /* Port function configuration for CMP*/
+    GPIO_Unlock();
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
     GPIO_Init(GPIO_PORT_E, GPIO_PIN_10, &stcGpioInit); /* CMP1_INP3 compare voltage */
+    GPIO_Lock();
 
     /* Configuration for normal compare function */
     CMP_StructInit(&stcCmpInit);
@@ -219,7 +223,7 @@ static void CmpConfig(void)
     stcCmpInit.u16CmpVol = CMP1_INP3_CMP1_INP3;
     stcCmpInit.u8RefVol = CMP_RVSL_INM1;
     stcCmpInit.u8OutDetectEdges = CMP_DETECT_EDGS_BOTH;
-    stcCmpInit.u8OutFilter = CMP_OUT_FILTER_PCLKDIV32;
+    stcCmpInit.u8OutFilter = CMP_OUT_FILTER_PCLK3_DIV32;
     stcCmpInit.u8OutPolarity = CMP_OUT_REVERSE_OFF;
     CMP_NormalModeInit(M4_CMP1, &stcCmpInit);
 
@@ -228,7 +232,6 @@ static void CmpConfig(void)
 
     /* Enable VCOUT */
     CMP_VCOUTCmd(M4_CMP1, Enable);
-
 }
 
 /**
@@ -287,15 +290,15 @@ int32_t main(void)
     CmpConfig();
 
     /* Configure Timer4 PWM. */
-    Timer4PwmConfig();
+    Tmr4PwmConfig();
 
     /* Configure EMB. */
     PWC_Fcg2PeriphClockCmd(EMB_FUNCTION_CLK_GATE, Enable);
-    EMB_Timer4StructInit(&stcEmbInit);
+    EMB_Tmr4StructInit(&stcEmbInit);
     stcEmbInit.u32Cmp1 = EMB_CMP1_ENABLE;
-    EMB_Timer4Init(EMB_UNIT, &stcEmbInit);
+    EMB_Tmr4Init(EMB_UNIT, &stcEmbInit);
     EMB_IntCmd(EMB_UNIT, EMB_INT_CMP, Enable);
-    EMB_SetReleasePwmMode(EMB_UNIT, EMB_EVENT_CMP, EMB_RELEALSE_PWM_SEL_FLAG_ZERO);
+    EMB_SetReleasePwmMode(EMB_UNIT, EMB_EVENT_CMP, EMB_RELEASE_PWM_SEL_FLAG_ZERO);
 
     /* Register IRQ handler && configure NVIC. */
     stcIrqSigninCfg.enIRQn = EMB_INT_IRQn;

@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_hid_msc\source\usbd_desc.c
+ * @brief This file provides the USBD descriptors and string formating method.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.c
- **
- ** A detailed description is available at
- ** @link
-        This file provides the USBD descriptors and string formating method.
-    @endlink
- **
- **   - 2019-11-19  1.0  zhangxl First version for USB MSC_HID composite demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -58,7 +58,18 @@
 #include "usbd_desc.h"
 #include "usbd_req.h"
 #include "usbd_conf.h"
-#include "usb_otg_regs.h"
+#include "hc32f4a0_usb_otg_regs.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_HID_MSC
+ * @{
+ */
+
 
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
@@ -86,13 +97,14 @@ static void Get_SerialNum(void);
  ******************************************************************************/
 USBD_DEVICE USR_desc =
 {
-    USBD_USR_DeviceDescriptor,
-    USBD_USR_LangIDStrDescriptor,
-    USBD_USR_ManufacturerStrDescriptor,
-    USBD_USR_ProductStrDescriptor,
-    USBD_USR_SerialStrDescriptor,
-    USBD_USR_ConfigStrDescriptor,
-    USBD_USR_InterfaceStrDescriptor,
+    &USBD_USR_DeviceDescriptor,
+    &USBD_USR_LangIDStrDescriptor,
+    &USBD_USR_ManufacturerStrDescriptor,
+    &USBD_USR_ProductStrDescriptor,
+    &USBD_USR_SerialStrDescriptor,
+    &USBD_USR_ConfigStrDescriptor,
+    &USBD_USR_InterfaceStrDescriptor,
+
 };
 
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
@@ -333,6 +345,14 @@ static void IntToUnicode(uint32_t value, uint8_t * pbuf, uint8_t len)
         pbuf[2 * idx + 1] = 0;
     }
 }
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
 
 /*******************************************************************************
  * EOF (not truncated)

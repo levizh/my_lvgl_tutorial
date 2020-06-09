@@ -1,8 +1,17 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_mouse\source\main.c
+ * @brief Main program of USBD mouse example.
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,15 +47,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file main.c
- **
- ** \brief USB mouse example.
- **
- **   - 2018-12-25  1.0  Wangmin First version for USB mouse demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -55,6 +57,17 @@
 #include "usbd_usr.h"
 #include "usbd_desc.h"
 #include "usb_bsp.h"
+
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_MOUSE
+ * @{
+ */
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -90,36 +103,34 @@ typedef enum
  * Local variable definitions ('static')
  ******************************************************************************/
 USB_OTG_CORE_HANDLE  USB_OTG_dev;
-
+__IO uint32_t test = 0ul;
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 
 /**
- *******************************************************************************
- ** \brief Key status read function
- **
- ** \param   [in]  none
- **
- ** \retval button id
- **
- ******************************************************************************/
+ * @brief Key status read function
+ * @param   [in]  none
+ * @retval button id
+ */
 Button_TypeDef Key_ReadIOPin_continuous(void)
 {
+
     Button_TypeDef enKey = BUTTON_NULL;
-    if(!PORT_GetBit(KEY_PORT,KEY_UP))
+
+    if (Set == BSP_KEY_GetStatus(BSP_KEY_5))
     {
         enKey = BUTTON_UP;
     }
-    else if(!PORT_GetBit(KEY_PORT,KEY_DOWN))
+    if (Set == BSP_KEY_GetStatus(BSP_KEY_6))
     {
         enKey = BUTTON_DOWN;
     }
-    else if(!PORT_GetBit(KEY_PORT,KEY_LEFT))
+    if (Set == BSP_KEY_GetStatus(BSP_KEY_7))
     {
         enKey = BUTTON_LEFT;
     }
-    else if(!PORT_GetBit(KEY_PORT,KEY_RIGHT))
+    if (Set == BSP_KEY_GetStatus(BSP_KEY_8))
     {
         enKey = BUTTON_RIGHT;
     }
@@ -132,14 +143,10 @@ Button_TypeDef Key_ReadIOPin_continuous(void)
 }
 
 /**
- *******************************************************************************
- ** \brief USB HID device get position function
- **
- ** \param [in]  None
- **
- ** \retval Pointer to report
- **
- ******************************************************************************/
+ * @brief USB HID device get position function
+ * @param [in]  None
+ * @retval Pointer to report
+ */
 static uint8_t* USBD_HID_GetPos (void)
 {
     int8_t  x = (int8_t)0, y = (int8_t)0;
@@ -170,14 +177,10 @@ static uint8_t* USBD_HID_GetPos (void)
     return HID_Buffer;
 }
 /**
- *******************************************************************************
- ** \brief SysTick IRQ function that get mouse position and report it
- **
- ** \param [in]  None
- **
- ** \retval None
- **
- ******************************************************************************/
+ * @brief SysTick IRQ function that get mouse position and report it
+ * @param [in]  None
+ * @retval None
+ */
 void SysTick_IrqHandler(void)
 {
     uint8_t *buf;
@@ -189,18 +192,12 @@ void SysTick_IrqHandler(void)
     }
 }
 /**
- *******************************************************************************
- ** \brief  main function for mouse function
- **
- ** \param [in]  None
- **
- ** \retval int32_t Return value, if needed
- **
- ******************************************************************************/
+ * @brief  main function
+ * @param [in]  None
+ * @retval int32_t Return value, if needed
+ */
 int32_t main (void)
 {
-    __IO uint32_t test = 0ul;
-
     USBD_Init(&USB_OTG_dev,
 #ifdef USE_USB_OTG_FS
               USB_OTG_FS_CORE_ID,
@@ -221,6 +218,14 @@ int32_t main (void)
         }
     }
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

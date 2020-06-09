@@ -1,8 +1,17 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_vcp\source\main.c
+ * @brief Main program of USB CDC example.
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,15 +47,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file main.c
- **
- ** \brief USB mouse example.
- **
- **   - 2018-12-25  1.0  Wangmin First version for USB mouse demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -55,6 +57,17 @@
 #include "usbd_usr.h"
 #include "usbd_desc.h"
 #include "usb_bsp.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_VCP
+ * @{
+ */
+
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -81,16 +94,11 @@ USB_OTG_CORE_HANDLE  USB_OTG_dev;
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 
-
 /**
- *******************************************************************************
- ** \brief  main function for mouse function
- **
- ** \param [in]  None
- **
- ** \retval int32_t Return value, if needed
- **
- ******************************************************************************/
+ * @brief  main function
+ * @param [in]  None
+ * @retval int32_t Return value, if needed
+ */
 int32_t main (void)
 {
     __IO uint32_t test = 0ul;
@@ -115,6 +123,14 @@ int32_t main (void)
         }
     }
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

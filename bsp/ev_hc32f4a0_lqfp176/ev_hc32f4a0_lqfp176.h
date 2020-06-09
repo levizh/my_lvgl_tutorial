@@ -97,7 +97,7 @@ extern "C"
 /** @defgroup BSP_KEY_config BSP Key config definition
  * @{
  */
-#define BSP_KEY_ROW0_EXINT      (EXINT_CH00)
+#define BSP_KEY_ROW0_EXINT      (EXINT_CH08)
 #define BSP_KEY_ROW1_EXINT      (EXINT_CH03)
 #define BSP_KEY_ROW2_EXINT      (EXINT_CH07)
 
@@ -105,7 +105,7 @@ extern "C"
 #define BSP_KEY_ROW1_IRQn       (Int030_IRQn)
 #define BSP_KEY_ROW2_IRQn       (Int031_IRQn)
 
-#define BSP_KEY_ROW0_INT_SRC    (INT_PORT_EIRQ0)
+#define BSP_KEY_ROW0_INT_SRC    (INT_PORT_EIRQ8)
 #define BSP_KEY_ROW1_INT_SRC    (INT_PORT_EIRQ3)
 #define BSP_KEY_ROW2_INT_SRC    (INT_PORT_EIRQ7)
 
@@ -116,8 +116,8 @@ extern "C"
 #define BSP_KEYOUT2_PORT        (GPIO_PORT_A)
 #define BSP_KEYOUT2_PIN         (GPIO_PIN_06)
 
-#define BSP_KEYIN0_PORT         (GPIO_PORT_A)
-#define BSP_KEYIN0_PIN          (GPIO_PIN_00)
+#define BSP_KEYIN0_PORT         (GPIO_PORT_I)
+#define BSP_KEYIN0_PIN          (GPIO_PIN_08)
 #define BSP_KEYIN1_PORT         (GPIO_PORT_I)
 #define BSP_KEYIN1_PIN          (GPIO_PIN_03)
 #define BSP_KEYIN2_PORT         (GPIO_PORT_H)
@@ -148,8 +148,8 @@ extern "C"
 #define CAM_PORT                (EIO_PORT1)
 #define CAM_RST_PORT            (EIO_PORT1)
 #define CAM_RST_PIN             (EIO_CAM_RST)
-#define CAM_STBY_PORT           (EIO_PORT1)
-#define CAM_STBY_PIN            (EIO_CAM_STANDBY)
+#define CAM_STB_PORT            (EIO_PORT1)
+#define CAM_STB_PIN             (EIO_CAM_STB)
 /**
  * @}
  */
@@ -157,12 +157,12 @@ extern "C"
 /** @defgroup BSP_LCD_PortPin_Sel BSP LCD pannel port/pin definition
  * @{
  */
-#define LCD_RST_PORT            (EIO_PORT1)
+#define LCD_RST_PORT            (EIO_PORT0)
 #define LCD_RST_PIN             (EIO_LCD_RST)
-#define LCD_BKL_PORT            (EIO_PORT0)
-#define LCD_BKL_PIN             (EIO_LCD_BK)
-#define LCD_BKL_PORT            (EIO_PORT0)
-#define LCD_BKL_PIN             (EIO_LCD_BK)
+//#define LCD_BKL_PORT            (EIO_PORT0)
+//#define LCD_BKL_PIN             (EIO_LCD_BK)
+//#define LCD_BKL_PORT            (EIO_PORT0)
+//#define LCD_BKL_PIN             (EIO_LCD_BK)
 #define LCD_RTCS_PORT           (EIO_PORT0)
 #define LCD_RTCS_PIN            (EIO_RTCS_CTRST)
 #define LCD_CTRST_PORT          (EIO_PORT0)
@@ -270,11 +270,11 @@ void BSP_LED_Toggle(uint8_t u8Led);
 void BSP_KEY_Init(void);
 en_flag_status_t BSP_KEY_GetStatus(uint32_t u32Key);
 void BSP_CLK_Init(void);
-void BSP_CAM_IO_Init(void);
+void BSP_CAM_Init(void);
 void BSP_CAM_RSTCmd(uint8_t Cmd);
-void BSP_CAM_STBYCmd(uint8_t Cmd);
+void BSP_CAM_STBCmd(uint8_t Cmd);
 void BSP_LCD_IO_Init(void);
-void BSP_LCD_ResetCmd(uint8_t Cmd);
+void BSP_LCD_RSTCmd(uint8_t Cmd);
 void BSP_LCD_BKLCmd(uint8_t Cmd);
 void BSP_LCD_Init(void);
 void BSP_CT_RSTCmd(uint8_t Cmd);

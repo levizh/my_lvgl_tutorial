@@ -172,8 +172,8 @@ int32_t main(void)
 
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
-    DDL_UartInit();
-#endif // #if (DDL_PRINT_ENABLE == DDL_ON)
+    DDL_PrintfInit();
+#endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
 
     /* Configures OTS. */
     OtsConfig();
@@ -330,7 +330,7 @@ static void OtsTrigConfig(void)
     TMR2_Init(M4_TMR2_1, TMR2_CH_A, &stcInit);
 
     /* Specifies event 'EVT_TMR2_1_CMPA' as the trigger source event of OTS. */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     OTS_SetTrigEvent(EVT_TMR2_1_CMPA);
 }
 

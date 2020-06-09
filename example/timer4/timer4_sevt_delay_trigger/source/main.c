@@ -172,7 +172,9 @@ int32_t main(void)
     TMR4_SEVT_SetPortOutputEventSig(TMR4_UNIT, TMR4_SEVT_PORT_OUTPUT);
 
     /* Configure Timer4 SEVT port*/
+    GPIO_Unlock();
     GPIO_SetFunc(TMR4_SEVT_PORT, TMR4_SEVT_PIN, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Start TIMER4 counter. */
     TMR4_CNT_Start(TMR4_UNIT);
@@ -239,9 +241,11 @@ static void AdcChannelConfig(void)
     stc_gpio_init_t stcGpioInit;
     uint8_t au8AdcSASplTime[] = {30};
 
+    GPIO_Unlock();
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
     GPIO_Init(ADC_PORT, ADC_PIN, &stcGpioInit);
+    GPIO_Lock();
 
     ADC_ChannelCmd(ADC_UNIT, ADC_SEQ_A, ADC_CH, au8AdcSASplTime, Enable);
 }
@@ -256,7 +260,7 @@ static void AdcTrigSrcConfig(void)
     stc_adc_trig_cfg_t stcTrigCfg;
 
     ADC_TrigSrcStructInit(&stcTrigCfg);
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
 
     stcTrigCfg.u16TrigSrc = ADC_TRIG_SRC_TYPE;
     stcTrigCfg.enEvent0   = ADC_TRIG_SRC_EVENT;

@@ -102,14 +102,15 @@ int32_t main(void)
 {
     stc_efm_cfg_t stcEfmCfg;
     uint32_t flag1, flag2;
-    /* Configures the PLLHP(240MHz) as the system clock. */
+
+    /* Configure system clock. */
     SystemClockConfig();
     /* Unlock EFM. */
     EFM_Unlock();
     /* EFM default config. */
     EFM_StrucInit(&stcEfmCfg);
     /* EFM config */
-    stcEfmCfg.u32BusState  = EFM_BUS_RELEASE;  /* Bus release while programming or erasing */
+    stcEfmCfg.u32BusStatus  = EFM_BUS_RELEASE;  /* Bus release while programming or erasing */
     /*
      * Clock <= 40MHZ             EFM_WAIT_CYCLE_0
      * 40MHZ < Clock <= 80MHZ     EFM_WAIT_CYCLE_1
@@ -146,8 +147,7 @@ int32_t main(void)
 }
 
 /**
- * @brief  Configures the PLLHP(240MHz) as the system clock.
- *         The input source of PLLH is XTAL(8MHz).
+ * @brief  Configure system clock.
  * @param  None
  * @retval None
  */
@@ -169,8 +169,8 @@ static void SystemClockConfig(void)
     /* PCLK2, PCLK3 Max 60MHz  */
     /* EX BUS Max 120MHz */
     CLK_ClkDiv(CLK_CATE_ALL,                                       \
-               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV8 | CLK_PCLK2_DIV8 | \
-                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV8 | CLK_EXCLK_DIV2 | \
+               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV2 | CLK_PCLK2_DIV4 | \
+                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 | \
                 CLK_HCLK_DIV1));
 
     CLK_PLLHStrucInit(&stcPLLHInit);
@@ -196,12 +196,11 @@ static void SystemClockConfig(void)
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
-
 /**
  * @}
  */

@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbh_mouse_kb\source\usbh_usr_print.c
+ * @brief This file includes the user application layer.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_usr_print.c
- **
- ** A detailed description is available at
- ** @link
-        This file includes the user application layer.
-    @endlink
- **
- **   - 2019-12-13  1.0  zhangxl First version for USB hid mouse & keyboard demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -57,6 +57,16 @@
 #include "usbh_usr_print.h"
 #include "usb_conf.h"
 #include "hc32_ddl.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBH_MOUSE_KB
+ * @{
+ */
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -147,6 +157,14 @@ void HID_MOUSE_ButtonReleased(uint8_t button_idx)
             break;
     }
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

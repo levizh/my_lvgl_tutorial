@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_hcs.h
+ * @brief Header file for usbh_hcs.c
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,23 +48,40 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_hcs.h
- **
- ** A detailed description is available at
- ** @link header file for the usbh_hcs.c @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 #ifndef __USBH_HCS_H
 #define __USBH_HCS_H
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbh_core.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CORE
+ * @{
+ */
+
+/** @addtogroup USBH_HCS
+ * @{
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -65,16 +92,18 @@
  ******************************************************************************/
 
 /**
- *******************************************************************************
- ** \brief USBH_HCS_Exported_Defines
- **
- ******************************************************************************/
-#define HC_MAX           (16u)
+ * @defgroup USBH_HCS_Global_Macros USBH Channel Control Global Macros
+ * @{
+ */
+#define HC_MAX           (16U)
 
-#define HC_OK            (0x0000u)
-#define HC_USED          (0x8000u)
-#define HC_ERROR         (0xFFFFu)
-#define HC_USED_MASK     (0x7FFFu)
+#define HC_OK            (0x0000U)
+#define HC_USED          (0x8000U)
+#define HC_ERROR         (0xFFFFU)
+#define HC_USED_MASK     (0x7FFFU)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -83,6 +112,10 @@
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBH_HCS_Global_Functions
+ * @{
+ */
 uint8_t USBH_Alloc_Channel(USB_OTG_CORE_HANDLE *pdev, uint8_t ep_addr);
 
 uint8_t USBH_Free_Channel  (USB_OTG_CORE_HANDLE *pdev, uint8_t idx);
@@ -102,6 +135,29 @@ uint8_t USBH_Modify_Channel (USB_OTG_CORE_HANDLE *pdev,
                             uint8_t speed,
                             uint8_t ep_type,
                             uint16_t mps);
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBH_HCS_H */
 

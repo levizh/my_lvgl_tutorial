@@ -91,6 +91,18 @@
 (   ((x) == M4_DAC1)                               ||                          \
     ((x) == M4_DAC2))
 
+#define IS_VALID_CHN(x)                                                        \
+(   ((x) == DAC_Channel_1)                         ||                          \
+    ((x) == DAC_Channel_2))
+
+#define IS_VALID_DATA_ALIGN(x)                                                 \
+(   ((x) == DAC_Align_12b_R)                       ||                          \
+    ((x) == DAC_Align_12b_L))
+
+#define IS_VALID_DATA_SRC(x)                                                   \
+(   ((x) == DAC_Data_From_DataReg)                 ||                          \
+    ((x) == DAC_Data_From_DCU))
+
 #define IS_VALID_ADCPRIO_CONFIG(x)   (0U == ((x) & (uint16_t)(~DAC_ADPCR_CONFIG_ALL)))
 
 
@@ -199,9 +211,11 @@ void DAC_ChannelAllCmd(M4_DAC_TypeDef* pstcDACx, en_functional_state_t enNewStat
 en_result_t DAC_ChannelCmd(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_functional_state_t enNewState)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
+    DDL_ASSERT(IS_VALID_CHN(enCh));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     en_result_t ret = Ok;
+
     if(pstcDACx->DACR & DAC_DACR_DAE)
     {
       ret = ErrorInvalidMode;
@@ -228,7 +242,9 @@ en_result_t DAC_ChannelCmd(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_functi
 void DAC_OutputCmd(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_functional_state_t enNewState)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
+    DDL_ASSERT(IS_VALID_CHN(enCh));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
     uint16_t u16State = enNewState;
     MODIFY_REG16(pstcDACx->DAOCR, (uint16_t)1U << (DAC_DAOCR_DAODIS1_POS + enCh)\
                  , (uint16_t)(~u16State) << (DAC_DAOCR_DAODIS1_POS + enCh));
@@ -251,10 +267,12 @@ void DAC_OutputCmd(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_functional_sta
 en_result_t DAC_AMPCmd(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_functional_state_t enNewState)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
+    DDL_ASSERT(IS_VALID_CHN(enCh));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     en_result_t ret = Ok;
     uint16_t u16CmdPos = (uint16_t)DAC_DACR_EXTDSL1_POS + enCh;
+
     if(1U & (pstcDACx->DACR >> u16CmdPos))
     {
       ret = ErrorInvalidMode;
@@ -281,6 +299,8 @@ en_result_t DAC_AMPCmd(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_functional
 void DAC_DataPatternConfig(M4_DAC_TypeDef* pstcDACx, en_dac_align_t enAlign)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
+    DDL_ASSERT(IS_VALID_DATA_ALIGN(enAlign));
+
     MODIFY_REG16(pstcDACx->DACR, DAC_DACR_DPSEL , (uint32_t)enAlign << DAC_DACR_DPSEL_POS);
 }
 
@@ -300,6 +320,9 @@ void DAC_DataPatternConfig(M4_DAC_TypeDef* pstcDACx, en_dac_align_t enAlign)
 void DAC_SetDataSource(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_dac_src_t src)
 {
     DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
+    DDL_ASSERT(IS_VALID_CHN(enCh));
+    DDL_ASSERT(IS_VALID_DATA_SRC(src));
+    
     uint16_t u16CmdPos = (uint16_t)DAC_DACR_EXTDSL1_POS + enCh;
     MODIFY_REG16(pstcDACx->DACR, (uint16_t)1U << u16CmdPos, (uint32_t)src << u16CmdPos);
 }

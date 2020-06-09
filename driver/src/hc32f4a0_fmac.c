@@ -86,48 +86,14 @@
  * @defgroup FMAC_Check_Parameters_Validity FMAC Check Parameters Validity
  * @{
  */
-#define IS_FMAC_FILTER_SHIFT(x)                                              \
-(   ((x) == FMAC_FILTER_SHIFT_0BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_1BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_2BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_3BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_4BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_5BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_6BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_7BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_8BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_9BIT)               ||                         \
-    ((x) == FMAC_FILTER_SHIFT_10BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_11BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_12BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_13BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_14BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_15BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_16BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_17BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_18BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_19BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_20BIT)              ||                         \
-    ((x) == FMAC_FILTER_SHIFT_21BIT))
+#define IS_FMAC_FILTER_SHIFT(x)               ((x) <= FMAC_FILTER_SHIFT_21BIT)
 
-#define IS_FMAC_FILTER_STAGE(x)                                              \
-(   ((x) == FMAC_FILTER_STAGE_0)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_1)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_2)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_3)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_4)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_5)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_6)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_7)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_8)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_9)                  ||                         \
-    ((x) == FMAC_FILTER_STAGE_10)                 ||                         \
-    ((x) == FMAC_FILTER_STAGE_11)                 ||                         \
-    ((x) == FMAC_FILTER_STAGE_12)                 ||                         \
-    ((x) == FMAC_FILTER_STAGE_13)                 ||                         \
-    ((x) == FMAC_FILTER_STAGE_14)                 ||                         \
-    ((x) == FMAC_FILTER_STAGE_15)                 ||                         \
-    ((x) == FMAC_FILTER_STAGE_16))
+
+#define IS_FMAC_FILTER_STAGE(x)                  ((x) <= FMAC_FILTER_STAGE_16)
+
+#define IS_FMAC_INT_FUNC(x)                                                  \
+(   ((x) == FMAC_INT_ENABLE)                      ||                         \
+    ((x) == FMAC_INT_DISABLE))
 
 #define IS_VALID_UNIT(x)                                                     \
 (   ((x) == M4_FMAC1)                             ||                         \
@@ -176,10 +142,10 @@ en_result_t FMAC_StructInit(stc_fmac_init_t* pstcInitStruct)
 
     if (pstcInitStruct != NULL)
     {
-        pstcInitStruct->u8FiltStage  = FMAC_FILTER_STAGE_0;
-        pstcInitStruct->u8FiltShift  = FMAC_FILTER_SHIFT_0BIT;
-        pstcInitStruct->FiltFactor   = 0;
-        pstcInitStruct->enFmacIntCmd = Disable;
+        pstcInitStruct->u32FiltStage  = FMAC_FILTER_STAGE_0;
+        pstcInitStruct->u32FiltShift  = FMAC_FILTER_SHIFT_0BIT;
+        pstcInitStruct->i16FiltFactor = 0;
+        pstcInitStruct->u32IntCmd     = Disable;
         enRet = Ok;
     }
     return enRet;
@@ -189,16 +155,15 @@ en_result_t FMAC_StructInit(stc_fmac_init_t* pstcInitStruct)
  * @brief  De-Initialize FMAC function
  * @param  [in] FMACx            Pointer to FMAC instance register base.
  * This parameter can be a value of the following:
- *   @arg  M4_FMAC1             FMAC unit 1 instance register base
- *   @arg  M4_FMAC2             FMAC unit 2 instance register base
- *   @arg  M4_FMAC3             FMAC unit 3 instance register base
- *   @arg  M4_FMAC4             FMAC unit 4 instance register base
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ *   @arg  M4_FMAC1:             FMAC unit 1 instance register base
+ *   @arg  M4_FMAC2:             FMAC unit 2 instance register base
+ *   @arg  M4_FMAC3:             FMAC unit 3 instance register base
+ *   @arg  M4_FMAC4:             FMAC unit 4 instance register base
+ * @retval None
  */
-en_result_t FMAC_DeInit(M4_FMAC_TypeDef* FMACx)
+void FMAC_DeInit(M4_FMAC_TypeDef* FMACx)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+
     DDL_ASSERT(IS_VALID_UNIT(FMACx));
 
     WRITE_REG32(FMACx->CTR, 0UL);
@@ -207,18 +172,16 @@ en_result_t FMAC_DeInit(M4_FMAC_TypeDef* FMACx)
     WRITE_REG32(FMACx->RTR0, 0UL);
     WRITE_REG32(FMACx->RTR1, 0UL);
     WRITE_REG32(FMACx->STR, 0UL);
-    enRet = Ok;
-    return enRet;
 }
 
 /**
  * @brief  FMAC peripheral function initialize
  * @param  [in] FMACx            Pointer to FMAC instance register base.
  * This parameter can be a value of the following:
- *   @arg  M4_FMAC1              FMAC unit 1 instance register base
- *   @arg  M4_FMAC2              FMAC unit 2 instance register base
- *   @arg  M4_FMAC3              FMAC unit 3 instance register base
- *   @arg  M4_FMAC4              FMAC unit 4 instance register base
+ *   @arg  M4_FMAC1:             FMAC unit 1 instance register base
+ *   @arg  M4_FMAC2:             FMAC unit 2 instance register base
+ *   @arg  M4_FMAC3:             FMAC unit 3 instance register base
+ *   @arg  M4_FMAC4:             FMAC unit 4 instance register base
  * @param  [in] pstcFmacInit     FMAC function base parameter structure
  *   @arg  See the structure definition for @ref stc_fmac_init_t
  * @retval Ok: Success
@@ -228,24 +191,24 @@ en_result_t FMAC_Init(M4_FMAC_TypeDef* FMACx, const stc_fmac_init_t *pstcFmacIni
 {
     en_result_t enRet = ErrorInvalidParameter;
     __IO uint32_t *FMAC_CORx;
-    uint8_t u8temp = 0U; 
+    uint32_t u32temp = 0UL; 
     if(pstcFmacInit != NULL)
     {
-        enRet = Ok;
         DDL_ASSERT(IS_VALID_UNIT(FMACx));
-        DDL_ASSERT(IS_FMAC_FILTER_SHIFT(pstcFmacInit->u8FiltShift));
-        DDL_ASSERT(IS_FMAC_FILTER_STAGE(pstcFmacInit->u8FiltStage));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(pstcFmacInit->enFmacIntCmd));
-        u8temp = pstcFmacInit->u8FiltStage;
+        DDL_ASSERT(IS_FMAC_FILTER_SHIFT(pstcFmacInit->u32FiltShift));
+        DDL_ASSERT(IS_FMAC_FILTER_STAGE(pstcFmacInit->u32FiltStage));
+        DDL_ASSERT(IS_FMAC_INT_FUNC(pstcFmacInit->u32IntCmd));
+        u32temp = pstcFmacInit->u32FiltStage;
         /* Configure filter stage and results right shift bits */
-        FMACx->CTR = (pstcFmacInit->u8FiltStage | \
-                     ((uint32_t)pstcFmacInit->u8FiltShift << FMAC_CTR_SHIFT_POS));
+        WRITE_REG32(FMACx->CTR, (pstcFmacInit->u32FiltStage | \
+                     (pstcFmacInit->u32FiltShift << FMAC_CTR_SHIFT_POS)));
         /* Configure interrupt command */
-        FMACx->IER = pstcFmacInit->enFmacIntCmd;
+        WRITE_REG32(FMACx->IER, pstcFmacInit->u32IntCmd);
         do{
-            FMAC_CORx = (uint32_t *)((uint32_t)(&FMACx->COR0) + ((uint32_t)u8temp << 2U));
-            *FMAC_CORx = (uint32_t)pstcFmacInit->FiltFactor;
-        }while(u8temp--);
+            FMAC_CORx = (uint32_t *)((uint32_t)(&FMACx->COR0) + (u32temp << 2UL));
+            *FMAC_CORx = (uint32_t)pstcFmacInit->i16FiltFactor;
+        }while(u32temp--);
+        enRet = Ok;
     }
     return enRet;
 }
@@ -254,157 +217,133 @@ en_result_t FMAC_Init(M4_FMAC_TypeDef* FMACx, const stc_fmac_init_t *pstcFmacIni
  * @brief  Enable or Disable FMAC
  * @param  [in] FMACx           Pointer to FMAC instance register base.
  * This parameter can be a value of the following:
- *   @arg  M4_FMAC1             FMAC unit 1 instance register base
- *   @arg  M4_FMAC2             FMAC unit 2 instance register base
- *   @arg  M4_FMAC3             FMAC unit 3 instance register base
- *   @arg  M4_FMAC4             FMAC unit 4 instance register base
+ *   @arg  M4_FMAC1:            FMAC unit 1 instance register base
+ *   @arg  M4_FMAC2:            FMAC unit 2 instance register base
+ *   @arg  M4_FMAC3:            FMAC unit 3 instance register base
+ *   @arg  M4_FMAC4:            FMAC unit 4 instance register base
  * @param  [in] enNewState      Disable or Enable the function
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t FMAC_Cmd(M4_FMAC_TypeDef* FMACx, en_functional_state_t enNewState)
+void FMAC_Cmd(M4_FMAC_TypeDef* FMACx, en_functional_state_t enNewState)
 {
-    en_result_t enRet = ErrorInvalidParameter;
     DDL_ASSERT(IS_VALID_UNIT(FMACx));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-    FMACx->ENR = (uint32_t)enNewState;
-    enRet = Ok;
 
-    return enRet;
+    WRITE_REG32(FMACx->ENR, enNewState);
 }
 
 /**
  * @brief  Set Filter result shift bits.
  * @param  [in] FMACx           Pointer to FMAC instance register base.
  * This parameter can be a value of the following:
- *   @arg  M4_FMAC1             FMAC unit 1 instance register base
- *   @arg  M4_FMAC2             FMAC unit 2 instance register base
- *   @arg  M4_FMAC3             FMAC unit 3 instance register base
- *   @arg  M4_FMAC4             FMAC unit 4 instance register base
- * @param  [in] u8ShiftNum      Result shift times.
+ *   @arg  M4_FMAC1:             FMAC unit 1 instance register base
+ *   @arg  M4_FMAC2:             FMAC unit 2 instance register base
+ *   @arg  M4_FMAC3:             FMAC unit 3 instance register base
+ *   @arg  M4_FMAC4:             FMAC unit 4 instance register base
+ * @param  [in] u32ShiftNum      Result shift times.
  * This parameter can be set 0-21
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t FMAC_SetResultShift(M4_FMAC_TypeDef* FMACx, uint8_t u8ShiftNum)
+void FMAC_SetResultShift(M4_FMAC_TypeDef* FMACx, uint32_t u32ShiftNum)
 {
-    en_result_t enRet = ErrorInvalidParameter;
     DDL_ASSERT(IS_VALID_UNIT(FMACx));
-    DDL_ASSERT(IS_FMAC_FILTER_SHIFT(u8ShiftNum));
+    DDL_ASSERT(IS_FMAC_FILTER_SHIFT(u32ShiftNum));
     /* Set Filter result shift bits */
-    MODIFY_REG32(FMACx->CTR, FMAC_CTR_SHIFT, (uint32_t)u8ShiftNum << FMAC_CTR_SHIFT_POS);
-    enRet = Ok;
-
-    return enRet;
+    MODIFY_REG32(FMACx->CTR, FMAC_CTR_SHIFT, u32ShiftNum << FMAC_CTR_SHIFT_POS);
 }
 
 /**
- * @brief  Set filter stage number and filter factor.
+ * @brief  Set filter stage and filter factor.
  * @param  [in] FMACx           Pointer to FMAC instance register base.
  * This parameter can be a value of the following:
- *   @arg  M4_FMAC1             FMAC unit 1 instance register base
- *   @arg  M4_FMAC2             FMAC unit 2 instance register base
- *   @arg  M4_FMAC3             FMAC unit 3 instance register base
- *   @arg  M4_FMAC4             FMAC unit 4 instance register base
- * @param  [in] u8filterStage   FMAC filter stage number.
+ *   @arg  M4_FMAC1:            FMAC unit 1 instance register base
+ *   @arg  M4_FMAC2:            FMAC unit 2 instance register base
+ *   @arg  M4_FMAC3:            FMAC unit 3 instance register base
+ *   @arg  M4_FMAC4:            FMAC unit 4 instance register base
+ * @param  [in] u32FilterStage  FMAC filter stage.
  * This parameter can be set 0 ~ 16
- * @param  [in] factor          FMAC filter factor.
+ * @param  [in] i16Factor       FMAC filter factor.
  * This parameter can be set -32768 ~ 32767
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t FMAC_SetStageFactor(M4_FMAC_TypeDef* FMACx, uint8_t u8filterStage, int16_t factor)
+void FMAC_SetStageFactor(M4_FMAC_TypeDef* FMACx, uint32_t u32FilterStage, int16_t i16Factor)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-    uint16_t *FMAC_CORx;
+    uint32_t *FMAC_CORx;
     DDL_ASSERT(IS_VALID_UNIT(FMACx));
-    DDL_ASSERT(IS_FMAC_FILTER_STAGE(u8filterStage));
+    DDL_ASSERT(IS_FMAC_FILTER_STAGE(u32FilterStage));
     /* FMAC Software reset */
-    FMACx->ENR = FMAC_FUNC_DISABLE;
-    FMACx->ENR = FMAC_FUNC_ENABLE;
-    /* Set filter stage number */
-    MODIFY_REG32(FMACx->CTR, FMAC_CTR_STAGE_NUM, u8filterStage);
+    CLEAR_REG32_BIT(FMACx->ENR, FMAC_ENR_FMACEN);
+    SET_REG32_BIT(FMACx->ENR, FMAC_ENR_FMACEN);
+    /* Set the filter stage  */
+    MODIFY_REG32(FMACx->CTR, FMAC_CTR_STAGE_NUM, u32FilterStage);
     do
     {
-        FMAC_CORx = (uint16_t*)((uint32_t)(&FMACx->COR0) + ((uint32_t)u8filterStage << 2U));
-        *FMAC_CORx = (uint16_t)factor;
-    }while(u8filterStage--);
-    enRet = Ok;
-
-    return enRet;
+        FMAC_CORx = (uint32_t*)((uint32_t)(&FMACx->COR0) + (u32FilterStage << 2UL));
+        *FMAC_CORx = (uint32_t)i16Factor;
+    }while(u32FilterStage--);
 }
 
 /**
  * @brief  Configure interrupt command.
  * @param  [in] FMACx           Pointer to FMAC instance register base.
  * This parameter can be a value of the following:
- *   @arg  M4_FMAC1             FMAC unit 1 instance register base
- *   @arg  M4_FMAC2             FMAC unit 2 instance register base
- *   @arg  M4_FMAC3             FMAC unit 3 instance register base
- *   @arg  M4_FMAC4             FMAC unit 4 instance register base
+ *   @arg  M4_FMAC1:            FMAC unit 1 instance register base
+ *   @arg  M4_FMAC2:            FMAC unit 2 instance register base
+ *   @arg  M4_FMAC3:            FMAC unit 3 instance register base
+ *   @arg  M4_FMAC4:            FMAC unit 4 instance register base
  * @param  [in] enNewState      Disable or Enable the function.
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t FMAC_IntCmd(M4_FMAC_TypeDef* FMACx, en_functional_state_t enNewState)
+void FMAC_IntCmd(M4_FMAC_TypeDef* FMACx, en_functional_state_t enNewState)
 {
-    en_result_t enRet = ErrorInvalidParameter;
     DDL_ASSERT(IS_VALID_UNIT(FMACx));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-    FMACx->IER = (uint32_t)enNewState;
-    enRet = Ok;
-    return enRet;
+
+    WRITE_REG32(FMACx->IER, enNewState);
 }
 
 /**
  * @brief  Data input.
  * @param  [in] FMACx           Pointer to FMAC instance register base.
  * This parameter can be a value of the following:
- *   @arg  M4_FMAC1             FMAC unit 1 instance register base
- *   @arg  M4_FMAC2             FMAC unit 2 instance register base
- *   @arg  M4_FMAC3             FMAC unit 3 instance register base
- *   @arg  M4_FMAC4             FMAC unit 4 instance register base
- * @param  [in] FIRData         Data that needs to be processed.
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ *   @arg  M4_FMAC1:            FMAC unit 1 instance register base
+ *   @arg  M4_FMAC2:            FMAC unit 2 instance register base
+ *   @arg  M4_FMAC3:            FMAC unit 3 instance register base
+ *   @arg  M4_FMAC4:            FMAC unit 4 instance register base
+ * @param  [in] i16Factor       Data that needs to be processed.
+ * @retval None
  */
-en_result_t FMAC_FIRInput(M4_FMAC_TypeDef* FMACx, int16_t FIRData)
+void FMAC_FIRInput(M4_FMAC_TypeDef* FMACx, int16_t i16Factor)
 {
-    en_result_t enRet = ErrorInvalidParameter;
     DDL_ASSERT(IS_VALID_UNIT(FMACx));
-    FMACx->DTR = (uint32_t)FIRData;
-    enRet = Ok;
-    return enRet;
+    WRITE_REG32(FMACx->DTR, i16Factor);
 }
 
 /**
  * @brief  Get FMAC status.
  * @param  [in] FMACx           Pointer to FMAC instance register base.
  * This parameter can be a value of the following:
- *   @arg  M4_FMAC1             FMAC unit 1 instance register base
- *   @arg  M4_FMAC2             FMAC unit 2 instance register base
- *   @arg  M4_FMAC3             FMAC unit 3 instance register base
- *   @arg  M4_FMAC4             FMAC unit 4 instance register base
+ *   @arg  M4_FMAC1:            FMAC unit 1 instance register base
+ *   @arg  M4_FMAC2:            FMAC unit 2 instance register base
+ *   @arg  M4_FMAC3:            FMAC unit 3 instance register base
+ *   @arg  M4_FMAC4:            FMAC unit 4 instance register base
  * @retval Set                  Calculate complete
  *         Reset                Calculation in progress
  */
 en_flag_status_t FMAC_GetStatus(const M4_FMAC_TypeDef* FMACx)
 {
-    uint32_t enRet = 0U;
     DDL_ASSERT(IS_VALID_UNIT(FMACx));
-    enRet = FMACx->STR & FMAC_STR_READY;
-
-    return (enRet ? Set : Reset);
+    return (READ_REG32_BIT(FMACx->STR, FMAC_STR_READY) ? Set : Reset);
 }
 
 /**
  * @brief  Get calculation results.
  * @param  [in] FMACx           Pointer to FMAC instance register base.
  * This parameter can be a value of the following:
- *   @arg  M4_FMAC1             FMAC unit 1 instance register base
- *   @arg  M4_FMAC2             FMAC unit 2 instance register base
- *   @arg  M4_FMAC3             FMAC unit 3 instance register base
- *   @arg  M4_FMAC4             FMAC unit 4 instance register base
+ *   @arg  M4_FMAC1:            FMAC unit 1 instance register base
+ *   @arg  M4_FMAC2:            FMAC unit 2 instance register base
+ *   @arg  M4_FMAC3:            FMAC unit 3 instance register base
+ *   @arg  M4_FMAC4:            FMAC unit 4 instance register base
  * @retval An stc_fmac_result_t structure value:
  *         u32ResultHigh        The high value of the result
  *         u32ResultLow         The low value of the result
@@ -412,9 +351,8 @@ en_flag_status_t FMAC_GetStatus(const M4_FMAC_TypeDef* FMACx)
  stc_fmac_result_t FMAC_GetResult(const M4_FMAC_TypeDef* FMACx)
 {
     stc_fmac_result_t stcResult;
-    stcResult.u32ResultHigh = FMACx->RTR0;
-    stcResult.u32ResultLow  = FMACx->RTR1;
-
+    stcResult.u32ResultHigh = READ_REG32(FMACx->RTR0);
+    stcResult.u32ResultLow  = READ_REG32(FMACx->RTR1);
     return stcResult;
 }
 

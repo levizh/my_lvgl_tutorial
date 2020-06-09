@@ -20,7 +20,7 @@ GCC工程，由Eclipse IDE外挂GNU-ARM Toolchain，再结合pyOCD GDB Server实
 
 说明：
 本样例设置系统时钟频率为200M，SDIOC时钟频率为50M，进行擦除验证、读写验证，两次验
-证均正确，则LED_G常亮；反之，则LED_R常亮。
+证均正确，则LED_B常亮；反之，则LED_R常亮。
 
 可以通过修改MMC_TRANS_MODE的值为MMC_TRANS_MODE_POLLING（轮询模式）、
 MMC_TRANS_MODE_INT（中断模式）、MMC_TRANS_MODE_DMA（DMA模式）三者中的一个，尝试不
@@ -47,7 +47,7 @@ MMC卡
 1）打开工程并重新编译；
 2）将MMC卡转接板插到TK卡座上；
 2）启动IDE的下载和调试功能，关闭IDE下载界面；
-4）观察LED状态，LED_G亮则读写MMC卡功能正常，LED_R亮则读写MMC卡失败。
+4）观察LED状态，LED_B亮则读写MMC卡功能正常，LED_R亮则读写MMC卡失败。
 
 ================================================================================
 注意

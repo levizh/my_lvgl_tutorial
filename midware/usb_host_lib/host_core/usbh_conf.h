@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_conf.h
+ * @brief General low level driver configuration
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,22 +48,40 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file USBH_conf.h
- **
- ** A detailed description is available at
- ** @link General low level driver configuration @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
-#ifndef __USBH_CONF__H__
-#define __USBH_CONF__H__
+#ifndef __USBH_CONF_H__
+#define __USBH_CONF_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CORE
+ * @{
+ */
+
+/** @defgroup USBH_CONF
+ * @{
+ */
+
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -62,12 +90,12 @@
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define USBH_MAX_NUM_ENDPOINTS                (2u)
-#define USBH_MAX_NUM_INTERFACES               (2u)
+#define USBH_MAX_NUM_ENDPOINTS                (2U)
+#define USBH_MAX_NUM_INTERFACES               (2U)
 #ifdef USE_USB_OTG_FS
-#define USBH_MSC_MPS_SIZE                 (0x40u)
+#define USBH_MSC_MPS_SIZE                 (0x40U)
 #else
-#define USBH_MSC_MPS_SIZE                 (0x200u)
+#define USBH_MSC_MPS_SIZE                 (0x200U)
 #endif
 
 /*******************************************************************************
@@ -78,7 +106,27 @@
   Global function prototypes (definition in C source)
  ******************************************************************************/
 
-#endif //__USBH_CONF__H__
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __USBH_CONF_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)

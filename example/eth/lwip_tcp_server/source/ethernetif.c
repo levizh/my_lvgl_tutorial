@@ -233,7 +233,7 @@ static void low_level_init(struct netif *netif)
 
     /* Enable MAC and DMA transmission and reception */
     ETH_Start();
-    
+
     /* Configure PHY LED mode */
     u16RegVal = PHY_PAGE_ADDR_7;
     ETH_PHY_WriteRegister(&EthHandle, PHY_PSR, u16RegVal);

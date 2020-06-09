@@ -92,8 +92,8 @@
 #define APP_L_TMR2_CMP_EVENT                (EVT_TMR2_1_CMPA)
 
 /* Definitions of interrupt of TIMER2 high unit. */
-#define APP_H_TMR2_INT_TYPE                 (TMR2_INT_CNT_MATCH)
-#define APP_H_TMR2_INT_FLAG                 (TMR2_FLAG_CNT_MATCH)
+#define APP_H_TMR2_INT_TYPE                 (TMR2_INT_CMP)
+#define APP_H_TMR2_INT_FLAG                 (TMR2_FLAG_CMP)
 #define APP_H_TMR2_INT_PRIO                 (DDL_IRQ_PRIORITY_03)
 #define APP_H_TMR2_INT_SRC                  (INT_TMR2_2_CMPA)
 #define APP_H_TMR2_IRQ_CB                   TMR2_2_CmpA_IrqHandler
@@ -112,14 +112,15 @@
 #define APP_H_TMR2_CLK_SRC_EVENT            (APP_L_TMR2_CMP_EVENT)
 
 /*
- * Cycles of counting(CntCycles) is (TimingPeriod * 1M)/(ClockCycle).
- * TimingPeriod = 1s * 1000000us/s = 1000000us
- * CntCycles = TimingPeriod / 0.125us = 0x7A1200 - 1 = 0x7A11FF.
+ * Number of counting cycles: (TimingPeriod(second) / Timer2ClockCycle) - 1
+ *
+ * TimingPeriod: 1 second.
+ * Number of counting cycles: (1s * 1000000us/s) / 0.125us = 0x7A1200 - 1 = 0x7A11FF.
  * Low TIMER2 Initial value of the count register: 0x10000 - 0x11FF = 0xEE01
- * Low TIMER2 comparison reference value: 0xFFFF
- * High TIMER2 comparison reference value: 0x7A + 1 = 0x7B
+ * Low TIMER2 compare value: 0xFFFF
+ * High TIMER2 compare value: 0x7A
  */
-#define APP_H_TMR2_CMP_VAL                  (0x7BUL)
+#define APP_H_TMR2_CMP_VAL                  (0x7AUL)
 #define APP_L_TMR2_CMP_VAL                  (0xFFFFUL)
 #define APP_L_TMR2_INIT_CNT_VAL             (0xEE01UL)
 
@@ -207,7 +208,7 @@ static void Tmr2Config(void)
      */
     stcInit.u32ClkSrc = APP_H_TMR2_CLK_SRC;
     stcInit.u32CmpVal = APP_H_TMR2_CMP_VAL;
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     TMR2_SetTrigEvent(APP_H_TMR2_CLK_SRC_EVENT);
     TMR2_Init(APP_H_TMR2_UNIT, APP_H_TMR2_CH, &stcInit);
 
@@ -218,7 +219,7 @@ static void Tmr2Config(void)
     stcInit.u32ClkSrc = APP_L_TMR2_CLK_SRC;
     stcInit.u32ClkDiv = APP_L_TMR2_CLK_DIV;
     stcInit.u32CmpVal = APP_L_TMR2_CMP_VAL;
-    stcInit.u32CntInitVal = APP_L_TMR2_INIT_CNT_VAL;
+    stcInit.u32CntVal = APP_L_TMR2_INIT_CNT_VAL;
     TMR2_Init(APP_L_TMR2_UNIT, APP_L_TMR2_CH, &stcInit);
 
     /* 5. Configures the interrupt. */

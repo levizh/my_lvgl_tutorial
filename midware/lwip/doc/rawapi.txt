@@ -1,4 +1,4 @@
-Raw TCP/IP interface for lwIP
+﻿Raw TCP/IP interface for lwIP
 
 Authors: Adam Dunkels, Leon Woestenberg, Christiaan Simons
 

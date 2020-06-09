@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * @file  template/source/main.c
+ * @file  timer6\timer6_sw_sync\source\main.c
  * @brief Main program template for the Device Driver Library.
  @verbatim
    Change Logs:
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup TMR6_Software_Syschronous
+ * @addtogroup TMR6_Software_Synchronous
  * @{
  */
 

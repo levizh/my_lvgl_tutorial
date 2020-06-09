@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_hid_core.h
+ * @brief Header for the usbh_hid_core.c file
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,20 +48,17 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_hid_core.h
- **
- ** A detailed description is available at
- ** @link
-    This file contains all the prototypes for the usbh_hid_core.c
-  @endlink
- **
- **   - 2019-12-13  1.0  zhangxl First version for USB host mouse and kb demo.
- **
- ******************************************************************************/
 #ifndef __USBH_HID_CORE_H__
 #define __USBH_HID_CORE_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 /*******************************************************************************
  * Include files
@@ -62,16 +69,57 @@
 #include "usbh_ioreq.h"
 #include "usbh_hcs.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CLASS
+ * @{
+ */
+
+/** @addtogroup USBH_HID_CORE
+ * @{
+ */
+
+/*******************************************************************************
+ * Global pre-processor symbols/macros ('#define')
+ ******************************************************************************/
+/**
+ * @defgroup USBH_HID_CORE_Global_Macros USBH HID Core Global Macros
+ * @{
+ */
+
+#define USB_HID_REQ_GET_REPORT       (0x01U)
+#define USB_HID_GET_IDLE             (0x02U)
+#define USB_HID_GET_PROTOCOL         (0x03U)
+#define USB_HID_SET_REPORT           (0x09U)
+#define USB_HID_SET_IDLE             (0x0AU)
+#define USB_HID_SET_PROTOCOL         (0x0BU)
+
+#define HID_MIN_POLL                 (10U)
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-
-#define HID_MIN_POLL          10
+/**
+ * @defgroup USBH_HID_CORE_Global_Types USBH HID Core Global Types
+ * @{
+ */
 
 /* States for HID State Machine */
 typedef enum
 {
-  HID_IDLE= 0,
+  HID_IDLE= 0U,
   HID_SEND_DATA,
   HID_BUSY,
   HID_GET_DATA,
@@ -83,7 +131,7 @@ HID_State;
 
 typedef enum
 {
-  HID_REQ_IDLE = 0,
+  HID_REQ_IDLE = 0U,
   HID_REQ_GET_REPORT_DESC,
   HID_REQ_GET_HID_DESC,
   HID_REQ_SET_IDLE,
@@ -93,7 +141,7 @@ typedef enum
 }
 HID_CtlState;
 
-typedef struct USBH_HID_cb
+typedef struct
 {
   void  (*Init)   (void);
   void  (*Decode) (uint8_t *data);
@@ -125,9 +173,9 @@ typedef  struct  _HID_Report
 HID_Report_TypeDef;
 
 /* Structure for HID process */
-typedef struct _HID_Process
+typedef struct
 {
-  uint8_t              buff[64];
+  uint8_t              buff[64U];
   uint8_t              hc_num_in;
   uint8_t              hc_num_out;
   HID_State            state;
@@ -142,31 +190,60 @@ typedef struct _HID_Process
 }
 HID_Machine_TypeDef;
 
-/*******************************************************************************
- * Global pre-processor symbols/macros ('#define')
- ******************************************************************************/
-#define USB_HID_REQ_GET_REPORT       0x01
-#define USB_HID_GET_IDLE             0x02
-#define USB_HID_GET_PROTOCOL         0x03
-#define USB_HID_SET_REPORT           0x09
-#define USB_HID_SET_IDLE             0x0A
-#define USB_HID_SET_PROTOCOL         0x0B
+/**
+ * @}
+ */
 
 
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+/**
+ * @defgroup USBH_HID_CORE_Global_Variable USBH HID Core Global Variable
+ * @{
+ */
 extern USBH_Class_cb_TypeDef  USBH_HID_cb;
+/**
+ * @}
+ */
 
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBH_HID_CORE_Global_Functions
+ * @{
+ */
 USBH_Status USBH_Set_Report (USB_OTG_CORE_HANDLE *pdev,
                              USBH_HOST *phost,
                                   uint8_t reportType,
                                   uint8_t reportId,
                                   uint8_t reportLen,
                                   uint8_t* reportBuff);
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBH_HID_CORE_H__ */
 

@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  hc32f4a0_usb_dcd_int.h
+ * @brief A detailed description is available at Peripheral Device Interface Layer
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,28 +48,45 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.h
- **
- ** A detailed description is available at
- ** @link Peripheral Device Interface Layer @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
-#ifndef USB_DCD_INT_H__
-#define USB_DCD_INT_H__
+
+#ifndef HC32F4A0_USB_DCD_INT_H__
+#define HC32F4A0_USB_DCD_INT_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "hc32f4a0_usb_dcd.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Driver
+ * @{
+ */
+
+/**
+ * @addtogroup DDL_USB_DCD_INT
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
+
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-typedef struct _USBD_DCD_INT
+
+/**
+ * @defgroup USB_DCD_INT_Global_Types USB DCD INT Global Types
+ * @{
+ */
+
+typedef struct
 {
     uint8_t (* DataOutStage) (USB_OTG_CORE_HANDLE *pdev , uint8_t epnum);
     uint8_t (* DataInStage)  (USB_OTG_CORE_HANDLE *pdev , uint8_t epnum);
@@ -75,11 +102,20 @@ typedef struct _USBD_DCD_INT
     uint8_t (* DevDisconnected) (USB_OTG_CORE_HANDLE *pdev);
 }USBD_DCD_INT_cb_TypeDef;
 
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
+
+/**
+ * @defgroup USB_DCD_INT_Global_Macros USB DCD INT Global Macros
+ * @{
+ */
+
 /* C-STAT */
-#if 1
 #define CLEAR_IN_EP_INTR(epnum,intr) \
     {    \
         *(uint32_t*)&diepint.b = (intr);\
@@ -92,28 +128,38 @@ typedef struct _USBD_DCD_INT
         *(uint32_t*)&doepint.b = (intr);\
         USB_OTG_WRITE_REG32(&pdev->regs.OUTEP_REGS[(epnum)]->DOEPINT,*(uint32_t*)&doepint.b); \
     }
-#endif
-#if 0
-#define CLEAR_IN_EP_INTR(epnum,intr) \
-    diepint.d32=0; \
-    diepint.b.intr = 1; \
-    USB_OTG_WRITE_REG32(&pdev->regs.INEP_REGS[epnum]->DIEPINT,diepint.d32);
 
-#define CLEAR_OUT_EP_INTR(epnum,intr) \
-    doepint.d32=0; \
-    doepint.b.intr = 1; \
-    USB_OTG_WRITE_REG32(&pdev->regs.OUTEP_REGS[epnum]->DOEPINT,doepint.d32);
-#endif
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
 extern USBD_DCD_INT_cb_TypeDef *USBD_DCD_INT_fops;
 
+
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
 
-#endif // USB_DCD_INT_H__
+
+#endif /* DDL_USBFS_ENABLE */
+
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* HC32F4A0_USB_DCD_INT_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)

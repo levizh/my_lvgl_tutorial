@@ -311,12 +311,13 @@ static void SystemClockConfig(void)
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
     SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+
+    /* Set EFM wait cycle. 4 wait cycles needed when system clock is 200MHz */
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_4);
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
@@ -418,7 +419,7 @@ static void AdcTrigSrcConfig(void)
      * If select an event as the trigger source of sequence A or sequence B, \
      *   the AOS function must be enabled at first.
      */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
 
     /*
      * Configures the trigger source of sequence A.
@@ -461,7 +462,7 @@ static void AdcStartTrigSrc(void)
     TMR2_Start(M4_TMR2_1, TMR2_CH_A);
 
     /*
-     * For sequence B. Make a falling edge on the specified pin ADTRGx and hold the low level \
+     * For sequence B. Make a falling edge on the specified ADTRGx pin and hold the low level \
      *   at least 1.5 PCLK4 cycles to trigger sequence B.
      */
 }

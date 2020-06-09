@@ -131,8 +131,8 @@ static uint32_t m_u32MemByteSize = 0UL;
  */
 en_result_t CY62167EV30LL_Init(void)
 {
-    EV_SMC_CY62167EV30LL_Init();
-    EV_SMC_CY62167EV30LL_GetMemInfo(&m_u32MemStartAddr, &m_u32MemByteSize);
+    BSP_SMC_CY62167EV30LL_Init();
+    BSP_SMC_CY62167EV30LL_GetMemInfo(&m_u32MemStartAddr, &m_u32MemByteSize);
 
     return Ok;
 }
@@ -144,127 +144,200 @@ en_result_t CY62167EV30LL_Init(void)
  * @retval None
  */
 void CY62167EV30LL_GetMemInfo(uint32_t *pu32MemStartAddr,
-                            uint32_t *pu32MemByteSize)
+                                    uint32_t *pu32MemByteSize)
 {
-    EV_SMC_CY62167EV30LL_GetMemInfo(pu32MemStartAddr, pu32MemByteSize);
+    BSP_SMC_CY62167EV30LL_GetMemInfo(pu32MemStartAddr, pu32MemByteSize);
 }
 
 /**
  * @brief  Write memory for byte.
- * @param  [in] au8Buf                  Data buffer to write
- * @param  [in] u32Address              Memory address to write
- * @param  [in] u32NumBytes             Number bytes to write
+ * @param  [in] u32Address              IS62WV51216 memory address to write
+ * @param  [in] au8SrcBuffer            Pointer to source buffer
+ * @param  [in] u32BufferSize           Size of the buffer to write to memory
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
+ *   @arg  ErrorInvalidParameter:       The variable u32BufferSize value is 0.
  */
-en_result_t CY62167EV30LL_WriteMem8(const uint8_t au8Buf[],
-                                    uint32_t u32Address,
-                                    uint32_t u32NumBytes)
+en_result_t CY62167EV30LL_WriteMem8(uint32_t u32Address,
+                                    const uint8_t au8SrcBuffer[],
+                                    uint32_t u32BufferSize)
 {
-    DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
-    DDL_ASSERT((u32Address + u32NumBytes) <= CY62167EV30LL_END_ADDRESS);
+    en_result_t enRet = ErrorInvalidParameter;
 
-    return EV_SMC_CY62167EV30LL_WriteMem8(au8Buf, u32Address, u32NumBytes);
+    if (0UL != u32BufferSize)
+    {
+        DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
+        DDL_ASSERT((u32Address + u32BufferSize) <= CY62167EV30LL_END_ADDRESS);
+
+        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        {
+            *(uint8_t *)(u32Address + i) = au8SrcBuffer[i];
+        }
+        enRet = Ok;
+    }
+
+    return enRet;
 }
 
 /**
  * @brief  Read memory for byte.
- * @param  [in] au8Buf                  Data buffer to read
- * @param  [in] u32Address              Memory address to read
- * @param  [in] u32NumBytes             Number bytes to read
+ * @param  [in] u32Address              IS62WV51216 memory address to read
+ * @param  [out] au8DstBuffer           Pointer to destination buffer to write
+ * @param  [in] u32BufferSize           Size of the buffer to read from memory
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
+ *   @arg  ErrorInvalidParameter:       -The pointer au8DstBuffer value is NULL.
+ *                                      -The variable u32BufferSize value is 0.
  */
-en_result_t CY62167EV30LL_ReadMem8(uint8_t au8Buf[],
-                                    uint32_t u32Address,
-                                    uint32_t u32NumBytes)
+en_result_t CY62167EV30LL_ReadMem8(uint32_t u32Address,
+                                    uint8_t au8DstBuffer[],
+                                    uint32_t u32BufferSize)
 {
-    DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
-    DDL_ASSERT((u32Address + u32NumBytes) <= CY62167EV30LL_END_ADDRESS);
+    en_result_t enRet = ErrorInvalidParameter;
 
-    return EV_SMC_CY62167EV30LL_ReadMem8(au8Buf, u32Address, u32NumBytes);
+    if ((NULL != au8DstBuffer) && (0UL != u32BufferSize))
+    {
+        DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
+        DDL_ASSERT((u32Address + u32BufferSize) <= CY62167EV30LL_END_ADDRESS);
+
+        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        {
+            au8DstBuffer[i] = *(uint8_t *)(u32Address + i);
+        }
+        enRet = Ok;
+    }
+
+    return enRet;
 }
 
 /**
  * @brief  Write memory for half-word.
- * @param  [in] au16Buf                 Data buffer to write
- * @param  [in] u32Address              Memory address to write
- * @param  [in] u32NumHalfWords         Number half-word to write
+ * @param  [in] u32Address              IS62WV51216 memory address to write
+ * @param  [in] au16SrcBuffer           Pointer to source buffer
+ * @param  [in] u32BufferSize           Size of the buffer to write to memory
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au16Buf value is NULL.
+ *   @arg  ErrorInvalidParameter:       The variable u32BufferSize value is 0.
  */
-en_result_t CY62167EV30LL_WriteMem16(const uint16_t au16Buf[],
-                                    uint32_t u32Addr,
-                                    uint32_t u32NumHalfWords)
+en_result_t CY62167EV30LL_WriteMem16(uint32_t u32Address,
+                                    const uint16_t au16SrcBuffer[],
+                                    uint32_t u32BufferSize)
 {
-    DDL_ASSERT(IS_ADDRESS_ALIGN_HALFWORD(u32Addr));
-    DDL_ASSERT(u32Addr >= CY62167EV30LL_START_ADDRESS);
-    DDL_ASSERT((u32Addr + u32NumHalfWords * 2UL) <= CY62167EV30LL_END_ADDRESS);
+    en_result_t enRet = ErrorInvalidParameter;
 
-    return EV_SMC_CY62167EV30LL_WriteMem16(au16Buf, u32Addr, u32NumHalfWords);
+    if (0UL != u32BufferSize)
+    {
+        DDL_ASSERT(IS_ADDRESS_ALIGN_HALFWORD(u32Address));
+        DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
+        DDL_ASSERT((u32Address + (u32BufferSize << 1UL)) <= CY62167EV30LL_END_ADDRESS);
+
+        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        {
+            *((uint16_t *)u32Address) = au16SrcBuffer[i];
+            u32Address += 2UL;
+        }
+        enRet = Ok;
+    }
+
+    return enRet;
 }
 
 /**
  * @brief  Read memory for half-word.
- * @param  [in] au16Buf                 Data buffer to read
- * @param  [in] u32Address              Memory address to read
- * @param  [in] u32Size                 Number half-word to read
+ * @param  [in] u32Address              IS62WV51216 memory address to read
+ * @param  [out] au16DstBuffer          Pointer to destination buffer to write
+ * @param  [in] u32BufferSize           Size of the buffer to read from memory
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au16Buf value is NULL.
+ *   @arg  ErrorInvalidParameter:       -The pointer au16DstBuffer value is NULL.
+ *                                      -The variable u32BufferSize value is 0.
  */
-en_result_t CY62167EV30LL_ReadMem16(uint16_t au16Buf[],
-                                    uint32_t u32Address,
-                                    uint32_t u32NumHalfWords)
+en_result_t CY62167EV30LL_ReadMem16(uint32_t u32Address,
+                                    uint16_t au16DstBuffer[],
+                                    uint32_t u32BufferSize)
 {
-    DDL_ASSERT(IS_ADDRESS_ALIGN_HALFWORD(u32Address));
-    DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
-    DDL_ASSERT((u32Address + u32NumHalfWords * 2UL) <= CY62167EV30LL_END_ADDRESS);
+    en_result_t enRet = ErrorInvalidParameter;
 
-    return EV_SMC_CY62167EV30LL_ReadMem16(au16Buf, u32Address, u32NumHalfWords);
+    if ((NULL != au16DstBuffer) && (0UL != u32BufferSize))
+    {
+        DDL_ASSERT(IS_ADDRESS_ALIGN_HALFWORD(u32Address));
+        DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
+        DDL_ASSERT((u32Address + (u32BufferSize << 1UL)) <= CY62167EV30LL_END_ADDRESS);
+
+        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        {
+            au16DstBuffer[i] = *((uint16_t *)u32Address);
+            u32Address += 2UL;
+        }
+        enRet = Ok;
+    }
+
+    return enRet;
 }
 
 /**
  * @brief  Write memory for word.
- * @param  [in] au32Buf                 Data buffer to write
- * @param  [in] u32Address              Memory address to write
- * @param  [in] u32NumWords             Number word to write
+ * @param  [in] u32Address              IS62WV51216 memory address to write
+ * @param  [in] au32SrcBuffer           Pointer to source buffer
+ * @param  [in] u32BufferSize           Size of the buffer to write to memory
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au32Buf value is NULL.
+ *   @arg  ErrorInvalidParameter:       The variable u32BufferSize value is 0.
  */
-en_result_t CY62167EV30LL_WriteMem32(const uint32_t au32Buf[],
-                                    uint32_t u32Address,
-                                    uint32_t u32NumWords)
+en_result_t CY62167EV30LL_WriteMem32(uint32_t u32Address,
+                                    const uint32_t au32SrcBuffer[],
+                                    uint32_t u32BufferSize)
 {
-    DDL_ASSERT(IS_ADDRESS_ALIGN_WORD(u32Address));
-    DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
-    DDL_ASSERT((u32Address + u32NumWords * 4UL) <= CY62167EV30LL_END_ADDRESS);
+    en_result_t enRet = ErrorInvalidParameter;
 
-    return EV_SMC_CY62167EV30LL_WriteMem32(au32Buf, u32Address, u32NumWords);
+    if (0UL != u32BufferSize)
+    {
+        DDL_ASSERT(IS_ADDRESS_ALIGN_WORD(u32Address));
+        DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
+        DDL_ASSERT((u32Address + (u32BufferSize << 2UL)) <= CY62167EV30LL_END_ADDRESS);
+
+        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        {
+            *((uint32_t *)u32Address) = au32SrcBuffer[i];
+            u32Address += 4UL;
+        }
+        enRet = Ok;
+    }
+
+    return enRet;
 }
 
 /**
  * @brief  Read memory for word.
- * @param  [in] au32Buf                 Data buffer to read
- * @param  [in] u32Address              Memory address to read
- * @param  [in] u32NumWords             Number word to read
+ * @param  [in] u32Address              IS62WV51216 memory address to read
+ * @param  [out] au32DstBufferBuf       Pointer to destination buffer to write
+ * @param  [in] u32BufferSize           Size of the buffer to read from memory
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au32Buf value is NULL.
+ *   @arg  ErrorInvalidParameter:       -The pointer au32DstBufferBuf value is NULL.
+ *                                      -The variable u32BufferSize value is 0.
  */
-en_result_t CY62167EV30LL_ReadMem32(uint32_t au32Buf[],
-                                    uint32_t u32Address,
-                                    uint32_t u32NumWords)
+en_result_t CY62167EV30LL_ReadMem32(uint32_t u32Address,
+                                    uint32_t au32DstBufferBuf[],
+                                    uint32_t u32BufferSize)
 {
-    DDL_ASSERT(IS_ADDRESS_ALIGN_WORD(u32Address));
-    DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
-    DDL_ASSERT((u32Address + u32NumWords * 4UL) <= CY62167EV30LL_END_ADDRESS);
+    en_result_t enRet = ErrorInvalidParameter;
 
-    return EV_SMC_CY62167EV30LL_ReadMem32(au32Buf, u32Address, u32NumWords);
+    if (NULL != au32DstBufferBuf)
+    {
+        DDL_ASSERT(IS_ADDRESS_ALIGN_WORD(u32Address));
+        DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
+        DDL_ASSERT((u32Address + (u32BufferSize << 2UL)) <= CY62167EV30LL_END_ADDRESS);
+
+        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        {
+            au32DstBufferBuf[i] = *((uint32_t *)u32Address);
+            u32Address += 4UL;
+        }
+        enRet = Ok;
+    }
+
+    return enRet;
 }
 
 /**

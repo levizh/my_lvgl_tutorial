@@ -246,16 +246,16 @@ int32_t main(void)
             m_u32AdcIrqFlag &= (uint32_t)(~ADC_AWD_FLAG_COMB);
         }
 #else
-        if ((m_u32AdcIrqFlag & ADC_AWD_FLAG_0) != 0U)
+        if ((m_u32AdcIrqFlag & ADC_AWD_FLAG_AWD0) != 0U)
         {
             DBG("--->> AWD0 flag set, voltage: %.3f.\n", APP_CAL_VOL(m_au16AdcSaVal[0U]));
-            m_u32AdcIrqFlag &= (uint32_t)(~ADC_AWD_FLAG_0);
+            m_u32AdcIrqFlag &= (uint32_t)(~ADC_AWD_FLAG_AWD0);
         }
 
-        if ((m_u32AdcIrqFlag & ADC_AWD_FLAG_1) != 0U)
+        if ((m_u32AdcIrqFlag & ADC_AWD_FLAG_AWD1) != 0U)
         {
             DBG("--->> AWD1 flag set, voltage: %.3f.\n", APP_CAL_VOL(m_au16AdcSaVal[1U]));
-            m_u32AdcIrqFlag &= (uint32_t)(~ADC_AWD_FLAG_1);
+            m_u32AdcIrqFlag &= (uint32_t)(~ADC_AWD_FLAG_AWD1);
         }
 #endif
     }
@@ -352,13 +352,13 @@ static void AdcAwdConfig(void)
     stc_adc_awd_cfg_t stcCfg;
 
     stcCfg.u8ChNum       = APP_ADC_AWD0_CH_NUM;
-    stcCfg.u16CmpMd      = APP_ADC_AWD0_CMP_MODE;
+    stcCfg.u16CmpMode    = APP_ADC_AWD0_CMP_MODE;
     stcCfg.u16LowerLimit = APP_ADC_AWD0_LOW_LIMIT;
     stcCfg.u16UpperLimit = APP_ADC_AWD0_UP_LIMIT;
     ADC_AWD_Config(APP_ADC_UNIT, ADC_AWD_0, &stcCfg);
 
     stcCfg.u8ChNum       = APP_ADC_AWD1_CH_NUM;
-    stcCfg.u16CmpMd      = APP_ADC_AWD1_CMP_MODE;
+    stcCfg.u16CmpMode    = APP_ADC_AWD1_CMP_MODE;
     stcCfg.u16LowerLimit = APP_ADC_AWD1_LOW_LIMIT;
     stcCfg.u16UpperLimit = APP_ADC_AWD1_UP_LIMIT;
     ADC_AWD_Config(APP_ADC_UNIT, ADC_AWD_1, &stcCfg);
@@ -385,7 +385,7 @@ static void AdcTrigSrcConfig(void)
      * If select an event as the trigger source of sequence A or sequence B, \
      *   the AOS function must be enabled at first.
      */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
 
     /*
      * Configures the trigger source of sequence A.
@@ -512,10 +512,10 @@ void APP_ADC_AWD_COMB_IRQ_CB(void)
  */
 void APP_ADC_AWD0_IRQ_CB(void)
 {
-    if (ADC_AWD_GetStatus(APP_ADC_UNIT, ADC_AWD_FLAG_0) == Set)
+    if (ADC_AWD_GetStatus(APP_ADC_UNIT, ADC_AWD_FLAG_AWD0) == Set)
     {
-        ADC_AWD_ClrStatus(APP_ADC_UNIT, ADC_AWD_FLAG_0);
-        m_u32AdcIrqFlag |= ADC_AWD_FLAG_0;
+        ADC_AWD_ClrStatus(APP_ADC_UNIT, ADC_AWD_FLAG_AWD0);
+        m_u32AdcIrqFlag |= ADC_AWD_FLAG_AWD0;
     }
 }
 
@@ -526,10 +526,10 @@ void APP_ADC_AWD0_IRQ_CB(void)
  */
 void APP_ADC_AWD1_IRQ_CB(void)
 {
-    if (ADC_AWD_GetStatus(APP_ADC_UNIT, ADC_AWD_FLAG_1) == Set)
+    if (ADC_AWD_GetStatus(APP_ADC_UNIT, ADC_AWD_FLAG_AWD1) == Set)
     {
-        ADC_AWD_ClrStatus(APP_ADC_UNIT, ADC_AWD_FLAG_1);
-        m_u32AdcIrqFlag |= ADC_AWD_FLAG_1;
+        ADC_AWD_ClrStatus(APP_ADC_UNIT, ADC_AWD_FLAG_AWD1);
+        m_u32AdcIrqFlag |= ADC_AWD_FLAG_AWD1;
     }
 }
 #endif /* #if (APP_AWD_USE_COMB_MODE > 0U) */

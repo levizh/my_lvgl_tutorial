@@ -109,7 +109,7 @@ static void Fmac_IrqCallback(void)
 
     /* Get result and output it*/
     stcResult = FMAC_GetResult(FMACx);
-    printf("\nThe result is %d,%d", stcResult.u32ResultHigh, stcResult.u32ResultLow);
+    printf("\nThe result is %lu,%lu", stcResult.u32ResultHigh, stcResult.u32ResultLow);
     /* clear the interrupt flag */
     FMAC_GetStatus(FMACx);
     /* Clear result  If you need to compute again, you must do this*/
@@ -203,8 +203,8 @@ static void SystemClockConfig(void)
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }

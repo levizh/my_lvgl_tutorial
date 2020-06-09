@@ -75,6 +75,7 @@
 #define CMP_TEST_UNIT1                  (M4_CMP1)
 #define CMP_TEST_UNIT2                  (M4_CMP2)
 #define DAC_TEST_UNIT                   (M4_DAC1)
+#define CMP_PERIP_CLK                   (PWC_FCG3_CMP1)
 /* Define port and pin of CMP */
 /* CMP1 compare voltage CMP1_INP3 */
 #define CMP1_INP3_PORT                  (GPIO_PORT_E)
@@ -198,8 +199,8 @@ static void SystemClockConfig(void)
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
@@ -215,7 +216,8 @@ static void CmpConfig(void)
     stc_cmp_win_ref_t stcCmpWinRef;
     stc_gpio_init_t stcGpioInit;
     /* Enable peripheral Clock */
-    PWC_Fcg3PeriphClockCmd(PWC_FCG3_CMP1, Enable);
+    PWC_Fcg3PeriphClockCmd(PWC_FCG3_CMBIAS, Enable);
+    PWC_Fcg3PeriphClockCmd(CMP_PERIP_CLK, Enable);
     /* Port function configuration for CMP*/
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
@@ -238,7 +240,7 @@ static void CmpConfig(void)
     stcCmpWinRef.u8WinVolHigh   = CMP_RVSL_INM1;
     stcCmpWinRef.u8WinVolLow    = CMP_RVSL_INM2;
     stcCmpInit.u8OutDetectEdges = CMP_DETECT_EDGS_BOTH;
-    stcCmpInit.u8OutFilter      = CMP_OUT_FILTER_PCLKDIV32;
+    stcCmpInit.u8OutFilter      = CMP_OUT_FILTER_PCLK3_DIV32;
     stcCmpInit.u8OutPolarity    = CMP_OUT_REVERSE_OFF;
     CMP_WindowModeInit(CMP_TEST_UNIT2, &stcCmpInit, &stcCmpWinRef);
 

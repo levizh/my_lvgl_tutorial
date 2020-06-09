@@ -223,8 +223,8 @@ typedef struct
  * @defgroup RTC_Clock_Source RTC Clock Source
  * @{
  */
-#define RTC_CLOCK_SOURCE_XTAL32                 (0U)                              /*!< XTAL32 Clock */
-#define RTC_CLOCK_SOURCE_LRC                    (RTC_CR3_RCKSEL | RTC_CR3_LRCEN)  /*!< LRC Clock    */
+#define RTC_CLOCK_SOURCE_XTAL32                 (0U)                              /*!< XTAL32 Clock   */
+#define RTC_CLOCK_SOURCE_RTCLRC                 (RTC_CR3_RCKSEL | RTC_CR3_LRCEN)  /*!< RTC LRC Clock  */
 /**
  * @}
  */
@@ -308,7 +308,7 @@ typedef struct
  * @defgroup RTC_Weekday RTC Weekday
  * @{
  */
-#define RTC_WEEKDAY_SUNDAY                      (0U)
+#define RTC_WEEKDAY_SUNDAY                      (0x00U)
 #define RTC_WEEKDAY_MONDAY                      (0x01U)
 #define RTC_WEEKDAY_TUESDAY                     (0x02U)
 #define RTC_WEEKDAY_WEDNESDAY                   (0x03U)
@@ -395,8 +395,8 @@ typedef struct
 #define RTC_FLAG_ALMF                           (RTC_CR2_ALMF)                      /*!< Alarm flag                     */
 #define RTC_FLAG_RWEN                           (RTC_CR2_RWEN)                      /*!< Read and write permission flag */
 #define RTC_FLAG_TPOVF                          ((uint32_t)RTC_TPSR_TPOVF << 16U)   /*!< Invasion overflow flag         */
-#define RTC_FLAG_TPF1                           ((uint32_t)RTC_TPSR_TPF1  << 16U)   /*!< RTCIC1 invasion flag           */
 #define RTC_FLAG_TPF0                           ((uint32_t)RTC_TPSR_TPF0  << 16U)   /*!< RTCIC0 invasion flag           */
+#define RTC_FLAG_TPF1                           ((uint32_t)RTC_TPSR_TPF1  << 16U)   /*!< RTCIC1 invasion flag           */
 /**
  * @}
  */
@@ -407,8 +407,8 @@ typedef struct
  */
 #define RTC_INT_PRDIE                           (RTC_CR2_PRDIE)                     /*!< Period interrupt          */
 #define RTC_INT_ALMIE                           (RTC_CR2_ALMIE)                     /*!< Alarm interrupt           */
-#define RTC_INT_TPIE1                           ((uint32_t)RTC_TPCR0_TPIE0 << 8U)   /*!< RTCIC0 invasion interrupt */
-#define RTC_INT_TPIE0                           ((uint32_t)RTC_TPCR1_TPIE1 << 16U)  /*!< RTCIC1 invasion interrupt */
+#define RTC_INT_TPIE0                           ((uint32_t)RTC_TPCR0_TPIE0 << 8U)   /*!< RTCIC0 invasion interrupt */
+#define RTC_INT_TPIE1                           ((uint32_t)RTC_TPCR1_TPIE1 << 16U)  /*!< RTCIC1 invasion interrupt */
 /**
  * @}
  */
@@ -439,30 +439,31 @@ void                  RTC_PeriodIntConfig(uint8_t u8IntCond);
 en_result_t           RTC_LowPowerCheck(void);
 void                  RTC_SetClkCompenValue(uint16_t u16CompenVal);
 void                  RTC_Cmd(en_functional_state_t enNewSta);
+void                  RTC_LrcCmd(en_functional_state_t enNewSta);
 en_functional_state_t RTC_GetCounterState(void);
 void                  RTC_OneHzOutputCmd(en_functional_state_t enNewSta);
 void                  RTC_ClkCompenCmd(en_functional_state_t enNewSta);
 
 /* Date and time functions */
-en_result_t RTC_SetDate(uint8_t u8Format, stc_rtc_date_t *pstcRtcDate);
-en_result_t RTC_GetDate(uint8_t u8Format, stc_rtc_date_t *pstcRtcDate);
-en_result_t RTC_SetTime(uint8_t u8Format, stc_rtc_time_t *pstcRtcTime);
-en_result_t RTC_GetTime(uint8_t u8Format, stc_rtc_time_t *pstcRtcTime);
+en_result_t           RTC_SetDate(uint8_t u8Format, stc_rtc_date_t *pstcRtcDate);
+en_result_t           RTC_GetDate(uint8_t u8Format, stc_rtc_date_t *pstcRtcDate);
+en_result_t           RTC_SetTime(uint8_t u8Format, stc_rtc_time_t *pstcRtcTime);
+en_result_t           RTC_GetTime(uint8_t u8Format, stc_rtc_time_t *pstcRtcTime);
 
 /* Alarm configuration functions */
-en_result_t RTC_SetAlarm(uint8_t u8Format, stc_rtc_alarm_t *pstcRtcAlarm);
-en_result_t RTC_GetAlarm(uint8_t u8Format, stc_rtc_alarm_t *pstcRtcAlarm);
-void        RTC_AlarmCmd(en_functional_state_t enNewSta);
+en_result_t           RTC_SetAlarm(uint8_t u8Format, stc_rtc_alarm_t *pstcRtcAlarm);
+en_result_t           RTC_GetAlarm(uint8_t u8Format, stc_rtc_alarm_t *pstcRtcAlarm);
+void                  RTC_AlarmCmd(en_functional_state_t enNewSta);
 
 /* Intrusion timestamp functions */
-en_result_t RTC_IntrusionConfig(uint8_t u8Ch, const stc_rtc_intrusion_t *stcIntru);
-en_result_t RTC_GetIntrusionTimestamp(uint8_t u8Format, stc_rtc_timestamp_t *stcTimestamp);
-void        RTC_IntrusionCmd(uint8_t u8Ch, en_functional_state_t enNewSta);
+en_result_t           RTC_IntrusionConfig(uint8_t u8Ch, const stc_rtc_intrusion_t *stcIntru);
+en_result_t           RTC_GetIntrusionTimestamp(uint8_t u8Format, stc_rtc_timestamp_t *stcTimestamp);
+void                  RTC_IntrusionCmd(uint8_t u8Ch, en_functional_state_t enNewSta);
 
 /* Interrupts and flags management functions */
-void             RTC_IntCmd(uint32_t u32IntSrc, en_functional_state_t enNewSta);
-en_flag_status_t RTC_GetStatus(uint32_t u32Flag);
-void             RTC_ClearStatus(uint32_t u32Flag);
+void                  RTC_IntCmd(uint32_t u32IntSrc, en_functional_state_t enNewSta);
+en_flag_status_t      RTC_GetStatus(uint32_t u32Flag);
+void                  RTC_ClearStatus(uint32_t u32Flag);
 
 /**
  * @}

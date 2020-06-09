@@ -82,7 +82,6 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void SystemClockConfig(void);
 static void IRQ_Config(void);
 
 /*******************************************************************************
@@ -121,11 +120,12 @@ int32_t main(void)
     uint32_t u32Addr;
 
     /* LED & KEY Init */
+    BSP_IO_Init();
     BSP_LED_Init();
     BSP_KEY_Init();
     BSP_LED_On(LED_BLUE);
-    /* Configures the PLLHP(200MHz) as the system clock. */
-    SystemClockConfig();
+    /* Configure system clock. HClK = 240MHZ */
+    BSP_CLK_Init();
     /* Configure GPIO read wait cycle */
     GPIO_PortReadWait(GPIO_READ_WAIT_5);
     /*Configure IRQ handler && NVIC*/
@@ -179,63 +179,6 @@ int32_t main(void)
     {
         ;
     }
-}
-
-/**
- * @brief  Configures the PLLHP(200MHz) as the system clock.
- *         The input source of PLLH is XTAL(8MHz).
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_pllh_init_t stcPLLHInit;
-    stc_clk_xtal_init_t stcXtalInit;
-
-    /* Configures XTAL. PLLH input source is XTAL. */
-    CLK_XtalStrucInit(&stcXtalInit);
-    stcXtalInit.u8XtalState = CLK_XTAL_ON;
-    stcXtalInit.u8XtalDrv   = CLK_XTALDRV_LOW;
-    stcXtalInit.u8XtalMode  = CLK_XTALMODE_OSC;
-    stcXtalInit.u8XtalStb   = CLK_XTALSTB_499US;
-    CLK_XtalInit(&stcXtalInit);
-
-    /* PCLK0, HCLK  Max 240MHz */
-    /* PCLK1, PCLK4 Max 120MHz */
-    /* PCLK2, PCLK3 Max 60MHz  */
-    /* EX BUS Max 120MHz */
-    CLK_ClkDiv(CLK_CATE_ALL,                                       \
-               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV8 | CLK_PCLK2_DIV8 | \
-                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV8 | CLK_EXCLK_DIV2 | \
-                CLK_HCLK_DIV1));
-
-    CLK_PLLHStrucInit(&stcPLLHInit);
-    /*
-     * PLLP_freq = ((PLL_source / PLLM) * PLLN) / PLLP
-     *           = (8 / 1) * 100 / 4
-     *           = 200
-     */
-    stcPLLHInit.u8PLLState = CLK_PLLH_ON;
-    stcPLLHInit.PLLCFGR = 0UL;
-    stcPLLHInit.PLLCFGR_f.PLLM = (1UL   - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLN = (100UL - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLP = (4UL   - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLQ = (16UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLR = (16UL  - 1UL);
-
-    /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
-    CLK_PLLHInit(&stcPLLHInit);
-
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
-    EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 4-wait @ 200MHz */
-    EFM_Unlock();
-
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
 
 /**

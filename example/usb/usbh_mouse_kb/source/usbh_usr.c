@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbh_mouse_kb\source\usbh_usr.c
+ * @brief This file includes the user application layer.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_usr.c
- **
- ** A detailed description is available at
- ** @link
-        This file includes the user application layer.
-    @endlink
- **
- **   - 2019-12-10  1.0  zhangxl First version for USB demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -58,6 +58,16 @@
 #include "usbh_hid_mouse.h"
 #include "usbh_hid_keybd.h"
 #include "hc32_ddl.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBH_MOUSE_KB
+ * @{
+ */
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -339,8 +349,8 @@ void USBH_USR_DeviceNotSupported(void)
 USBH_USR_Status USBH_USR_UserInput(void)
 {
 
-    USBH_USR_Status usbh_usr_status;
-
+    USBH_USR_Status usbh_usr_status = USBH_USR_NO_RESP;
+#if 0
     usbh_usr_status = USBH_USR_NO_RESP;
 
     /*Key PD3 is in polling mode to detect user action */
@@ -348,6 +358,7 @@ USBH_USR_Status USBH_USR_UserInput(void)
     {
         usbh_usr_status = USBH_USR_RESP_OK;
     }
+#endif
     return usbh_usr_status;
 }
 
@@ -450,6 +461,15 @@ void  USR_KEYBRD_ProcessData (uint8_t data)
 void USBH_USR_DeInit(void)
 {
 }
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+
 
 /*******************************************************************************
  * EOF (not truncated)

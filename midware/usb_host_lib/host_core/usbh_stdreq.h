@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_stdreq.h
+ * @brief Header file for usbh_stdreq.c
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,26 +48,43 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_stdreq.h
- **
- ** A detailed description is available at
- ** @link Header file for usbh_stdreq.c @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 #ifndef __USBH_STDREQ_H
 #define __USBH_STDREQ_H
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
+#include "hc32f4a0_usb_hcd.h"
 #include "usb_conf.h"
-#include "usb_hcd.h"
 #include "usbh_core.h"
 #include "usbh_def.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CORE
+ * @{
+ */
+
+/** @addtogroup USBH_STDREQ
+ * @{
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -68,30 +95,43 @@
  ******************************************************************************/
 
 /**
- *******************************************************************************
- ** \brief USBH_STDREQ_Exported_Defines
- **
- ******************************************************************************/
+ * @defgroup USBH_STDREQ_Global_Macros USBH Standard Request Global Macros
+ * @{
+ */
 /*Standard Feature Selector for clear feature command*/
-#define FEATURE_SELECTOR_ENDPOINT         (0x00u)
-#define FEATURE_SELECTOR_DEVICE           (0x01u)
+#define FEATURE_SELECTOR_ENDPOINT         (0x00U)
+#define FEATURE_SELECTOR_DEVICE           (0x01U)
 
 
-#define INTERFACE_DESC_TYPE               (0x04u)
-#define ENDPOINT_DESC_TYPE                (0x05u)
-#define INTERFACE_DESC_SIZE               (0x09u)
+#define INTERFACE_DESC_TYPE               (0x04U)
+#define ENDPOINT_DESC_TYPE                (0x05U)
+#define INTERFACE_DESC_SIZE               (0x09U)
 
 
-#define USBH_HID_CLASS                    (0x03u)
+#define USBH_HID_CLASS                    (0x03U)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
-extern uint8_t USBH_CfgDesc[512];
+/**
+ * @defgroup USBH_STDREQ_Global_Variable USBH Standard Request Global Variable
+ * @{
+ */
+extern uint8_t USBH_CfgDesc[512U];
+/**
+ * @}
+ */
 
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBH_STDREQ_Global_Functions
+ * @{
+ */
 USBH_Status USBH_GetDescriptor(USB_OTG_CORE_HANDLE *pdev,
                                USBH_HOST           *phost,
                                uint8_t  req_type,
@@ -136,6 +176,29 @@ USBH_Status USBH_Issue_ClrFeature(USB_OTG_CORE_HANDLE *pdev,
 USBH_DescHeader_t      *USBH_GetNextDesc (uint8_t   *pbuf,
                                                   uint16_t  *ptr);
 
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBH_STDREQ_H */
 

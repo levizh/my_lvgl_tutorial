@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_ioreq.c
+ * @brief IO requests APIs for control endpoints.
+ *       
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,23 +48,34 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_ioreq.c
- **
- ** A detailed description is available at
- ** @link
-    This file provides the IO requests APIs for control endpoints.
-    @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbd_ioreq.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CORE
+ * @{
+ */
+
+/** @defgroup USBD_IOREQ
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -79,86 +100,88 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
 /**
- *******************************************************************************
- ** \brief  USBD_CtlSendData
- **         send data on the ctl pipe
- ** \param  pdev: device instance
- ** \param  buff: pointer to data buffer
- ** \param  len: length of data to be sent
- ** \retval status
- ******************************************************************************/
+ * @defgroup USBD_IOREQ_Global_Functions USBD IO Request Global Functions
+ * @{
+ */
+
+/**
+ * @brief  USBD_CtlSendData
+ *         send data on the ctl pipe
+ * @param  pdev: device instance
+ * @param  buff: pointer to data buffer
+ * @param  len: length of data to be sent
+ * @retval status
+ */
 USBD_Status  USBD_CtlSendData (USB_OTG_CORE_HANDLE  *pdev,
                                uint8_t *pbuf,
                                uint16_t len)
 {
     USBD_Status ret = USBD_OK;
 
-    pdev->dev.in_ep[0].total_data_len = len;
-    pdev->dev.in_ep[0].rem_data_len   = len;
+    pdev->dev.in_ep[0U].total_data_len = len;
+    pdev->dev.in_ep[0U].rem_data_len   = len;
     pdev->dev.device_state = USB_OTG_EP0_DATA_IN;
 
     //printf("ctrl in %d\n",len);
 
-    DCD_EP_Tx (pdev, 0u, pbuf, (uint32_t)len);
+    DCD_EP_Tx (pdev, 0U, pbuf, (uint32_t)len);
 
     return ret;
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_CtlContinueSendData
- **         continue sending data on the ctl pipe
- ** \param  pdev: device instance
- ** \param  buff: pointer to data buffer
- ** \param  len: length of data to be sent
- ** \retval status
- ******************************************************************************/
+ * @brief  USBD_CtlContinueSendData
+ *         continue sending data on the ctl pipe
+ * @param  pdev: device instance
+ * @param  buff: pointer to data buffer
+ * @param  len: length of data to be sent
+ * @retval status
+ */
 USBD_Status  USBD_CtlContinueSendData (USB_OTG_CORE_HANDLE  *pdev,
                                        uint8_t *pbuf,
                                        uint16_t len)
 {
     USBD_Status ret = USBD_OK;
 
-    DCD_EP_Tx (pdev, 0u, pbuf, (uint32_t)len);
+    DCD_EP_Tx (pdev, 0U, pbuf, (uint32_t)len);
     return ret;
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_CtlPrepareRx
- **         receive data on the ctl pipe
- ** \param  pdev: USB OTG device instance
- ** \param  buff: pointer to data buffer
- ** \param  len: length of data to be received
- ** \retval status
- ******************************************************************************/
+ * @brief  USBD_CtlPrepareRx
+ *         receive data on the ctl pipe
+ * @param  pdev: USB OTG device instance
+ * @param  buff: pointer to data buffer
+ * @param  len: length of data to be received
+ * @retval status
+ */
 USBD_Status  USBD_CtlPrepareRx (USB_OTG_CORE_HANDLE  *pdev,
                                   uint8_t *pbuf,
                                   uint16_t len)
 {
     USBD_Status ret = USBD_OK;
 
-    pdev->dev.out_ep[0].total_data_len = len;
-    pdev->dev.out_ep[0].rem_data_len   = len;
+    pdev->dev.out_ep[0U].total_data_len = len;
+    pdev->dev.out_ep[0U].rem_data_len   = len;
     pdev->dev.device_state = USB_OTG_EP0_DATA_OUT;
 
     DCD_EP_PrepareRx (pdev,
-                        0u,
+                        0U,
                         pbuf,
                         len);
     return ret;
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_CtlContinueRx
- **         continue receive data on the ctl pipe
- ** \param  pdev: USB OTG device instance
- ** \param  buff: pointer to data buffer
- ** \param  len: length of data to be received
- ** \retval status
- ******************************************************************************/
+ * @brief  USBD_CtlContinueRx
+ *         continue receive data on the ctl pipe
+ * @param  pdev: USB OTG device instance
+ * @param  buff: pointer to data buffer
+ * @param  len: length of data to be received
+ * @retval status
+ */
 USBD_Status  USBD_CtlContinueRx (USB_OTG_CORE_HANDLE  *pdev,
                                           uint8_t *pbuf,
                                           uint16_t len)
@@ -166,26 +189,25 @@ USBD_Status  USBD_CtlContinueRx (USB_OTG_CORE_HANDLE  *pdev,
     USBD_Status ret = USBD_OK;
 
     DCD_EP_PrepareRx (pdev,
-                        0u,
+                        0U,
                         pbuf,
                         len);
     return ret;
 }
 /**
- *******************************************************************************
- ** \brief  USBD_CtlSendStatus
- **         send zero lzngth packet on the ctl pipe
- ** \param  pdev: USB OTG device instance
- ** \retval status
- ******************************************************************************/
+ * @brief  USBD_CtlSendStatus
+ *         send zero lzngth packet on the ctl pipe
+ * @param  pdev: USB OTG device instance
+ * @retval status
+ */
 USBD_Status  USBD_CtlSendStatus (USB_OTG_CORE_HANDLE  *pdev)
 {
     USBD_Status ret = USBD_OK;
     pdev->dev.device_state = USB_OTG_EP0_STATUS_IN;
     DCD_EP_Tx (pdev,
-                0u,
+                0U,
                 pdev->dev.setup_packet,//NULL,
-                0u);
+                0U);
     //printf("ctrl send status\n");
     //  USB_OTG_EP0_OutStart(pdev);
 
@@ -193,37 +215,57 @@ USBD_Status  USBD_CtlSendStatus (USB_OTG_CORE_HANDLE  *pdev)
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_CtlReceiveStatus
- **         receive zero lzngth packet on the ctl pipe
- ** \param  pdev: USB OTG device instance
- ** \retval status
- ******************************************************************************/
+ * @brief  USBD_CtlReceiveStatus
+ *         receive zero lzngth packet on the ctl pipe
+ * @param  pdev: USB OTG device instance
+ * @retval status
+ */
 USBD_Status  USBD_CtlReceiveStatus (USB_OTG_CORE_HANDLE  *pdev)
 {
     USBD_Status ret = USBD_OK;
     pdev->dev.device_state = USB_OTG_EP0_STATUS_OUT;
     DCD_EP_PrepareRx ( pdev,
-                        0u,
+                        0U,
                         pdev->dev.setup_packet,//NULL,
-                        0u);
+                        0U);
     //  USB_OTG_EP0_OutStart(pdev);
     return ret;
 }
 
 
 /**
- *******************************************************************************
- ** \brief  USBD_GetRxCount
- **         returns the received data length
- ** \param  pdev: USB OTG device instance
- **         epnum: endpoint index
- ** \retval Rx Data blength
- ******************************************************************************/
+ * @brief  USBD_GetRxCount
+ *         returns the received data length
+ * @param  pdev: USB OTG device instance
+ *         epnum: endpoint index
+ * @retval Rx Data blength
+ */
 uint16_t  USBD_GetRxCount (USB_OTG_CORE_HANDLE  *pdev , uint8_t epnum)
 {
     return (uint16_t)pdev->dev.out_ep[epnum].xfer_count;
 }
+
+/**
+ * @}
+ */
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

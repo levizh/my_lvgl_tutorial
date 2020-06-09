@@ -102,7 +102,6 @@
 #define TMR2_CAPT_COND_MSK                  (TMR2_HCONR_HICPA0 | TMR2_HCONR_HICPA1 | TMR2_HCONR_HICPA2)
 #define TMR2_TRIG_COND_MSK                  (TMR2_START_COND_MSK | TMR2_STOP_COND_MSK | TMR2_CLR_COND_MSK | TMR2_CAPT_COND_MSK)
 #define TMR2_INT_TYPE_MSK                   (TMR2_ICONR_CMENA | TMR2_ICONR_OVENA)
-#define TMR2_FLAG_MSK                       (TMR2_FLAG_CNT_MATCH | TMR2_FLAG_CNT_OVF)
 #define TMR2_COM_TRIG_EN_MSK                (TMR2_COM1_TRIG_ENABLE | TMR2_COM2_TRIG_ENABLE)
 #define TMR2_TRIG_EVENT_MSK                 (AOS_TMR2_HTSSR_TRGSEL)
 /**
@@ -127,9 +126,9 @@
  */
 #define __BIT_BAND_BASE                     (0x42000000UL)
 #define __PERIP_BASE                        (0x40000000UL)
-#define __REG_OFS(__reg__)                  ((uint32_t)&(__reg__) - __PERIP_BASE)
-#define __BIT_BAND_ADDR(__reg__, __pos__)   ((__REG_OFS(__reg__) << 5U) + ((uint32_t)(__pos__) << 2U) + __BIT_BAND_BASE)
-#define BIT_BAND(__reg__, __pos__)          (*(__IO uint32_t *)__BIT_BAND_ADDR((__reg__), (__pos__)))
+#define __REG_OFS(regAddr)                  ((regAddr) - __PERIP_BASE)
+#define __BIT_BAND_ADDR(regAddr, pos)       ((__REG_OFS(regAddr) << 5U) + ((uint32_t)(pos) << 2U) + __BIT_BAND_BASE)
+#define BIT_BAND(regAddr, pos)              (*(__IO uint32_t *)__BIT_BAND_ADDR((regAddr), (pos)))
 /**
  * @}
  */
@@ -163,8 +162,8 @@
     ((x) == TMR2_CLK_ASYNC_PIN_CLK))
 
 #define IS_TMR2_STATUS_FLAG(x)                                                 \
-(   ((x) == TMR2_FLAG_CNT_MATCH)            ||                                 \
-    ((x) == TMR2_FLAG_CNT_OVF))
+(   ((x) == TMR2_FLAG_CMP)                  ||                                 \
+    ((x) == TMR2_FLAG_OVF))
 
 #define IS_TMR2_CLK_DIV(x)                                                     \
 (   ((x) == TMR2_CLK_DIV_1)                 ||                                 \
@@ -200,12 +199,6 @@
     ((x) == TMR2_PWM_CM_HIGH)               ||                                 \
     ((x) == TMR2_PWM_CM_KEEP)               ||                                 \
     ((x) == TMR2_PWM_CM_REVERSE))
-
-#define IS_TMR2_PWM_STATE(x)                                                   \
-(   ((x) <= TMR2_PWM_CNT_MATCH))
-
-#define IS_TMR2_PWM_POLARITY(x)                                                \
-(   ((x) <= TMR2_PWM_OUT_REVERSE))
 
 /**
  * @}
@@ -264,9 +257,7 @@ __IO uint32_t m_u32AsyncDelay = 0U;
  *                                      contains the configuration information for the TIMER2 channel.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No error occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -pstcInit == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorInvalidParameter:       pstcInit == NULL.
  */
 en_result_t TMR2_Init(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, const stc_tmr2_init_t *pstcInit)
 {
@@ -276,9 +267,10 @@ en_result_t TMR2_Init(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, const stc_tmr2_i
     uint32_t u32CNTRAddr;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((TMR2x != NULL) && (pstcInit != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    if (pstcInit != NULL)
     {
         DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+        DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
         DDL_ASSERT(IS_TMR2_FUNC_MODE(pstcInit->u32FuncMode));
         DDL_ASSERT(IS_TMR2_CLK_SRC(pstcInit->u32ClkSrc));
         DDL_ASSERT(IS_TMR2_CLK_DIV(pstcInit->u32ClkDiv));
@@ -287,7 +279,7 @@ en_result_t TMR2_Init(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, const stc_tmr2_i
         u32CMPRAddr = (uint32_t)&TMR2x->CMPAR + u32Temp;
         u32CNTRAddr = (uint32_t)&TMR2x->CNTAR + u32Temp;
         RW_MEM32(u32CMPRAddr) = pstcInit->u32CmpVal;
-        RW_MEM32(u32CNTRAddr) = pstcInit->u32CntInitVal;
+        RW_MEM32(u32CNTRAddr) = pstcInit->u32CntVal;
 
         u32Temp = pstcInit->u32FuncMode | \
                   pstcInit->u32ClkSrc   | \
@@ -333,11 +325,11 @@ en_result_t TMR2_StructInit(stc_tmr2_init_t *pstcInit)
 
     if (pstcInit != NULL)
     {
-        pstcInit->u32FuncMode     = TMR2_FUNC_COMPARE;
-        pstcInit->u32ClkSrc       = TMR2_CLK_SYNC_PCLK1;
-        pstcInit->u32ClkDiv       = TMR2_CLK_DIV_1;
-        pstcInit->u32CmpVal       = 0xFFFFUL;
-        pstcInit->u32CntInitVal   = 0U;
+        pstcInit->u32FuncMode = TMR2_FUNC_COMPARE;
+        pstcInit->u32ClkSrc   = TMR2_CLK_SYNC_PCLK1;
+        pstcInit->u32ClkDiv   = TMR2_CLK_DIV_1;
+        pstcInit->u32CmpVal   = 0xFFFFUL;
+        pstcInit->u32CntVal   = 0U;
         pstcInit->u32AsyncClkFreq = 0U;
         enRet = Ok;
     }
@@ -353,36 +345,25 @@ en_result_t TMR2_StructInit(stc_tmr2_init_t *pstcInit)
  *   @arg  M4_TMR2_2:               TIMER2 unit 2 instance register base.
  *   @arg  M4_TMR2_3:               TIMER2 unit 3 instance register base.
  *   @arg  M4_TMR2_4:               TIMER2 unit 4 instance register base.
- * @retval An en_result_t enumeration type value.
- *   @arg  Ok:                      No errors occurred.
- *   @arg  ErrorInvalidParameter:   TMR2x == NULL.
+ * @retval None
  */
-en_result_t TMR2_DeInit(M4_TMR2_TypeDef *TMR2x)
+void TMR2_DeInit(M4_TMR2_TypeDef *TMR2x)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
 
-    if (TMR2x != NULL)
-    {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    TMR2_Stop(TMR2x, TMR2_CH_A);
+    TMR2_Stop(TMR2x, TMR2_CH_B);
 
-        TMR2_Stop(TMR2x, TMR2_CH_A);
-        TMR2_Stop(TMR2x, TMR2_CH_B);
+    CLEAR_REG32(TMR2x->CNTAR);
+    CLEAR_REG32(TMR2x->CNTBR);
+    CLEAR_REG32(TMR2x->BCONR);
+    CLEAR_REG32(TMR2x->ICONR);
+    CLEAR_REG32(TMR2x->PCONR);
+    CLEAR_REG32(TMR2x->HCONR);
+    CLEAR_REG32(TMR2x->STFLR);
 
-        CLEAR_REG32(TMR2x->CNTAR);
-        CLEAR_REG32(TMR2x->CNTBR);
-        CLEAR_REG32(TMR2x->BCONR);
-        CLEAR_REG32(TMR2x->ICONR);
-        CLEAR_REG32(TMR2x->PCONR);
-        CLEAR_REG32(TMR2x->HCONR);
-        CLEAR_REG32(TMR2x->STFLR);
-
-        WRITE_REG32(TMR2x->CMPAR, 0xFFFFU);
-        WRITE_REG32(TMR2x->CMPBR, 0xFFFFU);
-
-        enRet = Ok;
-    }
-
-    return enRet;
+    WRITE_REG32(TMR2x->CMPAR, 0xFFFFU);
+    WRITE_REG32(TMR2x->CMPBR, 0xFFFFU);
 }
 
 /**
@@ -402,18 +383,17 @@ en_result_t TMR2_DeInit(M4_TMR2_TypeDef *TMR2x)
  *                                      the configuration information for the PWM output polarity.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No error occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -pstcCfg == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorInvalidParameter:       pstcCfg == NULL.
  */
 en_result_t TMR2_PWM_Config(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, const stc_tmr2_pwm_cfg_t *pstcCfg)
 {
     uint32_t u32Cfg;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((TMR2x != NULL) && (pstcCfg != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    if (pstcCfg != NULL)
     {
         DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+        DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
         DDL_ASSERT(IS_TMR2_PWM_START_POLARITY(pstcCfg->u32StartPolarity));
         DDL_ASSERT(IS_TMR2_PWM_STOP_POLARITY(pstcCfg->u32StopPolarity));
         DDL_ASSERT(IS_TMR2_PWM_CM_POLARITY(pstcCfg->u32CMPolarity));
@@ -468,26 +448,19 @@ en_result_t TMR2_PWM_StructInit(stc_tmr2_pwm_cfg_t *pstcCfg)
  * @param  [in]  enNewState             An @ref en_functional_state_t value.
  *   @arg  Enable:                      Enable PWM output of the specified TIMER2's channel.
  *   @arg  Disable:                     Disable PWM output of the specified TIMER2's channel.
- * @retval An en_result_t enumeration type value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ * @retval None
  */
-en_result_t TMR2_PWM_Cmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional_state_t enNewState)
+void TMR2_PWM_Cmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional_state_t enNewState)
 {
+    uint32_t u32Addr;
     uint8_t au8EnPos[] = {TMR2_PCONR_OUTENA_POS, TMR2_PCONR_OUTENB_POS};
-    en_result_t enRet = ErrorInvalidParameter;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
-    {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-        BIT_BAND(TMR2x->PCONR, au8EnPos[u8Tmr2Ch]) = (uint32_t)enNewState;
-        enRet = Ok;
-    }
-
-    return enRet;
+    u32Addr = (uint32_t)&TMR2x->PCONR;
+    BIT_BAND(u32Addr, au8EnPos[u8Tmr2Ch]) = (uint32_t)enNewState;
 }
 
 /**
@@ -507,18 +480,17 @@ en_result_t TMR2_PWM_Cmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional
  *                                      the configuration information for the hardware condition.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No error occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -pstcCond == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorInvalidParameter:       pstcCond == NULL.
  */
 en_result_t TMR2_SetTrigCond(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, const stc_tmr2_trig_cond_t *pstcCond)
 {
     uint32_t u32Cfg;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((TMR2x != NULL) && (pstcCond != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    if (pstcCond != NULL)
     {
         DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+        DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
 
         u32Cfg  = pstcCond->u32StartCond | \
                   pstcCond->u32StopCond  | \
@@ -599,28 +571,18 @@ void TMR2_ComTrigCmd(uint32_t u32ComTrigEn)
  *   @arg  TMR2_FILTER_CLK_DIV_4:       Clock source / 4.
  *   @arg  TMR2_FILTER_CLK_DIV_16:      Clock source / 16.
  *   @arg  TMR2_FILTER_CLK_DIV_64:      Clock source / 64.
- * @retval An en_result_t enumeration type value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ * @retval None
  */
-en_result_t TMR2_FilterConfig(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkDiv)
+void TMR2_FilterConfig(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkDiv)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_TMR2_FILTER_CLK_DIV(u32ClkDiv));
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
-    {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_TMR2_FILTER_CLK_DIV(u32ClkDiv));
-
-        u8Tmr2Ch *= TMR2_PCONR_OFFSET;
-        MODIFY_REG32(TMR2x->PCONR, \
-                     (TMR2_FILTER_CLK_DIV_MSK << u8Tmr2Ch), \
-                     (u32ClkDiv << u8Tmr2Ch));
-        enRet = Ok;
-    }
-
-    return enRet;
+    u8Tmr2Ch *= TMR2_PCONR_OFFSET;
+    MODIFY_REG32(TMR2x->PCONR, \
+                 (TMR2_FILTER_CLK_DIV_MSK << u8Tmr2Ch), \
+                 (u32ClkDiv << u8Tmr2Ch));
 }
 
 /**
@@ -638,26 +600,19 @@ en_result_t TMR2_FilterConfig(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t
  * @param  [in]  enNewState             An @ref en_functional_state_t value.
  *   @arg  Enable:                      Enable the filter of the specified channel.
  *   @arg  Disable:                     Disable the filter of the specified channel.
- * @retval An en_result_t enumeration type value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ * @retval None
  */
-en_result_t TMR2_FilterCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional_state_t enNewState)
+void TMR2_FilterCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional_state_t enNewState)
 {
+    uint32_t u32Addr;
     uint8_t au8EnPos[] = {TMR2_PCONR_NOFIENA_POS, TMR2_PCONR_NOFIENB_POS};
-    en_result_t enRet = ErrorInvalidParameter;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
-    {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-        BIT_BAND(TMR2x->PCONR, au8EnPos[u8Tmr2Ch]) = (uint32_t)enNewState;
-        enRet = Ok;
-    }
-
-    return enRet;
+    u32Addr = (uint32_t)&TMR2x->PCONR;
+    BIT_BAND(u32Addr, au8EnPos[u8Tmr2Ch]) = (uint32_t)enNewState;
 }
 
 /**
@@ -674,41 +629,32 @@ en_result_t TMR2_FilterCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_function
  *   @arg  TMR2_CH_B:                   Channel B of TIMER2.
  * @param  [in]  u32IntType             The interrupt type.
  *                                      This parameter can be a value(s) of @ref TMR2_Interrupt_Type
- *   @arg  TMR2_INT_CNT_MATCH:          TIMER2 count match interrupt.
- *   @arg  TMR2_INT_CNT_OVF:            TIMER2 count overflow interrupt.
+ *   @arg  TMR2_INT_CMP:                TIMER2 count match interrupt.
+ *   @arg  TMR2_INT_OVF:                TIMER2 count overflow interrupt.
  * @param  [in]  enNewState             An @ref en_functional_state_t value.
  *   @arg  Enable:                      Enable the specified interrupt.
  *   @arg  Disable:                     Disable the specified interrupt.
- * @retval An en_result_t enumeration type value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ * @retval None
  */
-en_result_t TMR2_IntCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, \
-                          uint32_t u32IntType, en_functional_state_t enNewState)
+void TMR2_IntCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, \
+                 uint32_t u32IntType, en_functional_state_t enNewState)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    u8Tmr2Ch    *= TMR2_ICONR_OFFSET;
+    u32IntType  &= TMR2_INT_TYPE_MSK;
+    u32IntType <<= u8Tmr2Ch;
+
+    if (enNewState == Enable)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-
-        u8Tmr2Ch    *= TMR2_ICONR_OFFSET;
-        u32IntType  &= TMR2_INT_TYPE_MSK;
-        u32IntType <<= u8Tmr2Ch;
-
-        if (enNewState == Enable)
-        {
-            SET_REG32_BIT(TMR2x->ICONR, u32IntType);
-        }
-        else
-        {
-            CLEAR_REG32_BIT(TMR2x->ICONR, u32IntType);
-        }
+        SET_REG32_BIT(TMR2x->ICONR, u32IntType);
     }
-
-    return enRet;
+    else
+    {
+        CLEAR_REG32_BIT(TMR2x->ICONR, u32IntType);
+    }
 }
 
 /**
@@ -725,32 +671,25 @@ en_result_t TMR2_IntCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, \
  *   @arg  TMR2_CH_B:               Channel B of TIMER2.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                      No errors occurred.
- *   @arg  ErrorInvalidParameter:  -TMR2x == NULL.
- *                                 -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorTimeout:            Works timeout when the clock source is asynchronous clock.
  */
 en_result_t TMR2_Start(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch)
 {
     uint32_t u32Cfg   = TMR2_BCONR_CSTA;
-    en_result_t enRet = ErrorInvalidParameter;
+    en_result_t enRet = Ok;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    if (u8Tmr2Ch == TMR2_CH_B)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        if (u8Tmr2Ch == TMR2_CH_B)
-        {
-            u32Cfg = TMR2_BCONR_CSTB;
-        }
-        SET_REG32_BIT(TMR2x->BCONR, u32Cfg);
+        u32Cfg = TMR2_BCONR_CSTB;
+    }
+    SET_REG32_BIT(TMR2x->BCONR, u32Cfg);
 
-        if (m_u32AsyncDelay != 0U)
-        {
-            /*!< Check if stop successfully when using asynchronous clock. */
-            enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, u32Cfg, u32Cfg);
-        }
-        else
-        {
-            enRet = Ok;
-        }
+    if (m_u32AsyncDelay != 0U)
+    {
+        /*!< Check if stop successfully when using asynchronous clock. */
+        enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, u32Cfg, u32Cfg);
     }
 
     return enRet;
@@ -770,28 +709,21 @@ en_result_t TMR2_Start(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch)
  *   @arg  TMR2_CH_B:               Channel B of TIMER2.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                      No errors occurred.
- *   @arg  ErrorInvalidParameter:  -TMR2x == NULL.
- *                                 -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorTimeout:            Works timeout when the clock source is asynchronous clock.
  */
 en_result_t TMR2_Stop(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch)
 {
     uint32_t au32Cfg[] = {TMR2_BCONR_CSTA, TMR2_BCONR_CSTB};
-    en_result_t enRet = ErrorInvalidParameter;
+    en_result_t enRet = Ok;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    CLEAR_REG32_BIT(TMR2x->BCONR, au32Cfg[u8Tmr2Ch]);
+
+    if (m_u32AsyncDelay != 0U)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        CLEAR_REG32_BIT(TMR2x->BCONR, au32Cfg[u8Tmr2Ch]);
-
-        if (m_u32AsyncDelay != 0U)
-        {
-            /*!< Check if stop successfully when using asynchronous clock. */
-            enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, au32Cfg[u8Tmr2Ch], 0UL);
-        }
-        else
-        {
-            enRet = Ok;
-        }
+        /*!< Check if stop successfully when using asynchronous clock. */
+        enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, au32Cfg[u8Tmr2Ch], 0UL);
     }
 
     return enRet;
@@ -810,26 +742,26 @@ en_result_t TMR2_Stop(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch)
  *   @arg  TMR2_CH_A:               Channel A of TIMER2.
  *   @arg  TMR2_CH_B:               Channel B of TIMER2.
  * @param  [in]  u32Flag            TIMER2 state flag.
- *                                  This parameter can be a value of @ref TMR2_State_Flag
- *   @arg  TMR2_FLAG_CNT_MATCH:     Counting match flag.
- *   @arg  TMR2_FLAG_CNT_OVF:       Counting overflow flag.
+ *                                  This parameter can be values of @ref TMR2_State_Flag
+ *   @arg  TMR2_FLAG_CMP:           Counting match flag.
+ *   @arg  TMR2_FLAG_OVF:           Counting overflow flag.
  * @retval An en_flag_status_t enumeration type value.
- *   @arg  Set:                     The specified flag is set.
- *   @arg  Reset:                   The specified flag is not set.
+ *   @arg  Set:                     At least one of the specified flags is set.
+ *   @arg  Reset:                   None of the specified flags is set.
  */
 en_flag_status_t TMR2_GetStatus(const M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Flag)
 {
     en_flag_status_t enFlag = Reset;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_TMR2_STATUS_FLAG(u32Flag));
+
+    u32Flag &= TMR2_FLAG_ALL;
+    u32Flag <<= ((uint32_t)u8Tmr2Ch * TMR2_ICONR_OFFSET);
+    if (READ_REG32_BIT(TMR2x->STFLR, u32Flag) != 0U)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_TMR2_STATUS_FLAG(u32Flag));
-        u32Flag <<= ((uint32_t)u8Tmr2Ch * TMR2_ICONR_OFFSET);
-        if ((TMR2x->STFLR & u32Flag) != 0U)
-        {
-            enFlag = Set;
-        }
+        enFlag = Set;
     }
 
     return enFlag;
@@ -848,35 +780,30 @@ en_flag_status_t TMR2_GetStatus(const M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, 
  *   @arg  TMR2_CH_A:               Channel A of TIMER2.
  *   @arg  TMR2_CH_B:               Channel B of TIMER2.
  * @param  [in]  u32Flag            TIMER2 state flag.
- *                                  This parameter can be a value of @ref TMR2_State_Flag
- *   @arg  TMR2_FLAG_CNT_MATCH:     Counter match flag of channel A/B.
- *   @arg  TMR2_FLAG_CNT_OVF:       Counter overflow flag of channel A/B.
+ *                                  This parameter can be values of @ref TMR2_State_Flag
+ *   @arg  TMR2_FLAG_CMP:           Counter match flag of channel A/B.
+ *   @arg  TMR2_FLAG_OVF:           Counter overflow flag of channel A/B.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                      No errors occurred.
- *   @arg  ErrorInvalidParameter:   TMR2x == NULL
+ *   @arg  ErrorTimeout:            Works timeout when the clock source is asynchronous clock.
  */
 en_result_t TMR2_ClrStatus(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Flag)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    en_result_t enRet = Ok;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+
+    /* Bit filed offset. */
+    u8Tmr2Ch *= TMR2_ICONR_OFFSET;
+    u32Flag  &= TMR2_FLAG_ALL;
+    u32Flag <<= u8Tmr2Ch;
+    CLEAR_REG32_BIT(TMR2x->STFLR, u32Flag);
+
+    if (m_u32AsyncDelay != 0U)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        /* Bit filed offset. */
-        u8Tmr2Ch *= TMR2_ICONR_OFFSET;
-        u32Flag  &= TMR2_FLAG_MSK;
-        u32Flag <<= u8Tmr2Ch;
-        CLEAR_REG32_BIT(TMR2x->STFLR, u32Flag);
-
-        if (m_u32AsyncDelay != 0U)
-        {
-            /*!< Check if stop successfully when using asynchronous clock. */
-            enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->STFLR, u32Flag, 0UL);
-        }
-        else
-        {
-            enRet = Ok;
-        }
+        /*!< Check if stop successfully when using asynchronous clock. */
+        enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->STFLR, u32Flag, 0UL);
     }
 
     return enRet;
@@ -897,28 +824,20 @@ en_result_t TMR2_ClrStatus(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u3
  * @param  [in]  u32Val             The comparison for the specified TIMER2's channel.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                      No errors occurred.
- *   @arg  ErrorInvalidParameter:  -TMR2x == NULL.
- *                                 -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorTimeout:            Works timeout when the clock source is asynchronous clock.
  */
 en_result_t TMR2_SetCmpVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Val)
 {
     uint32_t u32CMPRAddr;
-    en_result_t enRet = ErrorInvalidParameter;
+    en_result_t enRet = Ok;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    u32CMPRAddr = (uint32_t)&TMR2x->CMPAR + (uint32_t)u8Tmr2Ch * 4U;
+    RW_MEM32(u32CMPRAddr) = u32Val;
+
+    if (m_u32AsyncDelay != 0U)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        u32CMPRAddr = (uint32_t)&TMR2x->CMPAR + (uint32_t)u8Tmr2Ch * 4U;
-        RW_MEM32(u32CMPRAddr) = u32Val;
-
-        if (m_u32AsyncDelay != 0U)
-        {
-            enRet = TMR2_AsyncCheck(u32CMPRAddr, 0xFFFFUL, u32Val);
-        }
-        else
-        {
-            enRet = Ok;
-        }
+        enRet = TMR2_AsyncCheck(u32CMPRAddr, 0xFFFFUL, u32Val);
     }
 
     return enRet;
@@ -941,16 +860,12 @@ en_result_t TMR2_SetCmpVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u3
 uint32_t TMR2_GetCmpVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch)
 {
     uint32_t u32CMPRAddr;
-    uint32_t u32Ret = 0U;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
-    {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        u32CMPRAddr = (uint32_t)&TMR2x->CMPAR + (uint32_t)u8Tmr2Ch * 4U;
-        u32Ret = RW_MEM32(u32CMPRAddr);
-    }
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
 
-    return u32Ret;
+    u32CMPRAddr = (uint32_t)&TMR2x->CMPAR + (uint32_t)u8Tmr2Ch * 4U;
+    return RW_MEM32(u32CMPRAddr);
 }
 
 /**
@@ -968,28 +883,22 @@ uint32_t TMR2_GetCmpVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch)
  * @param  [in]  u32Val             The counter value for the specified TIMER2's channel.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                      No errors occurred.
- *   @arg  ErrorInvalidParameter:  -TMR2x == NULL.
- *                                 -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorTimeout:            Works timeout when the clock source is asynchronous clock.
  */
 en_result_t TMR2_SetCntVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Val)
 {
     uint32_t u32CNTRAddr;
-    en_result_t enRet = ErrorInvalidParameter;
+    en_result_t enRet = Ok;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+
+    u32CNTRAddr = (uint32_t)&TMR2x->CNTAR + (uint32_t)u8Tmr2Ch * 4U;
+    RW_MEM32(u32CNTRAddr) = u32Val;
+
+    if (m_u32AsyncDelay != 0U)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        u32CNTRAddr = (uint32_t)&TMR2x->CNTAR + (uint32_t)u8Tmr2Ch * 4U;
-        RW_MEM32(u32CNTRAddr) = u32Val;
-
-        if (m_u32AsyncDelay != 0U)
-        {
-            enRet = TMR2_AsyncCheck(u32CNTRAddr, 0xFFFFUL, u32Val);
-        }
-        else
-        {
-            enRet = Ok;
-        }
+        enRet = TMR2_AsyncCheck(u32CNTRAddr, 0xFFFFUL, u32Val);
     }
 
     return enRet;
@@ -1012,16 +921,12 @@ en_result_t TMR2_SetCntVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u3
 uint32_t TMR2_GetCntVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch)
 {
     uint32_t u32CNTRAddr;
-    uint32_t u32Ret = 0U;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
-    {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        u32CNTRAddr = (uint32_t)&TMR2x->CNTAR + (uint32_t)u8Tmr2Ch * 4U;
-        u32Ret = RW_MEM32(u32CNTRAddr);
-    }
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    u32CNTRAddr = (uint32_t)&TMR2x->CNTAR + (uint32_t)u8Tmr2Ch * 4U;
 
-    return u32Ret;
+    return RW_MEM32(u32CNTRAddr);
 }
 
 /**
@@ -1042,35 +947,28 @@ uint32_t TMR2_GetCntVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch)
  *   @arg  TMR2_FUNC_CAPTURE:       Set the function of the specified channel of TIMER2 unit as capturing input.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                      No errors occurred.
- *   @arg  ErrorInvalidParameter:  -TMR2x == NULL.
- *                                 -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorTimeout:            Works timeout when the clock source is asynchronous clock.
  */
 en_result_t TMR2_SetFuncMode(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32FuncMode)
 {
     uint32_t u32Msk;
     uint32_t u32Cfg;
-    en_result_t enRet = ErrorInvalidParameter;
+    en_result_t enRet = Ok;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_TMR2_FUNC_MODE(u32FuncMode));
+
+    /* Bit filed offset. */
+    u8Tmr2Ch *= TMR2_BCONR_OFFSET;
+    u32Msk    = TMR2_FUNC_MODE_MSK << u8Tmr2Ch;
+    u32Cfg    = u32FuncMode << u8Tmr2Ch;
+    MODIFY_REG32(TMR2x->BCONR, u32Msk, u32Cfg);
+
+    if (m_u32AsyncDelay != 0U)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_TMR2_FUNC_MODE(u32FuncMode));
-
-        /* Bit filed offset. */
-        u8Tmr2Ch *= TMR2_BCONR_OFFSET;
-        u32Msk    = TMR2_FUNC_MODE_MSK << u8Tmr2Ch;
-        u32Cfg    = u32FuncMode << u8Tmr2Ch;
-        MODIFY_REG32(TMR2x->BCONR, u32Msk, u32Cfg);
-
-        if (m_u32AsyncDelay != 0U)
-        {
-            /*!< Check if write successfully when using asynchronous clock. */
-            enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, u32Msk, u32Cfg);
-        }
-        else
-        {
-            enRet = Ok;
-        }
+        /*!< Check if write successfully when using asynchronous clock. */
+        enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, u32Msk, u32Cfg);
     }
 
     return enRet;
@@ -1103,35 +1001,28 @@ en_result_t TMR2_SetFuncMode(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t 
  *   @arg  TMR2_ASYNC_CLK_PIN_CLK:      Asynchronous clock source, from pin TIM2_x_CLKA/B.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorTimeout:                Works timeout when the clock source is asynchronous clock.
  */
 en_result_t TMR2_SetClkSrc(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkSrc)
 {
     uint32_t u32Msk;
     uint32_t u32Cfg;
-    en_result_t enRet = ErrorInvalidParameter;
+    en_result_t enRet = Ok;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_TMR2_CLK_SRC(u32ClkSrc));
+
+    /* Bit filed offset. */
+    u8Tmr2Ch *= TMR2_BCONR_OFFSET;
+    u32Msk    = TMR2_CLK_SRC_MSK << u8Tmr2Ch;
+    u32Cfg    = u32ClkSrc << u8Tmr2Ch;
+    MODIFY_REG32(TMR2x->BCONR, u32Msk, u32Cfg);
+
+    if (m_u32AsyncDelay > 0U)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_TMR2_CLK_SRC(u32ClkSrc));
-
-        /* Bit filed offset. */
-        u8Tmr2Ch *= TMR2_BCONR_OFFSET;
-        u32Msk    = TMR2_CLK_SRC_MSK << u8Tmr2Ch;
-        u32Cfg    = u32ClkSrc << u8Tmr2Ch;
-        MODIFY_REG32(TMR2x->BCONR, u32Msk, u32Cfg);
-
-        if (m_u32AsyncDelay > 0U)
-        {
-            /*!< Check if write successfully when using asynchronous clock. */
-            enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, u32Msk, u32Cfg);
-        }
-        else
-        {
-            enRet = Ok;
-        }
+        /*!< Check if write successfully when using asynchronous clock. */
+        enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, u32Msk, u32Cfg);
     }
 
     return enRet;
@@ -1164,35 +1055,28 @@ en_result_t TMR2_SetClkSrc(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u3
  *   @arg  TMR2_CLK_DIV_1024:           Clock source / 1024.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ *   @arg  ErrorTimeout:                Works timeout when the clock source is asynchronous clock.
  */
 en_result_t TMR2_SetClkDiv(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkDiv)
 {
     uint32_t u32Msk;
     uint32_t u32Cfg;
-    en_result_t enRet = ErrorInvalidParameter;
+    en_result_t enRet = Ok;
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_TMR2_CLK_DIV(u32ClkDiv));
+
+    /* Bit filed offset. */
+    u8Tmr2Ch *= TMR2_BCONR_OFFSET;
+    u32Msk    = TMR2_CLK_DIV_MSK << u8Tmr2Ch;
+    u32Cfg    = u32ClkDiv << u8Tmr2Ch;
+    MODIFY_REG32(TMR2x->BCONR, u32Msk, u32Cfg);
+
+    if (m_u32AsyncDelay > 0U)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_TMR2_CLK_DIV(u32ClkDiv));
-
-        /* Bit filed offset. */
-        u8Tmr2Ch *= TMR2_BCONR_OFFSET;
-        u32Msk    = TMR2_CLK_DIV_MSK << u8Tmr2Ch;
-        u32Cfg    = u32ClkDiv << u8Tmr2Ch;
-        MODIFY_REG32(TMR2x->BCONR, u32Msk, u32Cfg);
-
-        if (m_u32AsyncDelay > 0U)
-        {
-            /*!< Check if write successfully when using asynchronous clock. */
-            enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, u32Msk, u32Cfg);
-        }
-        else
-        {
-            enRet = Ok;
-        }
+        /*!< Check if write successfully when using asynchronous clock. */
+        enRet = TMR2_AsyncCheck((uint32_t)&TMR2x->BCONR, u32Msk, u32Cfg);
     }
 
     return enRet;
@@ -1269,36 +1153,25 @@ en_result_t TMR2_SetAsyncDelay(uint32_t u32AsyncClkFreq, uint32_t u32ClkDiv)
  *   @arg  TMR2_CAPT_COND_TRIG_RISE:    The condition for capturing is the rising edge of TIM2_x_TRIGA/B.
  *   @arg  TMR2_CAPT_COND_TRIG_FALL:    The condition for capturing is the falling edge of TIM2_x_TRIGA/B.
  *   @arg  TMR2_CAPT_COND_EVENT:        The condition for capturing is the specified event occurred.
- * @retval An en_result_t enumeration type value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ * @retval None
  */
-en_result_t TMR2_TrigCondCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Cond, en_functional_state_t enNewState)
+void TMR2_TrigCondCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Cond, en_functional_state_t enNewState)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
+    u32Cond &= TMR2_TRIG_COND_MSK;
+    u8Tmr2Ch *= TMR2_HCONR_OFFSET;
+    u32Cond <<= u8Tmr2Ch;
+    if (enNewState == Enable)
     {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-
-        u32Cond &= TMR2_TRIG_COND_MSK;
-        u8Tmr2Ch *= TMR2_HCONR_OFFSET;
-        u32Cond <<= u8Tmr2Ch;
-        if (enNewState == Enable)
-        {
-            SET_REG32_BIT(TMR2x->HCONR, u32Cond);
-        }
-        else
-        {
-            CLEAR_REG32_BIT(TMR2x->HCONR, u32Cond);
-        }
-
-        enRet = Ok;
+        SET_REG32_BIT(TMR2x->HCONR, u32Cond);
     }
-
-    return enRet;
+    else
+    {
+        CLEAR_REG32_BIT(TMR2x->HCONR, u32Cond);
+    }
 }
 
 /**
@@ -1318,28 +1191,18 @@ en_result_t TMR2_TrigCondCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t 
  *   @arg  TMR2_PWM_START_LOW:          PWM output low when counting start.
  *   @arg  TMR2_PWM_START_HIGH:         PWM output high when counting start.
  *   @arg  TMR2_PWM_START_KEEP:         PWM output keeps the current polarity when counting start.
- * @retval An en_result_t enumeration type value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ * @retval None
  */
-en_result_t TMR2_PWM_SetStartPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity)
+void TMR2_PWM_SetStartPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_TMR2_PWM_START_POLARITY(u32Polarity));
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
-    {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_TMR2_PWM_START_POLARITY(u32Polarity));
-
-        u8Tmr2Ch *= TMR2_PCONR_OFFSET;
-        MODIFY_REG32(TMR2x->PCONR, \
-                     (TMR2_PWM_START_POLARITY_MSK << u8Tmr2Ch), \
-                     (u32Polarity << u8Tmr2Ch));
-        enRet = Ok;
-    }
-
-    return enRet;
+    u8Tmr2Ch *= TMR2_PCONR_OFFSET;
+    MODIFY_REG32(TMR2x->PCONR, \
+                 (TMR2_PWM_START_POLARITY_MSK << u8Tmr2Ch), \
+                 (u32Polarity << u8Tmr2Ch));
 }
 
 /**
@@ -1359,28 +1222,18 @@ en_result_t TMR2_PWM_SetStartPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, 
  *   @arg  TMR2_PWM_STOP_LOW:           PWM output low when counting stop.
  *   @arg  TMR2_PWM_STOP_HIGH:          PWM output high when counting stop.
  *   @arg  TMR2_PWM_STOP_KEEP:          PWM output keeps the current polarity when counting stop.
- * @retval An en_result_t enumeration type value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ * @retval None
  */
-en_result_t TMR2_PWM_SetStopPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity)
+void TMR2_PWM_SetStopPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_TMR2_PWM_STOP_POLARITY(u32Polarity));
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
-    {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_TMR2_PWM_STOP_POLARITY(u32Polarity));
-
-        u8Tmr2Ch *= TMR2_PCONR_OFFSET;
-        MODIFY_REG32(TMR2x->PCONR, \
-                     (TMR2_PWM_STOP_POLARITY_MSK << u8Tmr2Ch), \
-                     (u32Polarity << u8Tmr2Ch));
-        enRet = Ok;
-    }
-
-    return enRet;
+    u8Tmr2Ch *= TMR2_PCONR_OFFSET;
+    MODIFY_REG32(TMR2x->PCONR, \
+                 (TMR2_PWM_STOP_POLARITY_MSK << u8Tmr2Ch), \
+                 (u32Polarity << u8Tmr2Ch));
 }
 
 /**
@@ -1401,28 +1254,18 @@ en_result_t TMR2_PWM_SetStopPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, u
  *   @arg  TMR2_PWM_CM_HIGH:            PWM output high when counting match.
  *   @arg  TMR2_PWM_CM_KEEP:            PWM output keeps the current polarity when counting match.
  *   @arg  TMR2_PWM_CM_REVERSE:         PWM output reverses the current polarity when counting match.
- * @retval An en_result_t enumeration type value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -TMR2x == NULL.
- *                                     -u8Tmr2Ch >= TMR2_CH_COUNT.
+ * @retval None
  */
-en_result_t TMR2_PWM_SetCntMatchPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity)
+void TMR2_PWM_SetCntMatchPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
+    DDL_ASSERT(IS_TMR2_CH(u8Tmr2Ch));
+    DDL_ASSERT(IS_TMR2_PWM_CM_POLARITY(u32Polarity));
 
-    if ((TMR2x != NULL) && (u8Tmr2Ch < TMR2_CH_COUNT))
-    {
-        DDL_ASSERT(IS_TMR2_UNIT(TMR2x));
-        DDL_ASSERT(IS_TMR2_PWM_CM_POLARITY(u32Polarity));
-
-        u8Tmr2Ch *= TMR2_PCONR_OFFSET;
-        MODIFY_REG32(TMR2x->PCONR, \
-                     (TMR2_PWM_CM_POLARITY_MSK << u8Tmr2Ch), \
-                     (u32Polarity << u8Tmr2Ch));
-        enRet = Ok;
-    }
-
-    return enRet;
+    u8Tmr2Ch *= TMR2_PCONR_OFFSET;
+    MODIFY_REG32(TMR2x->PCONR, \
+                 (TMR2_PWM_CM_POLARITY_MSK << u8Tmr2Ch), \
+                 (u32Polarity << u8Tmr2Ch));
 }
 
 /**

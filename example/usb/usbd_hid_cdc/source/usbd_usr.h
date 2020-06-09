@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_hid_cdc\source\usbd_usr.h
+ * @brief Header for usbd_usr.c file.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,61 +48,80 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_usr.h
- **
- ** A detailed description is available at
- ** @link Header file for usbd_usr.c @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 #ifndef __USBD_USR_H__
 #define __USBD_USR_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbd_core.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_HID_CDC
+ * @{
+ */
+
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-extern  USBD_Usr_cb_TypeDef USR_cb;
-extern  USBD_Usr_cb_TypeDef USR_FS_cb;
-extern  USBD_Usr_cb_TypeDef USR_HS_cb;
+extern USBD_Usr_cb_TypeDef USR_cb;
+extern USBD_Usr_cb_TypeDef USR_FS_cb;
+extern USBD_Usr_cb_TypeDef USR_HS_cb;
 
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
-void     USBD_USR_Init(void);
-void     USBD_USR_DeviceReset (uint8_t speed);
-void     USBD_USR_DeviceConfigured (void);
-void     USBD_USR_DeviceSuspended(void);
-void     USBD_USR_DeviceResumed(void);
+void USBD_USR_Init(void);
+void USBD_USR_DeviceReset (uint8_t speed);
+void USBD_USR_DeviceConfigured (void);
+void USBD_USR_DeviceSuspended(void);
+void USBD_USR_DeviceResumed(void);
 
-void     USBD_USR_DeviceConnected(void);
-void     USBD_USR_DeviceDisconnected(void); 
+void USBD_USR_DeviceConnected(void);
+void USBD_USR_DeviceDisconnected(void); 
 
-void     USBD_USR_FS_Init(void);
-void     USBD_USR_FS_DeviceReset (uint8_t speed);
-void     USBD_USR_FS_DeviceConfigured (void);
-void     USBD_USR_FS_DeviceSuspended(void);
-void     USBD_USR_FS_DeviceResumed(void);
+void USBD_USR_FS_Init(void);
+void USBD_USR_FS_DeviceReset (uint8_t speed);
+void USBD_USR_FS_DeviceConfigured (void);
+void USBD_USR_FS_DeviceSuspended(void);
+void USBD_USR_FS_DeviceResumed(void);
 
-void     USBD_USR_FS_DeviceConnected(void);
-void     USBD_USR_FS_DeviceDisconnected(void);  
+void USBD_USR_FS_DeviceConnected(void);
+void USBD_USR_FS_DeviceDisconnected(void);  
 
-void     USBD_USR_HS_Init(void);
-void     USBD_USR_HS_DeviceReset (uint8_t speed);
-void     USBD_USR_HS_DeviceConfigured (void);
-void     USBD_USR_HS_DeviceSuspended(void);
-void     USBD_USR_HS_DeviceResumed(void);
+void USBD_USR_HS_Init(void);
+void USBD_USR_HS_DeviceReset (uint8_t speed);
+void USBD_USR_HS_DeviceConfigured (void);
+void USBD_USR_HS_DeviceSuspended(void);
+void USBD_USR_HS_DeviceResumed(void);
 
-void     USBD_USR_HS_DeviceConnected(void);
-void     USBD_USR_HS_DeviceDisconnected(void);  
+void USBD_USR_HS_DeviceConnected(void);
+void USBD_USR_HS_DeviceDisconnected(void);  
 
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__USBD_USR_H__*/
 

@@ -102,10 +102,10 @@ typedef struct
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
-uint8_t FatFS_LinkDriver(const stc_diskio_drv_t *drv, char *path);
-uint8_t FatFS_UnLinkDriver(char *path);
-uint8_t FatFS_LinkDriverEx(const stc_diskio_drv_t *drv, char *path, BYTE lun);
-uint8_t FatFS_UnLinkDriverEx(char *path, BYTE lun);
+uint8_t FatFS_LinkDriver(const stc_diskio_drv_t *drv, char path[]);
+uint8_t FatFS_UnLinkDriver(char path[]);
+uint8_t FatFS_LinkDriverEx(const stc_diskio_drv_t *drv, char path[], BYTE lun);
+uint8_t FatFS_UnLinkDriverEx(const char path[], BYTE lun);
 uint8_t FatFS_GetLinkDriverNbr(void);
 
 #ifdef __cplusplus

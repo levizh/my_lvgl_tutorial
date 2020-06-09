@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_hid_custom\source\usbd_usr.c
+ * @brief This file includes the user application layer.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_usr.c
- **
- ** A detailed description is available at
- ** @link
-        This file includes the user application layer.
-    @endlink
- **
- **   - 2018-11-11  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -59,6 +59,15 @@
 #include "usbd_ioreq.h"
 #include "usb_conf.h"
 #include "usb_bsp.h"
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_HID_CUSTOM
+ * @{
+ */
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -94,12 +103,12 @@ USBD_Usr_cb_TypeDef USR_cb =
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
 /**
- *******************************************************************************
- ** \brief  USBD_USR_Init
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_Init
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_Init(void)
 {
     /* Setup SysTick Timer for 20 msec interrupts This interrupt is used to probe the joystick */
@@ -114,11 +123,10 @@ void USBD_USR_Init(void)
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceReset
- ** \param  speed : device speed
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceReset
+ * @param  speed : device speed
+ * @retval None
+ */
 void USBD_USR_DeviceReset(uint8_t speed )
 {
     switch (speed)
@@ -137,44 +145,40 @@ void USBD_USR_DeviceReset(uint8_t speed )
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceConfigured
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceConfigured
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_DeviceConfigured (void)
 {
     printf("> HID Interface started.\n");
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceConnected
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceConnected
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_DeviceConnected (void)
 {
     printf("> USB Device Connected.\n");
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceDisonnected
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceDisonnected
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_DeviceDisconnected (void)
 {
     printf("> USB Device Disconnected.\n");
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceSuspended
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceSuspended
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_DeviceSuspended(void)
 {
     printf("> USB Device in Suspend Mode.\n");
@@ -182,16 +186,24 @@ void USBD_USR_DeviceSuspended(void)
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceResumed
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceResumed
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_DeviceResumed(void)
 {
     printf("> USB Device in Idle Mode.\n");
     /* Users can do their application actions here for the USB-Reset */
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
 
 /*******************************************************************************
  * EOF (not truncated)

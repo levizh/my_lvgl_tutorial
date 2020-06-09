@@ -1,8 +1,19 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+
+/**
+ *******************************************************************************
+ * @file  hc32f4a0_usb_hcd.h
+ * @brief A detailed description is available at Host layer Header file
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,24 +49,35 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.h
- **
- ** A detailed description is available at
- ** @link Host layer Header file @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
-#ifndef __USB_HCD_H__
-#define __USB_HCD_H__
+
+#ifndef __HC32F4A0_USB_HCD_H__
+#define __HC32F4A0_USB_HCD_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "hc32f4a0_usb_otg_regs.h"
 #include "hc32f4a0_usb_core.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Driver
+ * @{
+ */
+
+/**
+ * @addtogroup DDL_USB_HCD
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -72,6 +94,11 @@
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+
+/**
+ * @addtogroup USB_HCD_Global_Functions
+ * @{
+ */
 uint32_t  HCD_Init                 (USB_OTG_CORE_HANDLE *pdev ,
                                     USB_OTG_CORE_ID_TypeDef coreID);
 uint32_t  HCD_HC_Init              (USB_OTG_CORE_HANDLE *pdev ,
@@ -85,11 +112,26 @@ uint32_t  HCD_GetCurrentFrame      (USB_OTG_CORE_HANDLE *pdev) ;
 URB_STATE HCD_GetURB_State         (USB_OTG_CORE_HANDLE *pdev,  uint8_t ch_num);
 uint32_t  HCD_GetXferCnt           (USB_OTG_CORE_HANDLE *pdev,  uint8_t ch_num);
 HC_STATUS HCD_GetHCState           (USB_OTG_CORE_HANDLE *pdev,  uint8_t ch_num) ;
+/**
+ * @}
+ */
 
-#endif //__USB_HCD_H__
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __HC32F4A0_USB_HCD_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)
  ******************************************************************************/
-
-

@@ -83,6 +83,16 @@ extern "C"
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
+typedef struct
+{
+    unsigned int  width;        /*!< LCD Width */
+    unsigned int  height;       /*!< LCD Heigth */
+    unsigned int  id;           /*!< LCD ID */
+    unsigned char dir;          /*!< Direction: 0, Vertical; 1, Horizontal */
+    unsigned int  wramcmd;      /*!< Start to write GRAM */
+    unsigned int  setxcmd;      /*!< Set X axis */
+    unsigned int  setycmd;      /*!< Set Y axis */
+} stc_lcd_dev_t;
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
@@ -91,7 +101,8 @@ extern "C"
  * @defgroup NT35510_Global_Macros NT35510 Global Macros
  * @{
  */
-#define NT35510_WRITE_RAM           ((uint16_t)0x2C00U)
+//#define NT35510_WRITE_RAM           ((uint16_t)0x2C00U)
+  #define NT35510_WRITE_RAM           ((uint16_t)0x2CU)
 #define ABS(X)                      ((X) > 0 ? (X) : -(X))
 
 /**
@@ -126,6 +137,7 @@ extern "C"
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+extern stc_lcd_dev_t lcddev;
 
 /*******************************************************************************
   Global function prototypes (definition in C source)
@@ -138,7 +150,7 @@ void NT35510_Init(void);
 uint16_t NT35510_ReadID(void);
 void NT35510_DisplayOn(void);
 void NT35510_DisplayOff(void);
-//void NT35510_WriteReg(uint16_t LCD_Reg);
+uint16_t NT35510_ReadReg(uint16_t Reg);
 void NT35510_WriteReg(uint16_t Reg, uint16_t Data);
 uint32_t NT35510_ReadData(void);
 uint16_t NT35510_GetLcdPixelWidth(void);

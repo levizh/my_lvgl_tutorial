@@ -84,7 +84,7 @@
  * Local variable definitions ('static')
  ******************************************************************************/
 static uint8_t u8HashMsgDigest[32U];
-static uint8_t u8ExpectDigest[32] = \
+static uint8_t u8ExpectDigest[32U] = \
 {0x16,0x08,0x06,0xa6,0x18,0x41,0x75,0x8a,0xa4,0x42,0xfa,0xe7,0xa2,0x7b,\
  0x39,0xd0,0x04,0x59,0x65,0x1c,0x74,0x6b,0x9f,0x7a,0xbd,0x2b,0x2e,0xa1,\
  0xc7,0x56,0x77,0x4f};
@@ -96,6 +96,7 @@ abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\
 123456789ABCDEFGHHGFEDCBAABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcddeffghh\
 abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\
 01234567890123456789--HDSC-HC32F4A0";
+
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
@@ -114,9 +115,8 @@ int32_t main(void)
     /* Disable HASH interrupt */
     HASH_IntCmd(HASH_INT_BOTH, Disable);
     /* Use HASH. */
-    HASH_Calculate((uint8_t *)c8SrcData, strlen((char *)c8SrcData),\
-                    u8HashMsgDigest);
-    if ((uint8_t)memcmp(u8HashMsgDigest, u8ExpectDigest,sizeof(u8HashMsgDigest)) == 0U)
+    HASH_Calculate((uint8_t *)c8SrcData, strlen((char *)c8SrcData),u8HashMsgDigest);
+    if ((uint8_t)memcmp(u8HashMsgDigest, u8ExpectDigest, sizeof(u8HashMsgDigest)) == 0U)
     {
         printf("message digest:\n");
         for (uint8_t i = 0U; i < sizeof(u8HashMsgDigest); i++)

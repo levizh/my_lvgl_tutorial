@@ -144,7 +144,7 @@ static void TMR0_1_ChACmp_IrqCallback(void)
 int32_t main(void)
 {
     /* Enable AOS function */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     /* Configure LED & Key */
     LED_KEY_Config();
     GPIO_OE(GPIO_PORT_A, GPIO_PIN_10, Enable);

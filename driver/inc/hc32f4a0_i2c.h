@@ -105,6 +105,27 @@ typedef enum
 } en_i2c_adr_t;
 
 /**
+ * @brief I2c clock timeout switch enumeration
+ */
+typedef enum en_clock_timeout_switch
+{
+    TimeoutFunOff = 0U,  /*!< I2C SCL pin time out function off*/
+    LowTimerOutOn = 3U,  /*!< I2C SCL pin high level time out function on*/
+    HighTimeOutOn = 5U,  /*!< I2C SCL pin low level time out function on*/
+    BothTimeOutOn = 7U,  /*!< I2C SCL pin both(low and high) level time out function on*/
+}en_clock_timeout_switch_t;
+
+/**
+ * @brief I2c clock timeout initialize structure
+ */
+typedef struct stc_clock_timeout_init
+{
+    en_clock_timeout_switch_t   enClkTimeOutSwitch;  /*!< I2C clock timeout function switch*/
+    uint16_t                    u16TimeOutHigh;      /*!< I2C clock timeout period for High level*/
+    uint16_t                    u16TimeOutLow;       /*!< I2C clock timeout period for Low level*/
+}stc_clock_timeout_init_t;
+
+/**
  * @}
  */
 
@@ -120,14 +141,14 @@ typedef enum
 /** @defgroup I2C_Clock_division I2C clock division
   * @{
   */
-#define I2C_CLK_DIV1            0U
-#define I2C_CLK_DIV2            1U
-#define I2C_CLK_DIV4            2U
-#define I2C_CLK_DIV8            3U
-#define I2C_CLK_DIV16           4U
-#define I2C_CLK_DIV32           5U
-#define I2C_CLK_DIV64           6U
-#define I2C_CLK_DIV128          7U
+#define I2C_CLK_DIV1                  (0U)
+#define I2C_CLK_DIV2                  (1U)
+#define I2C_CLK_DIV4                  (2U)
+#define I2C_CLK_DIV8                  (3U)
+#define I2C_CLK_DIV16                 (4U)
+#define I2C_CLK_DIV32                 (5U)
+#define I2C_CLK_DIV64                 (6U)
+#define I2C_CLK_DIV128                (7U)
 /**
  * @}
  */
@@ -136,9 +157,9 @@ typedef enum
 /** @defgroup I2C_Smbus_config I2C Smbus configuration
   * @{
   */
-#define I2C_SMBUS_ALRTEN        (I2C_CR1_SMBALRTEN)
-#define I2C_SMBUS_DEFAULTEN     (I2C_CR1_SMBDEFAULTEN)
-#define I2C_SMBUS_HOSTEN        (I2C_CR1_SMBHOSTEN)
+#define I2C_SMBUS_ALRTEN               (I2C_CR1_SMBALRTEN)
+#define I2C_SMBUS_DEFAULTEN            (I2C_CR1_SMBDEFAULTEN)
+#define I2C_SMBUS_HOSTEN               (I2C_CR1_SMBHOSTEN)
 /**
  * @}
  */
@@ -146,7 +167,7 @@ typedef enum
 /** @defgroup I2C_Smbus_clear_mask I2C Smbus clear mask
   * @{
   */
-#define I2C_SMBUS_CONFIG_CLEARMASK      (I2C_CR1_SMBALRTEN|I2C_CR1_SMBDEFAULTEN|I2C_CR1_SMBHOSTEN)
+#define I2C_SMBUS_CONFIG_CLEARMASK     (I2C_CR1_SMBALRTEN|I2C_CR1_SMBDEFAULTEN|I2C_CR1_SMBHOSTEN)
 /**
  * @}
  */
@@ -155,9 +176,8 @@ typedef enum
 /** @defgroup I2C_peripheral_Enable I2C peripheral configuration
   * @{
   */
-#define I2C_PE_EN               (I2C_CR1_PE)
-#define I2C_PE_DISEN            0U
-
+#define I2C_PE_EN                      (I2C_CR1_PE)
+#define I2C_PE_DISEN                   (0U)
 /**
  * @}
  */
@@ -166,10 +186,10 @@ typedef enum
 /** @defgroup I2C_Digital_Filter_mode I2C digital filter mode
   * @{
   */
-#define I2C_DIG_FILTMODE_1CYCLE     (0UL << I2C_FLTR_DNF_POS)
-#define I2C_DIG_FILTMODE_2CYCLE     (1UL << I2C_FLTR_DNF_POS)
-#define I2C_DIG_FILTMODE_3CYCLE     (2UL << I2C_FLTR_DNF_POS)
-#define I2C_DIG_FILTMODE_4CYCLE     (3UL << I2C_FLTR_DNF_POS)
+#define I2C_DIG_FILTMODE_1CYCLE        (0UL << I2C_FLTR_DNF_POS)
+#define I2C_DIG_FILTMODE_2CYCLE        (1UL << I2C_FLTR_DNF_POS)
+#define I2C_DIG_FILTMODE_3CYCLE        (2UL << I2C_FLTR_DNF_POS)
+#define I2C_DIG_FILTMODE_4CYCLE        (3UL << I2C_FLTR_DNF_POS)
 /**
  * @}
  */
@@ -177,9 +197,9 @@ typedef enum
 /** @defgroup I2C_Adr_Config I2C Address configuration
   * @{
   */
-#define     I2C_ADR_CONFIG_DISEN    0U
-#define     I2C_ADR_CONFIG_7BIT     (I2C_SLR0_SLADDR0EN)
-#define     I2C_ADR_CONFIG_10BIT    (I2C_SLR0_ADDRMOD0 | I2C_SLR0_SLADDR0EN)
+#define I2C_ADR_CONFIG_DISEN           (0U)
+#define I2C_ADR_CONFIG_7BIT            (I2C_SLR0_SLADDR0EN)
+#define I2C_ADR_CONFIG_10BIT           (I2C_SLR0_ADDRMOD0 | I2C_SLR0_SLADDR0EN)
 /**
  * @}
  */
@@ -200,57 +220,6 @@ typedef enum
  * @{
  */
 
-/**
- * @brief  I2C generate start condition
- * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
- *         This parameter can be one of the following values:
- *         @arg M4_I2C1
- *         @arg M4_I2C2
- *         @arg M4_I2C3
- *         @arg M4_I2C4
- *         @arg M4_I2C5
- *         @arg M4_I2C6
- * @retval None
- */
-__STATIC_INLINE void I2C_GenerateStart(M4_I2C_TypeDef* pstcI2Cx)
-{
-    SET_REG32_BIT(pstcI2Cx->CR1, I2C_CR1_START);
-}
-
-/**
- * @brief  I2C generate restart condition
- * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
- *         This parameter can be one of the following values:
- *         @arg M4_I2C1
- *         @arg M4_I2C2
- *         @arg M4_I2C3
- *         @arg M4_I2C4
- *         @arg M4_I2C5
- *         @arg M4_I2C6
- * @retval None
- */
-__STATIC_INLINE void I2C_GenerateReStart(M4_I2C_TypeDef* pstcI2Cx)
-{
-    SET_REG32_BIT(pstcI2Cx->CR1, I2C_CR1_RESTART);
-}
-
-/**
- * @brief  I2C generate stop condition
- * @param  [in] pstcI2Cx   Pointer to the I2C peripheral register
- *         This parameter can be one of the following values:
- *         @arg M4_I2C1
- *         @arg M4_I2C2
- *         @arg M4_I2C3
- *         @arg M4_I2C4
- *         @arg M4_I2C5
- *         @arg M4_I2C6
- * @retval None
- */
-__STATIC_INLINE void I2C_GenerateStop(M4_I2C_TypeDef* pstcI2Cx)
-{
-    SET_REG32_BIT(pstcI2Cx->CR1, I2C_CR1_STOP);
-}
-
 /* Initialization and Configuration **********************************/
 void I2C_DeInit(M4_I2C_TypeDef* pstcI2Cx);
 en_result_t I2C_StructInit(stc_i2c_init_t* pstcI2C_InitStruct);
@@ -264,20 +233,27 @@ void I2C_DigitalFilterConfig(M4_I2C_TypeDef* pstcI2Cx, uint32_t DigFilterMode);
 void I2C_DigitalFilterCmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
 void I2C_AnalogFilterCmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
 void I2C_GeneralCallCmd(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
+en_result_t I2C_ClkTimeOutConfig(M4_I2C_TypeDef* pstcI2Cx, const stc_clock_timeout_init_t* pstcTimoutInit);
 void I2C_IntCmd(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32IntEn, en_functional_state_t enNewState);
 void I2C_SlaveAdrConfig(M4_I2C_TypeDef* pstcI2Cx, en_i2c_adr_t enAdrNum, uint32_t u32AdrConfig, uint32_t u32Adr);
-void I2C_NackConfig(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
+void I2C_FastAckConfig(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
 
-/* Status management **************************************************/ 
+/* Start/Restart/Stop ************************************************/
+void I2C_GenerateStart(M4_I2C_TypeDef* pstcI2Cx);
+void I2C_GenerateReStart(M4_I2C_TypeDef* pstcI2Cx);
+void I2C_GenerateStop(M4_I2C_TypeDef* pstcI2Cx);
+
+/* Status management *************************************************/
 en_flag_status_t I2C_GetStatus(M4_I2C_TypeDef* const pstcI2Cx, uint32_t u32StatusBit);
 void I2C_WriteStatus(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32StatusBit, en_flag_status_t enStatus);
 void I2C_ClearStatus(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32StatusBit);
 
-/* Data transfers ************************************  ***************/ 
+/* Data transfer ************************************  ***************/
 void I2C_WriteDataReg(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Data);
 uint8_t I2C_ReadDataReg(M4_I2C_TypeDef* const pstcI2Cx);
+void I2C_NackConfig(M4_I2C_TypeDef* pstcI2Cx, en_functional_state_t enNewState);
 
-/* High level functions for reference *********************************/
+/* High level functions for reference ********************************/
 en_result_t I2C_Start(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut);
 en_result_t I2C_Restart(M4_I2C_TypeDef* pstcI2Cx, uint32_t u32TimeOut);
 en_result_t I2C_SendAddr(M4_I2C_TypeDef* pstcI2Cx, uint8_t u8Adr, uint32_t u32TimeOut);

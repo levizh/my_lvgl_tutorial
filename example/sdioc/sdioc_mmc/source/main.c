@@ -191,7 +191,7 @@ static void MMC_DMAInit(void)
     stc_dma_init_t stcDmaInit;
 
     /* Enable DMA and PTDIS(AOS) clock. */
-    PWC_Fcg0PeriphClockCmd((SDIOC_DMA_CLK | PWC_FCG0_PTDIS), Enable);
+    PWC_Fcg0PeriphClockCmd((SDIOC_DMA_CLK | PWC_FCG0_AOS), Enable);
 
     DMA_StructInit(&stcDmaInit);
     /* Configure MMC DMA Transfer */
@@ -298,7 +298,7 @@ static void MMCCard_Config(void)
     MmcHandle.stcSdiocInit.u8CardDetectSelect = SDIOC_CARD_DETECT_CD_PIN_LEVEL;
     MmcHandle.stcSdiocInit.u8SpeedMode        = SDIOC_SPEED_MODE_HIGH;
     MmcHandle.stcSdiocInit.u8BusWidth         = SDIOC_BUS_WIDTH_4BIT;
-    MmcHandle.stcSdiocInit.u16ClockDiv        = SDIOC_CLOCK_DIV_4;
+    MmcHandle.stcSdiocInit.u16ClockDiv        = SDIOC_CLOCK_DIV_2;
 #if MMC_TRANS_MODE == MMC_TRANS_MODE_DMA
     MMC_DMAInit();
     MmcHandle.DMAx      = SDIOC_DMA_UNIT;
@@ -527,8 +527,8 @@ void SYS_CLK_Init(void)
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }

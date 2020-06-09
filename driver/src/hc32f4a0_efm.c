@@ -81,11 +81,12 @@
  * @defgroup EFM_Local_Macros EFM Local Macros
  * @{
  */
-#define SECTOR_SIZE                  ((uint32_t)0x2000U)
-#define REG_LENGTH                   ((uint32_t)32U)
-#define OTP_LOCK_ADDR_START          ((uint32_t)0x03001800U)
-#define OTP_LOCK_ADDR_END            ((uint32_t)0x03001AD7U)
-#define OTP_ENABLE_ADDR              ((uint32_t)0x03001AD8U)
+#define SECTOR_SIZE                  (0x2000UL)
+#define REG_LENGTH                   (32U)
+#define OTP_LOCK_ADDR_START          (0x03001800UL)
+#define OTP_LOCK_ADDR_END            (0x03001AD7UL)
+#define OTP_ENABLE_ADDR              (0x03001AD8UL)
+
 /**
  * @defgroup EFM_Configuration_Bit_Mask EFM Configuration Bit Mask
  * @{
@@ -178,28 +179,28 @@
     ((x) == EFM_FLAG_CLR_CLOLERR1)     ||                            \
     ((x) == EFM_CLR_FLAG_MASK))
 
-/*  Parameter validity check for bus state while flash program or erase. */
-#define IS_VALID_EFM_BUS_STATE(x)                                    \
+/*  Parameter validity check for bus status while flash program or erase. */
+#define IS_VALID_EFM_BUS_STATUS(x)                                   \
 (   ((x) == EFM_BUS_BUSY)              ||                            \
     ((x) == EFM_BUS_RELEASE))
 
-/*  Parameter validity check for efm data cache reset state. */
-#define IS_VALID_EFM_CACHERST_STATE(x)                               \
+/*  Parameter validity check for efm data cache reset function. */
+#define IS_VALID_EFM_CACHERST_FUNC(x)                                \
 (   ((x) == EFM_CACHERST_ON)           ||                            \
     ((x) == EFM_CACHERST_OFF))
 
 /*  Parameter validity check for efm prefetch function. */
-#define IS_VALID_EFM_PREFETCH_STATE(x)                               \
+#define IS_VALID_EFM_PREFETCH_FUNC(x)                                \
 (   ((x) == EFM_PREFETCH_ON)           ||                            \
     ((x) == EFM_PREFETCH_OFF))
 
 /*  Parameter validity check for efm data cache function. */
-#define IS_VALID_EFM_DCHEEN_STATE(x)                                 \
+#define IS_VALID_EFM_DCHEEN_FUNC(x)                                  \
 (   ((x) == EFM_DATACACHE_ON)          ||                            \
     ((x) == EFM_DATACACHE_OFF))
 
 /*  Parameter validity check for efm instruction cache function. */
-#define IS_VALID_EFM_ICHEEN_STATE(x)                                 \
+#define IS_VALID_EFM_ICHEEN_FUNC(x)                                  \
 (   ((x) == EFM_INSCACHE_ON)           ||                            \
     ((x) == EFM_INSCACHE_OFF))
 
@@ -224,8 +225,8 @@
 (   ((x) == EFM_PROTECT_FWMC)          ||                            \
     ((x) == EFM_PROTECT_OTP))
 
-/*  Parameter validity check for efm state . */
-#define IS_VALID_EFM_STATE(x)                                        \
+/*  Parameter validity check for efm status . */
+#define IS_VALID_EFM_STATUS(x)                                        \
 (   ((x) == EFM_F0ACT_F1ACT)           ||                            \
     ((x) == EFM_F0STP_F1ACT)           ||                            \
     ((x) == EFM_F0ACT_F1STP)           ||                            \
@@ -276,8 +277,9 @@
  */
 void EFM_Unlock(void)
 {
-    M4_EFM->FAPRT = EFM_SECRET_KEY1;
-    M4_EFM->FAPRT = EFM_SECRET_KEY2;
+    WRITE_REG16(M4_EFM->FAPRT, EFM_SECRET_KEY1);
+    WRITE_REG16(M4_EFM->FAPRT, EFM_SECRET_KEY2);
+
 }
 
 /**
@@ -287,7 +289,7 @@ void EFM_Unlock(void)
  */
 void EFM_Lock(void)
 {
-    M4_EFM->FAPRT = (uint16_t)0x1111U;
+    WRITE_REG16(M4_EFM->FAPRT, 0x1111U);
 }
 
 /**
@@ -303,13 +305,13 @@ void EFM_KEYRegWriteUnlock(uint8_t u8ProtectReg)
     DDL_ASSERT(IS_VALID_EFM_PRTREG(u8ProtectReg));
     if(u8ProtectReg == EFM_PROTECT_FWMC)
     {
-        M4_EFM->KEY1 = (uint32_t)0x01234567U;
-        M4_EFM->KEY1 = (uint32_t)0xFEDCBA98U;
+        WRITE_REG32(M4_EFM->KEY1, 0x01234567UL);
+        WRITE_REG32(M4_EFM->KEY1, 0xFEDCBA98UL);
     }
     else
     {
-        M4_EFM->KEY2 = (uint32_t)0x10325476U;
-        M4_EFM->KEY2 = (uint32_t)0xEFCDAB89U;
+        WRITE_REG32(M4_EFM->KEY2, 0x10325476UL);
+        WRITE_REG32(M4_EFM->KEY2, 0xEFCDAB89UL);
     }
 }
 
@@ -327,17 +329,17 @@ void EFM_KEYRegWriteLock(uint8_t u8ProtectReg)
     DDL_ASSERT(IS_VALID_EFM_PRTREG(u8ProtectReg));
     if(u8ProtectReg == EFM_PROTECT_FWMC)
     {
-        bM4_EFM->FWMC_b.KEY1LOCK = Set;
+        SET_REG32_BIT(M4_EFM->FWMC, EFM_FWMC_KEY1LOCK);
     }
     else
     {
-        bM4_EFM->FWMC_b.KEY2LOCK = Set;
+        SET_REG32_BIT(M4_EFM->FWMC, EFM_FWMC_KEY2LOCK);
     }
 }
 
 /**
  * @brief  Enable or disable EFM.
- * @param  [in] u32efmstate       Specifies the flash state.
+ * @param  [in] u32efmstatus       Specifies the flash status.
  *  This parameter can be one of the following values:
  *   @arg  EFM_F0ACT_F1ACT         flash 0 activity,flash 1 activity
  *   @arg  EFM_F0STP_F1ACT         flash 0 stop,flash 1 activity
@@ -346,10 +348,10 @@ void EFM_KEYRegWriteLock(uint8_t u8ProtectReg)
  * @retval None
  */
 
-void EFM_Cmd(uint32_t u32efmstate)
+void EFM_Cmd(uint32_t u32efmstatus)
 {
-    DDL_ASSERT(IS_VALID_EFM_STATE(u32efmstate));
-    M4_EFM->FSTP = u32efmstate;
+    DDL_ASSERT(IS_VALID_EFM_STATUS(u32efmstatus));
+    WRITE_REG32(M4_EFM->FSTP, u32efmstatus);
 }
 
 /**
@@ -361,7 +363,7 @@ void EFM_Cmd(uint32_t u32efmstate)
  *   @arg  u32InsCache             Specifies the instruction cache on or off.
  *   @arg  u32DataCache            Specifies the data cache on or off.
  *   @arg  u32LowVolRead           Specifies the read of low-voltage mode on or off.
- *   @arg  u32BusState             Specifies the bus state busy or release while program & erase.
+ *   @arg  u32BusStatus            Specifies the bus status busy or release while program & erase.
  *   @arg  u32OperateMode          Specifies the operate mode.
  *   @arg  u32FlashStatus          Specifies the Flash status.
  * @retval An en_result_t enumeration value:
@@ -386,7 +388,7 @@ en_result_t EFM_StrucInit(stc_efm_cfg_t *pstcEfmCfg)
         pstcEfmCfg->u32InsCache    = EFM_INSCACHE_OFF;
         pstcEfmCfg->u32DataCache   = EFM_DATACACHE_OFF; 
         pstcEfmCfg->u32LowVolRead  = EFM_LOWVOLREAD_OFF;
-        pstcEfmCfg->u32BusState    = EFM_BUS_BUSY;
+        pstcEfmCfg->u32BusStatus   = EFM_BUS_BUSY;
         pstcEfmCfg->u32OperateMode = EFM_MODE_READONLY;
         pstcEfmCfg->u32FlashStatus = EFM_F0ACT_F1ACT;
     }
@@ -403,7 +405,7 @@ en_result_t EFM_StrucInit(stc_efm_cfg_t *pstcEfmCfg)
  *   @arg  u32InsCache             Specifies the instruction cache on or off.
  *   @arg  u32DataCache            Specifies the data cache on or off.
  *   @arg  u32LowVolRead           Specifies the read of low-voltage mode on or off.
- *   @arg  u32BusState             Specifies the bus state busy or release while program & erase.
+ *   @arg  u32BusStatus            Specifies the bus status busy or release while program & erase.
  *   @arg  u32OperateMode          Specifies the operate mode.
  *   @arg  u32FlashStatus          Specifies the Flash status.
  * @retval An en_result_t enumeration value:
@@ -423,14 +425,14 @@ en_result_t EFM_Init(const stc_efm_cfg_t *pstcEfmCfg)
     {
         /* Param valid check */
         DDL_ASSERT(IS_VALID_EFM_WAIT_CYCLE(pstcEfmCfg->u32WaitCycle));
-        DDL_ASSERT(IS_VALID_EFM_BUS_STATE(pstcEfmCfg->u32BusState));
-        DDL_ASSERT(IS_VALID_EFM_CACHERST_STATE(pstcEfmCfg->u32CacheRst));
-        DDL_ASSERT(IS_VALID_EFM_PREFETCH_STATE(pstcEfmCfg->u32Prefetch));
-        DDL_ASSERT(IS_VALID_EFM_DCHEEN_STATE(pstcEfmCfg->u32DataCache));
-        DDL_ASSERT(IS_VALID_EFM_ICHEEN_STATE(pstcEfmCfg->u32InsCache));
+        DDL_ASSERT(IS_VALID_EFM_BUS_STATUS(pstcEfmCfg->u32BusStatus));
+        DDL_ASSERT(IS_VALID_EFM_CACHERST_FUNC(pstcEfmCfg->u32CacheRst));
+        DDL_ASSERT(IS_VALID_EFM_PREFETCH_FUNC(pstcEfmCfg->u32Prefetch));
+        DDL_ASSERT(IS_VALID_EFM_DCHEEN_FUNC(pstcEfmCfg->u32DataCache));
+        DDL_ASSERT(IS_VALID_EFM_ICHEEN_FUNC(pstcEfmCfg->u32InsCache));
         DDL_ASSERT(IS_VALID_EFM_LVREAD_MODE(pstcEfmCfg->u32LowVolRead));
         DDL_ASSERT(IS_VALID_EFM_OPERATE_MD(pstcEfmCfg->u32OperateMode));
-        DDL_ASSERT(IS_VALID_EFM_STATE(pstcEfmCfg->u32FlashStatus));
+        DDL_ASSERT(IS_VALID_EFM_STATUS(pstcEfmCfg->u32FlashStatus));
         /* EFM_FWMC remove write protection. */
         EFM_KEYRegWriteUnlock(EFM_PROTECT_FWMC);
         u32Temp = pstcEfmCfg->u32WaitCycle | pstcEfmCfg->u32InsCache | pstcEfmCfg->u32DataCache | \
@@ -439,7 +441,7 @@ en_result_t EFM_Init(const stc_efm_cfg_t *pstcEfmCfg)
         MODIFY_REG32(M4_EFM->FRMC, EFM_FRMC_FLWT | EFM_FRMC_PREFE | EFM_FRMC_LVM | \
                                    EFM_FRMC_ICACHE | EFM_FRMC_DCACHE | EFM_FRMC_CRST, u32Temp);
         MODIFY_REG32(M4_EFM->FWMC, EFM_FWMC_BUSHLDCTL | EFM_FWMC_PEMOD, \
-                                    pstcEfmCfg->u32BusState | pstcEfmCfg->u32OperateMode);
+                                    pstcEfmCfg->u32BusStatus | pstcEfmCfg->u32OperateMode);
         MODIFY_REG32(M4_EFM->FSTP, EFM_FSTP_F0STP | EFM_FSTP_F1STP, pstcEfmCfg->u32FlashStatus);
         /* EFM_FWMC Lock */
         EFM_KEYRegWriteLock(EFM_PROTECT_FWMC);
@@ -449,8 +451,8 @@ en_result_t EFM_Init(const stc_efm_cfg_t *pstcEfmCfg)
 }
 
 /**
- * @brief  Set the code latency value.
- * @param  [in] u32WaitCycle              Specifies the FLASH Latency value.
+ * @brief  Set the efm read wait cycles.
+ * @param  [in] u32WaitCycle            Specifies the efm read wait cycles.
  *  This parameter can be one of the following values:
  *   @arg  EFM_WAIT_CYCLE_0             Don't insert read wait cycle
  *   @arg  EFM_WAIT_CYCLE_1             Insert 1 read wait cycles
@@ -470,7 +472,7 @@ en_result_t EFM_Init(const stc_efm_cfg_t *pstcEfmCfg)
  *   @arg  EFM_WAIT_CYCLE_15            Insert 15 read wait cycles
  * @retval None
  */
-void EFM_SetLatency(uint32_t u32WaitCycle)
+void EFM_SetWaitCycle(uint32_t u32WaitCycle)
 {
     /* Param valid check */
     DDL_ASSERT(IS_VALID_EFM_WAIT_CYCLE(u32WaitCycle));
@@ -486,6 +488,7 @@ void EFM_SetLatency(uint32_t u32WaitCycle)
  */
 void EFM_DataCacheRstCmd(en_functional_state_t enNewState)
 {
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
     if(Enable == enNewState)
     {
         SET_REG32_BIT(M4_EFM->FRMC, EFM_FRMC_CRST);
@@ -504,6 +507,7 @@ void EFM_DataCacheRstCmd(en_functional_state_t enNewState)
  */
 void EFM_PrefetchCmd(en_functional_state_t enNewState)
 {
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
     if(Enable == enNewState)
     {
         SET_REG32_BIT(M4_EFM->FRMC, EFM_FRMC_PREFE);
@@ -516,12 +520,13 @@ void EFM_PrefetchCmd(en_functional_state_t enNewState)
 
 /**
  * @brief  Enable or disable the flash data cache.
- * @param  [in] enNewState                The new state of the flash DCODE cache.
+ * @param  [in] enNewState                The new state of the flash data cache.
  *   @arg  This parameter can be: Enable or Disable.
  * @retval None
  */
 void EFM_DataCacheCmd(en_functional_state_t enNewState)
 {
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
     if(Enable == enNewState)
     {
         SET_REG32_BIT(M4_EFM->FRMC, EFM_FRMC_DCACHE);
@@ -540,6 +545,7 @@ void EFM_DataCacheCmd(en_functional_state_t enNewState)
  */
 void EFM_InsCacheCmd(en_functional_state_t enNewState)
 {
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
     if(Enable == enNewState)
     {
         SET_REG32_BIT(M4_EFM->FRMC, EFM_FRMC_ICACHE);
@@ -551,8 +557,22 @@ void EFM_InsCacheCmd(en_functional_state_t enNewState)
 }
 
 /**
+ * @brief  Read of low-voltage mode.
+ * @param  [in] u32EfmLowVolRead            Specifies the FLASH Read of low-voltage mode.
+ *  This parameter can be one of the following values:
+ *   @arg  EFM_LOWVOLREAD_ON                Enable the Read of low-voltage function.
+ *   @arg  EFM_LOWVOLREAD_OFF               Disable the Read of low-voltage function.
+ * @retval None
+ */
+void EFM_SetLowVolRead(uint32_t u32EfmLowVolRead)
+{
+    DDL_ASSERT(IS_VALID_EFM_LVREAD_MODE(u32EfmLowVolRead));
+    MODIFY_REG32(M4_EFM->FRMC, EFM_FRMC_LVM, u32EfmLowVolRead);
+}
+
+/**
  * @brief  Set the FLASH erase program mode .
- * @param  [in] u32PgmMode                Specifies the FLASH erase program mode.
+ * @param  [in] u32PgmMode                  Specifies the FLASH erase program mode.
  *  This parameter can be one of the following values:
  *   @arg  EFM_MODE_PROGRAMSINGLE           Program single at a specified address
  *   @arg  EFM_MODE_PROGRAMREADBACK         Program and read back at a specified address
@@ -566,6 +586,7 @@ void EFM_InsCacheCmd(en_functional_state_t enNewState)
  */
 void EFM_SetOperateMode(uint32_t u32PgmMode)
 {
+    DDL_ASSERT(IS_VALID_EFM_OPERATE_MD(u32PgmMode));
     /* EFM_FWMC remove write protection. */
     EFM_KEYRegWriteUnlock(EFM_PROTECT_FWMC);
     /* Set the program or erase mode. */
@@ -576,7 +597,7 @@ void EFM_SetOperateMode(uint32_t u32PgmMode)
 
 /**
  * @brief  Enable or Disable EFM interrupt.
- * @param  [in] u32EfmInt               Specifies the FLASH interrupt source and state.
+ * @param  [in] u32EfmInt               Specifies the FLASH interrupt source and status.
  *  This parameter can be one of the following values:
  *   @arg  EFM_INT_OPTEND               End of EFM Operation Interrupt source
  *   @arg  EFM_INT_PEERR                Program/erase error Interrupt source
@@ -592,7 +613,7 @@ void EFM_SetOperateMode(uint32_t u32PgmMode)
 void EFM_InterruptCmd(uint32_t u32EfmInt, en_functional_state_t enNewState)
 {
     DDL_ASSERT(IS_VALID_EFM_INT_SEL(u32EfmInt));
-
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
     if(Enable == enNewState)
     {
         SET_REG32_BIT(M4_EFM->FITE, u32EfmInt);
@@ -676,7 +697,7 @@ void EFM_SectorRegLock(uint32_t u32EfmRegLock)
  * @brief  Set setor lock or unlock.
  * @param  [in] u32StartAddr                  Specifies start address for unlock.
  * @param  [in] u32DataSize                   Specifies length for unlock.
- * @param  [in] enNewState                    The new state of specified sector lock.
+ * @param  [in] enNewState                    The new status of specified sector lock.
  *  This parameter can be: Enable or Disable.
  * @retval An en_result_t enumeration value:
  *         - Ok: program successfully.
@@ -686,9 +707,9 @@ en_result_t EFM_SectorUnlock(uint32_t u32StartAddr, uint32_t u32DataSize, en_fun
 {
     en_result_t enRet = ErrorInvalidParameter;
     uint32_t *EFM_FxNWPRTy;
-    uint32_t StartSect = 0U;
-    uint32_t EndSect = 0U;
-    uint32_t EndAddr = 0U;
+    uint32_t StartSect = 0UL;
+    uint32_t EndSect = 0UL;
+    uint32_t EndAddr = 0UL;
     uint16_t Num = 0U;
     uint16_t NeedSector,StartRegIndex,StartBitPos,EndRegIndex,EndBitPos;
     EndAddr = u32StartAddr + u32DataSize;
@@ -704,39 +725,39 @@ en_result_t EFM_SectorUnlock(uint32_t u32StartAddr, uint32_t u32DataSize, en_fun
         EndRegIndex = (uint16_t)(EndSect / REG_LENGTH);                /* Register offset for the end sector */
         EndBitPos = (uint16_t)(EndSect % REG_LENGTH);                  /* Bit offset for the end sector */
 
-        EFM_FxNWPRTy = (uint32_t*)((uint32_t)(&M4_EFM->F0NWPRT0) + ((uint32_t)StartRegIndex << 2U));
+        EFM_FxNWPRTy = (uint32_t*)((uint32_t)(&M4_EFM->F0NWPRT0) + ((uint32_t)StartRegIndex << 2UL));
 
         if(StartRegIndex == EndRegIndex)
         {
             for(Num = StartBitPos;Num <= EndBitPos;Num++)
             {
-                MODIFY_REG32(*EFM_FxNWPRTy,(uint32_t)1U<<Num,(uint32_t)enNewState<<Num);
+                MODIFY_REG32(*EFM_FxNWPRTy,(uint32_t)1UL<<Num,(uint32_t)enNewState<<Num);
             }
         }
         else
         {
             for(Num = StartBitPos;Num < REG_LENGTH;Num++)
             {
-                MODIFY_REG32(*EFM_FxNWPRTy,(uint32_t)1U<<Num,(uint32_t)enNewState<<Num);
+                MODIFY_REG32(*EFM_FxNWPRTy,(uint32_t)1UL<<Num,(uint32_t)enNewState<<Num);
             }
             StartRegIndex += 1U;
-            EFM_FxNWPRTy = (uint32_t*)((uint32_t)(&M4_EFM->F0NWPRT0) + ((uint32_t)EndRegIndex << 2U));
+            EFM_FxNWPRTy = (uint32_t*)((uint32_t)(&M4_EFM->F0NWPRT0) + ((uint32_t)EndRegIndex << 2UL));
             for(Num = 0U;Num <= EndBitPos;Num++)
             {
-                MODIFY_REG32(*EFM_FxNWPRTy,(uint32_t)1U<<Num,(uint32_t)enNewState<<Num);
+                MODIFY_REG32(*EFM_FxNWPRTy,(uint32_t)1UL<<Num,(uint32_t)enNewState<<Num);
             }
 
             while(StartRegIndex < EndRegIndex)
             {
-                EFM_FxNWPRTy = (uint32_t*)((uint32_t)(&M4_EFM->F0NWPRT0) + ((uint32_t)StartRegIndex << 2U));
-                 if(enNewState == Enable)
-                 {
-                     WRITE_REG32(*EFM_FxNWPRTy, (uint32_t)0xFFFFFFFFUL);
-                 }
-                 else
-                 {
-                     WRITE_REG32(*EFM_FxNWPRTy, (uint32_t)0x0UL);
-                 }
+                EFM_FxNWPRTy = (uint32_t*)((uint32_t)(&M4_EFM->F0NWPRT0) + ((uint32_t)StartRegIndex << 2UL));
+                if(enNewState == Enable)
+                {
+                    WRITE_REG32(*EFM_FxNWPRTy, 0xFFFFFFFFUL);
+                }
+                else
+                {
+                    WRITE_REG32(*EFM_FxNWPRTy, 0x0UL);
+                }
                 StartRegIndex += 1U;
             }
         }
@@ -745,20 +766,20 @@ en_result_t EFM_SectorUnlock(uint32_t u32StartAddr, uint32_t u32DataSize, en_fun
 }
 
 /**
- * @brief  Set bus state while flash program or erase.
- * @param  [in] u32State                  Specifies the new bus state while flash program or erase.
+ * @brief  Set bus status while flash program or erase.
+ * @param  [in] u32Status                  Specifies the new bus status while flash program or erase.
  *  This parameter can be one of the following values:
  *   @arg  EFM_BUS_BUSY                   Bus busy while flash program or erase.
  *   @arg  EFM_BUS_RELEASE                Bus releas while flash program or erase.
  * @retval None
  */
-void EFM_SetBusState(uint32_t u32State)
+void EFM_SetBusStatus(uint32_t u32Status)
 {
-    DDL_ASSERT(IS_VALID_EFM_BUS_STATE(u32State));
+    DDL_ASSERT(IS_VALID_EFM_BUS_STATUS(u32Status));
     /* EFM_FWMC remove write protection. */
     EFM_KEYRegWriteUnlock(EFM_PROTECT_FWMC);
 
-    MODIFY_REG32(M4_EFM->FWMC, EFM_FWMC_BUSHLDCTL, u32State);
+    MODIFY_REG32(M4_EFM->FWMC, EFM_FWMC_BUSHLDCTL, u32Status);
     /* EFM_FWMC Lock */
     EFM_KEYRegWriteLock(EFM_PROTECT_FWMC);
 }
@@ -777,24 +798,24 @@ void EFM_SetBusState(uint32_t u32State)
 en_result_t EFM_SingleProgram(uint32_t u32Addr, uint32_t u32Data)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint32_t u32Timeout = 0U;
-    uint32_t u32tmp = 0U;
+    uint32_t u32Timeout = 0UL;
+    uint32_t u32tmp = 0UL;
 
     DDL_ASSERT(IS_VALID_EFM_ADDR(u32Addr));
 
-    if(u32Addr % 4U == 0U)
+    if(u32Addr % 4UL == 0UL)
     {
         enRet = Ok;
         /* CLear the error flag. */
         EFM_ClearFlag(EFM_CLR_FLAG_MASK);
-        /* Get CACHE state */
+        /* Get CACHE status */
         u32tmp = READ_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Disable CACHE function */
         CLEAR_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Set single program mode. */
         EFM_SetOperateMode(EFM_MODE_PROGRAMSINGLE);
         /* Program data. */
-        *(uint32_t *)u32Addr = (uint32_t)u32Data;
+        RW_MEM32(u32Addr) = (uint32_t)u32Data;
         if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
@@ -807,7 +828,7 @@ en_result_t EFM_SingleProgram(uint32_t u32Addr, uint32_t u32Data)
                 }
             }
 
-            if(u32Data != *(uint32_t*)u32Addr)
+            if(u32Data != RW_MEM32(u32Addr))
             {
                 enRet = Error;
             }
@@ -825,7 +846,7 @@ en_result_t EFM_SingleProgram(uint32_t u32Addr, uint32_t u32Data)
                     break;
                 }
             }
-            if(u32Data != *(uint32_t*)u32Addr)
+            if(u32Data != RW_MEM32(u32Addr))
             {
                 enRet = Error;
             }
@@ -855,25 +876,24 @@ en_result_t EFM_SingleProgram(uint32_t u32Addr, uint32_t u32Data)
 en_result_t EFM_ProgramReadBack(uint32_t u32Addr, uint32_t u32Data)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint32_t u32Timeout = 0U;
-    uint32_t u32tmp = 0U;
+    uint32_t u32Timeout = 0UL;
+    uint32_t u32tmp = 0UL;
 
     DDL_ASSERT(IS_VALID_EFM_ADDR(u32Addr));
 
-    if(u32Addr % 4U == 0U)
+    if(u32Addr % 4UL == 0UL)
     {
         enRet = Ok;
         /* CLear the error flag. */
         EFM_ClearFlag(EFM_CLR_FLAG_MASK);
-        /* Get CACHE state */
+        /* Get CACHE status */
         u32tmp = READ_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Disable CACHE */
-        CLEAR_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK); 
+        CLEAR_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Set Program and read back mode. */
         EFM_SetOperateMode(EFM_MODE_PROGRAMREADBACK);
         /* Program data. */
-        *(uint32_t*)u32Addr = (uint32_t)u32Data;
-
+        RW_MEM32(u32Addr) = (uint32_t)u32Data;
         if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
@@ -928,7 +948,7 @@ en_result_t EFM_ProgramReadBack(uint32_t u32Addr, uint32_t u32Data)
  * @brief  Flash sequence program.
  * @param  [in] u32Addr                   The specified program address.
  * @param  [in] u32Len                    The len of specified program data.
- * @param  [in] *pBuf                     The pointer of specified program data.
+ * @param  [in] u8pBuf                   The pointer of specified program data.
  * @retval An en_result_t enumeration value:
  *         - Ok: program success
  *         - ErrorTimeout: program error timeout
@@ -936,36 +956,35 @@ en_result_t EFM_ProgramReadBack(uint32_t u32Addr, uint32_t u32Data)
  * @note  The address should be word align.
  *        The length has to be a multiple of 4
  */
-en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t *u32pBuf)
+en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t *u8pBuf)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint32_t u32Timeout = 0U;
-    uint32_t u32tmp = 0U;
-    uint32_t u32pSrc = (uint32_t)u32pBuf;
-    uint32_t u32pDest = u32Addr;
-    uint32_t u32LoopWords = u32Len >> 2;
+    uint32_t u32Timeout = 0UL;
+    uint32_t u32tmp = 0UL;
+    uint32_t u32pSrc = (uint32_t)u8pBuf;
+    uint32_t u32LoopWords = u32Len >> 2UL;
     uint32_t u32RemainBytes = u32Len % 4UL;
 
     DDL_ASSERT(IS_VALID_EFM_ADDR(u32Addr));
-    DDL_ASSERT(IS_VALID_POINTER(u32pBuf));
-    if((u32Addr % 4U == 0U) && (u32RemainBytes == 0U))
+    DDL_ASSERT(IS_VALID_POINTER(u8pBuf));
+    if((u32Addr % 4UL == 0UL) && (u32RemainBytes == 0UL))
     {
         enRet = Ok;
         /* CLear the error flag. */
         EFM_ClearFlag(EFM_CLR_FLAG_MASK);
-        /* Get CACHE state */
+        /* Get CACHE status */
         u32tmp = READ_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Disable CACHE */
-        CLEAR_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK); 
+        CLEAR_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Set sequence program mode. */
         EFM_SetOperateMode(EFM_MODE_PROGRAMSEQUENCE);
 
         /* program data. */
         while(u32LoopWords--)
         {
-            *((uint32_t *)u32pDest) = *((uint32_t *)u32pSrc);
-            u32pDest += 4U;
-            u32pSrc += 4U;
+            RW_MEM32(u32Addr) = RW_MEM32(u32pSrc);
+            u32Addr += 4UL;
+            u32pSrc += 4UL;
             /* wait operate end. */
             if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
             {
@@ -978,8 +997,6 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
                         break;
                     }
                 }
-                /* clear end flag. */
-                EFM_ClearFlag(EFM_FSCLR_OPTENDCLR0);
                 while(Reset != EFM_GetFlagStatus(EFM_FLAG_OPTEND0))
                 {
                     u32Timeout++;
@@ -988,6 +1005,8 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
                         enRet = ErrorTimeout;
                         break;
                     }
+                    /* clear end flag. */
+                    EFM_ClearFlag(EFM_FSCLR_OPTENDCLR0);
                 }
             }
             else
@@ -1001,8 +1020,6 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
                         break;
                     }
                 }
-                /* clear end flag. */
-                EFM_ClearFlag(EFM_FSCLR_OPTENDCLR1);
                 while(Reset != EFM_GetFlagStatus(EFM_FLAG_OPTEND1))
                 {
                     u32Timeout++;
@@ -1011,12 +1028,14 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
                         enRet = ErrorTimeout;
                         break;
                     }
+                    /* clear end flag. */
+                    EFM_ClearFlag(EFM_FSCLR_OPTENDCLR1);
                 }
             }
         }
-        /* Set read only mode. */
+        /* Program single mode. */
         EFM_SetOperateMode(EFM_MODE_PROGRAMSINGLE);
-        u32Timeout = 0U;
+        u32Timeout = 0UL;
         /* wait for flash ready . */
         if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
         {
@@ -1060,23 +1079,23 @@ en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t
 en_result_t EFM_SectorErase(uint32_t u32Addr)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint32_t u32Timeout = 0U;
-    uint32_t u32tmp = 0U;
+    uint32_t u32Timeout = 0UL;
+    uint32_t u32tmp = 0UL;
 
     DDL_ASSERT(IS_VALID_EFM_ADDR(u32Addr));
-    if (u32Addr % 4U == 0U)
+    if (u32Addr % 4UL == 0UL)
     {
         enRet = Ok;
         /* CLear the error flag. */
         EFM_ClearFlag(EFM_CLR_FLAG_MASK);
-        /* Get CACHE state */
+        /* Get CACHE status */
         u32tmp = READ_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Disable CACHE */
-        CLEAR_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK); 
+        CLEAR_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Set sector erase mode. */
         EFM_SetOperateMode(EFM_MODE_ERASESECTOR);
-
-        *(uint32_t*)u32Addr = (uint32_t)0U;
+        /* Erase */
+        RW_MEM32(u32Addr) = (uint32_t)0UL;
         if((u32Addr < EFM_SECTOR128_ADDR) || (u32Addr >= EFM_OTP_BLOCK16))
         {
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
@@ -1088,7 +1107,7 @@ en_result_t EFM_SectorErase(uint32_t u32Addr)
                     break;
                 }
             }
-            /* CLear the end of operate flag */
+            /* Clear the end of operate flag */
             EFM_ClearFlag(EFM_FLAG_CLR_OPTEND0);
         }
         else
@@ -1102,7 +1121,7 @@ en_result_t EFM_SectorErase(uint32_t u32Addr)
                     break;
                 }
             }
-            /* CLear the end of operate flag */
+            /* Clear the end of operate flag */
             EFM_ClearFlag(EFM_FLAG_CLR_OPTEND1);
         }
         /* Recover CACHE */
@@ -1114,19 +1133,19 @@ en_result_t EFM_SectorErase(uint32_t u32Addr)
 
 /**
  * @brief  Flash OTP lock.
- * @param  [in]  Addr           Specifies the OTP block
+ * @param  [in]  u32Addr           Specifies the OTP block
  * @retval An en_result_t enumeration value:
  *         - Ok: program success
  *         - ErrorInvalidParameter: Invalid parameter
  * @note   The address should be word align.
  */
-en_result_t EFM_OTPLock(uint32_t Addr)
+en_result_t EFM_OTPLock(uint32_t u32Addr)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    if((Addr >= OTP_LOCK_ADDR_START) &&
-       (Addr < OTP_LOCK_ADDR_END )   &&
-       (Addr % 4U == 0U))
+    if((u32Addr >= OTP_LOCK_ADDR_START) &&
+       (u32Addr < OTP_LOCK_ADDR_END )   &&
+       (u32Addr % 4UL == 0UL))
     {
         enRet = Ok;
         /* Disable OTP write protection */
@@ -1134,9 +1153,10 @@ en_result_t EFM_OTPLock(uint32_t Addr)
         /* Set single program mode. */
         EFM_SetOperateMode(EFM_MODE_PROGRAMSINGLE);
         /* Enable OTP */
-        *(uint32_t *)OTP_ENABLE_ADDR = (uint32_t)0UL;
+        RW_MEM32(OTP_ENABLE_ADDR) = (uint32_t)0UL;
+
         /* OTP latch */
-        *(uint32_t *)Addr = (uint32_t)0UL;
+        RW_MEM32(u32Addr) = (uint32_t)0UL;
         /* Enable OTP write protection */
         EFM_KEYRegWriteLock(EFM_PROTECT_OTP);
     }
@@ -1158,20 +1178,20 @@ en_result_t EFM_OTPLock(uint32_t Addr)
 en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t u32Addr)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint32_t u32Timeout = 0U;
-    uint32_t u32tmp = 0U;
+    uint32_t u32Timeout = 0UL;
+    uint32_t u32tmp = 0UL;
     DDL_ASSERT(IS_VALID_EFM_ERASE_MODE(EraseMode));
     DDL_ASSERT(IS_VALID_EFM_ADDR(u32Addr));
 
-    if(u32Addr % 4U == 0U)
+    if(u32Addr % 4UL == 0UL)
     {
         enRet = Ok;
         /* CLear the error flag. */
         EFM_ClearFlag(EFM_CLR_FLAG_MASK);
-        /* Get CACHE state */
+        /* Get CACHE status */
         u32tmp = READ_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Disable CACHE */
-        CLEAR_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK); 
+        CLEAR_REG32_BIT(M4_EFM->FRMC, EFM_CHCHE_MASK);
         /* Set chip erase mode. */
         EFM_SetOperateMode(EraseMode);
 
@@ -1181,7 +1201,8 @@ en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t u32Addr)
             {
                 /* Flash1 disables write protection  */
                 EFM_SectorUnlock(EFM_SECTOR128_ADDR, 0x000FFFFFUL, Enable);
-                *(uint32_t*)EFM_SECTOR128_ADDR = (uint32_t)0UL;
+                /* Erase */
+                RW_MEM32(EFM_SECTOR128_ADDR) = (uint32_t)0UL;
                 while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY1))
                 {
                     u32Timeout ++;
@@ -1198,7 +1219,8 @@ en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t u32Addr)
             {
                 /* Flash0 disables write protection  */
                 EFM_SectorUnlock(EFM_SECTOR0_ADDR, 0x000FFFFFUL, Enable);
-                *(uint32_t*)EFM_SECTOR16_ADDR = (uint32_t)0UL;
+                /* Erase */
+                RW_MEM32(EFM_SECTOR16_ADDR) = (uint32_t)0UL;
                 while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
                 {
                     u32Timeout ++;
@@ -1216,7 +1238,8 @@ en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t u32Addr)
         {
             /* Flash0 Flash1 disables write protection  */
             EFM_SectorUnlock(EFM_SECTOR0_ADDR, 0x001FFFFFUL, Enable);
-            *(uint32_t*)EFM_SECTOR16_ADDR = (uint32_t)0UL;
+            /* Erase */
+            RW_MEM32(EFM_SECTOR16_ADDR) = (uint32_t)0UL;
             while(Set != EFM_GetFlagStatus(EFM_FLAG_RDY0))
             {
                 u32Timeout ++;
@@ -1237,13 +1260,37 @@ en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t u32Addr)
 }
 
 /**
+ * @brief  Enable or disable the EFM switch function.
+ * @param  [in] enNewState                The new state of the flash switch function.
+ *   @arg  This parameter can be: Enable or Disable.
+ * @retval None
+ */
+void EFM_SwitchCmd(en_functional_state_t enNewState)
+{
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    if (enNewState ==Enable)
+    {
+        /* Set Program single mode. */
+        EFM_SetOperateMode(EFM_MODE_PROGRAMSINGLE);
+        /* Enable flash switch function */
+        RW_MEM32(EFM_SWITCH_ADDR) = EFM_SWITCH_DATA;
+    }
+    else{
+        /* Set Sector erase mode. */
+        EFM_SetOperateMode(EFM_MODE_ERASESECTOR);
+        /* Disable flash switch function */
+        RW_MEM32(EFM_SWITCH_ADDR) = (uint32_t)0x0UL;
+    }
+}
+
+/**
  * @brief  Get unique logo.
  * @param  None
  * @retval Returns the value of the Logo
  */
 uint32_t GetUniqueLogo(void)
 {
-    uint32_t Logo = 0U;
+    uint32_t Logo = 0UL;
     Logo = M4_EFM->FHDFG;
     return Logo;
 }

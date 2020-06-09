@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_ioreq.h
+ * @brief Header file for usbh_ioreq.c.
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,16 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_ioreq.h
- **
- ** A detailed description is available at
- ** @link header file for the usbh_ioreq.c @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 #ifndef __USBH_IOREQ_H
 #define __USBH_IOREQ_H
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
@@ -57,6 +65,25 @@
 #include "usb_conf.h"
 #include "usbh_core.h"
 #include "usbh_def.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CORE
+ * @{
+ */
+
+/** @addtogroup USBH_IOREQ
+ * @{
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -67,13 +94,17 @@
  ******************************************************************************/
 
 /**
- *******************************************************************************
- ** \brief USBH_IOREQ_Exported_Defines
- **
- ******************************************************************************/
-#define USBH_SETUP_PKT_SIZE   (8u)
-#define USBH_EP0_EP_NUM       (0u)
-#define USBH_MAX_PACKET_SIZE  (0x40u)
+ * @defgroup USBH_IOREQ_Global_Macros USBH IO Request Global Macros
+ * @{
+ */
+#define USBH_SETUP_PKT_SIZE   (8U)
+#define USBH_EP0_EP_NUM       (0U
+#define USBH_MAX_PACKET_SIZE  (0x40U)
+/**
+ * @}
+ */
+
+
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -82,6 +113,10 @@
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup USBH_IOREQ_Global_Functions
+ * @{
+ */
 USBH_Status USBH_CtlSendSetup ( USB_OTG_CORE_HANDLE *pdev,
                                 uint8_t *buff,
                                 uint8_t hc_num);
@@ -131,6 +166,29 @@ USBH_Status USBH_IsocSendData( USB_OTG_CORE_HANDLE *pdev,
                                 uint8_t *buff,
                                 uint32_t length,
                                 uint8_t hc_num);
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBH_IOREQ_H */
 

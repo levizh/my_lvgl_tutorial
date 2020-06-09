@@ -172,7 +172,6 @@ void XtalStopIntInit(void)
     NVIC_EnableIRQ(XTALSTOP_IRQn);
 }
 
-
 /**
  * @brief  Main function of XTAL stop detect project
  * @param  None

@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  hc32f4a0_usb_define.h
+ * @brief A detailed description is available at  Header of the Core Layer
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,183 +48,205 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.h
- **
- ** A detailed description is available at
- ** @link Header of the Core Layer @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
-#ifndef __USB_DEF_H__
-#define __USB_DEF_H__
+
+#ifndef __HC32F4A0_USB_DEFINES_H__
+#define __HC32F4A0_USB_DEFINES_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include  "usb_conf.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Driver
+ * @{
+ */
+
+/**
+ * @addtogroup DDL_USB_OTG
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
+
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
 /**
- *******************************************************************************
- ** \brief USB_DEFINES_Exported_Types
- **
- ******************************************************************************/
+ * @defgroup USB_defines_Global_Types USB Defines Global Types
+ * @{
+ */
+
+/**
+ * @brief USB_DEFINES_Exported_Types
+ */
 typedef enum
 {
-    USB_OTG_HS_CORE_ID = 0,
-    USB_OTG_FS_CORE_ID = 1
+    USB_OTG_HS_CORE_ID = 0U,
+    USB_OTG_FS_CORE_ID = 1U
 }USB_OTG_CORE_ID_TypeDef;
 
 /**
- *******************************************************************************
- ** \brief ENUMERATION TYPE
- **
- ******************************************************************************/
+ * @brief ENUMERATION TYPE
+ */
 enum USB_OTG_SPEED {
-    USB_SPEED_UNKNOWN = 0,
+    USB_SPEED_UNKNOWN = 0U,
     USB_SPEED_LOW,
     USB_SPEED_FULL,
     USB_SPEED_HIGH
 };
+
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/**
- *******************************************************************************
- ** \brief _CORE_DEFINES_
- **
- ******************************************************************************/
-#define USB_OTG_SPEED_PARAM_HIGH            (0u)
-#define USB_OTG_SPEED_PARAM_HIGH_IN_FULL    (1u)
-#define USB_OTG_SPEED_PARAM_FULL            (3u)
-
-#define USB_OTG_SPEED_HIGH                  (0u)
-#define USB_OTG_SPEED_FULL                  (1u)
-
-#define USB_OTG_ULPI_PHY                    (1u)
-#define USB_OTG_EMBEDDED_PHY                (2u)
 
 /**
- *******************************************************************************
- ** \brief _GLOBAL_DEFINES_
- **
- ******************************************************************************/
-#define GAHBCFG_TXFEMPTYLVL_EMPTY              (1u)
-#define GAHBCFG_TXFEMPTYLVL_HALFEMPTY          (0u)
-#define GAHBCFG_GLBINT_ENABLE                  (1u)
-#define GAHBCFG_INT_DMA_BURST_SINGLE           (0u)
-#define GAHBCFG_INT_DMA_BURST_INCR             (1u)
-#define GAHBCFG_INT_DMA_BURST_INCR4            (3u)
-#define GAHBCFG_INT_DMA_BURST_INCR8            (5u)
-#define GAHBCFG_INT_DMA_BURST_INCR16           (7u)
-#define GAHBCFG_DMAENABLE                      (1u)
-#define GAHBCFG_TXFEMPTYLVL_EMPTY              (1u)
-#define GAHBCFG_TXFEMPTYLVL_HALFEMPTY          (0u)
-#define GRXSTS_PKTSTS_IN                       (2u)
-#define GRXSTS_PKTSTS_IN_XFER_COMP             (3u)
-#define GRXSTS_PKTSTS_DATA_TOGGLE_ERR          (5u)
-#define GRXSTS_PKTSTS_CH_HALTED                (7u)
-
-#define SELF_POWERED (1u << 6u)
-#define REMOTE_WAKEUP (1u << 5u)
+ * @defgroup USB_Defines_Global_Macros USB Defines Global Macros
+ * @{
+ */
 
 /**
- *******************************************************************************
- ** \brief _OnTheGo_DEFINES_
- **
- ******************************************************************************/
-#define MODE_HNP_SRP_CAPABLE                   (0u)
-#define MODE_SRP_ONLY_CAPABLE                  (1u)
-#define MODE_NO_HNP_SRP_CAPABLE                (2u)
-#define MODE_SRP_CAPABLE_DEVICE                (3u)
-#define MODE_NO_SRP_CAPABLE_DEVICE             (4u)
-#define MODE_SRP_CAPABLE_HOST                  (5u)
-#define MODE_NO_SRP_CAPABLE_HOST               (6u)
-#define A_HOST                                 (1u)
-#define A_SUSPEND                              (2u)
-#define A_PERIPHERAL                           (3u)
-#define B_PERIPHERAL                           (4u)
-#define B_HOST                                 (5u)
-#define DEVICE_MODE                            (0u)
-#define HOST_MODE                              (1u)
-#define OTG_MODE                               (2u)
+ * @defgroup _CORE_DEFINES_
+ * @{
+ */
+#define USB_OTG_SPEED_PARAM_HIGH            (0U)
+#define USB_OTG_SPEED_PARAM_HIGH_IN_FULL    (1U)
+#define USB_OTG_SPEED_PARAM_FULL            (3U)
+
+#define USB_OTG_SPEED_HIGH                  (0U)
+#define USB_OTG_SPEED_FULL                  (1U)
+
+#define USB_OTG_ULPI_PHY                    (1U)
+#define USB_OTG_EMBEDDED_PHY                (2U)
 
 /**
- *******************************************************************************
- ** \brief __DEVICE_DEFINES_
- **
- ******************************************************************************/
-#define DSTS_ENUMSPD_HS_PHY_30MHZ_OR_60MHZ     (0u)
-#define DSTS_ENUMSPD_FS_PHY_30MHZ_OR_60MHZ     (1u)
-#define DSTS_ENUMSPD_LS_PHY_6MHZ               (2u)
-#define DSTS_ENUMSPD_FS_PHY_48MHZ              (3u)
+ * @defgroup _GLOBAL_DEFINES_
+ * @{
+ */
+#define GAHBCFG_TXFEMPTYLVL_EMPTY              (1U)
+#define GAHBCFG_TXFEMPTYLVL_HALFEMPTY          (0U)
+#define GAHBCFG_GLBINT_ENABLE                  (1U)
+#define GAHBCFG_INT_DMA_BURST_SINGLE           (0U)
+#define GAHBCFG_INT_DMA_BURST_INCR             (1U)
+#define GAHBCFG_INT_DMA_BURST_INCR4            (3U)
+#define GAHBCFG_INT_DMA_BURST_INCR8            (5U)
+#define GAHBCFG_INT_DMA_BURST_INCR16           (7U)
+#define GAHBCFG_DMAENABLE                      (1U)
+#define GAHBCFG_TXFEMPTYLVL_EMPTY              (1U)
+#define GAHBCFG_TXFEMPTYLVL_HALFEMPTY          (0U)
+#define GRXSTS_PKTSTS_IN                       (2U)
+#define GRXSTS_PKTSTS_IN_XFER_COMP             (3U)
+#define GRXSTS_PKTSTS_DATA_TOGGLE_ERR          (5U)
+#define GRXSTS_PKTSTS_CH_HALTED                (7U)
 
-#define DCFG_FRAME_INTERVAL_80                 (0u)
-#define DCFG_FRAME_INTERVAL_85                 (1u)
-#define DCFG_FRAME_INTERVAL_90                 (2u)
-#define DCFG_FRAME_INTERVAL_95                 (3u)
-
-#define DEP0CTL_MPS_64                         (0u)
-#define DEP0CTL_MPS_32                         (1u)
-#define DEP0CTL_MPS_16                         (2u)
-#define DEP0CTL_MPS_8                          (3u)
-
-#define EP_SPEED_LOW                           (0u)
-#define EP_SPEED_FULL                          (1u)
-#define EP_SPEED_HIGH                          (2u)
-
-#define EP_TYPE_CTRL                           (0u)
-#define EP_TYPE_ISOC                           (1u)
-#define EP_TYPE_BULK                           (2u)
-#define EP_TYPE_INTR                           (3u)
-#define EP_TYPE_MSK                            (3u)
-
-#define STS_GOUT_NAK                           (1u)
-#define STS_DATA_UPDT                          (2u)
-#define STS_XFER_COMP                          (3u)
-#define STS_SETUP_COMP                         (4u)
-#define STS_SETUP_UPDT                         (6u)
+#define SELF_POWERED                      (1UL << 6U)
+#define REMOTE_WAKEUP                     (1UL << 5U)
 
 /**
- *******************************************************************************
- ** \brief __HOST_DEFINES_
- **
- ******************************************************************************/
-#define HC_PID_DATA0                           (0u)
-#define HC_PID_DATA2                           (1u)
-#define HC_PID_DATA1                           (2u)
-#define HC_PID_SETUP                           (3u)
+ * @defgroup _OnTheGo_DEFINES_
+ * @{
+ */
+#define MODE_HNP_SRP_CAPABLE                   (0U)
+#define MODE_SRP_ONLY_CAPABLE                  (1U)
+#define MODE_NO_HNP_SRP_CAPABLE                (2U)
+#define MODE_SRP_CAPABLE_DEVICE                (3U)
+#define MODE_NO_SRP_CAPABLE_DEVICE             (4U)
+#define MODE_SRP_CAPABLE_HOST                  (5U)
+#define MODE_NO_SRP_CAPABLE_HOST               (6U)
+#define A_HOST                                 (1U)
+#define A_SUSPEND                              (2U)
+#define A_PERIPHERAL                           (3U)
+#define B_PERIPHERAL                           (4U)
+#define B_HOST                                 (5U)
+#define DEVICE_MODE                            (0U)
+#define HOST_MODE                              (1U)
+#define OTG_MODE                               (2U)
 
-#define HPRT0_PRTSPD_HIGH_SPEED                (0u)
-#define HPRT0_PRTSPD_FULL_SPEED                (1u)
-#define HPRT0_PRTSPD_LOW_SPEED                 (2u)
+/**
+ * @defgroup __DEVICE_DEFINES_
+ * @{
+ */
+#define DSTS_ENUMSPD_HS_PHY_30MHZ_OR_60MHZ     (0U)
+#define DSTS_ENUMSPD_FS_PHY_30MHZ_OR_60MHZ     (1U)
+#define DSTS_ENUMSPD_LS_PHY_6MHZ               (2U)
+#define DSTS_ENUMSPD_FS_PHY_48MHZ              (3U)
 
-#define HCFG_30_60_MHZ                         (0u)
-#define HCFG_48_MHZ                            (1u)
-#define HCFG_6_MHZ                             (2u)
+#define DCFG_FRAME_INTERVAL_80                 (0U)
+#define DCFG_FRAME_INTERVAL_85                 (1U)
+#define DCFG_FRAME_INTERVAL_90                 (2U)
+#define DCFG_FRAME_INTERVAL_95                 (3U)
 
-#define HCCHAR_CTRL                            (0u)
-#define HCCHAR_ISOC                            (1u)
-#define HCCHAR_BULK                            (2u)
-#define HCCHAR_INTR                            (3u)
+#define DEP0CTL_MPS_64                         (0U)
+#define DEP0CTL_MPS_32                         (1U)
+#define DEP0CTL_MPS_16                         (2U)
+#define DEP0CTL_MPS_8                          (3U)
+
+#define EP_SPEED_LOW                           (0U)
+#define EP_SPEED_FULL                          (1U)
+#define EP_SPEED_HIGH                          (2U)
+
+#define EP_TYPE_CTRL                           (0U)
+#define EP_TYPE_ISOC                           (1U)
+#define EP_TYPE_BULK                           (2U)
+#define EP_TYPE_INTR                           (3U)
+#define EP_TYPE_MSK                            (3U)
+
+#define STS_GOUT_NAK                           (1U)
+#define STS_DATA_UPDT                          (2U)
+#define STS_XFER_COMP                          (3U)
+#define STS_SETUP_COMP                         (4U)
+#define STS_SETUP_UPDT                         (6U)
+
+/**
+ * @defgroup __HOST_DEFINES_
+ * @{
+ */
+#define HC_PID_DATA0                           (0U)
+#define HC_PID_DATA2                           (1U)
+#define HC_PID_DATA1                           (2U)
+#define HC_PID_SETUP                           (3U)
+
+#define HPRT0_PRTSPD_HIGH_SPEED                (0U)
+#define HPRT0_PRTSPD_FULL_SPEED                (1U)
+#define HPRT0_PRTSPD_LOW_SPEED                 (2U)
+
+#define HCFG_30_60_MHZ                         (0U)
+#define HCFG_48_MHZ                            (1U)
+#define HCFG_6_MHZ                             (2U)
+
+#define HCCHAR_CTRL                            (0U)
+#define HCCHAR_ISOC                            (1U)
+#define HCCHAR_BULK                            (2U)
+#define HCCHAR_INTR                            (3U)
 
 #ifndef __MIN
 #define  __MIN(a, b)      (((a) < (b)) ? (a) : (b))
 #endif
 
 /**
- *******************************************************************************
- ** \brief Internal_Macro
- **
- ******************************************************************************/
+ * @defgroup Internal_Macro
+ * @{
+ */
 #define USB_OTG_READ_REG32(reg)  (*(__IO uint32_t *)(reg))
 #define USB_OTG_WRITE_REG32(reg,value) (*(__IO uint32_t *)(reg) = (value))
 #define USB_OTG_MODIFY_REG32(reg,clear_mask,set_mask) (USB_OTG_WRITE_REG32((reg), (((USB_OTG_READ_REG32((reg))) & ~(clear_mask)) | (set_mask))))
+
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
@@ -223,7 +255,22 @@ enum USB_OTG_SPEED {
   Global function prototypes (definition in C source)
  ******************************************************************************/
 
-#endif //__USB_DEFINES__H__
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __HC32F4A0_USB_DEFINES_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)

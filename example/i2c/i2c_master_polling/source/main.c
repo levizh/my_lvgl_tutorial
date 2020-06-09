@@ -73,26 +73,26 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /* Define slave device address for example */
-#define DEVICE_ADDRESS                  0x06U
+#define DEVICE_ADDRESS                  (0x06U)
 /* Define port and pin for SDA and SCL */
 #define I2C_SCL_PORT                    (GPIO_PORT_D)
 #define I2C_SCL_PIN                     (GPIO_PIN_03)
 #define I2C_SDA_PORT                    (GPIO_PORT_F)
 #define I2C_SDA_PIN                     (GPIO_PIN_10)
 
-#define I2C_RET_OK                      0U
-#define I2C_RET_ERROR                   1U
+#define I2C_RET_OK                      (0U)
+#define I2C_RET_ERROR                   (1U)
 
-#define GENERATE_START                  0x00U
-#define GENERATE_RESTART                0x01U
+#define GENERATE_START                  (0x00U)
+#define GENERATE_RESTART                (0x01U)
 
-#define ADDRESS_W                       0x00U
-#define ADDRESS_R                       0x01U
+#define ADDRESS_W                       (0x00U)
+#define ADDRESS_R                       (0x01U)
 
 /* Define Write and read data length for the example */
-#define TEST_DATA_LEN                   128U
+#define TEST_DATA_LEN                   (128U)
 /* Define i2c baudrate */
-#define I2C_BAUDRATE                    400000UL
+#define I2C_BAUDRATE                    (400000UL)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -105,58 +105,11 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static uint32_t gu32TimeOutCnt = 0x10000;
+#define TIMEOUT                         (0x24000U)
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
- /**
- * @brief  Configure system clock.
- * @param  None
- * @retval None
- */
-static void SystemClockConfig(void)
-{
-    stc_clk_pllh_init_t stcPLLHInit;
-    
-    /* HCLK  Max 240MHz */
-    CLK_ClkDiv(CLK_CATE_ALL,                                                    \
-               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV2 | CLK_PCLK2_DIV4 |                \
-                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 |                \
-                CLK_HCLK_DIV1));
-
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
-    EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_6);
-    EFM_Unlock();
-    
-    /* PLLH config */
-    CLK_PLLHStrucInit(&stcPLLHInit);
-    /*
-    16MHz/M*N/P = 16/1*60/4 =240MHz
-    */
-    stcPLLHInit.u8PLLState = CLK_PLLH_ON;
-    stcPLLHInit.PLLCFGR = 0UL;
-    stcPLLHInit.PLLCFGR_f.PLLM = (1UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLN = (60UL - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLP = (4UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLR = (4UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLQ = (4UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_HRC;
-    CLK_PLLHInit(&stcPLLHInit);
-    CLK_PLLHCmd(Enable);
-    CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
-
-    /* Config clock output system clock */
-    CLK_MCO1Config(CLK_MCOSOURCCE_SYSCLK, CLK_MCODIV_128);
-    /* Config clock output pin */
-    GPIO_SetFunc(GPIO_PORT_A, GPIO_PIN_08, GPIO_FUNC_1_MCO, Disable);
-    /* MCO1 output enable */
-    CLK_MCO1Cmd(Enable);
-}
-
 /**
  * @brief   Send start or restart condition
  * @param   [in]  u8Start  Indicate the start mode, start or restart
@@ -171,12 +124,12 @@ static en_result_t Master_StartOrRestart(uint8_t u8Start)
     /* generate start or restart signal */
     if(GENERATE_START == u8Start)
     {
-        enRet = I2C_Start(M4_I2C1,gu32TimeOutCnt);
+        enRet = I2C_Start(M4_I2C1,TIMEOUT);
     }
     else
     {
         /* Clear start status flag */
-        enRet = I2C_Restart(M4_I2C1,gu32TimeOutCnt);
+        enRet = I2C_Restart(M4_I2C1,TIMEOUT);
 
     }
 
@@ -192,7 +145,7 @@ static en_result_t Master_StartOrRestart(uint8_t u8Start)
  */
 static en_result_t Master_SendAdr(uint8_t u8Adr)
 {
-   return I2C_SendAddr(M4_I2C1,u8Adr,gu32TimeOutCnt);
+   return I2C_SendAddr(M4_I2C1,u8Adr,TIMEOUT);
 }
 
 /**
@@ -205,7 +158,7 @@ static en_result_t Master_SendAdr(uint8_t u8Adr)
  */
 static en_result_t Master_WriteData(uint8_t const pTxData[], uint32_t u32Size)
 {
-    return I2C_SendData(M4_I2C1, pTxData, u32Size,gu32TimeOutCnt);
+    return I2C_SendData(M4_I2C1, pTxData, u32Size,TIMEOUT);
 }
 
 /**
@@ -218,7 +171,7 @@ static en_result_t Master_WriteData(uint8_t const pTxData[], uint32_t u32Size)
  */
 static en_result_t Master_RevData(uint8_t pRxData[], uint32_t u32Size)
 {
-    return I2C_RcvData(M4_I2C1,pRxData, u32Size,gu32TimeOutCnt);
+    return I2C_RcvData(M4_I2C1,pRxData, u32Size,TIMEOUT);
 }
 
 /**
@@ -230,7 +183,7 @@ static en_result_t Master_RevData(uint8_t pRxData[], uint32_t u32Size)
  */
 en_result_t Master_Stop(void)
 {
-   return I2C_Stop(M4_I2C1,gu32TimeOutCnt);
+   return I2C_Stop(M4_I2C1,TIMEOUT);
 }
 
 /**
@@ -275,6 +228,7 @@ static void JudgeResult(en_result_t enRet)
 }
 
 
+#ifdef Debug
 /**
  * @brief  systick callback function
  * @param  [in]  None
@@ -286,16 +240,31 @@ void SysTick_IrqHandler(void)
     SysTick_IncTick();
 }
 
-#ifdef Debug
+en_result_t I2C_WaitStatusTest(M4_I2C_TypeDef* const pstcI2Cx, uint32_t u32SRFlag,en_flag_status_t enStatus, uint32_t u32TimeOut)
+{
+    en_result_t enRet = Ok;
+
+    while(enStatus != ((pstcI2Cx->SR & u32SRFlag) ? Set : Reset))
+    {
+        if(0U == (u32TimeOut--))
+        {
+            enRet = ErrorTimeout;
+            break;
+        }
+    }
+    return enRet;
+}
+
 uint32_t TimeCntForWaitAStatus(uint32_t u32MS)
 {
-    SysTick_Init(1000u);
+    SysTick_Init(1000U);
     SysTick_Resume();
-    uint32_t testTimeCnt = 0x1000000u;
+    uint32_t testTimeCnt = 0x10000U;
     uint32_t t1 =  SysTick_GetTick();
-    I2C_WaitStatus(M4_I2C1, I2C_SR_STARTF, Set, testTimeCnt);
+    I2C_WaitStatusTest(M4_I2C1, I2C_SR_STARTF, Set, testTimeCnt);
     uint32_t t2 =  SysTick_GetTick();
-    uint32_t u32CntForWaitAStatus = testTimeCnt/(t2 - t1);
+    uint32_t tDiv = (t2 == t1) ? 1U : (t2 - t1);
+    uint32_t u32CntForWaitAStatus = testTimeCnt/tDiv;
 
     return u32CntForWaitAStatus * u32MS;
 }
@@ -311,9 +280,9 @@ int32_t main(void)
     uint32_t i;
     en_result_t enRet = Ok;
     uint8_t u8TxBuf[TEST_DATA_LEN];
-    uint8_t u8RxBuf[TEST_DATA_LEN] = {0};
+    uint8_t u8RxBuf[TEST_DATA_LEN] = {0U};
 
-    SystemClockConfig();
+    BSP_CLK_Init();
     /* Test buffer initialize */
     for(i=0U; i<TEST_DATA_LEN; i++)
     {
@@ -334,7 +303,7 @@ int32_t main(void)
     /* Initialize I2C peripheral and enable function*/
     Master_Initialize();
     #ifdef Debug
-    gu32TimeOutCnt = TimeCntForWaitAStatus(5);
+    uint32_t test = TimeCntForWaitAStatus(5U);
     #endif
 
     /* I2C master data write*/
@@ -348,7 +317,7 @@ int32_t main(void)
     JudgeResult(enRet);
 
     /* 5mS delay for device*/
-    DDL_Delay1ms(5u);
+    DDL_Delay1ms(5U);
 
     /* I2C master data read*/
     enRet = Master_StartOrRestart(GENERATE_START);
@@ -368,7 +337,7 @@ int32_t main(void)
             /* Data write error*/
             while(1)
             {
-                DDL_Delay1ms(500u);
+                DDL_Delay1ms(500U);
             }
         }
     }
@@ -376,7 +345,7 @@ int32_t main(void)
     /* I2C master polling communication success */
     while(1)
     {
-        DDL_Delay1ms(500u);
+        DDL_Delay1ms(500U);
     }
 
 }

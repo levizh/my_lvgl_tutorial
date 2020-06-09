@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_msc_core.c
+ * @brief Provides all the MSC core functions.
+ *       
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-05-15       Zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,15 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_msc_core.c
- **
- ** \brief USB MSC device example.
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -56,9 +59,43 @@
 #include "usbd_msc_bot.h"
 #include "usbd_req.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @defgroup USBD_MSC_CORE
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
+
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
+
+/*******************************************************************************
+ * Local pre-processor symbols/macros ('#define')
+ ******************************************************************************/
+
+/*******************************************************************************
+ * Global variable definitions (declared in header file with 'extern')
+ ******************************************************************************/
+/**
+ * @defgroup USBD_MSC_CORE_Global_Variables USBD MSC Core Global Variables
+ * @{
+ */
+
 /* USB MSC Core callback functions */
 USBD_Class_cb_TypeDef USBD_MSC_cb =
 {
@@ -78,13 +115,6 @@ USBD_Class_cb_TypeDef USBD_MSC_cb =
 #endif
 };
 
-/*******************************************************************************
- * Local pre-processor symbols/macros ('#define')
- ******************************************************************************/
-
-/*******************************************************************************
- * Global variable definitions (declared in header file with 'extern')
- ******************************************************************************/
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
   #if defined (__ICCARM__)       /*!< IAR Compiler */
     #pragma data_alignment=4
@@ -95,43 +125,43 @@ USBD_Class_cb_TypeDef USBD_MSC_cb =
 __USB_ALIGN_BEGIN uint8_t USBD_MSC_CfgDesc[USB_MSC_CONFIG_DESC_SIZ] __USB_ALIGN_END =
 {
 
-    0x09,                        /* bLength: Configuation Descriptor size */
+    0x09U,                        /* bLength: Configuation Descriptor size */
     USB_DESC_TYPE_CONFIGURATION, /* bDescriptorType: Configuration */
     USB_MSC_CONFIG_DESC_SIZ,
 
-    0x00,
-    0x01,                        /* bNumInterfaces: 1 interface */
-    0x01,                        /* bConfigurationValue: */
-    0x04,                        /* iConfiguration: */
-    0xC0,                        /* bmAttributes: */
-    0x32,                        /* MaxPower 100 mA */
+    0x00U,
+    0x01U,                        /* bNumInterfaces: 1 interface */
+    0x01U,                        /* bConfigurationValue: */
+    0x04U,                        /* iConfiguration: */
+    0xC0U,                        /* bmAttributes: */
+    0x32U,                        /* MaxPower 100 mA */
 
     /********************  Mass Storage interface ********************/
-    0x09,                        /* bLength: Interface Descriptor size */
-    0x04,                        /* bDescriptorType: */
-    0x00,                        /* bInterfaceNumber: Number of Interface */
-    0x00,                        /* bAlternateSetting: Alternate setting */
-    0x02,                        /* bNumEndpoints*/
-    0x08,                        /* bInterfaceClass: MSC Class */
-    0x06,                        /* bInterfaceSubClass : SCSI transparent*/
-    0x50,                        /* nInterfaceProtocol */
-    0x05,                        /* iInterface: */
+    0x09U,                        /* bLength: Interface Descriptor size */
+    0x04U,                        /* bDescriptorType: */
+    0x00U,                        /* bInterfaceNumber: Number of Interface */
+    0x00U,                        /* bAlternateSetting: Alternate setting */
+    0x02U,                        /* bNumEndpoints*/
+    0x08U,                        /* bInterfaceClass: MSC Class */
+    0x06U,                        /* bInterfaceSubClass : SCSI transparent*/
+    0x50U,                        /* nInterfaceProtocol */
+    0x05U,                        /* iInterface: */
     /********************  Mass Storage Endpoints ********************/
-    0x07,                        /*Endpoint descriptor length = 7*/
-    0x05,                        /*Endpoint descriptor type */
-    MSC_IN_EP,                   /*Endpoint address (IN, address 1) */
-    0x02,                        /*Bulk endpoint type */
+    0x07U,                        /*Endpoint descriptor length = 7*/
+    0x05U,                        /*Endpoint descriptor type */
+    MSC_IN_EP,                    /*Endpoint address (IN, address 1) */
+    0x02U,                        /*Bulk endpoint type */
     LOBYTE(MSC_MAX_PACKET),
     HIBYTE(MSC_MAX_PACKET),
-    0x00,                        /*Polling interval in milliseconds */
+    0x00U,                        /*Polling interval in milliseconds */
 
-    0x07,                        /*Endpoint descriptor length = 7 */
-    0x05,                        /*Endpoint descriptor type */
-    MSC_OUT_EP,                  /*Endpoint address (OUT, address 1) */
-    0x02,                        /*Bulk endpoint type */
+    0x07U,                        /*Endpoint descriptor length = 7 */
+    0x05U,                        /*Endpoint descriptor type */
+    MSC_OUT_EP,                   /*Endpoint address (OUT, address 1) */
+    0x02U,                        /*Bulk endpoint type */
     LOBYTE(MSC_MAX_PACKET),
     HIBYTE(MSC_MAX_PACKET),
-    0x00                         /*Polling interval in milliseconds*/
+    0x00U                         /*Polling interval in milliseconds*/
 };
 
 #ifdef USB_OTG_HS_CORE
@@ -143,43 +173,43 @@ __USB_ALIGN_BEGIN uint8_t USBD_MSC_CfgDesc[USB_MSC_CONFIG_DESC_SIZ] __USB_ALIGN_
 __USB_ALIGN_BEGIN uint8_t USBD_MSC_OtherCfgDesc[USB_MSC_CONFIG_DESC_SIZ] __USB_ALIGN_END =
 {
 
-    0x09,                        /* bLength: Configuation Descriptor size */
+    0x09U,                        /* bLength: Configuation Descriptor size */
     USB_DESC_TYPE_OTHER_SPEED_CONFIGURATION,
     USB_MSC_CONFIG_DESC_SIZ,
 
-    0x00,
-    0x01,                        /* bNumInterfaces: 1 interface */
-    0x01,                        /* bConfigurationValue: */
-    0x04,                        /* iConfiguration: */
-    0xC0,                        /* bmAttributes: */
-    0x32,                        /* MaxPower 100 mA */
+    0x00U,
+    0x01U,                        /* bNumInterfaces: 1 interface */
+    0x01U,                        /* bConfigurationValue: */
+    0x04U,                        /* iConfiguration: */
+    0xC0U,                        /* bmAttributes: */
+    0x32U,                        /* MaxPower 100 mA */
 
     /********************  Mass Storage interface ********************/
-    0x09,                        /* bLength: Interface Descriptor size */
-    0x04,                        /* bDescriptorType: */
-    0x00,                        /* bInterfaceNumber: Number of Interface */
-    0x00,                        /* bAlternateSetting: Alternate setting */
-    0x02,                        /* bNumEndpoints*/
-    0x08,                        /* bInterfaceClass: MSC Class */
-    0x06,                        /* bInterfaceSubClass : SCSI transparent command set*/
-    0x50,                        /* nInterfaceProtocol */
-    0x05,                        /* iInterface: */
+    0x09U,                        /* bLength: Interface Descriptor size */
+    0x04U,                        /* bDescriptorType: */
+    0x00U,                        /* bInterfaceNumber: Number of Interface */
+    0x00U,                        /* bAlternateSetting: Alternate setting */
+    0x02U,                        /* bNumEndpoints*/
+    0x08U,                        /* bInterfaceClass: MSC Class */
+    0x06U,                        /* bInterfaceSubClass : SCSI transparent command set*/
+    0x50U,                        /* nInterfaceProtocol */
+    0x05U,                        /* iInterface: */
     /********************  Mass Storage Endpoints ********************/
-    0x07,                        /*Endpoint descriptor length = 7*/
-    0x05,                        /*Endpoint descriptor type */
-    MSC_IN_EP,                   /*Endpoint address (IN, address 1) */
-    0x02,                        /*Bulk endpoint type */
-    0x40,
-    0x00,
-    0x00,                        /*Polling interval in milliseconds */
+    0x07U,                        /*Endpoint descriptor length = 7*/
+    0x05U,                        /*Endpoint descriptor type */
+    MSC_IN_EP,                    /*Endpoint address (IN, address 1) */
+    0x02U,                        /*Bulk endpoint type */
+    0x40U,
+    0x00U,
+    0x00U,                        /*Polling interval in milliseconds */
 
-    0x07,                        /*Endpoint descriptor length = 7 */
-    0x05,                        /*Endpoint descriptor type */
-    MSC_OUT_EP,                  /*Endpoint address (OUT, address 1) */
-    0x02,                        /*Bulk endpoint type */
-    0x40,
-    0x00,
-    0x00                         /*Polling interval in milliseconds*/
+    0x07U,                        /*Endpoint descriptor length = 7 */
+    0x05U,                        /*Endpoint descriptor type */
+    MSC_OUT_EP,                   /*Endpoint address (OUT, address 1) */
+    0x02U,                        /*Bulk endpoint type */
+    0x40U,
+    0x00U,
+    0x00U                         /*Polling interval in milliseconds*/
 };
 #endif
 
@@ -188,14 +218,18 @@ __USB_ALIGN_BEGIN uint8_t USBD_MSC_OtherCfgDesc[USB_MSC_CONFIG_DESC_SIZ] __USB_A
     #pragma data_alignment=4
   #endif
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-__USB_ALIGN_BEGIN static uint8_t USBD_MSC_MaxLun __USB_ALIGN_END = 0u;
+__USB_ALIGN_BEGIN static uint8_t USBD_MSC_MaxLun __USB_ALIGN_END = 0U;
 
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
   #if defined (__ICCARM__)       /*!< IAR Compiler */
     #pragma data_alignment=4
   #endif
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-__USB_ALIGN_BEGIN static uint8_t USBD_MSC_AltSet __USB_ALIGN_END = 0u;
+__USB_ALIGN_BEGIN static uint8_t USBD_MSC_AltSet __USB_ALIGN_END = 0U;
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Local function prototypes ('static')
@@ -208,13 +242,18 @@ __USB_ALIGN_BEGIN static uint8_t USBD_MSC_AltSet __USB_ALIGN_END = 0u;
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
 /**
- *******************************************************************************
- ** \brief  Initialize  the mass storage configuration
- ** \param pdev : device instance
- ** \param cfgidx : configuration index
- ** \retval : status
- ******************************************************************************/
+ * @defgroup USBD_MSC_CORE_Global_Functions USBD MSC Core Global Functions
+ * @{
+ */
+
+/**
+ * @brief  Initialize  the mass storage configuration
+ * @param pdev : device instance
+ * @param cfgidx : configuration index
+ * @retval : status
+ */
 uint8_t  USBD_MSC_Init(void  *pdev,
                        uint8_t cfgidx)
 {
@@ -239,12 +278,11 @@ uint8_t  USBD_MSC_Init(void  *pdev,
 }
 
 /**
- *******************************************************************************
- ** \brief  DeInitilaize  the mass storage configuration
- ** \param pdev : device instance
- ** \param cfgidx : configuration index
- ** \retval : status
- ******************************************************************************/
+ * @brief  DeInitilaize  the mass storage configuration
+ * @param pdev : device instance
+ * @param cfgidx : configuration index
+ * @retval : status
+ */
 uint8_t  USBD_MSC_DeInit(void  *pdev,
                          uint8_t cfgidx)
 {
@@ -258,12 +296,11 @@ uint8_t  USBD_MSC_DeInit(void  *pdev,
 }
 
 /**
- *******************************************************************************
- ** \brief  Handle the MSC specific requests
- ** \param pdev : device instance
- ** \param req : USB request
- ** \retval : status
- ******************************************************************************/
+ * @brief  Handle the MSC specific requests
+ * @param pdev : device instance
+ * @param req : USB request
+ * @retval : status
+ */
 uint8_t  USBD_MSC_Setup(void  *pdev, USB_SETUP_REQ *req)
 {
     uint8_t u8Res = USBD_OK;
@@ -274,16 +311,16 @@ uint8_t  USBD_MSC_Setup(void  *pdev, USB_SETUP_REQ *req)
             switch (req->bRequest)
             {
                 case BOT_GET_MAX_LUN:
-                    if ((req->wValue == (uint16_t)0) &&
-                        (req->wLength == (uint16_t)1) &&
-                        ((req->bmRequest & 0x80u) == (uint8_t)0x80))
+                    if ((req->wValue == (uint16_t)0U) &&
+                        (req->wLength == (uint16_t)1U) &&
+                        ((req->bmRequest & 0x80U) == (uint8_t)0x80U))
                     {
                         USBD_MSC_MaxLun = USBD_STORAGE_fops->GetMaxLun();
-                        if (USBD_MSC_MaxLun > 0u)
+                        if (USBD_MSC_MaxLun > 0U)
                         {
                             USBD_CtlSendData(pdev,
                                              &USBD_MSC_MaxLun,
-                                             1u);
+                                             1U);
                         }else
                         {
                             USBD_CtlError(pdev);
@@ -297,9 +334,9 @@ uint8_t  USBD_MSC_Setup(void  *pdev, USB_SETUP_REQ *req)
                     break;
 
                 case BOT_RESET:
-                    if ((req->wValue == (uint16_t)0) &&
-                        (req->wLength == (uint16_t)0) &&
-                        ((req->bmRequest & 0x80u) != (uint8_t)0x80))
+                    if ((req->wValue == (uint16_t)0U) &&
+                        (req->wLength == (uint16_t)0U) &&
+                        ((req->bmRequest & 0x80U) != (uint8_t)0x80U))
                     {
                         MSC_BOT_Reset(pdev);
                     }else
@@ -322,7 +359,7 @@ uint8_t  USBD_MSC_Setup(void  *pdev, USB_SETUP_REQ *req)
                 case USB_REQ_GET_INTERFACE:
                     USBD_CtlSendData(pdev,
                                      &USBD_MSC_AltSet,
-                                     1u);
+                                     1U);
                     break;
 
                 case USB_REQ_SET_INTERFACE:
@@ -336,7 +373,7 @@ uint8_t  USBD_MSC_Setup(void  *pdev, USB_SETUP_REQ *req)
 
                     /* Re-activate the EP */
                     DCD_EP_Close(pdev, (uint8_t)req->wIndex);
-                    if ((((uint8_t)req->wIndex) & (uint16_t)0x80u) == (uint16_t)0x80)
+                    if ((((uint8_t)req->wIndex) & (uint16_t)0x80U) == (uint16_t)0x80U)
                     {
                         DCD_EP_Open(pdev,
                                     ((uint8_t)req->wIndex),
@@ -365,12 +402,11 @@ uint8_t  USBD_MSC_Setup(void  *pdev, USB_SETUP_REQ *req)
 }
 
 /**
- *******************************************************************************
- ** \brief handle data IN Stage
- ** \param pdev : device instance
- ** \param epnum : endpoint index
- ** \retval : status
- ******************************************************************************/
+ * @brief handle data IN Stage
+ * @param pdev : device instance
+ * @param epnum : endpoint index
+ * @retval : status
+ */
 uint8_t  USBD_MSC_DataIn(void  *pdev,
                          uint8_t epnum)
 {
@@ -379,12 +415,11 @@ uint8_t  USBD_MSC_DataIn(void  *pdev,
 }
 
 /**
- *******************************************************************************
- ** \brief handle data OUT Stage
- ** \param pdev : device instance
- ** \param epnum : endpoint index
- ** \retval : status
- ******************************************************************************/
+ * @brief handle data OUT Stage
+ * @param pdev : device instance
+ * @param epnum : endpoint index
+ * @retval : status
+ */
 uint8_t  USBD_MSC_DataOut(void  *pdev,
                           uint8_t epnum)
 {
@@ -393,12 +428,11 @@ uint8_t  USBD_MSC_DataOut(void  *pdev,
 }
 
 /**
- *******************************************************************************
- ** \brief return configuration descriptor
- ** \param speed : current device speed
- ** \param length : pointer data length
- ** \retval : pointer to descriptor buffer
- ******************************************************************************/
+ * @brief return configuration descriptor
+ * @param speed : current device speed
+ * @param length : pointer data length
+ * @retval : pointer to descriptor buffer
+ */
 uint8_t  *USBD_MSC_GetCfgDesc(uint8_t speed, uint16_t *length)
 {
     *length = (uint16_t)sizeof(USBD_MSC_CfgDesc);
@@ -406,12 +440,11 @@ uint8_t  *USBD_MSC_GetCfgDesc(uint8_t speed, uint16_t *length)
 }
 
 /**
- *******************************************************************************
- ** \brief return other speed configuration descriptor
- ** \param speed : current device speed
- ** \param length : pointer data length
- ** \retval : pointer to descriptor buffer
- ******************************************************************************/
+ * @brief return other speed configuration descriptor
+ * @param speed : current device speed
+ * @param length : pointer data length
+ * @retval : pointer to descriptor buffer
+ */
 #ifdef USB_OTG_HS_CORE
 uint8_t  *USBD_MSC_GetOtherCfgDesc(uint8_t speed,
                                    uint16_t *length)
@@ -420,6 +453,28 @@ uint8_t  *USBD_MSC_GetOtherCfgDesc(uint8_t speed,
     return USBD_MSC_OtherCfgDesc;
 }
 #endif
+
+/**
+ * @}
+ */
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

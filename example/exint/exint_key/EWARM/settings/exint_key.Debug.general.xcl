@@ -1,0 +1,13 @@
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.3\arm\bin\armproc.dll" 
+
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.3\arm\bin\armjlink2.dll" 
+
+"D:\02_HDSC\04_Project\81_M020_AP\trunk\Product\Firmware\00_ddl\hc32f4a0_ddl\example\exint\exint_key\EWARM\output\debug\Exe\exint_key.out" 
+
+--plugin="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.3\arm\bin\armbat.dll" 
+
+--flash_loader="D:\02_HDSC\04_Project\81_M020_AP\trunk\Product\Firmware\00_ddl\hc32f4a0_ddl\example\exint\exint_key\EWARM\flashloader\hc32f4a0.board" 
+
+
+
+

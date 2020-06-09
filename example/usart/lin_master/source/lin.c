@@ -226,8 +226,10 @@ en_result_t LIN_Init(stc_lin_hanlde_t *pstcLinHandle)
         m_apstcLinHandle[u32UsartLinIndex] = pstcLinHandle;
 
         /* Configure USART RX/TX pin. */
+        GPIO_Unlock();
         GPIO_SetFunc(pstcLinHandle->stcPinCfg.u8RxPort, pstcLinHandle->stcPinCfg.u16RxPin, pstcLinHandle->stcPinCfg.u8RxPinFunc, PIN_SUBFUNC_DISABLE);
         GPIO_SetFunc(pstcLinHandle->stcPinCfg.u8TxPort, pstcLinHandle->stcPinCfg.u16TxPin, pstcLinHandle->stcPinCfg.u8TxPinFunc, PIN_SUBFUNC_DISABLE);
+        GPIO_Lock();
 
         /* Enable peripheral clock */
         PWC_Fcg3PeriphClockCmd(u32FcgPeriph, Enable);
@@ -292,22 +294,18 @@ en_result_t LIN_MASTER_SendFrame(stc_lin_hanlde_t *pstcLinHandle,
         enRet = LIN_MASTER_SendFrameHeader(pstcLinHandle, pstcFrame);
         if (Ok == enRet)
         {
-            //DDL_Delay1ms(LIN_FRAME_RESPONSE_SPACE);
-
             USART_FuncCmd(pstcLinHandle->USARTx, (USART_RX | USART_INT_RX), Disable);
 
             /* Send data */
             for (pstcFrame->u8XferCnt = 0U; pstcFrame->u8XferCnt < pstcFrame->u8Length ; pstcFrame->u8XferCnt++)
             {
                 LIN_SendChar(pstcLinHandle, pstcFrame->au8Data[pstcFrame->u8XferCnt]);
-                //DDL_Delay1ms(LIN_FRAME_INTER_BYTE_SPACE);
             }
 
             /* Calculate Checksum */
             pstcFrame->u8Checksum = LIN_CalcChecksum(pstcFrame->u8PID, pstcFrame->au8Data, pstcFrame->u8Length);
 
             LIN_SendChar(pstcLinHandle, pstcFrame->u8Checksum);
-            //DDL_Delay1ms(LIN_INTER_FRAME_SPACE);
             while (!USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_TC))
             {
             }
@@ -529,7 +527,6 @@ en_result_t LIN_SLAVE_SendFrameResponse(stc_lin_hanlde_t *pstcLinHandle)
         for (pstcFrame->u8XferCnt = 0U; pstcFrame->u8XferCnt < pstcFrame->u8Length ; pstcFrame->u8XferCnt++)
         {
             LIN_SendChar(pstcLinHandle, pstcFrame->au8Data[pstcFrame->u8XferCnt]);
-            //DDL_Delay1ms(LIN_FRAME_INTER_BYTE_SPACE);
         }
         pstcLinHandle->pstcFrame->enState = LinFrameStateData;
 
@@ -673,7 +670,6 @@ static en_result_t LIN_MASTER_SendFrameHeader(stc_lin_hanlde_t *pstcLinHandle,
             /* Send break field */
             LIN_SendBreak(pstcLinHandle);
             pstcFrame->enState = LinFrameStateBreak;
-            //DDL_Delay1ms(LIN_FRAME_BREAK_DELAY);
 
             /* Send sync field */
             LIN_SendChar(pstcLinHandle, LIN_SYNC_DATA);
@@ -717,14 +713,14 @@ static void LIN_SendBreak(const stc_lin_hanlde_t *pstcLinHandle)
     {
     }
 
-    USART_RequestBreakSending(pstcLinHandle->USARTx);
+    USART_LinRequestBreakSending(pstcLinHandle->USARTx);
 
     if (USART_LIN_SEND_BREAK_MODE_TDR == USART_GetLinBreakMode(pstcLinHandle->USARTx))
     {
         USART_SendData(pstcLinHandle->USARTx, LIN_BREAK_DATA);
     }
 
-    while (USART_GetRequestBreakStatus(pstcLinHandle->USARTx))
+    while (USART_GetLinRequestBreakStatus(pstcLinHandle->USARTx))
     {
     }
 }

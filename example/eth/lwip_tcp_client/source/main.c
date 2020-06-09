@@ -141,13 +141,13 @@ void SW1_IrqCallback(void)
         if (0U == u8ConnSta)
         {
             u8ConnSta = 1U;
-            /* Connect to tcp server */ 
+            /* Connect to tcp server */
             TcpClient_Connect();
         }
         else
         {
             u8ConnSta = 0U;
-            /* Disconnect to tcp server */ 
+            /* Disconnect to tcp server */
             TcpClient_Disconnect();
         }
         EXINT_ClrExIntSrc(SW1_IN_EXINT_CH);

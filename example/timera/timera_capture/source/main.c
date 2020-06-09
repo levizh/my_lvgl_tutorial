@@ -228,12 +228,13 @@ static void SystemClockConfig(void)
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
     SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+
+    /* Set EFM wait cycle. 4 wait cycles needed when system clock is 200MHz */
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
@@ -314,7 +315,7 @@ static void TmrACaptCondConfig(void)
     KEYSCAN_Cmd(Enable);
 
     /* Enable AOS function. */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     /* Set the event for TIMERA capturing. */
     TMRA_SetCaptEvent(APP_TMRA_UNIT, APP_TMRA_CAPT_EVENT);
 #endif

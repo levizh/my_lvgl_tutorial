@@ -142,16 +142,16 @@
 
 #define IS_CMP_OUT_FILTER(x)                                                   \
 (   ((x) == CMP_OUT_FILTER_NONE)                ||                             \
-    ((x) == CMP_OUT_FILTER_PCLK)                ||                             \
-    ((x) == CMP_OUT_FILTER_PCLKDIV8)            ||                             \
-    ((x) == CMP_OUT_FILTER_PCLKDIV32))
+    ((x) == CMP_OUT_FILTER_PCLK3)               ||                             \
+    ((x) == CMP_OUT_FILTER_PCLK3_DIV8)          ||                             \
+    ((x) == CMP_OUT_FILTER_PCLK3_DIV32))
 
 #define IS_CMP_TIMWIN_FUNC(x)                                                  \
 (   ((x) == CMP_TIMERWIN_OFF)                   ||                             \
     ((x) == CMP_TIMERWIN_ON))
 
 #define IS_CMP_TIMWIN_SELECT(x)                                                \
-(   (x) <= CMP_TWSR_MASK)
+(   (x) <= CMP_TWSR_MASK))
 
 #define IS_CMP_TIMWIN_INVALIDLEVEL(x)                                          \
 (   ((x) == CMP_TIMERWIN_INVALID_LEVEL_LOW)     ||                             \
@@ -228,13 +228,13 @@ en_result_t CMP_DeInit(M4_CMP_TypeDef *CMPx)
 {
     en_result_t enRet = ErrorInvalidParameter;
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
-    CMPx->MDR = (uint8_t)0U;
-    CMPx->FIR = (uint8_t)0U;
-    CMPx->OCR = (uint8_t)0U;
-    CMPx->PMSR = (uint8_t)0U;
-    CMPx->VISR = (uint8_t)0U;
-    CMPx->TWSR = (uint8_t)0U;
-    CMPx->TWPR = (uint8_t)0U;
+    CLEAR_REG8(CMPx->MDR);
+    CLEAR_REG8(CMPx->FIR);
+    CLEAR_REG8(CMPx->OCR);
+    CLEAR_REG8(CMPx->PMSR);
+    CLEAR_REG16(CMPx->VISR);
+    CLEAR_REG16(CMPx->TWSR);
+    CLEAR_REG16(CMPx->TWPR);
     enRet = Ok;
     return enRet;
 }
@@ -393,15 +393,13 @@ en_result_t CMP_WindowModeInit(const M4_CMP_TypeDef *CMPx,
  *   @arg  M4_CMP4:   CMP unit 4 instance register base
  * @param  [in] enNewStatus     The function new status.
  * This parameter can be: Enable or Disable.
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t CMP_FuncCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
+void CMP_FuncCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
     /* Check CMPx instance */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewStatus));
 
     if(Enable == enNewStatus)
     {
@@ -413,9 +411,7 @@ en_result_t CMP_FuncCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
     {
         CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     }
-    enRet = Ok;
 
-    return enRet;
 }
 
 /**
@@ -428,16 +424,13 @@ en_result_t CMP_FuncCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
  *   @arg  M4_CMP4:   CMP unit 4 instance register base
  * @param  [in] enNewStatus    The function new status.
  *   @arg  This parameter can be: Enable or Disable.
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t CMP_IntCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
+void CMP_IntCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
-
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewStatus));
     if(Enable == enNewStatus)
     {
         SET_REG8_BIT(CMPx->FIR, CMP_FIR_CIEN);
@@ -446,9 +439,7 @@ en_result_t CMP_IntCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
     {
         CLEAR_REG8_BIT(CMPx->FIR, CMP_FIR_CIEN);
     }
-    enRet = Ok;
 
-    return enRet;
 }
 
 /**
@@ -461,16 +452,13 @@ en_result_t CMP_IntCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
  *   @arg  M4_CMP4:   CMP unit 4 instance register base
  * @param  [in] enNewStatus    The function new status.
  *   @arg  This parameter can be: Enable or Disable.
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t CMP_OutputCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
+void CMP_OutputCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
-
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewStatus));
     if(Enable == enNewStatus)
     {
         SET_REG8_BIT(CMPx->OCR, CMP_OCR_COEN);
@@ -479,9 +467,7 @@ en_result_t CMP_OutputCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatu
     {
         CLEAR_REG8_BIT(CMPx->OCR, CMP_OCR_COEN);
     }
-    enRet = Ok;
 
-    return enRet;
 }
 
 /**
@@ -494,16 +480,13 @@ en_result_t CMP_OutputCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatu
  *   @arg  M4_CMP4:   CMP unit 4 instance register base
  * @param  [in] enNewStatus    The function new status.
  *   This parameter can be: Enable or Disable.
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t CMP_VCOUTCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
+void CMP_VCOUTCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
     /* Check parameters */
+    DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewStatus));
-
     if(Enable == enNewStatus)
     {
         SET_REG8_BIT(CMPx->OCR, CMP_OCR_CPOE);
@@ -512,9 +495,7 @@ en_result_t CMP_VCOUTCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus
     {
         CLEAR_REG8_BIT(CMPx->OCR, CMP_OCR_CPOE);
     }
-    enRet = Ok;
 
-    return enRet;
 }
 
 /**
@@ -536,12 +517,12 @@ en_result_t CMP_VCOUTCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus
  */
 en_flag_status_t CMP_GetResult(const M4_CMP_TypeDef *CMPx)
 {
-    uint8_t enRet = 0U;
+    en_flag_status_t enRet = Reset;
     /* Check CMPx instance */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
-    enRet = (CMPx->MDR & CMP_MDR_CMON) ? Set : Reset;
+    enRet = READ_REG8_BIT(CMPx->MDR, CMP_MDR_CMON) ? Set : Reset;
 
-    return (en_flag_status_t)enRet;
+    return enRet;
 }
 
 /**
@@ -567,6 +548,7 @@ en_result_t CMP_TimerWindowConfig(M4_CMP_TypeDef *CMPx,
         DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
         DDL_ASSERT(IS_CMP_TIMWIN_INVALIDLEVEL(pstcCMP_TimerWinStruct->u8TWInvalidLevel));
         DDL_ASSERT(IS_CMP_TIMWIN_OUT_LEVEL(pstcCMP_TimerWinStruct->u8TWOutLevel));
+        //DDL_ASSERT(IS_CMP_TIMWIN_SELECT(pstcCMP_TimerWinStruct->u16TWSelect));
         /* Select timer window mode */
         SET_REG8_BIT(CMPx->OCR, CMP_OCR_TWOE);
         /* Select output level when timer window invalid */
@@ -600,32 +582,29 @@ en_result_t CMP_TimerWindowConfig(M4_CMP_TypeDef *CMPx,
  *   @arg  CMP_DETECT_EDGS_RISING:    Detect rising edge
  *   @arg  CMP_DETECT_EDGS_FALLING:   Detect falling edge
  *   @arg  CMP_DETECT_EDGS_BOTH:      Detect rising and falling edges
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t CMP_SetOutDetectEdges(M4_CMP_TypeDef *CMPx, uint8_t u8CmpEdges)
+void CMP_SetOutDetectEdges(M4_CMP_TypeDef *CMPx, uint8_t u8CmpEdges)
 {
-    en_result_t enRet = ErrorInvalidParameter;
     uint8_t u8temp = 0U;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_OUT_DETECT_EDGE(u8CmpEdges));
     /* Read CMP status */
-    u8temp = (CMPx->MDR & CMP_MDR_CENB);
+    u8temp = READ_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* Stop CMP function */
     CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* CMP output detect edge selection */
     MODIFY_REG8(CMPx->FIR, CMP_FIR_EDGS, u8CmpEdges);
-    /* Recover CMP status */
-    MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
+
     if(u8temp)
     {
+        /* Recover CMP status */
+        MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-    enRet = Ok;
 
-    return enRet;
 }
 
 /**
@@ -642,31 +621,29 @@ en_result_t CMP_SetOutDetectEdges(M4_CMP_TypeDef *CMPx, uint8_t u8CmpEdges)
  *   @arg  CMP_OUT_FILTER_PCLK3:         Use PCLK3
  *   @arg  CMP_OUT_FILTER_PCLK3_DIV8:    Use PCLK3 / 8
  *   @arg  CMP_OUT_FILTER_PCLK3_DIV32:   Use PCLK3 / 32
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t CMP_SetOutputFilter(M4_CMP_TypeDef *CMPx, uint8_t u8CmpFilter)
+void CMP_SetOutputFilter(M4_CMP_TypeDef *CMPx, uint8_t u8CmpFilter)
 {
-    en_result_t enRet = ErrorInvalidParameter;
     uint8_t u8temp = 0U;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_OUT_FILTER(u8CmpFilter));
     /* Read CMP status */
-    u8temp = (CMPx->MDR & CMP_MDR_CENB);
+    u8temp = READ_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* Stop CMP function */
     CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* CMP output filter selection */
     MODIFY_REG8(CMPx->FIR, CMP_FIR_FCKS, u8CmpFilter);
-    /* Recover CMP status */
-    MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
+
     if(u8temp)
     {
+        /* Recover CMP status */
+        MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-    enRet = Ok;
-    return enRet;
+
 }
 
 /**
@@ -681,31 +658,29 @@ en_result_t CMP_SetOutputFilter(M4_CMP_TypeDef *CMPx, uint8_t u8CmpFilter)
  *   This parameter can be one of the following values:
  *   @arg  CMP_OUT_REVERSE_OFF:      CMP output don't reverse
  *   @arg  CMP_OUT_REVERSE_ON:       CMP output level reverse
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t CMP_SetOutputPolarity(M4_CMP_TypeDef *CMPx, uint8_t u8CmpPolarity)
+void CMP_SetOutputPolarity(M4_CMP_TypeDef *CMPx, uint8_t u8CmpPolarity)
 {
-    en_result_t enRet = ErrorInvalidParameter;
     uint8_t u8temp = 0U;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_OUT_POLARITY(u8CmpPolarity));
     /* Read CMP status */
-    u8temp = (CMPx->MDR & CMP_MDR_CENB);
+    u8temp = READ_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* Stop CMP function */
     CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* CMP output polarity selection */
     MODIFY_REG8(CMPx->OCR, CMP_OCR_COPS, u8CmpPolarity);
-    /* Recover CMP status */
-    MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
+
     if(u8temp)
     {
+        /* Recover CMP status */
+        MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-    enRet = Ok;
-    return enRet;
+
 }
 
 /**
@@ -741,18 +716,17 @@ en_result_t CMP_SetOutputPolarity(M4_CMP_TypeDef *CMPx, uint8_t u8CmpPolarity)
  *   @arg  CMP3_INP2_PGA3       Select PGA3 as CMP3 INP2 input
  *   @arg  CMP3_INP2_PGA4       Select PGA4 as CMP3 INP2 input
  *   @arg  CMP3_INP2_CMP3_INP2  Select CMP3_INP2 as CMp3 INP2 input
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
+ * @note   When use INP1 or INP4, please set u8CmpVol to 0
  */
-en_result_t CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8CmpVol)
+void CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8CmpVol)
 {
-    en_result_t  enRet = ErrorInvalidParameter;
     uint8_t u8temp = 0U;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_CVSL_CH(u8CmpCh));
     /* Read CMP status */
-    u8temp = (CMPx->MDR & CMP_MDR_CENB);
+    u8temp = READ_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* Stop CMP function */
     CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* Set compare voltage */
@@ -767,15 +741,15 @@ en_result_t CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8C
         DDL_ASSERT(IS_CMP3_CVSL_SOURCE(u8CmpVol));
         WRITE_REG8(CMPx->VISR, u8CmpVol);
     }
-    /* Recover CMP status */
-    MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
+
     if(u8temp)
     {
+        /* Recover CMP status */
+        MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-    enRet = Ok;
-    return enRet;
+
 }
 
 /**
@@ -793,32 +767,29 @@ en_result_t CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8C
  *   @arg  CMP_RVSL_INM2:      Select INM2 as reference voltage
  *   @arg  CMP_RVSL_INM3:      Select INM3 as reference voltage
  *   @arg  CMP_RVSL_INM4:      Select INM4 as reference voltage
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t CMP_SetRefVol(M4_CMP_TypeDef *CMPx, uint8_t u8RefVol)
+void CMP_SetRefVol(M4_CMP_TypeDef *CMPx, uint8_t u8RefVol)
 {
-    en_result_t enRet = ErrorInvalidParameter;
     uint8_t u8temp = 0U;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_RVSL(u8RefVol));
     /* Read CMP status */
-    u8temp = (CMPx->MDR & CMP_MDR_CENB);
+    u8temp = READ_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* Stop CMP function */
     CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* Set reference voltage */
     MODIFY_REG8(CMPx->PMSR, CMP_PMSR_RVSL, u8RefVol);
-    /* Recover CMP status */
-    MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
+
     if(u8temp)
     {
+        /* Recover CMP status */
+        MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-    enRet = Ok;
 
-    return enRet;
 }
 
 /**
@@ -832,7 +803,7 @@ en_result_t CMP_SetRefVol(M4_CMP_TypeDef *CMPx, uint8_t u8RefVol)
  */
 static void CMP_Delay300ns(void)
 {
-    for(uint32_t i=0U; i<(SystemCoreClock/3333333U + 1U); i++)
+    for(uint32_t i=0UL; i<(SystemCoreClock/3333333UL + 1UL); i++)
     {
         __NOP();
     }

@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_hid_msc_wrapper.h
+ * @brief Header file for the usbd_hid_msc_wrapper.c file.
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,36 +48,87 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_hid_msc_wrapper.h
- **
- ** A detailed description is available at
- ** @link header file for the usbd_hid_msc_wrapper.c @endlink
- **
- **   - 2019-11-19  1.0  zhangxl First version for MSC_HID composite demo.
- **
- ******************************************************************************/
 #ifndef __USB_MSC_HID_WRAPPER_H_
 #define __USB_MSC_HID_WRAPPER_H_
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include  "usbd_ioreq.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @addtogroup USBD_HID_MSC_WRAPPER
+ * @{
+ */
+
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define HID_INTERFACE (0x0u)
-#define MSC_INTERFACE (0x1u)
+/**
+ * @defgroup USBD_HID_MSC_WRAPPER_Global_Macros
+ * @{
+ */
+#define HID_INTERFACE (0x0U)
+#define MSC_INTERFACE (0x1U)
 
-#define USB_MSC_HID_CONFIG_DESC_SIZ  (USB_CUSTOM_HID_CONFIG_DESC_SIZ -9u + USB_MSC_CONFIG_DESC_SIZ)
+#define USB_MSC_HID_CONFIG_DESC_SIZ  (USB_CUSTOM_HID_CONFIG_DESC_SIZ -9U + USB_MSC_CONFIG_DESC_SIZ)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+/**
+ * @addtogroup USBD_CDC_VCP_CORE_Global_Variables
+ * @{
+ */
 extern USBD_Class_cb_TypeDef  USBD_MSC_HID_cb;
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* __USB_MSC_HID_WRAPPER_H_ */
 

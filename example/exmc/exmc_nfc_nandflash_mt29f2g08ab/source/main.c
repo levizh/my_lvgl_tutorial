@@ -117,8 +117,10 @@ static en_result_t MT29F2G08AB_MetaWithoutSpareTest(uint32_t u32Page)
         m_au8WriteDataMeta[i] = (uint8_t)i;
     }
 
+    /* Write page: 2048Bytes */
     if (Ok == MT29F2G08AB_WritePageMeta(u32Page, m_au8WriteDataMeta, MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE))
     {
+        /* Read page: 2048Bytes */
         if (Ok == MT29F2G08AB_ReadPageMeta(u32Page, m_au8ReadDataMeta, MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE))
         {
             /* Verify write/read data. */
@@ -152,8 +154,10 @@ static en_result_t MT29F2G08AB_MetaWithSpareTest(uint32_t u32Page)
         m_au8WriteDataMetaWithSpare[i] = (uint8_t)i;
     }
 
+    /* Write page: 2048 + 64Bytes */
     if (Ok == MT29F2G08AB_WritePageMeta(u32Page, m_au8WriteDataMetaWithSpare, MT29F2G08AB_PAGE_SIZE_WITH_SPARE))
     {
+        /* Read page: 2048 + 64Bytes */
         if (Ok == MT29F2G08AB_ReadPageMeta(u32Page, m_au8ReadDataMetaWithSpare, MT29F2G08AB_PAGE_SIZE_WITH_SPARE))
         {
             /* Verify write/read data. */
@@ -185,21 +189,26 @@ static en_result_t MT29F2G08AB_HwEcc1BitTest(uint32_t u32Page)
     __ALIGN_BEGIN static uint8_t m_au8SwEcc1Bit[MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE];
 
     /* Initialize data. */
-    for (uint32_t i = 0U; i < MT29F2G08AB_PAGE_SIZE_WITH_SPARE; i++)
+    for (uint32_t i = 0UL; i < MT29F2G08AB_PAGE_SIZE_WITH_SPARE; i++)
     {
         m_au8WriteDataHwEcc[i] = (uint8_t)(i);
     }
 
+    /* Enable ECC 1bit: write 2048Bytes */
     if (Ok == MT29F2G08AB_WritePageHwEcc1Bit(u32Page, \
                                         m_au8WriteDataHwEcc, \
-                                        (MT29F2G08AB_PAGE_SIZE_WITH_SPARE - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE)))
+                                        MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE))
     {
+        /* Disable ECC 1bit: read 2048 + 64Bytes */
         MT29F2G08AB_ReadPageMeta(u32Page, m_au8ReadDataHwEcc, MT29F2G08AB_PAGE_SIZE_WITH_SPARE);
-        NFC_SwCalculateEcc1Bit(&m_au8WriteDataHwEcc[0], &m_au8SwEcc1Bit[0]);
-        NFC_SwCalculateEcc1Bit(&m_au8WriteDataHwEcc[512], &m_au8SwEcc1Bit[4]);
-        NFC_SwCalculateEcc1Bit(&m_au8WriteDataHwEcc[1024], &m_au8SwEcc1Bit[8]);
-        NFC_SwCalculateEcc1Bit(&m_au8WriteDataHwEcc[1536], &m_au8SwEcc1Bit[12]);
 
+        /* Software calculate ECC 1bit */
+        NFC_SwCalculateEcc1Bit(&m_au8WriteDataHwEcc[0], &m_au8SwEcc1Bit[0]);
+        NFC_SwCalculateEcc1Bit(&m_au8WriteDataHwEcc[512], &m_au8SwEcc1Bit[3]);
+        NFC_SwCalculateEcc1Bit(&m_au8WriteDataHwEcc[1024], &m_au8SwEcc1Bit[6]);
+        NFC_SwCalculateEcc1Bit(&m_au8WriteDataHwEcc[1536], &m_au8SwEcc1Bit[9]);
+
+        /* Compare software & hardware calculating ECC result */
         if (0 == memcmp (m_au8SwEcc1Bit, \
                     &m_au8ReadDataHwEcc[MT29F2G08AB_PAGE_SIZE_WITH_SPARE - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE], \
                     MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE))
@@ -212,11 +221,15 @@ static en_result_t MT29F2G08AB_HwEcc1BitTest(uint32_t u32Page)
                                     (1UL << EXMC_NFC_1BIT_ECC_ERR_BYTE_POS) | \
                                     EXMC_NFC_1BIT_ECC_SINGLE_BIT_ERR);
 
+            /* Disable ECC 1bit: write 2048 + 64Bytes */
             MT29F2G08AB_WritePageMeta(u32Page, m_au8ReadDataHwEcc, MT29F2G08AB_PAGE_SIZE_WITH_SPARE);
+
+            /* Enable ECC 1bit: read 2048Bytes */
             MT29F2G08AB_ReadPageHwEcc1Bit(u32Page, \
                                       m_au8ReadDataHwEcc, \
-                                      (MT29F2G08AB_PAGE_SIZE_WITH_SPARE - MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE));
+                                      MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE);
 
+            /* Get ECC result */
             u32EccTestResult = EXMC_NFC_GetEcc1BitResult(EXMC_NFC_ECC_SECTION0);
             if (u32EccExpectedResult == u32EccTestResult)
             {
@@ -253,21 +266,25 @@ static en_result_t MT29F2G08AB_HwEcc4BitsTest(uint32_t u32Page)
         m_au8WriteDataHwEcc[i] = (uint8_t)(i);
     }
 
-    EXMC_NFC_SetSpareAreaSize(4UL);
     EXMC_NFC_SetEccMode(EXMC_NFC_ECC_4BITS);
 
+    /* Enable ECC 4bit: write 2048Bytes */
     if (Ok == MT29F2G08AB_WritePageHwEcc4Bits(u32Page, \
                                         m_au8WriteDataHwEcc, \
                                         MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE))
     {
+        /* Enable ECC 4bit: read 2048Bytes */
         MT29F2G08AB_ReadPageHwEcc4Bits(u32Page, \
                                         m_au8ReadDataHwEcc, \
                                         MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE);
 
+        /* Check whether ECC errors occur */
         if (EXMC_NFC_GetFlag(EXMC_NFC_FLAG_ECC_ERROR) == Reset)
         {
+            /* Disable ECC 4bit: read 2048 + 64Bytes */
             MT29F2G08AB_ReadPageMeta(u32Page, m_au8ReadDataHwEcc, MT29F2G08AB_PAGE_SIZE_WITH_SPARE);
 
+            /* Modify data to create error */
             m_au8ReadDataHwEcc[254] = 0xAEU;  /* Modify the 254th byte value from 0xFE to 0xAE */
             m_au8ReadDataHwEcc[255] = 0xF5U;  /* Modify the 255th byte value from 0xFF to 0xF5 */
 
@@ -286,13 +303,19 @@ static en_result_t MT29F2G08AB_HwEcc4BitsTest(uint32_t u32Page)
             /* Error bit: the 255th byte - 3 bit */
             ai16EccExpectedErrByteNumber[3] = 255;
             ai16EccExpectedErrByteBit[3] = 3;
+
+            /* Disable ECC 4bit: write 2048 + 64Bytes */
             MT29F2G08AB_WritePageMeta(u32Page, m_au8ReadDataHwEcc, MT29F2G08AB_PAGE_SIZE_WITH_SPARE);
 
+            /* Enable ECC 4bit: read 2048Bytes */
             MT29F2G08AB_ReadPageHwEcc4Bits(u32Page, \
                                         m_au8ReadDataHwEcc, \
                                         MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE);
 
-            EXMC_NFC_GetSyndrome(EXMC_NFC_ECC_SECTION0, au16SynVal);
+            /* Get ECC syndrome */
+            EXMC_NFC_GetSyndrome(EXMC_NFC_ECC_SECTION0, au16SynVal, 8U);
+
+            /* Decode ECC errors location */
             if (4 == NFC_SwDecodeEcc4BitsErrLocation((const int16_t *)au16SynVal, ai16EccTestErrByteNumber, ai16EccTestErrByteBit, 4))
             {
                 if ((ai16EccExpectedErrByteBit[0] == ai16EccTestErrByteBit[0]) && \
@@ -341,8 +364,8 @@ int32_t main(void)
     /* Configure nandflash */
     MT29F2G08AB_Init();
 
-    /* Read id */
-    MT29F2G08AB_ReadId(0UL, au8DevId, 4U);
+    /* Read ID */
+    MT29F2G08AB_ReadId(0UL, au8DevId, (uint8_t)sizeof(au8DevId));
     if ((au8DevId[0] == MT29F2G08ABAEA_MANUFACTURER_ID) || \
         (au8DevId[1] == MT29F2G08ABAEA_DEVICE_ID1) || \
         (au8DevId[2] == MT29F2G08ABAEA_DEVICE_ID2) || \

@@ -119,15 +119,15 @@ extern "C"
 #define EIO_TOUCH_INT           (EIO_PIN4)      /* Touch screen interrupt, input */
 #define EIO_LIN_SLEEP           (EIO_PIN5)      /* LIN PHY sleep, output */
 #define EIO_RTCS_CTRST          (EIO_PIN6)      /* 'CS' for Resistor touch pannel or 'Reset' for Cap touch pannel, output */
-#define EIO_LCD_BK              (EIO_PIN7)      /* LCD pannel back light, output */
+#define EIO_LCD_RST             (EIO_PIN7)      /* LCD pannel reset, output */
 
-#define EIO_LCD_RST             (EIO_PIN0)      /* LCD pannel reset, output */
-#define EIO_CAM_RST             (EIO_PIN1)      /* Camera module reset, output */
-#define EIO_CAM_STANDBY         (EIO_PIN2)      /* Camera module standby, output */
-#define EIO_USB3300_RST         (EIO_PIN3)      /* USBHS PHY USB3300 reset, output */
-#define EIO_ETH_RST             (EIO_PIN4)      /* ETH PHY reset, output */
-#define EIO_RMII_SEL            (EIO_PIN5)      /* ETH RMII I/F select, output */
-#define EIO_LED_RED             (EIO_PIN6)      /* Red LED, output */
+#define EIO_CAM_RST             (EIO_PIN0)      /* Camera module reset, output */
+#define EIO_CAM_STB             (EIO_PIN1)      /* Camera module standby, output */
+#define EIO_USB3300_RST         (EIO_PIN2)      /* USBHS PHY USB3300 reset, output */
+#define EIO_ETH_RST             (EIO_PIN3)      /* ETH PHY reset, output */
+#define EIO_CAN_STB             (EIO_PIN4)      /* CAN PHY standby, output */
+#define EIO_LED_RED             (EIO_PIN5)      /* Red LED, output */
+#define EIO_LED_YELLOW          (EIO_PIN6)      /* Yellow LED, output */
 #define EIO_LED_BULE            (EIO_PIN7)      /* Blue LED, output */
 /**
  * @}

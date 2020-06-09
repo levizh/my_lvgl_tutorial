@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * @file  spi/spi_master_base/source/main.c
+ * @file  spi/spi_tx_rx_polling/source/main.c
  * @brief Main program SPI master base for the Device Driver Library.
  @verbatim
    Change Logs:
@@ -155,7 +155,7 @@ int32_t main(void)
     /* Port configurate, High driving capacity for output pin. */
     GPIO_StructInit(&stcGpioCfg);
 
-    stcGpioCfg.u16PinDrv = PIN_HIGH_DRV;
+    stcGpioCfg.u16PinDrv = PIN_DRV_HIGH;
 #if (EXAMPLE_WIRE_MODE == SPI_WIRE_4)
     GPIO_Init(SPI_M_NSS_PORT,  SPI_M_NSS_PIN, &stcGpioCfg);
 #endif
@@ -209,28 +209,28 @@ int32_t main(void)
     for(uint32_t i = 0UL; i < BUF_LENGTH; i++)
     {
         /* Wait tx buffer empty for slave */
-        while(Reset == SPI_GetFlag(SPI_SLAVE_UNIT, SPI_FLAG_TX_BUFFER_EMPTY))
+        while(Reset == SPI_GetStatus(SPI_SLAVE_UNIT, SPI_FLAG_TX_BUFFER_EMPTY))
         {
             ;
         }
         SPI_WriteDataReg(SPI_SLAVE_UNIT, u8SlaveTxBuf[i]);
 
         /* Wait tx buffer empty for master */
-        while(Reset == SPI_GetFlag(SPI_MASTER_UNIT, SPI_FLAG_TX_BUFFER_EMPTY))
+        while(Reset == SPI_GetStatus(SPI_MASTER_UNIT, SPI_FLAG_TX_BUFFER_EMPTY))
         {
             ;
         }
         SPI_WriteDataReg(SPI_MASTER_UNIT, u8MasterTxBuf[i]);
 
         /* Wait rx buffer full for slave */
-        while(Reset == SPI_GetFlag(SPI_SLAVE_UNIT, SPI_FLAG_RX_BUFFER_FULL))
+        while(Reset == SPI_GetStatus(SPI_SLAVE_UNIT, SPI_FLAG_RX_BUFFER_FULL))
         {
             ;
         }
         u8SlaveRxBuf[i] = (uint8_t)SPI_ReadDataReg(SPI_SLAVE_UNIT);
 
         /* Wait rx buffer full for master */
-        while(Reset == SPI_GetFlag(SPI_MASTER_UNIT, SPI_FLAG_RX_BUFFER_FULL))
+        while(Reset == SPI_GetStatus(SPI_MASTER_UNIT, SPI_FLAG_RX_BUFFER_FULL))
         {
             ;
         }

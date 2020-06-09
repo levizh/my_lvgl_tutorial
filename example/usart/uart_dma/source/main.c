@@ -170,7 +170,7 @@ static en_result_t DMA_Config(void)
         NVIC_SetPriority(stcIrqSignConfig.enIRQn,DDL_IRQ_PRIORITY_DEFAULT);
         NVIC_EnableIRQ(stcIrqSignConfig.enIRQn);
 
-        /* DMA moudle enable */
+        /* DMA module enable */
         DMA_Cmd(DMA_UNIT, Enable);
 
         /* DMA channel interrupt enable */
@@ -180,10 +180,10 @@ static en_result_t DMA_Config(void)
         DMA_ChannelCmd(DMA_UNIT, DMA_CH, Enable);
 
         /* Enable AOS */
-        PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+        PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
 
         /* Set DMA trigger source */
-        DMA_SetTrigSrc(DMA_UNIT, DMA_CH, DMA_TRIGGER_SOURCE);
+        DMA_SetTriggerSrc(DMA_UNIT, DMA_CH, DMA_TRIGGER_SOURCE);
     }
 
     return enRet;
@@ -308,8 +308,10 @@ int32_t main(void)
     TMR0_Config();
 
     /* Configure USART RX/TX pin. */
+    GPIO_Unlock();
     GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(USART_TX_PORT, USART_TX_PIN, USART_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
+    GPIO_Lock();
 
     /* Enable peripheral clock */
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);
@@ -320,7 +322,6 @@ int32_t main(void)
         BSP_LED_On(LED_RED);
         while(1)
         {
-            ;
         }
     }
 

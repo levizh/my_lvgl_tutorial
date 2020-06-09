@@ -1,8 +1,18 @@
-/*****************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_msc_bot.h
+ * @brief Header for the usbd_msc_bot.c file
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-05-15       Zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,28 +48,45 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_msc_bot.h
- **
- ** A detailed description is available at
- ** @link header file for the usbd_msc_bot.c @endlink
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 #ifndef __USBD_MSC_BOT_H
 #define __USBD_MSC_BOT_H
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbd_core.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @addtogroup USBD_MSC_BOT
+ * @{
+ */
+
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-typedef struct _MSC_BOT_CBW
+typedef struct
 {
     uint32_t dSignature;
     uint32_t dTag;
@@ -67,11 +94,11 @@ typedef struct _MSC_BOT_CBW
     uint8_t  bmFlags;
     uint8_t  bLUN;
     uint8_t  bCBLength;
-    uint8_t  CB[16];
+    uint8_t  CB[16U];
 }
 MSC_BOT_CBW_TypeDef;
 
-typedef struct _MSC_BOT_CSW
+typedef struct
 {
     uint32_t dSignature;
     uint32_t dTag;
@@ -83,30 +110,30 @@ MSC_BOT_CSW_TypeDef;
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define BOT_IDLE                      (0u)       /* Idle state */
-#define BOT_DATA_OUT                  (1u)       /* Data Out state */
-#define BOT_DATA_IN                   (2u)       /* Data In state */
-#define BOT_LAST_DATA_IN              (3u)       /* Last Data In Last */
-#define BOT_SEND_DATA                 (4u)       /* Send Immediate data */
+#define BOT_IDLE                      (0U)       /* Idle state */
+#define BOT_DATA_OUT                  (1U)       /* Data Out state */
+#define BOT_DATA_IN                   (2U)       /* Data In state */
+#define BOT_LAST_DATA_IN              (3U)       /* Last Data In Last */
+#define BOT_SEND_DATA                 (4U)       /* Send Immediate data */
 
-#define BOT_CBW_SIGNATURE             (0x43425355ul)
-#define BOT_CSW_SIGNATURE             (0x53425355ul)
-#define BOT_CBW_LENGTH                (31u)
-#define BOT_CSW_LENGTH                (13u)
+#define BOT_CBW_SIGNATURE             (0x43425355UL)
+#define BOT_CSW_SIGNATURE             (0x53425355UL)
+#define BOT_CBW_LENGTH                (31U)
+#define BOT_CSW_LENGTH                (13U)
 
 /* CSW Status Definitions */
-#define CSW_CMD_PASSED                (0x00u)
-#define CSW_CMD_FAILED                (0x01u)
-#define CSW_PHASE_ERROR               (0x02u)
+#define CSW_CMD_PASSED                (0x00U)
+#define CSW_CMD_FAILED                (0x01U)
+#define CSW_PHASE_ERROR               (0x02U)
 
 /* BOT Status */
-#define BOT_STATE_NORMAL              (0u)
-#define BOT_STATE_RECOVERY            (1u)
-#define BOT_STATE_ERROR               (2u)
+#define BOT_STATE_NORMAL              (0U)
+#define BOT_STATE_RECOVERY            (1U)
+#define BOT_STATE_ERROR               (2U)
 
-#define DIR_IN                        (0u)
-#define DIR_OUT                       (1u)
-#define BOTH_DIR                      (2u)
+#define DIR_IN                        (0U)
+#define DIR_OUT                       (1U)
+#define BOTH_DIR                      (2U)
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -135,6 +162,27 @@ void MSC_BOT_SendCSW(USB_OTG_CORE_HANDLE  *pdev,
 
 void MSC_BOT_CplClrFeature(USB_OTG_CORE_HANDLE  *pdev,
                             uint8_t epnum);
+
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBD_MSC_BOT_H__ */
 

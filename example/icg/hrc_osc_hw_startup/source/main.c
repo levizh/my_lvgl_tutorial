@@ -130,9 +130,6 @@ int32_t main(void)
      @endverbatim
      ***************************************************************************
      */
-    /* Configure clock */
-    BSP_CLK_Init();
-    /* Configure BSP */
     BSP_IO_Init();
     BSP_LED_Init();
     /* Configure UART */

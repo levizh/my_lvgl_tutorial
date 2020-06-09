@@ -75,6 +75,8 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
+#define RTC_INTRU_BACKUP_ADDR                   (0x10U)
+#define RTC_INTRU_BACKUP_FLAG                   (0xA0U)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -203,6 +205,7 @@ static void RTC_Config(void)
     stc_gpio_init_t stcGpioInit;
 
     GPIO_StructInit(&stcGpioInit);
+    stcGpioInit.u16PullUp = PIN_PU_ON;
     GPIO_Init(RTC_INTRU_CHAN_1_PORT, RTC_INTRU_CHAN_1_PIN, &stcGpioInit);
 
     /* Reset RTC counter */
@@ -223,7 +226,7 @@ static void RTC_Config(void)
 
         /* Configuration intrusion function */
         stcRtcIntrusion.u8TimeStampEn      = RTC_INTRU_TIMESTAMP_ENABLE;
-        stcRtcIntrusion.u8ResetBackupRegEn = RTC_RESET_BACKUP_REG_DISABLE;
+        stcRtcIntrusion.u8ResetBackupRegEn = RTC_RESET_BACKUP_REG_ENABLE;
         stcRtcIntrusion.u8Filter           = RTC_INTRU_FILTER_THREE_TIME;
         stcRtcIntrusion.u8TrigEdge         = RTC_DETECT_DEGE_FALLING;
         RTC_IntrusionConfig(RTC_INTRU_CH1, &stcRtcIntrusion);
@@ -278,6 +281,10 @@ int32_t main(void)
 
     /* Configure clock */
     BSP_CLK_Init();
+    /* Reset the VBAT area */
+    PWC_VBAT_Reset();
+    /* Intrusion mark */
+    PWC_WriteBackupReg(RTC_INTRU_BACKUP_ADDR, RTC_INTRU_BACKUP_FLAG);
     XTAL32_ClkInit();
     /* Configure BSP */
     BSP_IO_Init();
@@ -308,6 +315,11 @@ int32_t main(void)
         else if (1U == u8SecIntFlag)
         {
             u8SecIntFlag = 0U;
+            /* Intrusion LED */
+            if (0U == PWC_ReadBackupReg(RTC_INTRU_BACKUP_ADDR))
+            {
+                BSP_LED_Toggle(LED_RED);
+            }
             /* Get current date */
             if (Ok == RTC_GetDate(RTC_DATA_FORMAT_DEC, &stcCurrentDate))
             {
@@ -329,6 +341,10 @@ int32_t main(void)
             {
                 printf("Get date failed!\r\n");
             }
+        }
+        else
+        {
+            /* Reserverd */
         }
     }
 }

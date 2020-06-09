@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-06-19       Heqb            First version
+   2020-05-27       Heqb            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -83,40 +83,17 @@
  */
 
 /**
- * @defgroup CRC_Register_Access_Bit_Width CRC Register Access Bit Width
- * @{
- */
-/* Definition of CRC32 data register. */
-#define CRC32_DAT_REG               (M0P_CRC->DAT0)
-
-/* Definition of CRC32 initial value register. */
-#define CRC32_INIT_REG              (M0P_CRC->RESLT)
-
-/* Definition of CRC32 result value register. */
-#define CRC32_RSLT_REG              (M0P_CRC->RESLT)
-
-/* Definition of CRC16 data register. */
-#define CRC16_DAT_REG               (*((__IO uint16_t *)&M0P_CRC->DAT0))
-
-/* Definition of CRC16 initial value register. */
-#define CRC16_INIT_REG              (*((__IO uint16_t *)&M0P_CRC->RESLT))
-
-/* Definition of CRC16 result value register. */
-#define CRC16_RSLT_REG              (*((__IO uint16_t *)&M0P_CRC->RESLT))
-
-/* Definition data register in 8 bit width. */
-#define CRC8_DAT_REG                (*((__IO uint8_t *)&M0P_CRC->DAT0))
-/**
- * @}
- */
-
-/**
  * @defgroup CRC_Check_Parameters_Validity CRC check parameters validity
  * @{
  */
 #define IS_CRC_PROCOTOL(x)                                                     \
 (   ((x) == CRC_CRC16)                      ||                                 \
     ((x) == CRC_CRC32))
+
+#define IS_CRC_BIT_WIDTH(x)                                                    \
+(   ((x) == CRC_BW_8)                       ||                                 \
+    ((x) == CRC_BW_16)                      ||                                 \
+    ((x) == CRC_BW_32))
 
 /**
  * @}
@@ -137,9 +114,9 @@
  * @defgroup CRC_Local_Functions CRC Local Functions
  * @{
  */
-static void CRC_8BitWrite(const void *pvData, uint32_t u32Length);
-static void CRC_16BitWrite(const void *pvData, uint32_t u32Length);
-static void CRC_32BitWrite(const void *pvData, uint32_t u32Length);
+static void CRC_8BitWrite(const uint8_t au8Data[], uint32_t u32Length);
+static void CRC_16BitWrite(const uint16_t au16Data[], uint32_t u32Length);
+static void CRC_32BitWrite(const uint32_t au32Data[], uint32_t u32Length);
 /**
  * @}
  */
@@ -158,16 +135,16 @@ static void CRC_32BitWrite(const void *pvData, uint32_t u32Length);
 
 /**
  * @brief  CRC16 calculation.
- * @param  [in]   u32CrcProtocol        CRC protocol control bit.
- *                                      This parameter can be a value of @ref CRC_Protocol_Control_Bit
- * @param  [in]   pvData                Pointer to the buffer containing the data to be computed.
- * @param  [in]   u32InitVal            Initialize the CRC calculation. 
- * @param  [in]   u32Length             The length(countted in bytes or half word or word, depending on
- *                                      the bit width) of the data to be computed.
- * @param  [in]   u8BitWidth            Bit width of the data.
- *   @arg  CRC_BW_8:                    The pointer pvData points to a byte array.
- *   @arg  CRC_BW_16:                   The pointer pvData points to a half word array.
- *   @arg  CRC_BW_32:                   The pointer pvData points to a word array.
+ * @param  [in] u32CrcProtocol        CRC protocol control bit.
+ *                                    This parameter can be a value of @ref CRC_Protocol_Control_Bit
+ * @param  [in] pvData                Pointer to the buffer containing the data to be computed.
+ * @param  [in] u32InitVal            Initialize the CRC calculation. 
+ * @param  [in] u32Length             The length(countted in bytes or half word or word, depending on
+ *                                    the bit width) of the data to be computed.
+ * @param  [in] u8BitWidth            Bit width of the data.
+ *   @arg  CRC_BW_8:                  8  Bit.
+ *   @arg  CRC_BW_16:                 16 Bit.
+ *   @arg  CRC_BW_32:                 32 Bit.
  * @retval CRC checksum.
  */
 uint32_t CRC_Calculate(uint32_t u32CrcProtocol,
@@ -178,42 +155,42 @@ uint32_t CRC_Calculate(uint32_t u32CrcProtocol,
 {
     uint32_t u32CheckSum = 0u;
 
-    DDL_ASSERT(IS_CRC_PROCOTOL(u32CrcProtocol));
-
-    if ((pvData != NULL) && (u32Length != 0u) &&
-        ((u8BitWidth == CRC_BW_8) || (u8BitWidth == CRC_BW_16) || (u8BitWidth == CRC_BW_32)))
+    if ((pvData != NULL) && (u32Length != 0u))
     {
-         bM0P_CRC->CR_b.CR = u32CrcProtocol;
-
+        DDL_ASSERT(IS_CRC_PROCOTOL(u32CrcProtocol));
+        DDL_ASSERT(IS_CRC_BIT_WIDTH(u8BitWidth));
+        /* Set operation mode (CRC16 or CRC32) */
+        WRITE_REG32(M4_CRC->CR, u32CrcProtocol);
+        /* Set initial value */
         if (u32CrcProtocol == CRC_CRC32)
         {
-            CRC32_INIT_REG = u32InitVal;
+            WRITE_REG32(M4_CRC->RESLT, u32InitVal);
         }
         else
         {
-            CRC16_INIT_REG = (uint16_t)u32InitVal;
+            WRITE_REG16(M4_CRC->RESLT, u32InitVal);
         }
-
+        /* Write data */
         if (u8BitWidth == CRC_BW_8)
         {
-            CRC_8BitWrite(pvData, u32Length);
+            CRC_8BitWrite((const void *)pvData, u32Length);
         }
         else if (u8BitWidth == CRC_BW_16)
         {
-            CRC_16BitWrite(pvData, u32Length);
+            CRC_16BitWrite((const void *)pvData, u32Length);
         }
         else
         {
-            CRC_32BitWrite(pvData, u32Length);
+            CRC_32BitWrite((const void *)pvData, u32Length);
         }
-
+        /* Get checksum */
         if (u32CrcProtocol == CRC_CRC32)
         {
-            u32CheckSum = CRC32_RSLT_REG;
+            u32CheckSum = READ_REG32(M4_CRC->RESLT);
         }
         else
         {
-            u32CheckSum = (uint32_t)CRC16_RSLT_REG;
+            u32CheckSum = READ_REG16(M4_CRC->RESLT);
         }
 
     }
@@ -223,20 +200,20 @@ uint32_t CRC_Calculate(uint32_t u32CrcProtocol,
 
 /**
  * @brief  CRC check.
- * @param  [in]  u32CrcProtocol     CRC protocol control bit.
- *                                  This parameter can be a value of @ref CRC_Protocol_Control_Bit
- * @param  [in]  u32CheckSum        The checksum of the data pointed by pointer pvData.
- * @param  [in]  pvData             Pointer to the buffer containing the data to be checked.
- * @param  [in]  u32InitVal         Initialize the CRC calculation.    
- * @param  [in]  u32Length          The length(countted in bytes or half word or word, depending on
- *                                  the bit width) of the data to be computed.
- * @param  [in] u8BitWidth          Bit width of the data.
- *   @arg  CRC_BW_8:                The pointer pvData points to a byte array.
- *   @arg  CRC_BW_16:               The pointer pvData points to a half word array.
- *   @arg  CRC_BW_32:               The pointer pvData points to a word array.
+ * @param  [in] u32CrcProtocol        CRC protocol control bit.
+ *                                    This parameter can be a value of @ref CRC_Protocol_Control_Bit
+ * @param  [in] u32CheckSum           The checksum of the data pointed by pointer pvData.
+ * @param  [in] pvData                Pointer to the buffer containing the data to be checked.
+ * @param  [in] u32InitVal            Initialize the CRC calculation.    
+ * @param  [in] u32Length             The length(countted in bytes or half word or word, depending on
+ *                                    the bit width) of the data to be computed.
+ * @param  [in] u8BitWidth            Bit width of the data.
+ *   @arg  CRC_BW_8:                  8  Bit.
+ *   @arg  CRC_BW_16:                 16 Bit.
+ *   @arg  CRC_BW_32:                 32 Bit.
  * @retval A en_flag_status_t value.
- *   @arg  Set:                     CRC checks successfully.
- *   @arg  Reset:                   CRC checks unsuccessfully.
+ *   @arg  Set:                    CRC checks successfully.
+ *   @arg  Reset:                  CRC checks unsuccessfully.
  */
 en_flag_status_t CRC_Check(uint32_t u32CrcProtocol,
                            uint32_t u32CheckSum,
@@ -247,21 +224,21 @@ en_flag_status_t CRC_Check(uint32_t u32CrcProtocol,
 {
     en_flag_status_t enFlag = Reset;
     DDL_ASSERT(IS_CRC_PROCOTOL(u32CrcProtocol));
-
-    if ((pvData != NULL) && (u32Length != 0u) &&
-        ((u8BitWidth == CRC_BW_8) || (u8BitWidth == CRC_BW_16) || (u8BitWidth == CRC_BW_32)))
+    DDL_ASSERT(IS_CRC_BIT_WIDTH(u8BitWidth));
+    if ((pvData != NULL) && (u32Length != 0u))
     {
-        bM0P_CRC->CR_b.CR = u32CrcProtocol;
-
+        /* Set operation mode (CRC16 or CRC32) */
+        WRITE_REG32(M4_CRC->CR, u32CrcProtocol);
+        /* Set initial value */
         if (u32CrcProtocol == CRC_CRC32)
         {
-            CRC32_INIT_REG = u32InitVal;
+            WRITE_REG32(M4_CRC->DAT0, u32InitVal);
         }
         else
         {
-            CRC16_INIT_REG = (uint16_t)u32InitVal;
+            WRITE_REG16(M4_CRC->RESLT, u32InitVal);
         }
-
+        /* Write data */
         if (u8BitWidth == CRC_BW_8)
         {
             CRC_8BitWrite(pvData, u32Length);
@@ -274,17 +251,17 @@ en_flag_status_t CRC_Check(uint32_t u32CrcProtocol,
         {
             CRC_32BitWrite(pvData, u32Length);
         }
-    
+        /* Write checksum */
         if (u32CrcProtocol == CRC_CRC32)
         {
-            CRC32_DAT_REG = u32CheckSum;
+            WRITE_REG32(M4_CRC->DAT0, u32CheckSum);
         }
         else
         {
-            CRC16_DAT_REG = (uint16_t)u32CheckSum;
+            WRITE_REG16(M4_CRC->DAT0, u32CheckSum);
         }
-
-        if ((M0P_CRC->CR & CRC_FLAG_MASK) != 0u)
+        /* Get flag */
+        if (READ_REG32_BIT(M4_CRC->CR, CRC_CR_FLAG) != 0UL)
         {
             enFlag = Set;
         }
@@ -305,52 +282,50 @@ en_flag_status_t CRC_Check(uint32_t u32CrcProtocol,
 
 /**
  * @brief  Write CRC data register in bytes.
- * @param  [in]  pvData             Pointer to the buffer containing the data to be written.
+ * @param  [in]  au8Data            The buffer for writing.
  * @param  [in]  u32Length          The length of data the in bytes.
  * @retval None
  */
-static void CRC_8BitWrite(const void *pvData, uint32_t u32Length)
+static void CRC_8BitWrite(const uint8_t au8Data[], uint32_t u32Length)
 {
-    uint32_t u32Count;
-    const uint8_t *pu8Data = pvData;
+    uint32_t i;
 
-    for (u32Count = 0u; u32Count < u32Length; u32Count++)
+    for (i = 0UL; i < u32Length; i++)
     {
-        CRC8_DAT_REG = pu8Data[u32Count];
+        RW_MEM8(&M4_CRC->DAT0) = au8Data[i];
+
     }
 }
 
 /**
  * @brief  Write CRC data register in half words.
- * @param  [in]  pvData             Pointer to the buffer containing the data to be written.
+ * @param  [in]  au16Data           The buffer for writing.
  * @param  [in]  u32Length          The length of the data in half words.
  * @retval None
  */
-static void CRC_16BitWrite(const void *pvData, uint32_t u32Length)
+static void CRC_16BitWrite(const uint16_t au16Data[], uint32_t u32Length)
 {
-    uint32_t u32Count;
-    const uint16_t *pu16Data = pvData;
+    uint32_t i;
 
-    for (u32Count = 0u; u32Count < u32Length; u32Count++)
+    for (i = 0UL; i < u32Length; i++)
     {
-        CRC16_DAT_REG = pu16Data[u32Count];
+        RW_MEM16((&M4_CRC->DAT0)) = au16Data[i];
     }
 }
 
 /**
  * @brief  Write CRC data register in words.
- * @param  [in]  pvData             Pointer to the buffer containing the data to be written.
+ * @param  [in]  au32Data           The buffer for writing.
  * @param  [in]  u32Length          The length of the data in words.
  * @retval None
  */
-static void CRC_32BitWrite(const void *pvData, uint32_t u32Length)
+static void CRC_32BitWrite(const uint32_t au32Data[], uint32_t u32Length)
 {
-    uint32_t u32Count;
-    const uint32_t *pu32Data = pvData;
+    uint32_t i;
 
-    for (u32Count = 0u; u32Count < u32Length; u32Count++)
+    for (i = 0UL; i < u32Length; i++)
     {
-        CRC32_DAT_REG = pu32Data[u32Count];
+        RW_MEM32((&M4_CRC->DAT0)) = au32Data[i];
     }
 }
 

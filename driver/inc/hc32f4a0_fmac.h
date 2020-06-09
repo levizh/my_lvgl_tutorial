@@ -90,14 +90,14 @@ extern "C"
  */
 typedef struct
 {
-    uint8_t u8FiltStage;                /*!< FMAC filter stage number config.
-                                             This parameter can be a value of @ref FMAC_Filter_stage.*/
-    uint8_t u8FiltShift;                /*!< FMAC filter result right shift bits.
-                                             This parameter can be a value of @ref FMAC_Filter_shift.*/
-    int16_t  FiltFactor;                /*!< FMAC filter factor config.
-                                             This parameter can be set -32768~32767 */
-    en_functional_state_t enFmacIntCmd; /*!< Enable or disable FMAC interrupt.
-                                             This parameter can be a value of @ref en_functional_state_t.*/
+    uint32_t u32FiltStage;                /*!< FMAC filter stage number config.
+                                               This parameter can be a value of @ref FMAC_Filter_stage.*/
+    uint32_t u32FiltShift;                /*!< FMAC filter result right shift bits.
+                                               This parameter can be a value of @ref FMAC_Filter_shift.*/
+    int16_t i16FiltFactor;                /*!< FMAC filter factor config.
+                                               This parameter can be set -32768~32767 */
+    uint32_t u32IntCmd;                   /*!< Enable or disable FMAC interrupt.
+                                               This parameter can be a value of @ref FMAC_Interrupt_Definition.*/
 }stc_fmac_init_t;
 
 /**
@@ -105,8 +105,8 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t            u32ResultHigh;      /*!< The high value of the result.    */
-    uint32_t            u32ResultLow;       /*!< The low value of the result.     */
+    uint32_t u32ResultHigh;             /*!< The high value of the result.    */
+    uint32_t u32ResultLow;              /*!< The low value of the result.     */
 
 } stc_fmac_result_t;
 
@@ -128,7 +128,17 @@ typedef struct
  * @{
  */
 #define FMAC_FUNC_ENABLE              (FMAC_ENR_FMACEN)
-#define FMAC_FUNC_DISABLE             ((uint32_t)0x00000000U)
+#define FMAC_FUNC_DISABLE             (0x0UL)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup FMAC_Interrupt_Definition  FMAC interrupt definition
+ * @{
+ */
+#define FMAC_INT_ENABLE               (FMAC_IER_INTEN)
+#define FMAC_INT_DISABLE              (0x0UL)
 /**
  * @}
  */
@@ -136,28 +146,28 @@ typedef struct
 /** @defgroup FMAC_Filter_shift FMAC filter shift times
   * @{
   */
-#define FMAC_FILTER_SHIFT_0BIT        ((uint8_t)0U)
-#define FMAC_FILTER_SHIFT_1BIT        ((uint8_t)1U)
-#define FMAC_FILTER_SHIFT_2BIT        ((uint8_t)2U)
-#define FMAC_FILTER_SHIFT_3BIT        ((uint8_t)3U)
-#define FMAC_FILTER_SHIFT_4BIT        ((uint8_t)4U)
-#define FMAC_FILTER_SHIFT_5BIT        ((uint8_t)5U)
-#define FMAC_FILTER_SHIFT_6BIT        ((uint8_t)6U)
-#define FMAC_FILTER_SHIFT_7BIT        ((uint8_t)7U)
-#define FMAC_FILTER_SHIFT_8BIT        ((uint8_t)8U)
-#define FMAC_FILTER_SHIFT_9BIT        ((uint8_t)9U)
-#define FMAC_FILTER_SHIFT_10BIT       ((uint8_t)10U)
-#define FMAC_FILTER_SHIFT_11BIT       ((uint8_t)11U)
-#define FMAC_FILTER_SHIFT_12BIT       ((uint8_t)12U)
-#define FMAC_FILTER_SHIFT_13BIT       ((uint8_t)13U)
-#define FMAC_FILTER_SHIFT_14BIT       ((uint8_t)14U)
-#define FMAC_FILTER_SHIFT_15BIT       ((uint8_t)15U)
-#define FMAC_FILTER_SHIFT_16BIT       ((uint8_t)16U)
-#define FMAC_FILTER_SHIFT_17BIT       ((uint8_t)17U)
-#define FMAC_FILTER_SHIFT_18BIT       ((uint8_t)18U)
-#define FMAC_FILTER_SHIFT_19BIT       ((uint8_t)19U)
-#define FMAC_FILTER_SHIFT_20BIT       ((uint8_t)20U)
-#define FMAC_FILTER_SHIFT_21BIT       ((uint8_t)21U)
+#define FMAC_FILTER_SHIFT_0BIT        (0U)
+#define FMAC_FILTER_SHIFT_1BIT        (1U)
+#define FMAC_FILTER_SHIFT_2BIT        (2U)
+#define FMAC_FILTER_SHIFT_3BIT        (3U)
+#define FMAC_FILTER_SHIFT_4BIT        (4U)
+#define FMAC_FILTER_SHIFT_5BIT        (5U)
+#define FMAC_FILTER_SHIFT_6BIT        (6U)
+#define FMAC_FILTER_SHIFT_7BIT        (7U)
+#define FMAC_FILTER_SHIFT_8BIT        (8U)
+#define FMAC_FILTER_SHIFT_9BIT        (9U)
+#define FMAC_FILTER_SHIFT_10BIT       (10U)
+#define FMAC_FILTER_SHIFT_11BIT       (11U)
+#define FMAC_FILTER_SHIFT_12BIT       (12U)
+#define FMAC_FILTER_SHIFT_13BIT       (13U)
+#define FMAC_FILTER_SHIFT_14BIT       (14U)
+#define FMAC_FILTER_SHIFT_15BIT       (15U)
+#define FMAC_FILTER_SHIFT_16BIT       (16U)
+#define FMAC_FILTER_SHIFT_17BIT       (17U)
+#define FMAC_FILTER_SHIFT_18BIT       (18U)
+#define FMAC_FILTER_SHIFT_19BIT       (19U)
+#define FMAC_FILTER_SHIFT_20BIT       (20U)
+#define FMAC_FILTER_SHIFT_21BIT       (21U)
 /**
  * @}
  */
@@ -165,33 +175,23 @@ typedef struct
 /** @defgroup FMAC_Filter_stage FMAC filter stage number
   * @{
   */
-#define FMAC_FILTER_STAGE_0          ((uint8_t)0U)
-#define FMAC_FILTER_STAGE_1          ((uint8_t)1U)
-#define FMAC_FILTER_STAGE_2          ((uint8_t)2U)
-#define FMAC_FILTER_STAGE_3          ((uint8_t)3U)
-#define FMAC_FILTER_STAGE_4          ((uint8_t)4U)
-#define FMAC_FILTER_STAGE_5          ((uint8_t)5U)
-#define FMAC_FILTER_STAGE_6          ((uint8_t)6U)
-#define FMAC_FILTER_STAGE_7          ((uint8_t)7U)
-#define FMAC_FILTER_STAGE_8          ((uint8_t)8U)
-#define FMAC_FILTER_STAGE_9          ((uint8_t)9U)
-#define FMAC_FILTER_STAGE_10         ((uint8_t)10U)
-#define FMAC_FILTER_STAGE_11         ((uint8_t)11U)
-#define FMAC_FILTER_STAGE_12         ((uint8_t)12U)
-#define FMAC_FILTER_STAGE_13         ((uint8_t)13U)
-#define FMAC_FILTER_STAGE_14         ((uint8_t)14U)
-#define FMAC_FILTER_STAGE_15         ((uint8_t)15U)
-#define FMAC_FILTER_STAGE_16         ((uint8_t)16U)
-/**
- * @}
- */
-
-
-
-/** @defgroup 
-  * @{
-  */
-
+#define FMAC_FILTER_STAGE_0          (0U)
+#define FMAC_FILTER_STAGE_1          (1U)
+#define FMAC_FILTER_STAGE_2          (2U)
+#define FMAC_FILTER_STAGE_3          (3U)
+#define FMAC_FILTER_STAGE_4          (4U)
+#define FMAC_FILTER_STAGE_5          (5U)
+#define FMAC_FILTER_STAGE_6          (6U)
+#define FMAC_FILTER_STAGE_7          (7U)
+#define FMAC_FILTER_STAGE_8          (8U)
+#define FMAC_FILTER_STAGE_9          (9U)
+#define FMAC_FILTER_STAGE_10         (10U)
+#define FMAC_FILTER_STAGE_11         (11U)
+#define FMAC_FILTER_STAGE_12         (12U)
+#define FMAC_FILTER_STAGE_13         (13U)
+#define FMAC_FILTER_STAGE_14         (14U)
+#define FMAC_FILTER_STAGE_15         (15U)
+#define FMAC_FILTER_STAGE_16         (16U)
 /**
  * @}
  */
@@ -212,14 +212,13 @@ typedef struct
  * @{
  */
 en_result_t FMAC_StructInit(stc_fmac_init_t* pstcInitStruct);
-en_result_t FMAC_DeInit(M4_FMAC_TypeDef* FMACx);
+void FMAC_DeInit(M4_FMAC_TypeDef* FMACx);
 en_result_t FMAC_Init(M4_FMAC_TypeDef* FMACx, const stc_fmac_init_t *pstcFmacInit);
-en_result_t FMAC_Cmd(M4_FMAC_TypeDef* FMACx, en_functional_state_t enNewState);
-en_result_t FMAC_SetResultShift(M4_FMAC_TypeDef* FMACx, uint8_t u8ShiftNum);
-en_result_t FMAC_FilterStageNum(M4_FMAC_TypeDef* FMACx, uint8_t u8filterStage);
-en_result_t FMAC_SetStageFactor(M4_FMAC_TypeDef* FMACx, uint8_t u8filterStage, int16_t factor);
-en_result_t FMAC_IntCmd(M4_FMAC_TypeDef* FMACx, en_functional_state_t enNewState);
-en_result_t FMAC_FIRInput(M4_FMAC_TypeDef* FMACx, int16_t FIRData);
+void FMAC_Cmd(M4_FMAC_TypeDef* FMACx, en_functional_state_t enNewState);
+void FMAC_SetResultShift(M4_FMAC_TypeDef* FMACx, uint32_t u32ShiftNum);
+void FMAC_SetStageFactor(M4_FMAC_TypeDef* FMACx, uint32_t u32FilterStage, int16_t i16Factor);
+void FMAC_IntCmd(M4_FMAC_TypeDef* FMACx, en_functional_state_t enNewState);
+void FMAC_FIRInput(M4_FMAC_TypeDef* FMACx, int16_t i16Factor);
 en_flag_status_t FMAC_GetStatus(const M4_FMAC_TypeDef* FMACx);
 stc_fmac_result_t FMAC_GetResult(const M4_FMAC_TypeDef* FMACx);
 /**

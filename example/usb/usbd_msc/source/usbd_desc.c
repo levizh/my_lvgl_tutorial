@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_msc\source\usbd_desc.c
+ * @brief This file provides the USBD descriptors and string formating method.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,24 +48,28 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
 
-/******************************************************************************/
-/** \file usbd_desc.c
- **
- ** A detailed description is available at
- ** @link
-        This file provides the USBD descriptors and string formating method.
-    @endlink
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
+/*******************************************************************************
+ * Include files
  ******************************************************************************/
 #include "usbd_core.h"
 #include "usbd_desc.h"
 #include "usbd_req.h"
 #include "usbd_conf.h"
-#include "usb_otg_regs.h"
+#include "hc32f4a0_usb_otg_regs.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_MSC
+ * @{
+ */
+
 
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
@@ -154,27 +168,26 @@ __USB_ALIGN_BEGIN uint8_t USBD_LangIDDesc[USB_SIZ_STRING_LANGID] __USB_ALIGN_END
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-
 /**
- *******************************************************************************
- ** \brief  return the device descriptor
- ** \param  speed : current device speed
- ** \param  length : pointer to data length variable
- ** \retval  pointer to descriptor buffer
- ******************************************************************************/
-uint8_t *  USBD_USR_DeviceDescriptor(uint8_t speed, uint16_t *length)
+* @brief  USBD_USR_DeviceDescriptor
+*         return the device descriptor
+* @param  speed : current device speed
+* @param  length : pointer to data length variable
+* @retval pointer to descriptor buffer
+*/
+uint8_t *  USBD_USR_DeviceDescriptor( uint8_t speed , uint16_t *length)
 {
     *length = (uint16_t)sizeof(USBD_DeviceDesc);
     return USBD_DeviceDesc;
 }
 
 /**
- *******************************************************************************
- ** \brief  return the LangID string descriptor
- ** \param  speed : current device speed
- ** \param  length : pointer to data length variable
- ** \retval  pointer to descriptor buffer
- ******************************************************************************/
+* @brief  USBD_USR_LangIDStrDescriptor
+*         return the LangID string descriptor
+* @param  speed : current device speed
+* @param  length : pointer to data length variable
+* @retval pointer to descriptor buffer
+*/
 uint8_t *  USBD_USR_LangIDStrDescriptor(uint8_t speed, uint16_t *length)
 {
     *length = (uint16_t)sizeof(USBD_LangIDDesc);
@@ -182,18 +195,19 @@ uint8_t *  USBD_USR_LangIDStrDescriptor(uint8_t speed, uint16_t *length)
 }
 
 /**
- *******************************************************************************
- ** \brief  return the product string descriptor
- ** \param  speed : current device speed
- ** \param  length : pointer to data length variable
- ** \retval  pointer to descriptor buffer
- ******************************************************************************/
+* @brief  USBD_USR_ProductStrDescriptor
+*         return the product string descriptor
+* @param  speed : current device speed
+* @param  length : pointer to data length variable
+* @retval pointer to descriptor buffer
+*/
 uint8_t *  USBD_USR_ProductStrDescriptor(uint8_t speed, uint16_t *length)
 {
     if (speed == 0u)
     {
         USBD_GetString((uint8_t *)USBD_PRODUCT_HS_STRING, USBD_StrDesc, length);
-    }else
+    }
+    else
     {
         USBD_GetString((uint8_t *)USBD_PRODUCT_FS_STRING, USBD_StrDesc, length);
     }
@@ -201,74 +215,85 @@ uint8_t *  USBD_USR_ProductStrDescriptor(uint8_t speed, uint16_t *length)
 }
 
 /**
- *******************************************************************************
- ** \brief  return the manufacturer string descriptor
- ** \param  speed : current device speed
- ** \param  length : pointer to data length variable
- ** \retval  pointer to descriptor buffer
- ******************************************************************************/
-uint8_t *  USBD_USR_ManufacturerStrDescriptor(uint8_t speed, uint16_t *length)
+* @brief  USBD_USR_ManufacturerStrDescriptor
+*         return the manufacturer string descriptor
+* @param  speed : current device speed
+* @param  length : pointer to data length variable
+* @retval pointer to descriptor buffer
+*/
+uint8_t *  USBD_USR_ManufacturerStrDescriptor( uint8_t speed , uint16_t *length)
 {
-    USBD_GetString((uint8_t *)USBD_MANUFACTURER_STRING, USBD_StrDesc, length);
+    USBD_GetString ((uint8_t *)USBD_MANUFACTURER_STRING, USBD_StrDesc, length);
     return USBD_StrDesc;
 }
 
 /**
- *******************************************************************************
- ** \brief  return the serial number string descriptor
- ** \param  speed : current device speed
- ** \param  length : pointer to data length variable
- ** \retval  pointer to descriptor buffer
- ******************************************************************************/
-uint8_t *  USBD_USR_SerialStrDescriptor(uint8_t speed, uint16_t *length)
+* @brief  USBD_USR_SerialStrDescriptor
+*         return the serial number string descriptor
+* @param  speed : current device speed
+* @param  length : pointer to data length variable
+* @retval pointer to descriptor buffer
+*/
+uint8_t *  USBD_USR_SerialStrDescriptor( uint8_t speed , uint16_t *length)
 {
-    if (speed == USB_OTG_SPEED_HIGH)
+    if(speed  == USB_OTG_SPEED_HIGH)
     {
-        USBD_GetString((uint8_t *)USBD_SERIALNUMBER_HS_STRING, USBD_StrDesc, length);
-    }else
+        USBD_GetString ((uint8_t *)USBD_SERIALNUMBER_HS_STRING, USBD_StrDesc, length);
+    }
+    else
     {
-        USBD_GetString((uint8_t *)USBD_SERIALNUMBER_FS_STRING, USBD_StrDesc, length);
+        USBD_GetString ((uint8_t *)USBD_SERIALNUMBER_FS_STRING, USBD_StrDesc, length);
     }
     return USBD_StrDesc;
 }
 
 /**
- *******************************************************************************
- ** \brief  return the configuration string descriptor
- ** \param  speed : current device speed
- ** \param  length : pointer to data length variable
- ** \retval  pointer to descriptor buffer
- ******************************************************************************/
-uint8_t *  USBD_USR_ConfigStrDescriptor(uint8_t speed, uint16_t *length)
+* @brief  USBD_USR_ConfigStrDescriptor
+*         return the configuration string descriptor
+* @param  speed : current device speed
+* @param  length : pointer to data length variable
+* @retval pointer to descriptor buffer
+*/
+uint8_t *  USBD_USR_ConfigStrDescriptor( uint8_t speed , uint16_t *length)
 {
-    if (speed == USB_OTG_SPEED_HIGH)
+    if(speed  == USB_OTG_SPEED_HIGH)
     {
-        USBD_GetString((uint8_t *)USBD_CONFIGURATION_HS_STRING, USBD_StrDesc, length);
-    }else
+        USBD_GetString ((uint8_t *)USBD_CONFIGURATION_HS_STRING, USBD_StrDesc, length);
+    }
+    else
     {
-        USBD_GetString((uint8_t *)USBD_CONFIGURATION_FS_STRING, USBD_StrDesc, length);
+        USBD_GetString ((uint8_t *)USBD_CONFIGURATION_FS_STRING, USBD_StrDesc, length);
     }
     return USBD_StrDesc;
 }
 
 /**
- *******************************************************************************
- ** \brief  return the interface string descriptor
- ** \param  speed : current device speed
- ** \param  length : pointer to data length variable
- ** \retval  pointer to descriptor buffer
- ******************************************************************************/
-uint8_t *  USBD_USR_InterfaceStrDescriptor(uint8_t speed, uint16_t *length)
+* @brief  USBD_USR_InterfaceStrDescriptor
+*         return the interface string descriptor
+* @param  speed : current device speed
+* @param  length : pointer to data length variable
+* @retval pointer to descriptor buffer
+*/
+uint8_t *  USBD_USR_InterfaceStrDescriptor( uint8_t speed , uint16_t *length)
 {
-    if (speed == 0u)
+    if(speed == 0u)
     {
-        USBD_GetString((uint8_t *)USBD_INTERFACE_HS_STRING, USBD_StrDesc, length);
-    }else
+        USBD_GetString ((uint8_t *)USBD_INTERFACE_HS_STRING, USBD_StrDesc, length);
+    }
+    else
     {
         USBD_GetString((uint8_t *)USBD_INTERFACE_FS_STRING, USBD_StrDesc, length);
     }
     return USBD_StrDesc;
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * EOF (not truncated)

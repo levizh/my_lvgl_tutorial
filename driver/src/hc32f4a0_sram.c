@@ -110,7 +110,7 @@
     ((x) == SRAM_ERR_OP_RESET))
 
 #define IS_SRAM_CYCLE(x)                                                       \
-(   ((x) <= SRAM_WAIT_CYCLE_8))
+(   ((x) <= SRAM_WAIT_CYCLE_7))
 
 #define IS_SRAM_ECC_MODE(x)                                                    \
 (   ((x) == SRAM_ECC_MODE_INVALID)          ||                                 \
@@ -193,12 +193,11 @@ void SRAM_DeInit(void)
  *                                  This parameter can be values of @ref SRAM_Index_Bit_Mask
  *   @arg  SRAMH:                   SRAMH.
  *   @arg  SRAM123:                 SRAM1, SRAM2 and SRAM3. When the CPU clock frequency is higher
- *                                  than 200MHz, it needs at least two access wait cycles(SRAM_CYCLE_2) for
- *                                  SRAM1, SRAM2 and SRAM3.
+ *                                  than 200MHz, access wait cycle is needed.
  *   @arg  SRAM4:                   SRAM4. When the CPU clock frequency is higher than 200MHz,
- *                                  it needs at least two access wait cycles(SRAM_CYCLE_2) for SRAM4.
+ *                                  access wait cycle is needed.
  *   @arg  SRAMB:                   SRAMB. When the CPU clock frequency is higher than 120MHz,
- *                                  it needs at least two access wait cycles(SRAM_CYCLE_2) for SRAMB.
+ *                                  access wait cycle is needed.
  * @param  [in]  u32WriteCycle      The write access wait cycle for the specified SRAM(s)
  *                                  This parameter can be a value of @ref SRAM_Access_Wait_Cycle
  *   @arg  SRAM_WAIT_CYCLE_1:       Wait 1 CPU cycle.
@@ -208,7 +207,6 @@ void SRAM_DeInit(void)
  *   @arg  SRAM_WAIT_CYCLE_5:       Wait 5 CPU cycles.
  *   @arg  SRAM_WAIT_CYCLE_6:       Wait 6 CPU cycles.
  *   @arg  SRAM_WAIT_CYCLE_7:       Wait 7 CPU cycles.
- *   @arg  SRAM_WAIT_CYCLE_8:       Wait 8 CPU cycles.
  * @param  [in]  u32ReadCycle       The read access wait cycle for the specified SRAM(s)
  *                                  This parameter can be a value of @ref SRAM_Access_Wait_Cycle
  *                                  The arguments are same as u32WriteCycle.
@@ -285,7 +283,7 @@ void SRAM_SetEccMode(uint32_t u32SramIndex, uint32_t u32EccMode)
 }
 
 /**
- * @brief  Set the operation after check error occurred.
+ * @brief  Set the operation which is operated after check error occurred.
  * @param  [in]  u32SramIndex       The SRAM(s) index bit mask.
  *                                  This parameter can be values of @ref SRAM_Index_Bit_Mask
  *   @arg  SRAMH:                   SRAMH.
@@ -376,7 +374,6 @@ void SRAM_ClrStatus(uint32_t u32Flag)
 /**
  * @}
  */
-
 
 /**
  * @defgroup SRAM_Local_Functions SRAM Local Functions

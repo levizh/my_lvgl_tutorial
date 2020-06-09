@@ -175,7 +175,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 //        DDL_Delay1ms(1);
 
         /* Prepare to write to LCD RAM */
-        LCD_WriteReg(NT35510_WRITE_RAM);
+        LCD_WriteReg(lcddev.wramcmd);
 #if 1//use CPU
         for (uint32_t i = 0; i < line_size; i++)
         {

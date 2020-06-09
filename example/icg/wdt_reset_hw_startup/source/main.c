@@ -83,7 +83,7 @@
 #define SW1_OUT_PIN                             (GPIO_PIN_06)
 
 /* WDT count cycle definition */
-#define WDT_COUNT_CYCLE                         (65536U)
+#define WDT_COUNT_CYCLE                         (65536UL)
 
 /* Reset source definition */
 #define RESET_SOURCE_WDT                        (0U)
@@ -179,7 +179,7 @@ int32_t main(void)
      @endverbatim
      ***************************************************************************
      */
-    uint16_t u16CmpVal;
+    uint32_t u32CmpVal;
     uint8_t u8ResetSource;
     stc_rmu_rstcause_t stRstCause;
 
@@ -207,19 +207,19 @@ int32_t main(void)
     /* SW1 configuration */
     SW1_Config();
     /* Wait for WDT module to complete initial */
-    DDL_Delay1ms(200U);
+    DDL_Delay1ms(10U);
     /* Count cycle=65536,range=0%-25% */
-    u16CmpVal = WDT_COUNT_CYCLE / 4U;
+    u32CmpVal = WDT_COUNT_CYCLE / 4U;
 
     while (1)
     {
         if (1U == u8ExIntFlag)
         {
             u8ExIntFlag = 0U;
-            u16CmpVal = WDT_COUNT_CYCLE / 2U;
+            u32CmpVal = WDT_COUNT_CYCLE / 2U;
         }
 
-        if (WDT_GetCountValue() < u16CmpVal)
+        if (WDT_GetCountValue() < u32CmpVal)
         {
             WDT_ReloadCounter();
             /* Wait for the count value to update */

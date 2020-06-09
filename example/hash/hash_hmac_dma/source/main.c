@@ -283,7 +283,7 @@ static void HASH_Config(void)
     HASH_SetMode(HASH_MODE_HMAC);              /* HMAC Operating mode */
     HASH_IntCmd(HASH_INT_ALL, Enable);         /* Enable the All data operations complete interrupt */
     /* Enable AOS. */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     HASH_SetTriggerSrc(HASH_TRG_SRC_DMA1_BTC0);/* Select the DMA1 channal_0 block transfer complete as trigger source */
 #if (HASH_DATA_TYPE == HASH_DATA_ARRAY)
     HASH_SetTriggerSrc(HASH_TRG_SRC_DMA1_TC0); /* Select the DMA1 channal_0transfer complete as trigger source */
@@ -330,7 +330,7 @@ static void DMA_Config(const uint32_t pvData[], uint32_t u32DataLength)
 
 #elif (HASH_DATA_TYPE == HASH_DATA_ARRAY)
     /* Set DMA trigger source */
-    DMA_SetTrigSrc(DMA_UNIT, DMA_CH, EVT_HASH);
+    DMA_SetTriggerSrc(DMA_UNIT, DMA_CH, EVT_HASH);
 
     stc_dma_rpt_init_t stcDmaRptInit;
     DMA_RepeatStructInit(&stcDmaRptInit);
@@ -341,7 +341,7 @@ static void DMA_Config(const uint32_t pvData[], uint32_t u32DataLength)
     DMA_RepeatInit(DMA_UNIT, DMA_CH, &stcDmaRptInit);
 #endif /* #if (HASH_DATA_TYPE == HASH_DATA_CHAR) */
 
-    /* DMA moudle enable */
+    /* DMA module enable */
     DMA_Cmd(DMA_UNIT, Enable);
     /* DMA channel enable */
     DMA_ChannelCmd(DMA_UNIT, DMA_CH, Enable);

@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_hid_core.c
+ * @brief HID Layer Handlers for USB Host HID class.
+ *
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_hid_core.c
- **
- ** A detailed description is available at
- ** @link
-        This file is the HID Layer Handlers for USB Host HID class.
-    @endlink
- **
- **   - 2019-12-13  1.0  zhangxl First version for USB demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -58,13 +58,70 @@
 #include "usbh_hid_mouse.h"
 #include "usbh_hid_keybd.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CLASS
+ * @{
+ */
+
+/** @defgroup USBH_HID
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
+
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 
 /*******************************************************************************
+ * Local function prototypes ('static')
+ ******************************************************************************/
+
+/*******************************************************************************
+ * Local variable definitions ('static')
+ ******************************************************************************/
+/**
+ * @defgroup USBH_HID_Local_Functions USBH HID Local Functions
+ * @{
+ */
+static USBH_Status USBH_HID_InterfaceInit  (USB_OTG_CORE_HANDLE *pdev, void *phost);
+
+static void  USBH_ParseHIDDesc (USBH_HIDDesc_TypeDef *desc, uint8_t *buf);
+
+static void USBH_HID_InterfaceDeInit  (USB_OTG_CORE_HANDLE *pdev, void *phost);
+
+static USBH_Status USBH_HID_Handle(USB_OTG_CORE_HANDLE *pdev, void *phost);
+
+static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev, void *phost);
+
+static USBH_Status USBH_Get_HID_ReportDescriptor (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost, uint16_t length);
+
+static USBH_Status USBH_Get_HID_Descriptor (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost, uint16_t length);
+
+static USBH_Status USBH_Set_Idle (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost, uint8_t duration, uint8_t reportId);
+
+static USBH_Status USBH_Set_Protocol (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost, uint8_t protocol);
+/**
+ * @}
+ */
+
+/*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
+/**
+ * @defgroup USBH_HID_Global_Variables USBH HID Global Variables
+ * @{
+ */
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
   #if defined ( __ICCARM__ ) /*!< IAR Compiler */
     #pragma data_alignment=4
@@ -93,46 +150,93 @@ __USB_ALIGN_BEGIN USB_Setup_TypeDef          HID_Setup __USB_ALIGN_END ;
 #endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
 __USB_ALIGN_BEGIN USBH_HIDDesc_TypeDef       HID_Desc __USB_ALIGN_END ;
 
-__IO uint8_t start_toggle = 0;
-
-/*******************************************************************************
- * Local function prototypes ('static')
- ******************************************************************************/
-
-/*******************************************************************************
- * Local variable definitions ('static')
- ******************************************************************************/
-static USBH_Status USBH_HID_InterfaceInit  (USB_OTG_CORE_HANDLE *pdev, void *phost);
-
-static void  USBH_ParseHIDDesc (USBH_HIDDesc_TypeDef *desc, uint8_t *buf);
-
-static void USBH_HID_InterfaceDeInit  (USB_OTG_CORE_HANDLE *pdev, void *phost);
-
-static USBH_Status USBH_HID_Handle(USB_OTG_CORE_HANDLE *pdev, void *phost);
-
-static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev, void *phost);
-
-static USBH_Status USBH_Get_HID_ReportDescriptor (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost, uint16_t length);
-
-static USBH_Status USBH_Get_HID_Descriptor (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost, uint16_t length);
-
-static USBH_Status USBH_Set_Idle (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost, uint8_t duration, uint8_t reportId);
-
-static USBH_Status USBH_Set_Protocol (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost, uint8_t protocol);
-
+__IO uint8_t start_toggle = 0U;
 
 USBH_Class_cb_TypeDef  USBH_HID_cb =
 {
-    USBH_HID_InterfaceInit,
-    USBH_HID_InterfaceDeInit,
-    USBH_HID_ClassRequest,
-    USBH_HID_Handle
+    &USBH_HID_InterfaceInit,
+    &USBH_HID_InterfaceDeInit,
+    &USBH_HID_ClassRequest,
+    &USBH_HID_Handle
 };
 
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @defgroup USBH_HID_Global_Functions USBH HID Global Functions
+ * @{
+ */
+
+/**
+* @brief  USBH_HID_InterfaceDeInit
+*         The function DeInit the Host Channels used for the HID class.
+* @param  pdev: Selected device
+* @param  hdev: Selected device property
+* @retval None
+*/
+void USBH_HID_InterfaceDeInit ( USB_OTG_CORE_HANDLE *pdev, void *phost)
+{
+    //USBH_HOST *pphost = phost;
+
+    if(HID_Machine.hc_num_in != 0x00U)
+    {
+        USB_OTG_HC_Halt(pdev, HID_Machine.hc_num_in);
+        USBH_Free_Channel  (pdev, HID_Machine.hc_num_in);
+        HID_Machine.hc_num_in = 0U;     /* Reset the Channel as Free */
+    }
+
+    if(HID_Machine.hc_num_out != 0x00U)
+    {
+        USB_OTG_HC_Halt(pdev, HID_Machine.hc_num_out);
+        USBH_Free_Channel  (pdev, HID_Machine.hc_num_out);
+        HID_Machine.hc_num_out = 0U;     /* Reset the Channel as Free */
+    }
+
+    start_toggle = 0U;
+}
+
+/**
+* @brief  USBH_Set_Report
+*         Issues Set Report
+* @param  pdev: Selected device
+* @param  reportType  : Report type to be sent
+* @param  reportID    : Targetted report ID for Set Report request
+* @param  reportLen   : Length of data report to be send
+* @param  reportBuff  : Report Buffer
+* @retval USBH_Status : Response for USB Set Idle request
+*/
+USBH_Status USBH_Set_Report (USB_OTG_CORE_HANDLE *pdev,
+                                    USBH_HOST *phost,
+                                    uint8_t reportType,
+                                    uint8_t reportId,
+                                    uint8_t reportLen,
+                                    uint8_t* reportBuff)
+{
+    phost->Control.setup.b.bmRequestType = USB_H2D | USB_REQ_RECIPIENT_INTERFACE | USB_REQ_TYPE_CLASS;
+    phost->Control.setup.b.bRequest = USB_HID_SET_REPORT;
+    phost->Control.setup.b.wValue.w = (reportType << 8U ) | reportId;
+
+    phost->Control.setup.b.wIndex.w = 0U;
+    phost->Control.setup.b.wLength.w = reportLen;
+
+    return USBH_CtlReq(pdev, phost, reportBuff , reportLen );
+}
+
+/**
+ * @}
+ */
+
+/**
+ * @addtogroup USBH_HID_Local_Functions USBH HID Local Functions
+ * @{
+ */
+
 /**
 * @brief  USBH_HID_InterfaceInit
 *         The function init the HID class.
@@ -146,28 +250,28 @@ static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
     uint8_t maxEP;
     USBH_HOST *pphost = phost;
 
-    uint8_t num =0;
+    uint8_t num =0U;
     USBH_Status status = USBH_BUSY ;
     HID_Machine.state = HID_ERROR;
 
 
-    if(pphost->device_prop.Itf_Desc[0].bInterfaceSubClass  == HID_BOOT_CODE)
+    if(pphost->device_prop.Itf_Desc[0U].bInterfaceSubClass  == HID_BOOT_CODE)
     {
         /*Decode Bootclass Protocl: Mouse or Keyboard*/
-        if(pphost->device_prop.Itf_Desc[0].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
+        if(pphost->device_prop.Itf_Desc[0U].bInterfaceProtocol == HID_KEYBRD_BOOT_CODE)
         {
             HID_Machine.cb = &HID_KEYBRD_cb;
         }
-        else if(pphost->device_prop.Itf_Desc[0].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)
+        else if(pphost->device_prop.Itf_Desc[0U].bInterfaceProtocol  == HID_MOUSE_BOOT_CODE)
         {
             HID_Machine.cb = &HID_MOUSE_cb;
         }
 
         HID_Machine.state     = HID_IDLE;
         HID_Machine.ctl_state = HID_REQ_IDLE;
-        HID_Machine.ep_addr   = pphost->device_prop.Ep_Desc[0][0].bEndpointAddress;
-        HID_Machine.length    = pphost->device_prop.Ep_Desc[0][0].wMaxPacketSize;
-        HID_Machine.poll      = pphost->device_prop.Ep_Desc[0][0].bInterval ;
+        HID_Machine.ep_addr   = pphost->device_prop.Ep_Desc[0U][0U].bEndpointAddress;
+        HID_Machine.length    = pphost->device_prop.Ep_Desc[0U][0U].wMaxPacketSize;
+        HID_Machine.poll      = pphost->device_prop.Ep_Desc[0U][0U].bInterval ;
 
         if (HID_Machine.poll  < HID_MIN_POLL)
         {
@@ -185,7 +289,7 @@ static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
         /* Decode endpoint IN and OUT address from interface descriptor */
         for (num=0; num < maxEP; num++)
         {
-            if(pphost->device_prop.Ep_Desc[0][num].bEndpointAddress & 0x80)
+            if(pphost->device_prop.Ep_Desc[0][num].bEndpointAddress & 0x80U)
             {
                 HID_Machine.HIDIntInEp = (pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
                 HID_Machine.hc_num_in  =\
@@ -202,10 +306,10 @@ static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
             }
             else
             {
-                HID_Machine.HIDIntOutEp = (pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
+                HID_Machine.HIDIntOutEp = (pphost->device_prop.Ep_Desc[0U][num].bEndpointAddress);
                 HID_Machine.hc_num_out  =\
                         USBH_Alloc_Channel(pdev,
-                                          pphost->device_prop.Ep_Desc[0][num].bEndpointAddress);
+                                          pphost->device_prop.Ep_Desc[0U][num].bEndpointAddress);
 
                 /* Open channel for OUT endpoint */
                 USBH_Open_Channel  (pdev,
@@ -216,7 +320,7 @@ static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
                                     HID_Machine.length);
             }
         }
-        start_toggle =0;
+        start_toggle = 0U;
         status = USBH_OK;
     }
     else
@@ -225,36 +329,6 @@ static USBH_Status USBH_HID_InterfaceInit ( USB_OTG_CORE_HANDLE *pdev,
     }
 
     return status;
-}
-
-
-
-/**
-* @brief  USBH_HID_InterfaceDeInit
-*         The function DeInit the Host Channels used for the HID class.
-* @param  pdev: Selected device
-* @param  hdev: Selected device property
-* @retval None
-*/
-void USBH_HID_InterfaceDeInit ( USB_OTG_CORE_HANDLE *pdev, void *phost)
-{
-    //USBH_HOST *pphost = phost;
-
-    if(HID_Machine.hc_num_in != 0x00)
-    {
-        USB_OTG_HC_Halt(pdev, HID_Machine.hc_num_in);
-        USBH_Free_Channel  (pdev, HID_Machine.hc_num_in);
-        HID_Machine.hc_num_in = 0;     /* Reset the Channel as Free */
-    }
-
-    if(HID_Machine.hc_num_out != 0x00)
-    {
-        USB_OTG_HC_Halt(pdev, HID_Machine.hc_num_out);
-        USBH_Free_Channel  (pdev, HID_Machine.hc_num_out);
-        HID_Machine.hc_num_out = 0;     /* Reset the Channel as Free */
-    }
-
-    start_toggle = 0;
 }
 
 /**
@@ -295,7 +369,7 @@ static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev ,
             }
             break;
         case HID_REQ_SET_IDLE:
-            classReqStatus = USBH_Set_Idle (pdev, pphost, 0, 0);
+            classReqStatus = USBH_Set_Idle (pdev, pphost, 0U, 0U);
             /* set Idle */
             if (classReqStatus == USBH_OK)
             {
@@ -308,7 +382,7 @@ static USBH_Status USBH_HID_ClassRequest(USB_OTG_CORE_HANDLE *pdev ,
             break;
         case HID_REQ_SET_PROTOCOL:
             /* set protocol */
-            if (USBH_Set_Protocol (pdev ,pphost, 0) == USBH_OK)
+            if (USBH_Set_Protocol (pdev ,pphost, 0U) == USBH_OK)
             {
                 HID_Machine.ctl_state = HID_REQ_IDLE;
 
@@ -355,7 +429,7 @@ static USBH_Status USBH_HID_Handle(USB_OTG_CORE_HANDLE *pdev , void   *phost)
                               HID_Machine.buff,
                               HID_Machine.length,
                               HID_Machine.hc_num_in);
-            start_toggle = 1;
+            start_toggle = 1U;
             HID_Machine.state = HID_POLL;
             HID_Machine.timer = HCD_GetCurrentFrame(pdev);
             break;
@@ -366,9 +440,9 @@ static USBH_Status USBH_HID_Handle(USB_OTG_CORE_HANDLE *pdev , void   *phost)
             }
             else if(HCD_GetURB_State(pdev , HID_Machine.hc_num_in) == URB_DONE)
             {
-                if(start_toggle == 1) /* handle data once */
+                if(start_toggle == 1U) /* handle data once */
                 {
-                    start_toggle = 0;
+                    start_toggle = 0U;
                     HID_Machine.cb->Decode(HID_Machine.buff);
                 }
             }
@@ -462,38 +536,12 @@ static USBH_Status USBH_Set_Idle (USB_OTG_CORE_HANDLE *pdev,
     phost->Control.setup.b.bRequest = USB_HID_SET_IDLE;
     phost->Control.setup.b.wValue.w = (duration << 8 ) | reportId;
 
-    phost->Control.setup.b.wIndex.w = 0;
-    phost->Control.setup.b.wLength.w = 0;
+    phost->Control.setup.b.wIndex.w = 0U;
+    phost->Control.setup.b.wLength.w = 0U;
 
-    return USBH_CtlReq(pdev, phost, 0 , 0 );
+    return USBH_CtlReq(pdev, phost, 0U, 0U );
 }
 
-/**
-* @brief  USBH_Set_Report
-*         Issues Set Report
-* @param  pdev: Selected device
-* @param  reportType  : Report type to be sent
-* @param  reportID    : Targetted report ID for Set Report request
-* @param  reportLen   : Length of data report to be send
-* @param  reportBuff  : Report Buffer
-* @retval USBH_Status : Response for USB Set Idle request
-*/
-USBH_Status USBH_Set_Report (USB_OTG_CORE_HANDLE *pdev,
-                                    USBH_HOST *phost,
-                                    uint8_t reportType,
-                                    uint8_t reportId,
-                                    uint8_t reportLen,
-                                    uint8_t* reportBuff)
-{
-    phost->Control.setup.b.bmRequestType = USB_H2D | USB_REQ_RECIPIENT_INTERFACE | USB_REQ_TYPE_CLASS;
-    phost->Control.setup.b.bRequest = USB_HID_SET_REPORT;
-    phost->Control.setup.b.wValue.w = (reportType << 8 ) | reportId;
-
-    phost->Control.setup.b.wIndex.w = 0;
-    phost->Control.setup.b.wLength.w = reportLen;
-
-    return USBH_CtlReq(pdev, phost, reportBuff , reportLen );
-}
 
 
 /**
@@ -509,21 +557,21 @@ static USBH_Status USBH_Set_Protocol(USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost
 
     phost->Control.setup.b.bRequest = USB_HID_SET_PROTOCOL;
 
-    if(protocol != 0)
+    if(protocol != 0U)
     {
         /* Boot Protocol */
-        phost->Control.setup.b.wValue.w = 0;
+        phost->Control.setup.b.wValue.w = 0U;
     }
     else
     {
         /*Report Protocol*/
-        phost->Control.setup.b.wValue.w = 1;
+        phost->Control.setup.b.wValue.w = 1U;
     }
 
-    phost->Control.setup.b.wIndex.w = 0;
-    phost->Control.setup.b.wLength.w = 0;
+    phost->Control.setup.b.wIndex.w = 0U;
+    phost->Control.setup.b.wLength.w = 0U;
 
-    return USBH_CtlReq(pdev, phost, 0 , 0 );
+    return USBH_CtlReq(pdev, phost, 0U, 0U);
 
 }
 
@@ -535,14 +583,36 @@ static USBH_Status USBH_Set_Protocol(USB_OTG_CORE_HANDLE *pdev, USBH_HOST *phost
 */
 static void  USBH_ParseHIDDesc (USBH_HIDDesc_TypeDef *desc, uint8_t *buf)
 {
-    desc->bLength                  = *(uint8_t  *) (buf + 0);
-    desc->bDescriptorType          = *(uint8_t  *) (buf + 1);
-    desc->bcdHID                   =  LE16  (buf + 2);
-    desc->bCountryCode             = *(uint8_t  *) (buf + 4);
-    desc->bNumDescriptors          = *(uint8_t  *) (buf + 5);
-    desc->bReportDescriptorType    = *(uint8_t  *) (buf + 6);
-    desc->wItemLength              =  LE16  (buf + 7);
+    desc->bLength                  = *(uint8_t  *) (buf + 0U);
+    desc->bDescriptorType          = *(uint8_t  *) (buf + 1U);
+    desc->bcdHID                   =  LE16  (buf + 2U);
+    desc->bCountryCode             = *(uint8_t  *) (buf + 4U);
+    desc->bNumDescriptors          = *(uint8_t  *) (buf + 5U);
+    desc->bReportDescriptorType    = *(uint8_t  *) (buf + 6U);
+    desc->wItemLength              =  LE16  (buf + 7U);
 }
+
+/**
+ * @}
+ */
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

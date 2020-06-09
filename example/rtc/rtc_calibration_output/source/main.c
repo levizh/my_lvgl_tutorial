@@ -111,7 +111,7 @@ static void RTC_Period_IrqCallback(void)
  */
 static void RTC_Config(void)
 {
-    uint8_t u8Ret;
+    en_result_t enRet;
     stc_rtc_init_t stcRtcInit;
     stc_irq_signin_config_t stcIrqConfig;
 
@@ -142,8 +142,8 @@ static void RTC_Config(void)
         stcIrqConfig.enIRQn      = Int052_IRQn;
         stcIrqConfig.pfnCallback = &RTC_Period_IrqCallback;
         INTC_IrqSignOut(stcIrqConfig.enIRQn);
-        u8Ret = INTC_IrqSignIn(&stcIrqConfig);
-        if (Ok != u8Ret)
+        enRet = INTC_IrqSignIn(&stcIrqConfig);
+        if (Ok != enRet)
         {
             /* check parameter */
             while (1)
@@ -194,6 +194,8 @@ int32_t main(void)
 {
     /* Configure clock */
     BSP_CLK_Init();
+    /* Reset the VBAT area */
+    PWC_VBAT_Reset();
     XTAL32_ClkInit();
     /* Configure BSP */
     BSP_IO_Init();
@@ -209,7 +211,9 @@ int32_t main(void)
         /* SW1 */
         if (Set == BSP_KEY_GetStatus(BSP_KEY_1))
         {
-            while (Set == BSP_KEY_GetStatus(BSP_KEY_1));
+            while (Set == BSP_KEY_GetStatus(BSP_KEY_1))
+            {
+            }
             if (u16CompenVal < 255)
             {
                 u16CompenVal++;
@@ -219,7 +223,9 @@ int32_t main(void)
         /* SW2 */
         if (Set == BSP_KEY_GetStatus(BSP_KEY_2))
         {
-            while (Set == BSP_KEY_GetStatus(BSP_KEY_2));
+            while (Set == BSP_KEY_GetStatus(BSP_KEY_2))
+            {
+            }
             if (u16CompenVal > -256)
             {
                 u16CompenVal--;

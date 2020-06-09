@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  hc32f4a0_usb_hcd.c
+ * @brief Host Interface Layer.
+ *       
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.c
- **
- ** A detailed description is available at
- ** @link
-        Host Interface Layer.
-    @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -58,6 +58,19 @@
 #include "hc32f4a0_usb_hcd.h"
 #include "usb_conf.h"
 #include "usb_bsp.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Driver
+ * @{
+ */
+
+/**
+ * @defgroup DDL_USB_HCD USB HCD
+ * @brief Host Interface Layer
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -82,26 +95,31 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
 /**
- *******************************************************************************
- ** \brief  HCD_Init
- **         Initialize the HOST portion of the driver.
- ** \param  pdev: Selected device
- ** \param  base_address: OTG base address
- ** \retval Status
- ******************************************************************************/
+ * @defgroup USB_HCD_Global_Functions USB HCD Global Functions
+ * @{
+ */
+
+/**
+ * @brief  HCD_Init
+ *         Initialize the HOST portion of the driver.
+ * @param  pdev: Selected device
+ * @param  base_address: OTG base address
+ * @retval Status
+ */
 uint32_t HCD_Init(USB_OTG_CORE_HANDLE *pdev, USB_OTG_CORE_ID_TypeDef coreID)
 {
-    uint8_t i = 0u;
-    pdev->host.ConnSts = 0u;
+    uint8_t i = 0U;
+    pdev->host.ConnSts = 0U;
 
-    for (i= 0u; i< USB_OTG_MAX_TX_FIFOS; i++)
+    for (i= 0U; i< USB_OTG_MAX_TX_FIFOS; i++)
     {
-        pdev->host.ErrCnt[i]  = 0u;
-        pdev->host.XferCnt[i]   = 0u;
+        pdev->host.ErrCnt[i]  = 0U;
+        pdev->host.XferCnt[i]   = 0U;
         pdev->host.HC_Status[i]   = HC_IDLE;
     }
-    pdev->host.hc[0].max_packet  = 8u;
+    pdev->host.hc[0].max_packet  = 8U;
 
     USB_OTG_SelectCore(pdev, coreID);
 #ifndef DUAL_ROLE_MODE_ENABLED
@@ -115,17 +133,16 @@ uint32_t HCD_Init(USB_OTG_CORE_HANDLE *pdev, USB_OTG_CORE_ID_TypeDef coreID)
     USB_OTG_CoreInitHost(pdev);
     USB_OTG_EnableGlobalInt(pdev);
 #endif
-    return 0ul;
+    return 0UL;
 }
 
 
 /**
- *******************************************************************************
- ** \brief  HCD_GetCurrentSpeed
- **         Get Current device Speed.
- ** \param  pdev : Selected device
- ** \retval Status
- ******************************************************************************/
+ * @brief  HCD_GetCurrentSpeed
+ *         Get Current device Speed.
+ * @param  pdev : Selected device
+ * @retval Status
+ */
 uint32_t HCD_GetCurrentSpeed (USB_OTG_CORE_HANDLE *pdev)
 {
     USB_OTG_HPRT0_TypeDef  HPRT0;
@@ -135,12 +152,11 @@ uint32_t HCD_GetCurrentSpeed (USB_OTG_CORE_HANDLE *pdev)
 }
 
 /**
- *******************************************************************************
- ** \brief  HCD_ResetPort
- **         Issues the reset command to device
- ** \param  pdev : Selected device
- ** \retval Status
- ******************************************************************************/
+ * @brief  HCD_ResetPort
+ *         Issues the reset command to device
+ * @param  pdev : Selected device
+ * @retval Status
+ */
 uint32_t HCD_ResetPort(USB_OTG_CORE_HANDLE *pdev)
 {
     /*
@@ -151,103 +167,104 @@ uint32_t HCD_ResetPort(USB_OTG_CORE_HANDLE *pdev)
     */
 
     USB_OTG_ResetPort(pdev);
-    return 0ul;
+    return 0UL;
 }
 
 /**
- *******************************************************************************
- ** \brief  HCD_IsDeviceConnected
- **         Check if the device is connected.
- ** \param  pdev : Selected device
- ** \retval Device connection status. 1 -> connected and 0 -> disconnected
- **
- ******************************************************************************/
+ * @brief  HCD_IsDeviceConnected
+ *         Check if the device is connected.
+ * @param  pdev : Selected device
+ * @retval Device connection status. 1 -> connected and 0 -> disconnected
+ */
 uint32_t HCD_IsDeviceConnected(USB_OTG_CORE_HANDLE *pdev)
 {
     return (pdev->host.ConnSts);
 }
 
 /**
- *******************************************************************************
- ** \brief  HCD_GetCurrentFrame
- **         This function returns the frame number for sof packet
- ** \param  pdev : Selected device
- ** \retval Frame number
- **
- ******************************************************************************/
+ * @brief  HCD_GetCurrentFrame
+ *         This function returns the frame number for sof packet
+ * @param  pdev : Selected device
+ * @retval Frame number
+ */
 uint32_t HCD_GetCurrentFrame (USB_OTG_CORE_HANDLE *pdev)
 {
-    return (USB_OTG_READ_REG32(&pdev->regs.HREGS->HFNUM) & 0xFFFFul) ;
+    return (USB_OTG_READ_REG32(&pdev->regs.HREGS->HFNUM) & 0xFFFFUL) ;
 }
 
 /**
- *******************************************************************************
- ** \brief  HCD_GetURB_State
- **         This function returns the last URBstate
- ** \param  pdev: Selected device
- ** \retval URB_STATE
- **
- ******************************************************************************/
+ * @brief  HCD_GetURB_State
+ *         This function returns the last URBstate
+ * @param  pdev: Selected device
+ * @retval URB_STATE
+ */
 URB_STATE HCD_GetURB_State (USB_OTG_CORE_HANDLE *pdev , uint8_t ch_num)
 {
     return pdev->host.URB_State[ch_num] ;
 }
 
 /**
- *******************************************************************************
- ** \brief  HCD_GetXferCnt
- **         This function returns the last URBstate
- ** \param  pdev: Selected device
- ** \retval No. of data bytes transferred
- **
- ******************************************************************************/
+ * @brief  HCD_GetXferCnt
+ *         This function returns the last URBstate
+ * @param  pdev: Selected device
+ * @retval No. of data bytes transferred
+ */
 uint32_t HCD_GetXferCnt (USB_OTG_CORE_HANDLE *pdev, uint8_t ch_num)
 {
     return pdev->host.XferCnt[ch_num] ;
 }
 
-
-
 /**
- *******************************************************************************
- ** \brief  HCD_GetHCState
- **         This function returns the HC Status
- ** \param  pdev: Selected device
- ** \retval HC_STATUS
- **
- ******************************************************************************/
+ * @brief  HCD_GetHCState
+ *         This function returns the HC Status
+ * @param  pdev: Selected device
+ * @retval HC_STATUS
+ */
 HC_STATUS HCD_GetHCState (USB_OTG_CORE_HANDLE *pdev ,  uint8_t ch_num)
 {
     return pdev->host.HC_Status[ch_num] ;
 }
 
 /**
- *******************************************************************************
- ** \brief  HCD_HC_Init
- **         This function prepare a HC and start a transfer
- ** \param  pdev: Selected device
- ** \param  hc_num: Channel number
- ** \retval status
- ******************************************************************************/
+ * @brief  HCD_HC_Init
+ *         This function prepare a HC and start a transfer
+ * @param  pdev: Selected device
+ * @param  hc_num: Channel number
+ * @retval status
+ */
 uint32_t HCD_HC_Init (USB_OTG_CORE_HANDLE *pdev , uint8_t hc_num)
 {
     return USB_OTG_HC_Init(pdev, hc_num);
 }
 
 /**
- *******************************************************************************
- ** \brief  HCD_SubmitRequest
- **         This function prepare a HC and start a transfer
- ** \param  pdev: Selected device
- ** \param  hc_num: Channel number
- ** \retval status
- ******************************************************************************/
+ * @brief  HCD_SubmitRequest
+ *         This function prepare a HC and start a transfer
+ * @param  pdev: Selected device
+ * @param  hc_num: Channel number
+ * @retval status
+ */
 uint32_t HCD_SubmitRequest (USB_OTG_CORE_HANDLE *pdev , uint8_t hc_num)
 {
     pdev->host.URB_State[hc_num] = URB_IDLE;
-    pdev->host.hc[hc_num].xfer_count = 0u ;
+    pdev->host.hc[hc_num].xfer_count = 0U ;
     return USB_OTG_HC_StartXfer(pdev, hc_num);
 }
+
+/**
+ * @}
+ */
+
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

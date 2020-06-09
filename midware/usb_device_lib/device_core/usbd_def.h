@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_def.h
+ * @brief General defines for the usb device library.
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,23 +48,40 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_def.h
- **
- ** A detailed description is available at
- ** @link general defines for the usb device library @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
 #ifndef __USBD_DEF_H
 #define __USBD_DEF_H
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbd_conf.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CORE
+ * @{
+ */
+
+/** @defgroup USBD_DEF
+ * @{
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -63,67 +90,75 @@
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/**
+ * @defgroup USBD_DEF_Global_Macros USBD Define Global Macros
+ * @{
+ */
 #ifndef NULL
-#define NULL    0u
+#define NULL    0U
 #endif
 
-#define  USB_LEN_DEV_QUALIFIER_DESC                     (0x0Au)
-#define  USB_LEN_DEV_DESC                               (0x12u)
-#define  USB_LEN_CFG_DESC                               (0x09u)
-#define  USB_LEN_IF_DESC                                (0x09u)
-#define  USB_LEN_EP_DESC                                (0x07u)
-#define  USB_LEN_OTG_DESC                               (0x03u)
+#define  USB_LEN_DEV_QUALIFIER_DESC                     (0x0AU)
+#define  USB_LEN_DEV_DESC                               (0x12U)
+#define  USB_LEN_CFG_DESC                               (0x09U)
+#define  USB_LEN_IF_DESC                                (0x09U)
+#define  USB_LEN_EP_DESC                                (0x07U)
+#define  USB_LEN_OTG_DESC                               (0x03U)
 
-#define  USBD_IDX_LANGID_STR                            (0x00u)
-#define  USBD_IDX_MFC_STR                               (0x01u)
-#define  USBD_IDX_PRODUCT_STR                           (0x02u)
-#define  USBD_IDX_SERIAL_STR                            (0x03u)
-#define  USBD_IDX_CONFIG_STR                            (0x04u)
-#define  USBD_IDX_INTERFACE_STR                         (0x05u)
+#define  USBD_IDX_LANGID_STR                            (0x00U)
+#define  USBD_IDX_MFC_STR                               (0x01U)
+#define  USBD_IDX_PRODUCT_STR                           (0x02U)
+#define  USBD_IDX_SERIAL_STR                            (0x03U)
+#define  USBD_IDX_CONFIG_STR                            (0x04U)
+#define  USBD_IDX_INTERFACE_STR                         (0x05U)
 
-#define  USB_REQ_TYPE_STANDARD                          (0x00u)
-#define  USB_REQ_TYPE_CLASS                             (0x20u)
-#define  USB_REQ_TYPE_VENDOR                            (0x40u)
-#define  USB_REQ_TYPE_MASK                              (0x60u)
+#define  USB_REQ_TYPE_STANDARD                          (0x00U)
+#define  USB_REQ_TYPE_CLASS                             (0x20U)
+#define  USB_REQ_TYPE_VENDOR                            (0x40U)
+#define  USB_REQ_TYPE_MASK                              (0x60U)
 
-#define  USB_REQ_RECIPIENT_DEVICE                       (0x00u)
-#define  USB_REQ_RECIPIENT_INTERFACE                    (0x01u)
-#define  USB_REQ_RECIPIENT_ENDPOINT                     (0x02u)
-#define  USB_REQ_RECIPIENT_MASK                         (0x03u)
+#define  USB_REQ_RECIPIENT_DEVICE                       (0x00U)
+#define  USB_REQ_RECIPIENT_INTERFACE                    (0x01U)
+#define  USB_REQ_RECIPIENT_ENDPOINT                     (0x02U)
+#define  USB_REQ_RECIPIENT_MASK                         (0x03U)
 
-#define  USB_REQ_GET_STATUS                             (0x00u)
-#define  USB_REQ_CLEAR_FEATURE                          (0x01u)
-#define  USB_REQ_SET_FEATURE                            (0x03u)
-#define  USB_REQ_SET_ADDRESS                            (0x05u)
-#define  USB_REQ_GET_DESCRIPTOR                         (0x06u)
-#define  USB_REQ_SET_DESCRIPTOR                         (0x07u)
-#define  USB_REQ_GET_CONFIGURATION                      (0x08u)
-#define  USB_REQ_SET_CONFIGURATION                      (0x09u)
-#define  USB_REQ_GET_INTERFACE                          (0x0Au)
-#define  USB_REQ_SET_INTERFACE                          (0x0Bu)
-#define  USB_REQ_SYNCH_FRAME                            (0x0Cu)
+#define  USB_REQ_GET_STATUS                             (0x00U)
+#define  USB_REQ_CLEAR_FEATURE                          (0x01U)
+#define  USB_REQ_SET_FEATURE                            (0x03U)
+#define  USB_REQ_SET_ADDRESS                            (0x05U)
+#define  USB_REQ_GET_DESCRIPTOR                         (0x06U)
+#define  USB_REQ_SET_DESCRIPTOR                         (0x07U)
+#define  USB_REQ_GET_CONFIGURATION                      (0x08U)
+#define  USB_REQ_SET_CONFIGURATION                      (0x09U)
+#define  USB_REQ_GET_INTERFACE                          (0x0AU)
+#define  USB_REQ_SET_INTERFACE                          (0x0BU)
+#define  USB_REQ_SYNCH_FRAME                            (0x0CU)
 
-#define  USB_DESC_TYPE_DEVICE                              (1u)
-#define  USB_DESC_TYPE_CONFIGURATION                       (2u)
-#define  USB_DESC_TYPE_STRING                              (3u)
-#define  USB_DESC_TYPE_INTERFACE                           (4u)
-#define  USB_DESC_TYPE_ENDPOINT                            (5u)
-#define  USB_DESC_TYPE_DEVICE_QUALIFIER                    (6u)
-#define  USB_DESC_TYPE_OTHER_SPEED_CONFIGURATION           (7u)
+#define  USB_DESC_TYPE_DEVICE                              (1U)
+#define  USB_DESC_TYPE_CONFIGURATION                       (2U)
+#define  USB_DESC_TYPE_STRING                              (3U)
+#define  USB_DESC_TYPE_INTERFACE                           (4U)
+#define  USB_DESC_TYPE_ENDPOINT                            (5U)
+#define  USB_DESC_TYPE_DEVICE_QUALIFIER                    (6U)
+#define  USB_DESC_TYPE_OTHER_SPEED_CONFIGURATION           (7U)
 
 
-#define USB_CONFIG_REMOTE_WAKEUP                           (2u)
-#define USB_CONFIG_SELF_POWERED                            (1u)
+#define USB_CONFIG_REMOTE_WAKEUP                           (2U)
+#define USB_CONFIG_SELF_POWERED                            (1U)
 
-#define USB_FEATURE_EP_HALT                                (0u)
-#define USB_FEATURE_REMOTE_WAKEUP                          (1u)
-#define USB_FEATURE_TEST_MODE                              (2u)
+#define USB_FEATURE_EP_HALT                                (0U)
+#define USB_FEATURE_REMOTE_WAKEUP                          (1U)
+#define USB_FEATURE_TEST_MODE                              (2U)
 
 #define  SWAPBYTE(addr)        (((uint16_t)(*((uint8_t *)(addr)))) + \
-                               (uint16_t)(((uint16_t)(*(((uint8_t *)(addr)) + 1u))) << 8u))
+                               (uint16_t)(((uint16_t)(*(((uint8_t *)(addr)) + 1U))) << 8U))
 
-#define LOBYTE(x)  ((uint8_t)((uint16_t)(x) & 0x00FFu))
-#define HIBYTE(x)  ((uint8_t)(((uint16_t)(x) & 0xFF00u) >>8u))
+#define LOBYTE(x)  ((uint8_t)((uint16_t)(x) & 0x00FFU))
+#define HIBYTE(x)  ((uint8_t)(((uint16_t)(x) & 0xFF00U) >>8U))
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -133,6 +168,25 @@
   Global function prototypes (definition in C source)
  ******************************************************************************/
 
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBD_DEF_H */
 

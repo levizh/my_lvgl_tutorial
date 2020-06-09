@@ -1,0 +1,105 @@
+[PlDriver]
+MemConfigValue=D:\02_HDSC\04_Project\81_M020_AP\trunk\Product\Firmware\00_ddl\hc32f4a0_ddl\example\dmac\dmac_link_list_pointer\EWARM\..\..\..\..\mcu\EWARM\hdsc_hc32f4a0.svd
+FirstRun=0
+[Stack]
+FillEnabled=0
+OverflowWarningsEnabled=1
+WarningThreshold=90
+SpWarningsEnabled=1
+WarnLogOnly=1
+UseTrigger=1
+TriggerName=main
+LimitSize=0
+ByteLimit=50
+[Jet]
+DisableInterrupts=0
+LeaveRunning=0
+MultiCoreRunAll=0
+JetConnSerialNo=597969921
+JetConnFoundProbes=
+OnlineReset=Software
+[ArmDriver]
+EnableCache=1
+[PlCacheRanges]
+CustomRanges0=0 0 2097152 1 2048
+CustomRangesText0=Flash
+CustomRanges1=0 536739840 524288 0 2048
+CustomRangesText1=SRAM
+CustomRanges2=0 1073741824 536870912 2 0
+CustomRangesText2=Peripheral
+CustomRanges3=0 1610612736 536870912 0 2048
+CustomRangesText3=EXMC SRAM
+CustomRanges4=0 2147483648 134217728 0 2048
+CustomRangesText4=EXMC SDRAM
+CustomRanges5=0 2281701376 1024 2 1024
+CustomRangesText5=SRAM_REG
+CustomRanges6=0 2281702400 1024 2 1024
+CustomRangesText6=SDRAM_REG
+CustomRanges7=0 2282749952 1048576 2 2048
+CustomRangesText7=EXMC Nand Flash
+CustomRanges8=0 2550136832 134217728 1 2048
+CustomRangesText8=QSPI
+CustomRanges9=0 3758096384 536870912 2 0
+CustomRangesText9=Private peripheral
+[DebugChecksum]
+Checksum=-1412354434
+[Exceptions]
+StopOnUncaught=_ 0
+StopOnThrow=_ 0
+[Trace1]
+Enabled=0
+ShowSource=1
+[ETMTraceWindow]
+PortWidth=4
+PortMode=0
+CaptureDataValues=0
+CaptureDataAddresses=0
+CaptureDataRange=0
+DataFirst=0
+DataLast=-1
+StopWhen=0
+StallCPU=0
+NoPCCapture=0
+[Trace2]
+Enabled=0
+ShowSource=0
+[SWOTraceWindow]
+ForcedPcSampling=0
+ForcedInterruptLogs=0
+ForcedItmLogs=0
+EventCPI=0
+EventEXC=0
+EventFOLD=0
+EventLSU=0
+EventSLEEP=0
+[Log file]
+LoggingEnabled=_ 0
+LogFile=_ ""
+Category=_ 0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
+[CallStack]
+ShowArgs=0
+[Disassembly]
+MixedMode=1
+[SWOManager]
+SamplingDivider=8192
+OverrideClock=0
+CpuClock=-2147483648
+SwoClock=135034
+DataLogMode=0
+ItmPortsEnabled=63
+ItmTermIOPorts=1
+ItmLogPorts=0
+ItmLogFile=$PROJ_DIR$\ITM.log
+PowerForcePC=1
+PowerConnectPC=1
+[Disassemble mode]
+mode=0
+[Breakpoints2]
+Bp0=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\source\main.c}.244.5" 0 0 1 "" 0 "" 0
+Count=1
+[Aliases]
+Count=0
+SuppressDialog=0

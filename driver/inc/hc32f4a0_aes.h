@@ -80,34 +80,34 @@ extern "C"
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-/**
- * @defgroup AES_Global_Types AES Global Types
- * @{
- */
-
-/**
- * @brief AES configuration structure
- */
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-
 /**
  * @defgroup AES_Global_Macros AES Global Macros
  * @{
  */
-/* Delay count for timeout */
-#define TIMEOUT                       (0x1000UL)
 
 /* AES key length in bytes is 16. */
-#define AES_BLOCK_LEN                 ((uint8_t)16U)
+#define AES_BLOCK_LEN                 (16U)
+
+/**
+ * @defgroup AES_KEY_LENGTH AES key length in bytes
+ * @{
+ */
+#define AES_KEY_LEN_128               (16U)
+#define AES_KEY_LEN_192               (24U)
+#define AES_KEY_LEN_256               (32U)
+/**
+ * @}
+ */
 /**
  * @defgroup AES_STATUS AES Start or Stop
  * @{
  */
 #define AES_START                     (AES_CR_START)
-#define AES_STOP                      ((uint32_t)0x00000000U)
+#define AES_STOP                      (0x0UL)
 /**
  * @}
  */
@@ -116,29 +116,9 @@ extern "C"
  * @defgroup AES_KEY_SIZE AES Key Size
  * @{
  */
-#define AES_KEY_SIZE_128              ((uint32_t)0U << AES_CR_KEYSIZE_POS)
-#define AES_KEY_SIZE_192              ((uint32_t)1U << AES_CR_KEYSIZE_POS)
-#define AES_KEY_SIZE_256              ((uint32_t)2U << AES_CR_KEYSIZE_POS)
-#define AES_KEY_SIZE_128_1            ((uint32_t)3U << AES_CR_KEYSIZE_POS)
-/**
- * @}
- */
-
-
-/** @defgroup 
-  * @{
-  */
-en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
-                        uint32_t u32PlaintextSize,
-                        const uint8_t *pu8Key,
-                        uint8_t  u8KeyLength,
-                        const uint8_t pu8Ciphertext[]);
-
-en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
-                        uint32_t u32CiphertextSize,
-                        const uint8_t *pu8Key,
-                        uint8_t  u8KeyLength,
-                        const uint8_t pu8Plaintext[]);
+#define AES_KEY_SIZE_128              (0UL << AES_CR_KEYSIZE_POS)
+#define AES_KEY_SIZE_192              (1UL << AES_CR_KEYSIZE_POS)
+#define AES_KEY_SIZE_256              (2UL << AES_CR_KEYSIZE_POS)
 /**
  * @}
  */
@@ -158,7 +138,17 @@ en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
  * @addtogroup AES_Global_Functions
  * @{
  */
+en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
+                        uint32_t u32PlaintextSize,
+                        const uint8_t *pu8Key,
+                        uint8_t  u8KeyLength,
+                        const uint8_t pu8Ciphertext[]);
 
+en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
+                        uint32_t u32CiphertextSize,
+                        const uint8_t *pu8Key,
+                        uint8_t  u8KeyLength,
+                        const uint8_t pu8Plaintext[]);
 /**
  * @}
  */

@@ -515,15 +515,15 @@ void MMC_IRQHandler(stc_mmc_handle_t *handle)
         /* Set Error code */
         if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_DEBESEN))
         {
-            handle->u32ErrorCode |= SDMMC_ERROR_DATA_STOP_BIT; 
+            handle->u32ErrorCode |= SDMMC_ERROR_DATA_STOP_BIT;
         }
         if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_DCESEN))
         {
-            handle->u32ErrorCode |= SDMMC_ERROR_DATA_CRC_FAIL; 
+            handle->u32ErrorCode |= SDMMC_ERROR_DATA_CRC_FAIL;
         }
         if (Reset != SDIOC_GetIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_DTOESEN))
         {
-            handle->u32ErrorCode |= SDMMC_ERROR_DATA_TIMEOUT; 
+            handle->u32ErrorCode |= SDMMC_ERROR_DATA_TIMEOUT;
         }
 
         /* Clear All flags */
@@ -1242,7 +1242,7 @@ en_result_t MMC_Abort(stc_mmc_handle_t *handle)
 
         if (0UL != (handle->u32Context & MMC_CONTEXT_DMA))
         {
-            if (NULL != handle->DMAx) 
+            if (NULL != handle->DMAx)
             {
                 /* Disable the DMA Channel */
                 if ((0UL != (handle->u32Context & MMC_CONTEXT_WRITE_SINGLE_BLOCK)) || (0UL != (handle->u32Context & MMC_CONTEXT_WRITE_MULTIPLE_BLOCK)))
@@ -1592,9 +1592,8 @@ static en_result_t MMC_ReadWriteFifo(stc_mmc_handle_t *handle, const stc_sdioc_d
     en_result_t enCmdRet = Ok;
     uint32_t u32Index = 0UL;
 
-    /* 8 is the number of required instructions cycles for the below loop statement.
-    The u32Timeout is expressed in ms */
-    u32Count = u32Timeout * (SystemCoreClock / 8U / 1000U);
+    /* The u32Timeout is expressed in ms */
+    u32Count = u32Timeout * (SystemCoreClock / 20000UL);
     while (Reset == SDIOC_GetIntStatus(handle->SDIOCx, (SDIOC_ERROR_INT_FLAG_DEBE | SDIOC_ERROR_INT_FLAG_DCE |
                                                         SDIOC_ERROR_INT_FLAG_DTOE | SDIOC_NORMAL_INT_FLAG_TC)))
     {
@@ -1617,7 +1616,7 @@ static en_result_t MMC_ReadWriteFifo(stc_mmc_handle_t *handle, const stc_sdioc_d
             }
         }
 
-        if (u32Count-- == 0U)
+        if (--u32Count == 0UL)
         {
             SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
             return ErrorTimeout;
@@ -1660,11 +1659,12 @@ static en_result_t MMC_ReadWriteFifo(stc_mmc_handle_t *handle, const stc_sdioc_d
         /* Empty FIFO if there is still any data */
         if (SDIOC_TRANSFER_DIR_TO_CARD != pstcDataCfg->u16TransferDir)
         {
+            u32Count = u32Timeout * (SystemCoreClock / 20000UL);
             while (Set == SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FALG_BRE))
             {
                 SDIOC_ReadBuffer(handle->SDIOCx, (uint8_t *)&pu8Data[u32Index], (uint32_t)(pstcDataCfg->u16BlockSize));
                 u32Index += pstcDataCfg->u16BlockSize;
-                if (u32Count-- == 0U)
+                if (--u32Count == 0UL)
                 {
                     SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
                     return ErrorTimeout;

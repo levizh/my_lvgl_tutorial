@@ -146,12 +146,12 @@ typedef struct
  * @{
  */
 
-#define CMP_TWSR_MASK           ((uint16_t)0xFFFFU)
+#define CMP_TWSR_MASK           ((0xFFFFU)
 
 /** @defgroup CMP_Mode CMP compare mode
   * @{
   */
-#define CMP_MODE_NORMAL         ((uint8_t)0x00U)         /*!< Normal mode */
+#define CMP_MODE_NORMAL         (0x00U)                  /*!< Normal mode */
 #define CMP_MODE_WINDOW         (CMP_MDR_CWDE)           /*!< Window mode */
 /**
  * @}
@@ -160,7 +160,7 @@ typedef struct
 /** @defgroup CMP_CVSL_Channal CMP compare voltage channal selection
   * @{
   */
-#define CMP_CVSL_NONE           ((uint8_t)0x00U)          /*!< Don't input compare voltage */
+#define CMP_CVSL_NONE           (0x0U)                    /*!< Don't input compare voltage */
 #define CMP_CVSL_INP1           (CMP_PMSR_CVSL_0)         /*!< Select INP1 as compare voltage */
 #define CMP_CVSL_INP2           (CMP_PMSR_CVSL_1)         /*!< Select INP2 as compare voltage */
 #define CMP_CVSL_INP3           (CMP_PMSR_CVSL_2)         /*!< Select INP3 as compare voltage */
@@ -172,7 +172,7 @@ typedef struct
 /** @defgroup CMP_RVSL_Source CMP reference voltage selection
   * @{
   */
-#define CMP_RVSL_NONE           ((uint8_t)0x00U)          /*!< Don't input reference voltage */
+#define CMP_RVSL_NONE           (0x0U)                    /*!< Don't input reference voltage */
 #define CMP_RVSL_INM1           (CMP_PMSR_RVSL_0)         /*!< Select INM1 as reference voltage */
 #define CMP_RVSL_INM2           (CMP_PMSR_RVSL_1)         /*!< Select INM2 as reference voltage */
 #define CMP_RVSL_INM3           (CMP_PMSR_RVSL_2)         /*!< Select INM3 as reference voltage */
@@ -205,8 +205,8 @@ typedef struct
 /** @defgroup CMP_Out_Polarity_Select CMP output polarity selection
   * @{
   */
-#define CMP_OUT_REVERSE_OFF         ((uint8_t)0U)         /*!< CMP output don't reverse */
-#define CMP_OUT_REVERSE_ON          (CMP_OCR_COPS)        /*!< CMP output level reverse */
+#define CMP_OUT_REVERSE_OFF     (0x0U)                    /*!< CMP output don't reverse */
+#define CMP_OUT_REVERSE_ON      (CMP_OCR_COPS)            /*!< CMP output level reverse */
 /**
  * @}
  */
@@ -214,10 +214,10 @@ typedef struct
 /** @defgroup CMP_Out_Detect_Edge CMP output detect edge selection
   * @{
   */
-#define CMP_DETECT_EDGS_NONE        ((uint8_t)0U)                         /*!< Do not detect edge */
-#define CMP_DETECT_EDGS_RISING      ((uint8_t)(1U << CMP_FIR_EDGS_POS))   /*!< Detect rising edge */
-#define CMP_DETECT_EDGS_FALLING     ((uint8_t)(2U << CMP_FIR_EDGS_POS))   /*!< Detect falling edge */
-#define CMP_DETECT_EDGS_BOTH        ((uint8_t)(3U << CMP_FIR_EDGS_POS))   /*!< Detect rising and falling edges */
+#define CMP_DETECT_EDGS_NONE      (0U)                       /*!< Do not detect edge */
+#define CMP_DETECT_EDGS_RISING    (1U << CMP_FIR_EDGS_POS)   /*!< Detect rising edge */
+#define CMP_DETECT_EDGS_FALLING   (2U << CMP_FIR_EDGS_POS)   /*!< Detect falling edge */
+#define CMP_DETECT_EDGS_BOTH      (3U << CMP_FIR_EDGS_POS)   /*!< Detect rising and falling edges */
 /**
  * @}
  */
@@ -225,10 +225,10 @@ typedef struct
 /** @defgroup CMP_Out_Filter CMP output filter configuration
   * @{
   */
-#define CMP_OUT_FILTER_NONE         ((uint8_t)0U)       /*!< Do not filter */
-#define CMP_OUT_FILTER_PCLK         ((uint8_t)1U)       /*!< Use pclk */
-#define CMP_OUT_FILTER_PCLKDIV8     ((uint8_t)2U)       /*!< Use pclk/8 */
-#define CMP_OUT_FILTER_PCLKDIV32    ((uint8_t)3U)       /*!< Use pclk/32 */
+#define CMP_OUT_FILTER_NONE         (0U)                  /*!< Do not filter */
+#define CMP_OUT_FILTER_PCLK3        (1U)                  /*!< Use pclk3 */
+#define CMP_OUT_FILTER_PCLK3_DIV8   (2U)                  /*!< Use pclk3/8 */
+#define CMP_OUT_FILTER_PCLK3_DIV32  (3U)                  /*!< Use pclk3/32 */
 /**
  * @}
  */
@@ -236,8 +236,8 @@ typedef struct
 /** @defgroup CMP_TimerWin_func CMP timer window function configuration
   * @{
   */
-#define CMP_TIMERWIN_OFF            ((uint8_t))0U)      /*!< Disable Timer Window function */
-#define CMP_TIMERWIN_ON             (CMP_OCR_TWOE)      /*!< Enable Timer Window function */
+#define CMP_TIMERWIN_OFF            (0x0U)                /*!< Disable Timer Window function */
+#define CMP_TIMERWIN_ON             (CMP_OCR_TWOE)        /*!< Enable Timer Window function */
 /**
  * @}
  */
@@ -268,7 +268,7 @@ typedef struct
 /** @defgroup CMP_TimerWin_Invalid_Level CMP output level when timer window invalid
   * @{
   */
-#define CMP_TIMERWIN_INVALID_LEVEL_LOW   ((uint8_t)0U)     /*!< Output Low when timer window invalid */
+#define CMP_TIMERWIN_INVALID_LEVEL_LOW   (0x0U)            /*!< Output Low when timer window invalid */
 #define CMP_TIMERWIN_INVALID_LEVEL_HIGH  (CMP_OCR_TWOL)    /*!< Output High when timer window invalid */
 /**
  * @}
@@ -277,8 +277,8 @@ typedef struct
 /** @defgroup CMP_TimerWin_output_Level CMP output level in timer windows mode
   * @{
   */
-#define CMP_TIMERWIN_OUT_LEVEL_LOW       ((uint8_t)0U)     /*!< Output Low in timer windows mode */
-#define CMP_TIMERWIN_OUT_LEVEL_HIGH      ((uint8_t)1U)     /*!< Output High in timer windows mode */
+#define CMP_TIMERWIN_OUT_LEVEL_LOW       (0U)              /*!< Output Low in timer windows mode */
+#define CMP_TIMERWIN_OUT_LEVEL_HIGH      (1U)              /*!< Output High in timer windows mode */
 /**
  * @}
  */
@@ -308,15 +308,15 @@ en_result_t CMP_WindowModeInit(const M4_CMP_TypeDef *CMPx,
 en_result_t CMP_TimerWindowConfig(M4_CMP_TypeDef *CMPx,
                                   const stc_cmp_timerwindow_t *pstcCMP_TimerWinStruct);
 
-en_result_t CMP_FuncCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewSttusa);
-en_result_t CMP_IntCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus);
-en_result_t CMP_OutputCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus);
-en_result_t CMP_VCOUTCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus);
-en_result_t CMP_SetOutDetectEdges(M4_CMP_TypeDef *CMPx, uint8_t u8CmpEdges);
-en_result_t CMP_SetOutputFilter(M4_CMP_TypeDef *CMPx, uint8_t u8CmpFilter);
-en_result_t CMP_SetOutputPolarity(M4_CMP_TypeDef *CMPx, uint8_t u8CmpPolarity);
-en_result_t CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8CmpVol);
-en_result_t CMP_SetRefVol(M4_CMP_TypeDef *CMPx, uint8_t u8RefVol);
+void CMP_FuncCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewSttusa);
+void CMP_IntCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus);
+void CMP_OutputCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus);
+void CMP_VCOUTCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus);
+void CMP_SetOutDetectEdges(M4_CMP_TypeDef *CMPx, uint8_t u8CmpEdges);
+void CMP_SetOutputFilter(M4_CMP_TypeDef *CMPx, uint8_t u8CmpFilter);
+void CMP_SetOutputPolarity(M4_CMP_TypeDef *CMPx, uint8_t u8CmpPolarity);
+void CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8CmpVol);
+void CMP_SetRefVol(M4_CMP_TypeDef *CMPx, uint8_t u8RefVol);
 
 en_flag_status_t CMP_GetResult(const M4_CMP_TypeDef *CMPx);
 /**

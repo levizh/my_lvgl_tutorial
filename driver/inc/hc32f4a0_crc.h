@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-06-19       Heqb            First version
+   2020-05-27       Heqb            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -93,13 +93,11 @@ extern "C"
 /**
  * @defgroup CRC_Protocol_Control_Bit CRC Protocol Control Bit
  * @note: - CRC16 polynomial is X16 + X12 + X5 + 1
- *        - CRC16 initial value is 0xFFFF
  *        - CRC32 polynomial is X32 + X26 + X23 + X22 + X16 + X12 + X11 + X10 + \
  *                              X8 + X7 + X5 + X4 + X2 + X + 1
- *        - CRC32 initial value is 0xFFFFFFFF
  * @{
  */
-#define CRC_CRC16           (0x0ul)
+#define CRC_CRC16           (0x0UL)
 #define CRC_CRC32           (CRC_CR_CR)
 /**
  * @}
@@ -118,9 +116,9 @@ extern "C"
  * @defgroup CRC_Bit_Width CRC Bit Width
  * @{
  */
-#define CRC_BW_8            (8u)
-#define CRC_BW_16           (16u)
-#define CRC_BW_32           (32u)
+#define CRC_BW_8            (8U)
+#define CRC_BW_16           (16U)
+#define CRC_BW_32           (32U)
 /**
  * @}
  */

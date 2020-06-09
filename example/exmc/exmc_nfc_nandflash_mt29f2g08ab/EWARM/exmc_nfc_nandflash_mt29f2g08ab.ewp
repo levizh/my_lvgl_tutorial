@@ -1956,37 +1956,37 @@
     </file>
     -->
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_pwc.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_i2c.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_interrupts.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_icg.c</name>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_gpio.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_nfc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_efm.c</name>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_sram.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_utility.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_clk.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_gpio.c</name>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_i2c.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_keyscan.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_sram.c</name>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_clk.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_efm.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_interrupts.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_utility.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_icg.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_pwc.c</name>
     </file>
 
   </group>
@@ -2028,7 +2028,7 @@
     <file>
       <name>$PROJ_DIR$\..\source\main.c</name>
     </file>
-    <custom>{PROJ_SRC}</custom>
+    <file><name>$PROJ_DIR$\..\..\..\..\example\exmc\exmc_nfc_nandflash_mt29f2g08ab\source\1bit_per_512byte_ecc.c</name></file><file><name>$PROJ_DIR$\..\..\..\..\example\exmc\exmc_nfc_nandflash_mt29f2g08ab\source\a_to_i.c</name></file><file><name>$PROJ_DIR$\..\..\..\..\example\exmc\exmc_nfc_nandflash_mt29f2g08ab\source\decode_4bit_ecc_err_loc.c</name></file><file><name>$PROJ_DIR$\..\..\..\..\example\exmc\exmc_nfc_nandflash_mt29f2g08ab\source\i_to_a.c</name></file>
 <custom>{PROJ_USB_SRC}</custom>
    
   </group>

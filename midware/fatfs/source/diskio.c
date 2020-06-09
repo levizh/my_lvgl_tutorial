@@ -67,9 +67,9 @@ DSTATUS disk_initialize (
 {
 	DSTATUS stat = RES_OK;
 
-	if(gDiskDrv.state[pdrv] == 0)
+	if(gDiskDrv.state[pdrv] == 0U)
 	{
-		gDiskDrv.state[pdrv] = 1;
+		gDiskDrv.state[pdrv] = 1U;
 		stat = gDiskDrv.drv[pdrv]->initialize(gDiskDrv.lun[pdrv]);
 	}
 
@@ -149,5 +149,5 @@ DRESULT disk_ioctl (
   */
 __WEAKDEF DWORD get_fattime (void)
 {
-	return 0;
+	return 0UL;
 }

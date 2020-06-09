@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_msc_scsi.c
+ * @brief Provides all the USBD SCSI layer functions.
+ *
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-05-15       zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,15 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_msc_scsi.c
- **
- ** \brief This file provides all the USBD SCSI layer functions.
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -55,6 +58,27 @@
 #include "usbd_msc_scsi.h"
 #include "usbd_msc_mem.h"
 #include "usbd_msc_data.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @defgroup USBD_MSC_SCSI
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -67,6 +91,11 @@
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
+/**
+ * @defgroup USBD_MSC_SCSI_Global_Variables USBD MSC SCSI Global Variables
+ * @{
+ */
+
 SCSI_Sense_TypeDef SCSI_Sense [SENSE_LIST_DEEPTH];
 uint8_t SCSI_Sense_Head;
 uint8_t SCSI_Sense_Tail;
@@ -78,10 +107,17 @@ uint64_t SCSI_blk_addr;     /* uint64_t for SD card size larger than 64GB */
 uint32_t SCSI_blk_len;
 
 USB_OTG_CORE_HANDLE *cdev;
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+/**
+ * @defgroup USBD_MSC_SCSI_Local_Functions USBD MSC SCSI Local Functions
+ * @{
+ */
 static int8_t SCSI_TestUnitReady(uint8_t lun, uint8_t *params);
 static int8_t SCSI_Inquiry(uint8_t lun, uint8_t *params);
 static int8_t SCSI_ReadFormatCapacity(uint8_t lun, uint8_t *params);
@@ -99,6 +135,10 @@ static int8_t SCSI_CheckAddressRange(uint8_t lun,
 static int8_t SCSI_ProcessRead(uint8_t lun);
 
 static int8_t SCSI_ProcessWrite(uint8_t lun);
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -106,15 +146,18 @@ static int8_t SCSI_ProcessWrite(uint8_t lun);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @defgroup USBD_MSC_SCSI_Global_Functions USBD MSC SCSI Global Functions
+ * @{
+ */
 
 /**
- *******************************************************************************
- ** \brief Process SCSI commands
- ** \param pdev: device instance
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process SCSI commands
+ * @param pdev: device instance
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 int8_t SCSI_ProcessCmd(USB_OTG_CORE_HANDLE  *pdev,
                        uint8_t lun,
                        uint8_t *params)
@@ -171,17 +214,44 @@ int8_t SCSI_ProcessCmd(USB_OTG_CORE_HANDLE  *pdev,
 }
 
 /**
- *******************************************************************************
- ** \brief Process SCSI Test Unit Ready Command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Load the last error code in the error list
+ * @param lun: Logical unit number
+ * @param sKey: Sense Key
+ * @param ASC: Additional Sense Key
+ * @retval none
+ */
+void SCSI_SenseCode(uint8_t lun, uint8_t sKey, uint8_t ASC)
+{
+    SCSI_Sense[SCSI_Sense_Tail].Skey  = sKey;
+    SCSI_Sense[SCSI_Sense_Tail].w.ASC = (uint32_t)ASC << 8U;
+    SCSI_Sense_Tail++;
+    if (SCSI_Sense_Tail == SENSE_LIST_DEEPTH)
+    {
+        SCSI_Sense_Tail = 0U;
+    }
+}
+
+
+/**
+ * @}
+ */
+
+/**
+ * @addtogroup USBD_MSC_SCSI_Local_Functions USBD MSC SCSI Local Functions
+ * @{
+ */
+
+/**
+ * @brief Process SCSI Test Unit Ready Command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_TestUnitReady(uint8_t lun, uint8_t *params)
 {
-    int8_t i8Ret = (int8_t)0;
+    int8_t i8Ret = 0U;
     /* case 9 : Hi > D0 */
-    if (MSC_BOT_cbw.dDataLength != 0u)
+    if (MSC_BOT_cbw.dDataLength != 0U)
     {
         SCSI_SenseCode(MSC_BOT_cbw.bLUN,
                        ILLEGAL_REQUEST,
@@ -190,7 +260,7 @@ static int8_t SCSI_TestUnitReady(uint8_t lun, uint8_t *params)
     }
     else
     {
-        if (USBD_STORAGE_fops->IsReady(lun) != 0u)
+        if (USBD_STORAGE_fops->IsReady(lun) != 0U)
         {
             SCSI_SenseCode(lun,
                            NOT_READY,
@@ -199,25 +269,24 @@ static int8_t SCSI_TestUnitReady(uint8_t lun, uint8_t *params)
         }
         else
         {
-            MSC_BOT_DataLen = 0u;
+            MSC_BOT_DataLen = 0U;
         }
     }
     return i8Ret;
 }
 
 /**
- *******************************************************************************
- ** \brief Process Inquiry command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Inquiry command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t  SCSI_Inquiry(uint8_t lun, uint8_t *params)
 {
     const uint8_t* pPage;
     uint16_t len;
 
-    if (params[1] & 0x01u)/*Evpd is set*/
+    if (params[1] & 0x01U)/*Evpd is set*/
     {
         pPage = (const uint8_t *)MSC_Page00_Inquiry_Data;
         len   = LENGTH_INQUIRY_PAGE00;
@@ -225,11 +294,11 @@ static int8_t  SCSI_Inquiry(uint8_t lun, uint8_t *params)
     {
 
         pPage = (uint8_t *)&USBD_STORAGE_fops->pInquiry[lun * USBD_STD_INQUIRY_LENGTH];
-        len   = (uint16_t)pPage[4] + (uint16_t)5;
+        len   = (uint16_t)pPage[4] + (uint16_t)5U;
 
-        if (params[4] <= len)
+        if (params[4U] <= len)
         {
-            len = params[4];
+            len = params[4U];
         }
     }
     MSC_BOT_DataLen = len;
@@ -243,16 +312,15 @@ static int8_t  SCSI_Inquiry(uint8_t lun, uint8_t *params)
 }
 
 /**
- *******************************************************************************
- ** \brief Process Read Capacity 10 command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Read Capacity 10 command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_ReadCapacity10(uint8_t lun, uint8_t *params)
 {
     int8_t i8Ret = (int8_t)0;
-    if (USBD_STORAGE_fops->GetCapacity(lun, &SCSI_blk_nbr, &SCSI_blk_size) != 0u)
+    if (USBD_STORAGE_fops->GetCapacity(lun, &SCSI_blk_nbr, &SCSI_blk_size) != 0U)
     {
         SCSI_SenseCode(lun,
                        NOT_READY,
@@ -261,28 +329,27 @@ static int8_t SCSI_ReadCapacity10(uint8_t lun, uint8_t *params)
     }else
     {
 
-        MSC_BOT_Data[0] = (uint8_t)((SCSI_blk_nbr - 1u) >> 24u);
-        MSC_BOT_Data[1] = (uint8_t)((SCSI_blk_nbr - 1u) >> 16u);
-        MSC_BOT_Data[2] = (uint8_t)((SCSI_blk_nbr - 1u) >> 8u);
-        MSC_BOT_Data[3] = (uint8_t)(SCSI_blk_nbr - 1u);
+        MSC_BOT_Data[0U] = (uint8_t)((SCSI_blk_nbr - 1U) >> 24U);
+        MSC_BOT_Data[1U] = (uint8_t)((SCSI_blk_nbr - 1U) >> 16U);
+        MSC_BOT_Data[2U] = (uint8_t)((SCSI_blk_nbr - 1U) >> 8U);
+        MSC_BOT_Data[3U] = (uint8_t)(SCSI_blk_nbr - 1U);
 
-        MSC_BOT_Data[4] = (uint8_t)(SCSI_blk_size >> 24u);
-        MSC_BOT_Data[5] = (uint8_t)(SCSI_blk_size >> 16u);
-        MSC_BOT_Data[6] = (uint8_t)(SCSI_blk_size >> 8u);
-        MSC_BOT_Data[7] = (uint8_t)(SCSI_blk_size);
+        MSC_BOT_Data[4U] = (uint8_t)(SCSI_blk_size >> 24U);
+        MSC_BOT_Data[5U] = (uint8_t)(SCSI_blk_size >> 16U);
+        MSC_BOT_Data[6U] = (uint8_t)(SCSI_blk_size >> 8U);
+        MSC_BOT_Data[7U] = (uint8_t)(SCSI_blk_size);
 
-        MSC_BOT_DataLen = 8u;
+        MSC_BOT_DataLen = 8U;
     }
     return i8Ret;
 }
 
 /**
- *******************************************************************************
- ** \brief Process Read Format Capacity command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Read Format Capacity command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_ReadFormatCapacity(uint8_t lun, uint8_t *params)
 {
     int8_t i8Ret = (int8_t)0;
@@ -290,12 +357,12 @@ static int8_t SCSI_ReadFormatCapacity(uint8_t lun, uint8_t *params)
     uint32_t blk_nbr;
     uint16_t i;
 
-    for (i = 0u; i < 12u; i++)
+    for (i = 0U; i < 12U; i++)
     {
-        MSC_BOT_Data[i] = 0u;
+        MSC_BOT_Data[i] = 0U;
     }
 
-    if (USBD_STORAGE_fops->GetCapacity(lun, &blk_nbr, &blk_size) != 0u)
+    if (USBD_STORAGE_fops->GetCapacity(lun, &blk_nbr, &blk_size) != 0U)
     {
         SCSI_SenseCode(lun,
                        NOT_READY,
@@ -303,33 +370,32 @@ static int8_t SCSI_ReadFormatCapacity(uint8_t lun, uint8_t *params)
         i8Ret = (int8_t)-1;
     }else
     {
-        MSC_BOT_Data[3]  = 0x08u;
-        MSC_BOT_Data[4]  = (uint8_t)((blk_nbr - 1u) >> 24u);
-        MSC_BOT_Data[5]  = (uint8_t)((blk_nbr - 1u) >> 16u);
-        MSC_BOT_Data[6]  = (uint8_t)((blk_nbr - 1u) >> 8u);
-        MSC_BOT_Data[7]  = (uint8_t)(blk_nbr - 1u);
+        MSC_BOT_Data[3U]  = 0x08u;
+        MSC_BOT_Data[4U]  = (uint8_t)((blk_nbr - 1U) >> 24U);
+        MSC_BOT_Data[5U]  = (uint8_t)((blk_nbr - 1U) >> 16U);
+        MSC_BOT_Data[6U]  = (uint8_t)((blk_nbr - 1U) >> 8U);
+        MSC_BOT_Data[7U]  = (uint8_t)(blk_nbr - 1U);
 
-        MSC_BOT_Data[8]  = 0x02u;
-        MSC_BOT_Data[9]  = (uint8_t)(blk_size >> 16u);
-        MSC_BOT_Data[10] = (uint8_t)(blk_size >> 8u);
-        MSC_BOT_Data[11] = (uint8_t)(blk_size);
+        MSC_BOT_Data[8U]  = 0x02U;
+        MSC_BOT_Data[9U]  = (uint8_t)(blk_size >> 16U);
+        MSC_BOT_Data[10U] = (uint8_t)(blk_size >> 8U);
+        MSC_BOT_Data[11U] = (uint8_t)(blk_size);
 
-        MSC_BOT_DataLen  = 12u;
+        MSC_BOT_DataLen  = 12U;
     }
     return i8Ret;
 }
 
 /**
- *******************************************************************************
- ** \brief Process Mode Sense6 command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Mode Sense6 command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_ModeSense6(uint8_t lun, uint8_t *params)
 {
 
-    uint16_t len = 8u;
+    uint16_t len = 8U;
     MSC_BOT_DataLen = len;
 
     while (len)
@@ -341,15 +407,14 @@ static int8_t SCSI_ModeSense6(uint8_t lun, uint8_t *params)
 }
 
 /**
- *******************************************************************************
- ** \brief Process Mode Sense10 command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Mode Sense10 command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_ModeSense10(uint8_t lun, uint8_t *params)
 {
-    uint16_t len = 8u;
+    uint16_t len = 8U;
 
     MSC_BOT_DataLen = len;
 
@@ -362,99 +427,77 @@ static int8_t SCSI_ModeSense10(uint8_t lun, uint8_t *params)
 }
 
 /**
- *******************************************************************************
- ** \brief Process Request Sense command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Request Sense command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_RequestSense(uint8_t lun, uint8_t *params)
 {
     uint8_t i;
 
-    for (i = 0u; i < REQUEST_SENSE_DATA_LEN; i++)
+    for (i = 0U; i < REQUEST_SENSE_DATA_LEN; i++)
     {
-        MSC_BOT_Data[i] = 0u;
+        MSC_BOT_Data[i] = 0U;
     }
 
-    MSC_BOT_Data[0] = 0x70u;
-    MSC_BOT_Data[7] = REQUEST_SENSE_DATA_LEN - 6u;
+    MSC_BOT_Data[0U] = 0x70U;
+    MSC_BOT_Data[7U] = REQUEST_SENSE_DATA_LEN - 6U;
 
     if ((SCSI_Sense_Head != SCSI_Sense_Tail))
     {
 
-        MSC_BOT_Data[2]  = SCSI_Sense[SCSI_Sense_Head].Skey;
-        MSC_BOT_Data[12] = SCSI_Sense[SCSI_Sense_Head].w.b.ASCQ;
-        MSC_BOT_Data[13] = SCSI_Sense[SCSI_Sense_Head].w.b.ASC;
+        MSC_BOT_Data[2U]  = SCSI_Sense[SCSI_Sense_Head].Skey;
+        MSC_BOT_Data[12U] = SCSI_Sense[SCSI_Sense_Head].w.b.ASCQ;
+        MSC_BOT_Data[13U] = SCSI_Sense[SCSI_Sense_Head].w.b.ASC;
         SCSI_Sense_Head++;
 
         if (SCSI_Sense_Head == SENSE_LIST_DEEPTH)
         {
-            SCSI_Sense_Head = 0u;
+            SCSI_Sense_Head = 0U;
         }
     }
     MSC_BOT_DataLen = REQUEST_SENSE_DATA_LEN;
 
-    if (params[4] <= REQUEST_SENSE_DATA_LEN)
+    if (params[4U] <= REQUEST_SENSE_DATA_LEN)
     {
-        MSC_BOT_DataLen = params[4];
+        MSC_BOT_DataLen = params[4U];
     }
     return (int8_t)0;
 }
 
 /**
- *******************************************************************************
- ** \brief Load the last error code in the error list
- ** \param lun: Logical unit number
- ** \param sKey: Sense Key
- ** \param ASC: Additional Sense Key
- ** \retval none
- ******************************************************************************/
-void SCSI_SenseCode(uint8_t lun, uint8_t sKey, uint8_t ASC)
-{
-    SCSI_Sense[SCSI_Sense_Tail].Skey  = sKey;
-    SCSI_Sense[SCSI_Sense_Tail].w.ASC = (uint32_t)ASC << 8u;
-    SCSI_Sense_Tail++;
-    if (SCSI_Sense_Tail == SENSE_LIST_DEEPTH)
-    {
-        SCSI_Sense_Tail = 0u;
-    }
-}
-
-/**
- *******************************************************************************
- ** \brief Process Start Stop Unit command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Start Stop Unit command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_StartStopUnit(uint8_t lun, uint8_t *params)
 {
-    MSC_BOT_DataLen = 0u;
+    MSC_BOT_DataLen = 0U;
     return (int8_t)0;
 }
 
 /**
- *******************************************************************************
- ** \brief Process Read10 command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Read10 command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_Read10(uint8_t lun, uint8_t *params)
 {
     int8_t i8Ret = (int8_t)0;
     if (MSC_BOT_State == BOT_IDLE) /* Idle */
     {
         /* case 10 : Ho <> Di */
-        if ((MSC_BOT_cbw.bmFlags & 0x80u) != 0x80u)
+        if ((MSC_BOT_cbw.bmFlags & 0x80U) != 0x80U)
         {
             SCSI_SenseCode(MSC_BOT_cbw.bLUN,
                            ILLEGAL_REQUEST,
                            INVALID_CDB);
             i8Ret = (int8_t)-1;
         }
-        else if (USBD_STORAGE_fops->IsReady(lun) != 0u)
+        else if (USBD_STORAGE_fops->IsReady(lun) != 0U)
         {
             SCSI_SenseCode(lun,
                            NOT_READY,
@@ -463,16 +506,16 @@ static int8_t SCSI_Read10(uint8_t lun, uint8_t *params)
         }
         else
         {
-            SCSI_blk_addr = ((uint64_t)params[2] << 24u) | \
-                            ((uint64_t)params[3] << 16u) | \
-                            ((uint64_t)params[4] << 8u) | \
-                            (uint64_t)params[5];
+            SCSI_blk_addr = ((uint64_t)params[2U] << 24U) | \
+                            ((uint64_t)params[3U] << 16U) | \
+                            ((uint64_t)params[4U] << 8U) | \
+                            (uint64_t)params[5U];
 
-            SCSI_blk_len = ((uint32_t)params[7] << 8u) | \
-                           (uint32_t)params[8];
+            SCSI_blk_len = ((uint32_t)params[7U] << 8U) | \
+                           (uint32_t)params[8U];
 
 
-            if (SCSI_CheckAddressRange(lun, (uint32_t)SCSI_blk_addr, (uint16_t)SCSI_blk_len) < 0)
+            if (SCSI_CheckAddressRange(lun, (uint32_t)SCSI_blk_addr, (uint16_t)SCSI_blk_len) < (int8_t)0)
             {
                 i8Ret = (int8_t)-1;             /* error */
             }
@@ -503,19 +546,18 @@ static int8_t SCSI_Read10(uint8_t lun, uint8_t *params)
 }
 
 /**
- *******************************************************************************
- ** \brief Process Write10 command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Write10 command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_Write10(uint8_t lun, uint8_t *params)
 {
     int8_t i8Ret = (int8_t)0;
     if (MSC_BOT_State == BOT_IDLE) /* Idle */
     {
         /* case 8 : Hi <> Do */
-        if ((MSC_BOT_cbw.bmFlags & 0x80u) == 0x80u)
+        if ((MSC_BOT_cbw.bmFlags & 0x80U) == 0x80U)
         {
             SCSI_SenseCode(MSC_BOT_cbw.bLUN,
                            ILLEGAL_REQUEST,
@@ -525,7 +567,7 @@ static int8_t SCSI_Write10(uint8_t lun, uint8_t *params)
         else
         {
             /* Check whether Media is ready */
-            if (USBD_STORAGE_fops->IsReady(lun) != 0u)
+            if (USBD_STORAGE_fops->IsReady(lun) != 0U)
             {
                 SCSI_SenseCode(lun,
                                NOT_READY,
@@ -533,7 +575,7 @@ static int8_t SCSI_Write10(uint8_t lun, uint8_t *params)
                 i8Ret = (int8_t)-1;
             }
             /* Check If media is write-protected */
-            else if (USBD_STORAGE_fops->IsWriteProtected(lun) != 0u)
+            else if (USBD_STORAGE_fops->IsWriteProtected(lun) != 0U)
             {
                 SCSI_SenseCode(lun,
                                NOT_READY,
@@ -542,15 +584,15 @@ static int8_t SCSI_Write10(uint8_t lun, uint8_t *params)
             }
             else
             {
-                SCSI_blk_addr = ((uint64_t)params[2] << 24u) | \
-                                ((uint64_t)params[3] << 16u) | \
-                                ((uint64_t)params[4] << 8u) | \
-                                (uint64_t)params[5];
-                SCSI_blk_len  = ((uint32_t)params[7] << 8u) | \
-                                (uint32_t)params[8];
+                SCSI_blk_addr = ((uint64_t)params[2U] << 24U) | \
+                                ((uint64_t)params[3U] << 16U) | \
+                                ((uint64_t)params[4U] << 8U) | \
+                                (uint64_t)params[5U];
+                SCSI_blk_len  = ((uint32_t)params[7U] << 8U) | \
+                                (uint32_t)params[8U];
 
                 /* check if LBA address is in the right range */
-                if (SCSI_CheckAddressRange(lun, (uint32_t)SCSI_blk_addr, (uint16_t)SCSI_blk_len) < 0)
+                if (SCSI_CheckAddressRange(lun, (uint32_t)SCSI_blk_addr, (uint16_t)SCSI_blk_len) < (int8_t)0)
                 {
                     i8Ret = (int8_t)-1;             /* error */
                 }
@@ -574,7 +616,7 @@ static int8_t SCSI_Write10(uint8_t lun, uint8_t *params)
                         DCD_EP_PrepareRx(cdev,
                                          MSC_OUT_EP,
                                          MSC_BOT_Data,
-                                         (uint16_t)MIN(SCSI_blk_len, MSC_MEDIA_PACKET));
+                                         (uint16_t)__MIN(SCSI_blk_len, MSC_MEDIA_PACKET));
                     }
                 }
             }
@@ -588,16 +630,15 @@ static int8_t SCSI_Write10(uint8_t lun, uint8_t *params)
 }
 
 /**
- *******************************************************************************
- ** \brief Process Verify10 command
- ** \param lun: Logical unit number
- ** \param params: Command parameters
- ** \retval status
- ******************************************************************************/
+ * @brief Process Verify10 command
+ * @param lun: Logical unit number
+ * @param params: Command parameters
+ * @retval status
+ */
 static int8_t SCSI_Verify10(uint8_t lun, uint8_t *params)
 {
     int8_t i8Ret = (int8_t)0;
-    if ((params[1] & 0x02u) == 0x02u)
+    if ((params[1] & 0x02U) == 0x02U)
     {
         SCSI_SenseCode(lun, ILLEGAL_REQUEST, INVALID_FIELED_IN_COMMAND);
         i8Ret = (int8_t)-1;                 /* Error, Verify Mode Not supported*/
@@ -608,19 +649,18 @@ static int8_t SCSI_Verify10(uint8_t lun, uint8_t *params)
     }
     else
     {
-        MSC_BOT_DataLen = 0u;
+        MSC_BOT_DataLen = 0U;
     }
     return i8Ret;
 }
 
 /**
- *******************************************************************************
- ** \brief Check address range
- ** \param lun: Logical unit number
- ** \param blk_offset: first block address
- ** \param blk_nbr: number of block to be processed
- ** \retval status
- ******************************************************************************/
+ * @brief Check address range
+ * @param lun: Logical unit number
+ * @param blk_offset: first block address
+ * @param blk_nbr: number of block to be processed
+ * @retval status
+ */
 static int8_t SCSI_CheckAddressRange(uint8_t lun, uint32_t blk_offset, uint16_t blk_nbr)
 {
     int8_t i8Ret = (int8_t)0;
@@ -633,17 +673,16 @@ static int8_t SCSI_CheckAddressRange(uint8_t lun, uint32_t blk_offset, uint16_t 
 }
 
 /**
- *******************************************************************************
- ** \brief Handle Read Process
- ** \param lun: Logical unit number
- ** \retval status
- ******************************************************************************/
+ * @brief Handle Read Process
+ * @param lun: Logical unit number
+ * @retval status
+ */
 static int8_t SCSI_ProcessRead(uint8_t lun)
 {
     uint32_t len;
     int8_t i8Ret = (int8_t)0;
 
-    len = MIN(SCSI_blk_len, MSC_MEDIA_PACKET);
+    len = __MIN(SCSI_blk_len, MSC_MEDIA_PACKET);
 
     if(0u == SCSI_blk_size)    /* C-STAT */
     {
@@ -652,7 +691,7 @@ static int8_t SCSI_ProcessRead(uint8_t lun)
     else if (USBD_STORAGE_fops->Read(lun,
                                 MSC_BOT_Data,
                                 SCSI_blk_addr / SCSI_blk_size,
-                                len / SCSI_blk_size) < 0)
+                                len / SCSI_blk_size) < (int8_t)0)
     {
 
         SCSI_SenseCode(lun, HARDWARE_ERROR, UNRECOVERED_READ_ERROR);
@@ -672,7 +711,7 @@ static int8_t SCSI_ProcessRead(uint8_t lun)
         /* case 6 : Hi = Di */
         MSC_BOT_csw.dDataResidue -= len;
 
-        if (SCSI_blk_len == 0u)
+        if (SCSI_blk_len == 0U)
         {
             MSC_BOT_State = BOT_LAST_DATA_IN;
         }
@@ -681,19 +720,18 @@ static int8_t SCSI_ProcessRead(uint8_t lun)
 }
 
 /**
- *******************************************************************************
- ** \brief Handle Write Process
- ** \param lun: Logical unit number
- ** \retval status
- ******************************************************************************/
+ * @brief Handle Write Process
+ * @param lun: Logical unit number
+ * @retval status
+ */
 static int8_t SCSI_ProcessWrite(uint8_t lun)
 {
     uint32_t len;
     int8_t i8Ret = (int8_t)0;
 
-    len = MIN(SCSI_blk_len, MSC_MEDIA_PACKET);
+    len = __MIN(SCSI_blk_len, MSC_MEDIA_PACKET);
 
-    if(0u == SCSI_blk_size)/* C-STAT */
+    if(0U == SCSI_blk_size)/* C-STAT */
     {
         i8Ret = (int8_t)-1;
     }
@@ -713,7 +751,7 @@ static int8_t SCSI_ProcessWrite(uint8_t lun)
         /* case 12 : Ho = Do */
         MSC_BOT_csw.dDataResidue -= len;
 
-        if (SCSI_blk_len == 0u)
+        if (SCSI_blk_len == 0U)
         {
             MSC_BOT_SendCSW(cdev, CSW_CMD_PASSED);
         }else
@@ -722,11 +760,33 @@ static int8_t SCSI_ProcessWrite(uint8_t lun)
             DCD_EP_PrepareRx(cdev,
                              MSC_OUT_EP,
                              MSC_BOT_Data,
-                             (uint16_t)MIN(SCSI_blk_len, MSC_MEDIA_PACKET));
+                             (uint16_t)__MIN(SCSI_blk_len, MSC_MEDIA_PACKET));
         }
     }
     return i8Ret;
 }
+
+/**
+ * @}
+ */
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

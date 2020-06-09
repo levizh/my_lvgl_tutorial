@@ -89,9 +89,9 @@ stc_disk_drv_t gDiskDrv = {{0}, {0}, {0}, 0};
  *           - 0: Links success
  *           - 1: Links failed
  */
-uint8_t FatFS_LinkDriver(const stc_diskio_drv_t *drv, char *path)
+uint8_t FatFS_LinkDriver(const stc_diskio_drv_t *drv, char path[])
 {
-    return FatFS_LinkDriverEx(drv, path, 0);
+    return FatFS_LinkDriverEx(drv, path, 0U);
 }
 
 /**
@@ -102,9 +102,9 @@ uint8_t FatFS_LinkDriver(const stc_diskio_drv_t *drv, char *path)
  *           - 0: Unlinks success
  *           - 1: Unlinks failed
   */
-uint8_t FatFS_UnLinkDriver(char *path)
+uint8_t FatFS_UnLinkDriver(char path[])
 {
-    return FatFS_UnLinkDriverEx(path, 0);
+    return FatFS_UnLinkDriverEx(path, 0U);
 }
 
 /**
@@ -119,14 +119,14 @@ uint8_t FatFS_UnLinkDriver(char *path)
  *           - 0: Links success
  *           - 1: Links failed
  */
-uint8_t FatFS_LinkDriverEx(const stc_diskio_drv_t *drv, char *path, uint8_t lun)
+uint8_t FatFS_LinkDriverEx(const stc_diskio_drv_t *drv, char path[], uint8_t lun)
 {
-    uint8_t u8Ret = 1;
-    uint8_t u8DiskNum = 0;
+    uint8_t u8Ret = 1U;
+    uint8_t u8DiskNum = 0U;
 
-    if (gDiskDrv.nbr < FF_VOLUMES)
+    if (gDiskDrv.nbr < (uint8_t)FF_VOLUMES)
     {
-        gDiskDrv.state[gDiskDrv.nbr] = 0;
+        gDiskDrv.state[gDiskDrv.nbr] = 0U;
         gDiskDrv.drv[gDiskDrv.nbr]   = drv;
         gDiskDrv.lun[gDiskDrv.nbr]   = lun;
         u8DiskNum = gDiskDrv.nbr++;
@@ -134,7 +134,7 @@ uint8_t FatFS_LinkDriverEx(const stc_diskio_drv_t *drv, char *path, uint8_t lun)
         path[1]   = ':';
         path[2]   = '/';
         path[3]   = 0;
-        u8Ret     = 0;
+        u8Ret     = 0U;
     }
 
     return u8Ret;
@@ -149,20 +149,20 @@ uint8_t FatFS_LinkDriverEx(const stc_diskio_drv_t *drv, char *path, uint8_t lun)
  *           - 0: Unlinks success
  *           - 1: Unlinks failed
   */
-uint8_t FatFS_UnLinkDriverEx(char *path, uint8_t lun)
+uint8_t FatFS_UnLinkDriverEx(const char path[], uint8_t lun)
 {
-    uint8_t u8DiskNum = 0;
-    uint8_t u8Ret = 1;
+    uint8_t u8DiskNum = 0U;
+    uint8_t u8Ret = 1U;
 
-    if (gDiskDrv.nbr >= 1)
+    if (gDiskDrv.nbr >= 1U)
     {
-        u8DiskNum = path[0] - '0';
+        u8DiskNum = path[0] - (int8_t)'0';
         if (0 != gDiskDrv.drv[u8DiskNum])
         {
             gDiskDrv.drv[u8DiskNum] = 0;
-            gDiskDrv.lun[u8DiskNum] = 0;
+            gDiskDrv.lun[u8DiskNum] = 0U;
             gDiskDrv.nbr--;
-            u8Ret = 0;
+            u8Ret = 0U;
         }
     }
 

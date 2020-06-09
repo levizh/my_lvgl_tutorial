@@ -141,13 +141,13 @@ void SW1_IrqCallback(void)
         if (0U == u8ConnSta)
         {
             u8ConnSta = 1U;
-            /* Connect to udp server */ 
+            /* Connect to udp server */
             UdpClient_Connect();
         }
         else
         {
             u8ConnSta = 0U;
-            /* Disconnect to udp server */ 
+            /* Disconnect to udp server */
             UdpClient_Disconnect();
         }
         EXINT_ClrExIntSrc(SW1_IN_EXINT_CH);

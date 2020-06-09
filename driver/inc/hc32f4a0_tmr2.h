@@ -95,8 +95,8 @@ typedef struct
                                                  This parameter can be a value of @ref TMR2_Clock_Source */
     uint32_t u32ClkDiv;                     /*!< Specify the division of the clock source.
                                                  This parameter can be a value of @ref TMR2_Clock_Division */
-    uint32_t u32CmpVal;                     /*!< Specify the reference value depends on your application. */
-    uint32_t u32CntInitVal;                 /*!< Initial value of the count register. */
+    uint32_t u32CmpVal;                     /*!< Specify the compare value depends on your application. */
+    uint32_t u32CntVal;                     /*!< Initial value of the count register. */
     uint32_t u32AsyncClkFreq;               /*!< This parameter is the frequency(Hz) of the asynchronous clock input from pin TIM2_x_CLKA/B. */
 } stc_tmr2_init_t;
 
@@ -215,8 +215,8 @@ typedef struct
  * @defgroup TMR2_Interrupt_Type TIMER2 Interrupt Type
  * @{
  */
-#define TMR2_INT_CNT_MATCH              (TMR2_ICONR_CMENA)              /*!< TIMER2 count match interrupt. */
-#define TMR2_INT_CNT_OVF                (TMR2_ICONR_OVENA)              /*!< TIMER2 count overflow interrupt. */
+#define TMR2_INT_CMP                    (TMR2_ICONR_CMENA)              /*!< TIMER2 count match interrupt. */
+#define TMR2_INT_OVF                    (TMR2_ICONR_OVENA)              /*!< TIMER2 count overflow interrupt. */
 /**
  * @}
  */
@@ -252,17 +252,6 @@ typedef struct
 #define TMR2_PWM_CM_KEEP                (TMR2_PCONR_CMPCA_1)            /*!< PWM output keeps the current polarity when counting match. */
 #define TMR2_PWM_CM_REVERSE             (TMR2_PCONR_CMPCA_1 | \
                                          TMR2_PCONR_CMPCA_0)            /*!< PWM output reverses the current polarity when counting match. */
-/**
- * @}
- */
-
-/**
- * @defgroup TMR2_PWM_State TIMER2 PWM State
- * @{
- */
-#define TMR2_PWM_START                  (0U)                            /*!< The state is counting start. */
-#define TMR2_PWM_STOP                   (1U)                            /*!< The state is counting stop. */
-#define TMR2_PWM_CNT_MATCH              (2U)                            /*!< The state is counter is equal to the comparison value. */
 /**
  * @}
  */
@@ -343,8 +332,9 @@ typedef struct
  * @defgroup TMR2_State_Flag TIMER2 State Flag
  * @{
  */
-#define TMR2_FLAG_CNT_MATCH             (TMR2_STFLR_CMFA)               /*!< Counter match flag. */
-#define TMR2_FLAG_CNT_OVF               (TMR2_STFLR_OVFA)               /*!< Counter overflow flag. */
+#define TMR2_FLAG_CMP                   (TMR2_STFLR_CMFA)               /*!< Counter match flag. */
+#define TMR2_FLAG_OVF                   (TMR2_STFLR_OVFA)               /*!< Counter overflow flag. */
+#define TMR2_FLAG_ALL                   (TMR2_FLAG_CMP | TMR2_FLAG_OVF)
 /**
  * @}
  */
@@ -353,10 +343,10 @@ typedef struct
  * @defgroup TMR2_Common_Trigger_Event_Command TIMER2 Common Trigger Event Command
  * @{
  */
-#define TMR2_COM1_TRIG_DISABLE          ((uint32_t)0x00UL)
-#define TMR2_COM2_TRIG_DISABLE          ((uint32_t)0x00UL)
-#define TMR2_COM1_TRIG_ENABLE           ((uint32_t)(0x01UL << 30U))
-#define TMR2_COM2_TRIG_ENABLE           ((uint32_t)(0x01UL << 31U))
+#define TMR2_COM1_TRIG_DISABLE          (0x00UL)
+#define TMR2_COM2_TRIG_DISABLE          (0x00UL)
+#define TMR2_COM1_TRIG_ENABLE           (0x01UL << 30U)
+#define TMR2_COM2_TRIG_ENABLE           (0x01UL << 31U)
 /**
  * @}
  */
@@ -378,21 +368,21 @@ typedef struct
  */
      en_result_t TMR2_Init(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, const stc_tmr2_init_t *pstcInit);
      en_result_t TMR2_StructInit(stc_tmr2_init_t *pstcInit);
-     en_result_t TMR2_DeInit(M4_TMR2_TypeDef *TMR2x);
+            void TMR2_DeInit(M4_TMR2_TypeDef *TMR2x);
 
      en_result_t TMR2_PWM_Config(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, const stc_tmr2_pwm_cfg_t *pstcCfg);
      en_result_t TMR2_PWM_StructInit(stc_tmr2_pwm_cfg_t *pstcCfg);
-     en_result_t TMR2_PWM_Cmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional_state_t enNewState);
+            void TMR2_PWM_Cmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional_state_t enNewState);
 
      en_result_t TMR2_SetTrigCond(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, const stc_tmr2_trig_cond_t *pstcCond);
      en_result_t TMR2_TrigCondStructInit(stc_tmr2_trig_cond_t *pstcCond);
             void TMR2_SetTrigEvent(en_event_src_t enEvent);
             void TMR2_ComTrigCmd(uint32_t u32ComTrigEn);
 
-     en_result_t TMR2_FilterConfig(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkDiv);
-     en_result_t TMR2_FilterCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional_state_t enNewState);
+            void TMR2_FilterConfig(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkDiv);
+            void TMR2_FilterCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional_state_t enNewState);
 
-     en_result_t TMR2_IntCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, \
+            void TMR2_IntCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, \
                              uint32_t u32IntType, en_functional_state_t enNewState);
 
      en_result_t TMR2_Start(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch);
@@ -413,11 +403,11 @@ en_flag_status_t TMR2_GetStatus(const M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, 
      en_result_t TMR2_SetClkDiv(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkDiv);
      en_result_t TMR2_SetAsyncDelay(uint32_t u32AsyncClkFreq, uint32_t u32ClkDiv);
 
-     en_result_t TMR2_TrigCondCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Cond, en_functional_state_t enNewState);
+            void TMR2_TrigCondCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Cond, en_functional_state_t enNewState);
 
-     en_result_t TMR2_PWM_SetStartPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
-     en_result_t TMR2_PWM_SetStopPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
-     en_result_t TMR2_PWM_SetCntMatchPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
+            void TMR2_PWM_SetStartPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
+            void TMR2_PWM_SetStopPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
+            void TMR2_PWM_SetCntMatchPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
 
 /**
  * @}

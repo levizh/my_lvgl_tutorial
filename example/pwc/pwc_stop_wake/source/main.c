@@ -73,10 +73,10 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define KEY10_PORT      (GPIO_PORT_I)
-#define KEY10_PIN       (GPIO_PIN_08)
-#define KEY10_EXINT_CH  (EXINT_CH08)
-#define KEY10_INT_SRC   (INT_PORT_EIRQ8)
+#define KEY10_PORT      (GPIO_PORT_A)
+#define KEY10_PIN       (GPIO_PIN_00)
+#define KEY10_EXINT_CH  (EXINT_CH00)
+#define KEY10_INT_SRC   (INT_PORT_EIRQ0)
 #define KEY10_IRQn      (Int000_IRQn)
 
 #define DLY_MS          (500UL)
@@ -99,8 +99,8 @@ uint8_t u8Cnt = 10U;
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @brief  KEY10 External interrupt Ch.8 callback function
- *         IRQ No.0 in Global IRQ entry No.0~31 is used for EXINT8
+ * @brief  KEY10 External interrupt Ch.0 callback function
+ *         IRQ No.0 in Global IRQ entry No.0~31 is used for EXINT0
  * @param  None
  * @retval None
  */
@@ -112,7 +112,7 @@ void EXINT_KEY10_IrqCallback(void)
         BSP_LED_Init();
         BSP_LED_Off(LED_RED);
 
-        while (Pin_Reset == GPIO_ReadInputPortPin(KEY10_PORT, KEY10_PIN))
+        while (Pin_Reset == GPIO_ReadInputPins(KEY10_PORT, KEY10_PIN))
         {
         }
         EXINT_ClrExIntSrc(KEY10_EXINT_CH);
@@ -198,8 +198,8 @@ void STOP_Config(void)
 
     PWC_StopConfig(&stcStopConfig);
 
-    /* Wake-up source config (EXINT Ch.8 here) */
-    INTC_WakeupSrcCmd(INTC_WUPEN_EIRQWUEN_8, Enable);
+    /* Wake-up source config (EXINT Ch.0 here) */
+    INTC_WakeupSrcCmd(INTC_WUPEN_EIRQWUEN_0, Enable);
 
 }
 
@@ -210,6 +210,14 @@ void STOP_Config(void)
  */
 int32_t main(void)
 {
+    /* unlock GPIO register */
+    GPIO_Unlock();
+    /* unlock CLK register */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* unlock PWC register */
+    PWC_Unlock(PWC_UNLOCK_CODE_1);
+//    PWC_FCG0_Unlock();
+
     BSP_CLK_Init();
     BSP_IO_Init();
     BSP_LED_Init();
@@ -217,7 +225,7 @@ int32_t main(void)
     STOP_Config();
 
     /* KEY10 */
-    while(Pin_Reset != GPIO_ReadInputPortPin(KEY10_PORT, KEY10_PIN))
+    while(Pin_Reset != GPIO_ReadInputPins(KEY10_PORT, KEY10_PIN))
     {
         ;
     }

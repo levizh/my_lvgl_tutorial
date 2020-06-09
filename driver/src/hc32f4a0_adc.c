@@ -139,9 +139,9 @@
  */
 #define __BIT_BAND_BASE                     (0x42000000UL)
 #define __PERIP_BASE                        (0x40000000UL)
-#define __REG_OFS(__reg__)                  ((uint32_t)&(__reg__) - __PERIP_BASE)
-#define __BIT_BAND_ADDR(__reg__, __pos__)   ((__REG_OFS(__reg__) << 5U) + ((uint32_t)(__pos__) << 2U) + __BIT_BAND_BASE)
-#define BIT_BAND(__reg__, __pos__)          (*(__IO uint32_t *)__BIT_BAND_ADDR((__reg__), (__pos__)))
+#define __REG_OFS(regAddr)                  ((regAddr) - __PERIP_BASE)
+#define __BIT_BAND_ADDR(regAddr, pos)       ((__REG_OFS(regAddr) << 5U) + ((uint32_t)(pos) << 2U) + __BIT_BAND_BASE)
+#define BIT_BAND(regAddr, pos)              (*(__IO uint32_t *)__BIT_BAND_ADDR((regAddr), (pos)))
 /**
  * @}
  */
@@ -170,8 +170,7 @@
  * @defgroup ADC_AWD_DR ADC AWD DR
  * @{
  */
-#define ADC_AWDx_DR0(__awdNum__)            (*(__IO uint32_t *)((uint32_t)&ADCx->AWD0DR0 + ((uint32_t)(__awdNum__) << 3U)))
-#define ADC_AWDx_DR1(__awdNum__)            (*(__IO uint32_t *)((uint32_t)&ADCx->AWD0DR1 + ((uint32_t)(__awdNum__) << 3U)))
+#define ADC_AWDx_DR(__base__, __awdNum__)   (*(__IO uint32_t *)((uint32_t)(__base__) + ((uint32_t)(__awdNum__) << 3U)))
 /**
  * @}
  */
@@ -180,7 +179,7 @@
  * @defgroup ADC_AWD_CHSR ADC AWD CHSR
  * @{
  */
-#define ADC_AWDx_CHSR(__awdNum__)           (*(__IO uint32_t *)((uint32_t)&ADCx->AWD0CHSR + ((uint32_t)(__awdNum__) << 3U)))
+#define ADC_AWDx_CHSR(__base__, __awdNum__) (*(__IO uint32_t *)((uint32_t)(__base__) + ((uint32_t)(__awdNum__) << 3U)))
 /**
  * @}
  */
@@ -356,14 +355,13 @@
  *                                      contains the configuration information for the ADC.
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -ADCx == NULL.
- *                                     -pstcInit == NULL.
+ *   @arg  ErrorInvalidParameter:       pstcInit == NULL.
  */
 en_result_t ADC_Init(M4_ADC_TypeDef *ADCx, const stc_adc_init_t *pstcInit)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((ADCx != NULL) && (pstcInit != NULL))
+    if (pstcInit != NULL)
     {
         DDL_ASSERT(IS_ADC_UNIT(ADCx));
         DDL_ASSERT(IS_ADC_SCAN_MODE(pstcInit->u16ScanMode));
@@ -396,84 +394,76 @@ en_result_t ADC_Init(M4_ADC_TypeDef *ADCx, const stc_adc_init_t *pstcInit)
  *   @arg  M4_ADC1:                     ADC unit 1 instance register base.
  *   @arg  M4_ADC2:                     ADC unit 2 instance register base.
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_DeInit(M4_ADC_TypeDef *ADCx)
+void ADC_DeInit(M4_ADC_TypeDef *ADCx)
 {
     uint8_t i;
     uint32_t u32SSTRAddr;
-    en_result_t enRet = ErrorInvalidParameter;
 
-    if (ADCx != NULL)
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+
+    /* Stop the ADC. */
+    WRITE_REG8(ADCx->STR, 0U);
+
+    /* Set the registers to reset value. */
+    WRITE_REG16(ADCx->CR0, 0x0U);
+    WRITE_REG16(ADCx->CR1, 0x0U);
+    WRITE_REG16(ADCx->TRGSR, 0x0U);
+
+    WRITE_REG32(ADCx->CHSELRA, 0x0U);
+    WRITE_REG32(ADCx->CHSELRB, 0x0U);
+    WRITE_REG32(ADCx->AVCHSELR, 0x0U);
+    WRITE_REG8(ADCx->EXCHSELR, 0x0U);
+
+    WRITE_REG16(ADCx->CHMUXR0, 0x3210U);
+    WRITE_REG16(ADCx->CHMUXR1, 0x7654U);
+    WRITE_REG16(ADCx->CHMUXR2, 0xBA98U);
+    WRITE_REG16(ADCx->CHMUXR3, 0xFEDCU);
+
+    WRITE_REG8(ADCx->ICR, 0x03U);
+    WRITE_REG8(ADCx->ISCLRR, 0x13U);
+
+    WRITE_REG16(ADCx->AWDCR, 0x0U);
+    WRITE_REG8(ADCx->AWDSCLRR, 0x13U);
+
+    WRITE_REG16(ADCx->AWD0DR0, 0x0U);
+    WRITE_REG16(ADCx->AWD0DR1, 0xFFFFU);
+    WRITE_REG16(ADCx->AWD1DR0, 0x0U);
+    WRITE_REG16(ADCx->AWD1DR1, 0xFFFFU);
+
+    WRITE_REG8(ADCx->AWD0CHSR, 0x0U);
+    WRITE_REG8(ADCx->AWD1CHSR, 0x0U);
+
+    u32SSTRAddr = (uint32_t)&ADCx->SSTR0;
+    for (i=0U; i<ADC_IND_SPL_TIME_COUNT; i++)
     {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-
-        /* Stop the ADC. */
-        ADC_Stop(ADCx);
-
-        /* Set the registers to reset value. */
-        WRITE_REG16(ADCx->CR0, 0x0U);
-        WRITE_REG16(ADCx->CR1, 0x0U);
-        WRITE_REG16(ADCx->TRGSR, 0x0U);
-
-        WRITE_REG32(ADCx->CHSELRA, 0x0U);
-        WRITE_REG32(ADCx->CHSELRB, 0x0U);
-        WRITE_REG32(ADCx->AVCHSELR, 0x0U);
-        WRITE_REG8(ADCx->EXCHSELR, 0x0U);
-
-        WRITE_REG16(ADCx->CHMUXR0, 0x3210U);
-        WRITE_REG16(ADCx->CHMUXR1, 0x7654U);
-        WRITE_REG16(ADCx->CHMUXR2, 0xBA98U);
-        WRITE_REG16(ADCx->CHMUXR3, 0xFEDCU);
-
-        WRITE_REG8(ADCx->ICR, 0x03U);
-        WRITE_REG8(ADCx->ISCLRR, 0x13U);
-
-        WRITE_REG16(ADCx->AWDCR, 0x0U);
-        WRITE_REG8(ADCx->AWDSCLRR, 0x13U);
-
-        WRITE_REG16(ADCx->AWD0DR0, 0x0U);
-        WRITE_REG16(ADCx->AWD0DR1, 0xFFFFU);
-        WRITE_REG16(ADCx->AWD1DR0, 0x0U);
-        WRITE_REG16(ADCx->AWD1DR1, 0xFFFFU);
-
-        WRITE_REG8(ADCx->AWD0CHSR, 0x0U);
-        WRITE_REG8(ADCx->AWD1CHSR, 0x0U);
-
-        u32SSTRAddr = (uint32_t)&ADCx->SSTR0;
-        for (i=0U; i<ADC_IND_SPL_TIME_COUNT; i++)
-        {
-            RW_MEM8(u32SSTRAddr) = (uint8_t)0x0BU;
-            u32SSTRAddr++;
-        }
-
-        if (ADCx == M4_ADC3)
-        {
-            WRITE_REG8(ADCx->SSTRL, 0x0BU);
-        }
-
-        if (ADCx == M4_ADC1)
-        {
-            WRITE_REG16(ADCx->SYNCCR, 0x0C00U);
-            WRITE_REG16(ADCx->SHCR, 0x18U);
-            WRITE_REG8(ADCx->PGACR1, 0x0U);
-            WRITE_REG8(ADCx->PGACR2, 0x0U);
-            WRITE_REG8(ADCx->PGACR3, 0x0U);
-            WRITE_REG8(ADCx->PGAVSSENR, 0x0U);
-        }
-
-        if (ADCx == M4_ADC2)
-        {
-            WRITE_REG8(ADCx->PGACR1, 0x0U);
-            WRITE_REG8(ADCx->PGAVSSENR, 0x0U);
-        }
-
-        enRet = Ok;
+        RW_MEM8(u32SSTRAddr) = (uint8_t)0x0BU;
+        u32SSTRAddr++;
     }
 
-    return enRet;
+    if (ADCx == M4_ADC1)
+    {
+        WRITE_REG16(ADCx->SYNCCR, 0x0C00U);
+        WRITE_REG16(ADCx->SHCR, 0x18U);
+        WRITE_REG8(ADCx->PGACR1, 0x0U);
+        WRITE_REG8(ADCx->PGACR2, 0x0U);
+        WRITE_REG8(ADCx->PGACR3, 0x0U);
+        WRITE_REG8(ADCx->PGAVSSENR, 0x0U);
+    }
+    else if (ADCx == M4_ADC2)
+    {
+        WRITE_REG8(ADCx->PGACR1, 0x0U);
+        WRITE_REG8(ADCx->PGAVSSENR, 0x0U);
+    }
+    else if (ADCx == M4_ADC3)
+    {
+        WRITE_REG8(ADCx->SSTRL, 0x0BU);
+    }
+    else
+    {
+        /* rsvd */
+    }
 }
 
 /**
@@ -515,24 +505,13 @@ en_result_t ADC_StructInit(stc_adc_init_t *pstcInit)
  *   @arg  ADC_MODE_SA_CONT:            Sequence A continuous.
  *   @arg  ADC_MODE_SA_SB_SSHOT:        Sequence A and B both single shot.
  *   @arg  ADC_MODE_SA_CONT_SB_SSHOT:   Sequence A continuous and sequence B single shot.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_SetScanMode(M4_ADC_TypeDef *ADCx, uint16_t u16Mode)
+void ADC_SetScanMode(M4_ADC_TypeDef *ADCx, uint16_t u16Mode)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        DDL_ASSERT(IS_ADC_SCAN_MODE(u16Mode));
-
-        MODIFY_REG16(ADCx->CR0, ADC_CR0_MS, u16Mode);
-        enRet = Ok;
-    }
-
-    return enRet;
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_ADC_SCAN_MODE(u16Mode));
+    MODIFY_REG16(ADCx->CR0, ADC_CR0_MS, u16Mode);
 }
 
 /**
@@ -545,9 +524,9 @@ en_result_t ADC_SetScanMode(M4_ADC_TypeDef *ADCx, uint16_t u16Mode)
  * @param  [in]  u8Seq                  The sequence that it's specified channels will be enabled or disabled.
  *                                      This parameter can be a value of @ref ADC_Sequence
  *   @arg  ADC_SEQ_A:                   Sequence A.
- *   @arg  ADC_SEQ_A:                   Sequence B.
- * @param  [in]  u32AdcCh               The ADC channles.
- *                                      This parameter can be values of @ref ADC_Channle
+ *   @arg  ADC_SEQ_B:                   Sequence B.
+ * @param  [in]  u32AdcCh               The ADC channels.
+ *                                      This parameter can be values of @ref ADC_Channel
  *   @arg  ADC_CH0 ~ ADC_CH15:          For M4_ADC1 and M4_ADC2.
  *   @arg  ADC_CH0 ~ ADC_CH19:          For M4_ADC3.
  * @param  [in]  pu8SplTime:            Pointer to an uint8_t type array which contains sampling time of the specified channels.
@@ -556,8 +535,7 @@ en_result_t ADC_SetScanMode(M4_ADC_TypeDef *ADCx, uint16_t u16Mode)
  *   @arg  Disable:                     Disable the specified sequence's specified channels.
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -ADCx == NULL.
- *                                     -pu8SplTime == NULL.
+ *   @arg  ErrorInvalidParameter:       pu8SplTime == NULL.
  * @note Sequence A and Sequence B CAN NOT include the same channel!
  * @note ADC_CH16 ~ ADC_CH19 of ADC3 share the same sampling time.
  */
@@ -569,9 +547,10 @@ en_result_t ADC_ChannelCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, \
     uint8_t j = 0U;
     uint32_t u32CHSELAddr;
     uint32_t u32SSTRAddr;
+    uint32_t au32ChMsk[] = {ADC1_CH_ALL, ADC2_CH_ALL, ADC3_CH_ALL};
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((ADCx != NULL) && (pu8SplTime != NULL))
+    if (pu8SplTime != NULL)
     {
         DDL_ASSERT(IS_ADC_UNIT(ADCx));
         DDL_ASSERT(IS_ADC_SEQ(u8Seq));
@@ -579,6 +558,7 @@ en_result_t ADC_ChannelCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, \
 
         u32CHSELAddr = (uint32_t)&ADCx->CHSELRA + ((uint32_t)u8Seq * 4U);
         u32SSTRAddr  = (uint32_t)&ADCx->SSTR0;
+        u32AdcCh    &= au32ChMsk[ADC_IDX(ADCx)];
 
         if (enNewState == Enable)
         {
@@ -630,25 +610,13 @@ en_result_t ADC_ChannelCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, \
  *   @arg  ADC_AVG_CNT_64
  *   @arg  ADC_AVG_CNT_128
  *   @arg  ADC_AVG_CNT_256
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_AvgChannelConfig(M4_ADC_TypeDef *ADCx, uint16_t u16AvgCnt)
+void ADC_AvgChannelConfig(M4_ADC_TypeDef *ADCx, uint16_t u16AvgCnt)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        DDL_ASSERT(IS_ADC_AVG_CNT(u16AvgCnt));
-
-        MODIFY_REG16(ADCx->CR0, ADC_CR0_AVCNT, u16AvgCnt);
-
-        enRet = Ok;
-    }
-
-    return enRet;
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_ADC_AVG_CNT(u16AvgCnt));
+    MODIFY_REG16(ADCx->CR0, ADC_CR0_AVCNT, u16AvgCnt);
 }
 
 /**
@@ -658,39 +626,34 @@ en_result_t ADC_AvgChannelConfig(M4_ADC_TypeDef *ADCx, uint16_t u16AvgCnt)
  *   @arg  M4_ADC1:                     ADC unit 1 instance register base.
  *   @arg  M4_ADC2:                     ADC unit 2 instance register base.
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
- * @param  [in]  u32AdcCh               The ADC channles.
- *                                      This parameter can be values of @ref ADC_Channle
+ * @param  [in]  u32AdcCh               The ADC channels.
+ *                                      This parameter can be values of @ref ADC_Channel
  *   @arg  ADC_CH0 ~ ADC_CH15:          For M4_ADC1 and M4_ADC2.
  *   @arg  ADC_CH0 ~ ADC_CH19:          For M4_ADC3.
  * @param  [in]  enNewState:            An en_functional_state_t value.
  *   @arg  Enable:                      Enable the specified ADC unit's average channels.
  *   @arg  Disable:                     Disable the specified ADC unit's average channels.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_AvgChannelCmd(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, en_functional_state_t enNewState)
+void ADC_AvgChannelCmd(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, en_functional_state_t enNewState)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    uint32_t u32SACh;
+    uint32_t u32SBCh;
 
-    if (ADCx != NULL)
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    u32SACh = ADCx->CHSELRA;
+    u32SBCh = ADCx->CHSELRB;
+    u32AdcCh &= (u32SACh | u32SBCh);
+    if (enNewState == Enable)
     {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-
-        if (enNewState == Enable)
-        {
-            SET_REG32_BIT(ADCx->AVCHSELR, u32AdcCh);
-        }
-        else
-        {
-            CLEAR_REG32_BIT(ADCx->AVCHSELR, u32AdcCh);
-        }
-
-        enRet = Ok;
+        SET_REG32_BIT(ADCx->AVCHSELR, u32AdcCh);
     }
-
-    return enRet;
+    else
+    {
+        CLEAR_REG32_BIT(ADCx->AVCHSELR, u32AdcCh);
+    }
 }
 
 /**
@@ -706,23 +669,13 @@ en_result_t ADC_AvgChannelCmd(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, en_functi
  *                                      ADC12_IN15 of ADC1/ADC2 and ADC3_IN15 of ADC3.
  *   @arg  ADC_EXCH_SRC_INTERNAL:       The analog input source of extend channels is internal reference voltage or
  *                                      the partial voltage of VBAT.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_SetExChannelSrc(M4_ADC_TypeDef *ADCx, uint8_t u8ExChSrc)
+void ADC_SetExChannelSrc(M4_ADC_TypeDef *ADCx, uint8_t u8ExChSrc)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        DDL_ASSERT(IS_ADC_EXCH_SRC(u8ExChSrc));
-        WRITE_REG8(ADCx->EXCHSELR, u8ExChSrc);
-        enRet = Ok;
-    }
-
-    return enRet;
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_ADC_EXCH_SRC(u8ExChSrc));
+    WRITE_REG8(ADCx->EXCHSELR, u8ExChSrc);
 }
 
 /**
@@ -739,9 +692,9 @@ en_result_t ADC_TrigSrcStructInit(stc_adc_trig_cfg_t *pstcCfg)
 
     if (pstcCfg != NULL)
     {
-        pstcCfg->u16TrigSrc = ADC_TRIG_SRC_EVENT0;
-        pstcCfg->enEvent0   = EVT_AOS_STRG;
-        pstcCfg->enEvent1   = EVT_AOS_STRG;
+        pstcCfg->u16TrigSrc = ADC_TRIG_SRC_ADTRG;
+        pstcCfg->enEvent0   = (en_event_src_t)0x1FFUL;
+        pstcCfg->enEvent1   = (en_event_src_t)0x1FFUL;
 
         enRet = Ok;
     }
@@ -753,14 +706,13 @@ en_result_t ADC_TrigSrcStructInit(stc_adc_trig_cfg_t *pstcCfg)
  * @brief  Configures the trigger source for the specified sequence of the specified ADC unit.
  * @param  [in]  u8Seq                  The sequence to be configured.
  *                                      This parameter can be a value of @ref ADC_Sequence
- *   @arg  ADC_SEQ_A
- *   @arg  ADC_SEQ_B
+ *   @arg  ADC_SEQ_A:                   Sequence A.
+ *   @arg  ADC_SEQ_B:                   Sequence B.
  * @param  [in]  pstcCfg                Pointer to a stc_adc_trig_cfg_t structure that contains
  *                                      the configuration information of the trigger source.
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -ADCx == NULL.
- *                                     -pstcCfg == NULL.
+ *   @arg  ErrorInvalidParameter:       pstcCfg == NULL.
  * @note   ADC must be stoped while calling this function.
  * @note   The trigger source CANNOT be an event generated by the sequence itself.
  */
@@ -770,7 +722,7 @@ en_result_t ADC_TrigSrcConfig(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, const stc_adc
     uint32_t u32ITRGSELRAddr;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((ADCx != NULL) && (pstcCfg != NULL))
+    if (pstcCfg != NULL)
     {
         DDL_ASSERT(IS_ADC_UNIT(ADCx));
         DDL_ASSERT(IS_ADC_SEQ(u8Seq));
@@ -802,32 +754,25 @@ en_result_t ADC_TrigSrcConfig(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, const stc_adc
  * @brief  Enable or disable the trigger source of the specified sequence.
  * @param  [in]  u8Seq                  The sequence to be configured.
  *                                      This parameter can be a value of @ref ADC_Sequence
- *   @arg  ADC_SEQ_A
- *   @arg  ADC_SEQ_B
+ *   @arg  ADC_SEQ_A:                   Sequence A.
+ *   @arg  ADC_SEQ_B:                   Sequence B.
  * @param  [in]  enNewState             An en_functional_state_t enumeration value.
  *   @arg  Enable:                      Enable the trigger source of the specified sequence.
  *   @arg  Disable:                     Disable the trigger source of the specified sequence.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  * @note   ADC must be stoped while calling this function.
  */
-en_result_t ADC_TrigSrcCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState)
+void ADC_TrigSrcCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState)
 {
+    uint32_t u32Addr;
     uint8_t au8CmdPos[] = {ADC_TRGSR_TRGENA_POS, ADC_TRGSR_TRGENB_POS};
-    en_result_t enRet = ErrorInvalidParameter;
 
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        DDL_ASSERT(IS_ADC_SEQ(u8Seq));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_ADC_SEQ(u8Seq));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-        BIT_BAND(ADCx->TRGSR, au8CmdPos[u8Seq]) = (uint32_t)enNewState;
-        enRet = Ok;
-    }
-
-    return enRet;
+    u32Addr = (uint32_t)&ADCx->TRGSR;
+    BIT_BAND(u32Addr, au8CmdPos[u8Seq]) = (uint32_t)enNewState;
 }
 
 /**
@@ -839,11 +784,11 @@ en_result_t ADC_TrigSrcCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_st
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
  * @param  [in]  u16TrigSrc             ADC trigger source type.
  *                                      This parameter can be a value of @ref ADC_Trigger_Source_Type except ADC_TRIG_SRC_ADTRG.
- *   @arg  ADC_TRIG_SRC_EVENT0:         The trigger source is a internal event from other periperl. \
+ *   @arg  ADC_TRIG_SRC_EVENT0:         The trigger source is a internal event from other peripheral. \
  *                                      Only one event can be configured to trigger ADC.
- *   @arg  ADC_TRIG_SRC_EVENT1:         The trigger source is a internal event from other periperl. \
+ *   @arg  ADC_TRIG_SRC_EVENT1:         The trigger source is a internal event from other peripheral. \
  *                                      Only one event can be configured to trigger ADC.
- *   @arg  ADC_TRIG_SRC_EVENT0_EVENT1:  The trigger source are two internal events from other periperl(s). \
+ *   @arg  ADC_TRIG_SRC_EVENT0_EVENT1:  The trigger source are two internal events from other peripheral(s). \
  *                                      Two events can be configured to trigger ADC and one of which can trigger the ADC.
  * @param  [in]  u32ComTrigEn           Common trigger event enable bit mask.
  *                                      This parameter can be a value of @ref ADC_Common_Trigger_Event_Command
@@ -853,7 +798,7 @@ en_result_t ADC_TrigSrcCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_st
  *   @arg  ADC_COM2_TRIG_ENABLE:        Disable common trigger event 2 to start ADC.
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ *   @arg  ErrorInvalidParameter:       (u16TrigSrc & ADC_TRIG_SRC_EVENT0_EVENT1) == 0U.
  */
 en_result_t ADC_ComTrigCmd(M4_ADC_TypeDef *ADCx, uint16_t u16TrigSrc, uint32_t u32ComTrigEn)
 {
@@ -862,7 +807,7 @@ en_result_t ADC_ComTrigCmd(M4_ADC_TypeDef *ADCx, uint16_t u16TrigSrc, uint32_t u
     uint32_t u32ITRGSELRAddr;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((ADCx != NULL) && ((u16TrigSrc & ADC_TRIG_SRC_EVENT0_EVENT1) != 0U))
+    if ((u16TrigSrc & ADC_TRIG_SRC_EVENT0_EVENT1) != 0U)
     {
         DDL_ASSERT(IS_ADC_UNIT(ADCx));
 
@@ -889,30 +834,23 @@ en_result_t ADC_ComTrigCmd(M4_ADC_TypeDef *ADCx, uint16_t u16TrigSrc, uint32_t u
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
  * @param  [in]  u8Seq                  The sequence to be configured.
  *                                      This parameter can be a value of @ref ADC_Sequence
- *   @arg  ADC_SEQ_A
- *   @arg  ADC_SEQ_B
+ *   @arg  ADC_SEQ_A:                   Sequence A.
+ *   @arg  ADC_SEQ_B:                   Sequence B.
  * @param  [in]  enNewState             An en_functional_state_t enumeration value.
  *   @arg  Enable:                      Enable the interrupt of the specified sequence.
  *   @arg  Disable:                     Disable the interrupt of the specified sequence.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_SeqIntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState)
+void ADC_SeqIntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    uint32_t u32Addr;
 
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        DDL_ASSERT(IS_ADC_SEQ(u8Seq));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_ADC_SEQ(u8Seq));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-        BIT_BAND(ADCx->ICR, u8Seq) = (uint32_t)enNewState;
-        enRet = Ok;
-    }
-
-    return enRet;
+    u32Addr = (uint32_t)&ADCx->ICR;
+    BIT_BAND(u32Addr, u8Seq) = (uint32_t)enNewState;
 }
 
 /**
@@ -923,29 +861,27 @@ en_result_t ADC_SeqIntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_sta
  *   @arg  M4_ADC2:                     ADC unit 2 instance register base.
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
  * @param  [in]  u8Flag                 Status flag type.
- *                                      This parameter can be a value of @ref ADC_Sequence_Status_Flag
+ *                                      This parameter can be valueS of @ref ADC_Sequence_Status_Flag
  *   @arg  ADC_SEQ_FLAG_EOCA:           Status flag of the end of conversion of sequence A.
  *   @arg  ADC_SEQ_FLAG_EOCB:           Status flag of the end of conversion of sequence B.
- *   @arg  ADC_SEQ_FLAG_SA_INTED:       Status flag of sequence A was interrupted by sequence B.
+ *   @arg  ADC_SEQ_FLAG_NESTED:         Status flag of sequence A was interrupted by sequence B.
  * @retval An en_flag_status_t enumeration type value.
- *   @arg  Set:                         The specified flag is set.
- *   @arg  Reset:                      -The specified flag is not set.
- *                                     -ADCx == NULL.
+ *   @arg  Set:                         At least one of the specified flags is set.
+ *   @arg  Reset:                       The specified flags are not set.
  */
 en_flag_status_t ADC_SeqGetStatus(const M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
 {
-    en_flag_status_t enFlag = Reset;
+    en_flag_status_t enRet = Reset;
 
-    if (ADCx != NULL)
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+
+    enRet &= (uint8_t)ADC_SEQ_FLAG_ALL;
+    if ((ADCx->ISR & u8Flag) != 0U)
     {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        if ((ADCx->ISR & u8Flag) != 0U)
-        {
-            enFlag = Set;
-        }
+        enRet = Set;
     }
 
-    return enFlag;
+    return enRet;
 }
 
 /**
@@ -957,25 +893,16 @@ en_flag_status_t ADC_SeqGetStatus(const M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
  * @param  [in]  u8Flag                 Status flag type.
  *                                      This parameter can be values of @ref ADC_Sequence_Status_Flag
- *                                      except ADC_SEQ_FLAG_SA_INTED.
+ *                                      except ADC_SEQ_FLAG_NESTED.
  *   @arg  ADC_SEQ_FLAG_EOCA:           Status flag of the end of conversion of sequence A.
  *   @arg  ADC_SEQ_FLAG_EOCB:           Status flag of the end of conversion of sequence B.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_SeqClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
+void ADC_SeqClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        SET_REG8_BIT(ADCx->ISCLRR, u8Flag);
-        enRet = Ok;
-    }
-
-    return enRet;
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    u8Flag &= (uint8_t)ADC_SEQ_FLAG_CLR_ALL;
+    SET_REG8_BIT(ADCx->ISCLRR, u8Flag);
 }
 
 /**
@@ -993,26 +920,34 @@ en_result_t ADC_SeqClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
  *                                      contains the configuration information for the AWD.
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -ADCx == NULL.
- *                                     -pstcCfg == NULL.
+ *   @arg  ErrorInvalidParameter:       pstcCfg == NULL.
  */
 en_result_t ADC_AWD_Config(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, const stc_adc_awd_cfg_t *pstcCfg)
 {
+    uint32_t u32AwdCr;
+    uint32_t u32AwdDr0;
+    uint32_t u32AwdDr1;
+    uint32_t u32AwdChsr;
     uint32_t u32Pos;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((ADCx != NULL) && (pstcCfg != NULL))
+    if (pstcCfg != NULL)
     {
         DDL_ASSERT(IS_ADC_UNIT(ADCx));
         DDL_ASSERT(IS_AWD_UNIT(u8AWDx));
         DDL_ASSERT(IS_AWD_CH_NUM(pstcCfg->u8ChNum));
-        DDL_ASSERT(IS_AWD_CMP_MODE(pstcCfg->u16CmpMd));
+        DDL_ASSERT(IS_AWD_CMP_MODE(pstcCfg->u16CmpMode));
 
-        u32Pos = ((uint32_t)u8AWDx << 2U) + ADC_AWDCR_AWD0MD_POS;
-        BIT_BAND(ADCx->AWDCR, u32Pos) = (uint32_t)pstcCfg->u16CmpMd;
-        ADC_AWDx_DR0(u8AWDx)  = pstcCfg->u16LowerLimit;
-        ADC_AWDx_DR1(u8AWDx)  = pstcCfg->u16UpperLimit;
-        ADC_AWDx_CHSR(u8AWDx) = pstcCfg->u8ChNum;
+        u32Pos     = ((uint32_t)u8AWDx << 2U) + ADC_AWDCR_AWD0MD_POS;
+        u32AwdCr   = (uint32_t)&ADCx->AWDCR;
+        u32AwdDr0  = (uint32_t)&ADCx->AWD0DR0;
+        u32AwdDr1  = (uint32_t)&ADCx->AWD0DR1;
+        u32AwdChsr = (uint32_t)&ADCx->AWD0CHSR;
+
+        BIT_BAND(u32AwdCr, u32Pos) = (uint32_t)pstcCfg->u16CmpMode;
+        ADC_AWDx_DR(u32AwdDr0, u8AWDx) = pstcCfg->u16LowerLimit;
+        ADC_AWDx_DR(u32AwdDr1, u8AWDx) = pstcCfg->u16UpperLimit;
+        ADC_AWDx_CHSR(u32AwdChsr, u8AWDx) = pstcCfg->u8ChNum;
 
         enRet = Ok;
     }
@@ -1035,29 +970,19 @@ en_result_t ADC_AWD_Config(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, const stc_adc_a
  * @param  [in]  enNewState:            An en_functional_state_t value.
  *   @arg  Enable:                      Enable the combination mode of specified ADC unit's AWD.
  *   @arg  Disable:                     Disable the combination mode of specified ADC unit's AWD.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_AWD_CombModeCmd(M4_ADC_TypeDef *ADCx, uint16_t u16CombMode, en_functional_state_t enNewState)
+void ADC_AWD_CombModeCmd(M4_ADC_TypeDef *ADCx, uint16_t u16CombMode, en_functional_state_t enNewState)
 {
-    en_result_t enRet = ErrorInvalidParameter;
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_AWD_COMB_MODE(u16CombMode));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    if (ADCx != NULL)
+    CLEAR_REG16_BIT(ADCx->AWDCR, ADC_AWD_COMB_MODE_MSK);
+    if (enNewState == Enable)
     {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        DDL_ASSERT(IS_AWD_COMB_MODE(u16CombMode));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-
-        CLEAR_REG16_BIT(ADCx->AWDCR, ADC_AWD_COMB_MODE_MSK);
-        if (enNewState == Enable)
-        {
-            SET_REG16_BIT(ADCx->AWDCR, u16CombMode);
-        }
-        enRet = Ok;
+        SET_REG16_BIT(ADCx->AWDCR, u16CombMode);
     }
-
-    return enRet;
 }
 
 /**
@@ -1074,28 +999,20 @@ en_result_t ADC_AWD_CombModeCmd(M4_ADC_TypeDef *ADCx, uint16_t u16CombMode, en_f
  * @param  [in]  enNewState:            An en_functional_state_t value.
  *   @arg  Enable:                      Enable the specified AWD.
  *   @arg  Disable:                     Disable the specified AWD.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_AWD_Cmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_state_t enNewState)
+void ADC_AWD_Cmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_state_t enNewState)
 {
+    uint32_t u32Addr;
     uint32_t u32Pos;
-    en_result_t enRet = ErrorInvalidParameter;
 
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        DDL_ASSERT(IS_AWD_UNIT(u8AWDx));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_AWD_UNIT(u8AWDx));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-        u32Pos = ((uint32_t)u8AWDx << 2U) + ADC_AWDCR_AWD0EN_POS;
-        BIT_BAND(ADCx->AWDCR, u32Pos) = (uint32_t)enNewState;
-
-        enRet = Ok;
-    }
-
-    return enRet;
+    u32Pos  = ((uint32_t)u8AWDx << 2U) + ADC_AWDCR_AWD0EN_POS;
+    u32Addr = (uint32_t)&ADCx->AWDCR;
+    BIT_BAND(u32Addr, u32Pos) = (uint32_t)enNewState;
 }
 
 /**
@@ -1112,28 +1029,20 @@ en_result_t ADC_AWD_Cmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_stat
  * @param  [in]  enNewState:            An en_functional_state_t value.
  *   @arg  Enable:                      Enable the specified AWD's interrupt.
  *   @arg  Disable:                     Disable the specified AWD's interrupt.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_AWD_IntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_state_t enNewState)
+void ADC_AWD_IntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_state_t enNewState)
 {
+    uint32_t u32Addr;
     uint32_t u32Pos;
-    en_result_t enRet = ErrorInvalidParameter;
 
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        DDL_ASSERT(IS_AWD_UNIT(u8AWDx));
-        DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_AWD_UNIT(u8AWDx));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-        u32Pos = ((uint32_t)u8AWDx << 2U) + ADC_AWDCR_AWD0IEN_POS;
-        BIT_BAND(ADCx->AWDCR, u32Pos) = (uint32_t)enNewState;
-
-        enRet = Ok;
-    }
-
-    return enRet;
+    u32Pos  = ((uint32_t)u8AWDx << 2U) + ADC_AWDCR_AWD0IEN_POS;
+    u32Addr = (uint32_t)&ADCx->AWDCR;
+    BIT_BAND(u32Addr, u32Pos) = (uint32_t)enNewState;
 }
 
 /**
@@ -1144,29 +1053,26 @@ en_result_t ADC_AWD_IntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8AWDx, en_functional_s
  *   @arg  M4_ADC2:                     ADC unit 2 instance register base.
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
  * @param  [in]  u8Flag                 AWD status flag type.
- *                                      This parameter can be a value of @ref ADC_AWD_Status_Flag
- *   @arg  ADC_AWD_FLAG_0:              Flag of AWD0.
- *   @arg  ADC_AWD_FLAG_1:              Flag of AWD1.
+ *                                      This parameter can be values of @ref ADC_AWD_Status_Flag
+ *   @arg  ADC_AWD_FLAG_AWD0:           Flag of AWD0.
+ *   @arg  ADC_AWD_FLAG_AWD1:           Flag of AWD1.
  *   @arg  ADC_AWD_FLAG_COMB:           Flag of combination mode.
  * @retval An en_flag_status_t enumeration type value.
- *   @arg  Set:                         The specified flag is set.
- *   @arg  Reset:                      -The specified flag is reset.
- *                                     -ADCx == NULL.
+ *   @arg  Set:                         At least one of the specified flags is set.
+ *   @arg  Reset:                       The specified flags are not set.
  */
 en_flag_status_t ADC_AWD_GetStatus(const M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
 {
-    en_flag_status_t enFlag = Reset;
+    en_flag_status_t enRet = Reset;
 
-    if (ADCx != NULL)
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    u8Flag &= (uint8_t)ADC_AWD_FLAG_ALL;
+    if ((ADCx->AWDSR & u8Flag) != 0U)
     {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        if ((ADCx->AWDSR & u8Flag) != 0U)
-        {
-            enFlag = Set;
-        }
+        enRet = Set;
     }
 
-    return enFlag;
+    return enRet;
 }
 
 /**
@@ -1178,25 +1084,16 @@ en_flag_status_t ADC_AWD_GetStatus(const M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
  * @param  [in]  u8Flag                 AWD status flag type.
  *                                      This parameter can be values of @ref ADC_AWD_Status_Flag
- *   @arg  ADC_AWD_FLAG_0:              Flag of AWD0.
- *   @arg  ADC_AWD_FLAG_1:              Flag of AWD1.
+ *   @arg  ADC_AWD_FLAG_AWD0:           Flag of AWD0.
+ *   @arg  ADC_AWD_FLAG_AWD1:           Flag of AWD1.
  *   @arg  ADC_AWD_FLAG_COMB:           Flag of combination mode.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_AWD_ClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
+void ADC_AWD_ClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        CLEAR_REG8_BIT(ADCx->AWDSCLRR, u8Flag);
-        enRet = Ok;
-    }
-
-    return enRet;
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    u8Flag &= (uint8_t)ADC_AWD_FLAG_ALL;
+    SET_REG8_BIT(ADCx->AWDSCLRR, u8Flag);
 }
 
 /**
@@ -1232,6 +1129,7 @@ en_result_t ADC_AWD_ClrStatus(M4_ADC_TypeDef *ADCx, uint8_t u8Flag)
  */
 void ADC_PGA_Config(uint8_t u8PGAx, uint8_t u8GainFactor, uint8_t u8PgaVss)
 {
+    uint32_t u32Addr;
     uint32_t u32PGACRAddr;
     M4_ADC_TypeDef *ADCx = NULL;
     uint32_t au32AdcBase[] = {ADC1_BASE, ADC1_BASE, ADC1_BASE, ADC2_BASE};
@@ -1246,7 +1144,8 @@ void ADC_PGA_Config(uint8_t u8PGAx, uint8_t u8GainFactor, uint8_t u8PgaVss)
         u8PGAx %= 3U;
         u32PGACRAddr = (uint32_t)&ADCx->PGACR1 + u8PGAx;
         MODIFY_REG8(RW_MEM8(u32PGACRAddr), ADC_PGA_GAIN_MSK, u8GainFactor);
-        BIT_BAND(ADCx->PGAVSSENR, u8PGAx) = (uint32_t)u8PgaVss;
+        u32Addr = (uint32_t)&ADCx->PGAVSSENR;
+        BIT_BAND(u32Addr, u8PGAx) = (uint32_t)u8PgaVss;
     }
 }
 
@@ -1324,8 +1223,7 @@ void ADC_SYNC_Config(uint16_t u16SyncUnit, uint16_t u16SyncMode, uint8_t u8TrigD
 void ADC_SYNC_Cmd(en_functional_state_t enNewState)
 {
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-
-    bM4_ADC1->SYNCCR_b.SYNCEN = (uint32_t)enNewState;
+    WRITE_REG32(bM4_ADC1->SYNCCR_b.SYNCEN, enNewState);
 }
 
 /**
@@ -1343,7 +1241,7 @@ void ADC_SH_Config(uint8_t u8SplTime)
 /**
  * @brief  Enable or disable sample-hold channels.
  * @param  [in]  u32AdcCh               ADC channels.
- *                                      This parameter be values of the following that from @ref ADC_Channle
+ *                                      This parameter be values of the following that from @ref ADC_Channel
  *   @arg  ADC_CH0:                     Channel 0 of ADC1.
  *   @arg  ADC_CH1:                     Channel 1 of ADC1.
  *   @arg  ADC_CH2:                     Channel 2 of ADC1.
@@ -1371,7 +1269,7 @@ void ADC_SH_ChannelCmd(uint32_t u32AdcCh, en_functional_state_t enNewState)
  *   @arg  M4_ADC1:                     ADC unit 1 instance register base.
  *   @arg  M4_ADC2:                     ADC unit 2 instance register base.
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
- * @param  [in]  u32AdcCh               This parameter be values of the following that from @ref ADC_Channle
+ * @param  [in]  u32AdcCh               This parameter be values of the following that from @ref ADC_Channel
  *   @arg  ADC_CH0 ~ ADC_CH15           For all of ADC units.
  * @param  [in]  u8AdcPinNum           -This parameter be a value of @ref ADC_Pin_Number
  *                                     -The pin number is from 0 to 15 can be remaped.
@@ -1380,7 +1278,7 @@ void ADC_SH_ChannelCmd(uint32_t u32AdcCh, en_functional_state_t enNewState)
  *                                     -ADC3_xxx for ADC3.
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ *   @arg  ErrorInvalidParameter:       u32AdcCh == 0U.
  */
 en_result_t ADC_ChannelRemap(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, uint8_t u8AdcPinNum)
 {
@@ -1390,11 +1288,12 @@ en_result_t ADC_ChannelRemap(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, uint8_t u8
     uint32_t u32ChNum = 0U;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if (ADCx != NULL)
+    if (u32AdcCh != 0UL)
     {
         DDL_ASSERT(IS_ADC_UNIT(ADCx));
         DDL_ASSERT(IS_ADC_REMAP_PIN_NUM(u8AdcPinNum));
 
+        u32AdcCh &= ADC_REMAP_CH_MSK;
         u32CHMUXRAddr = (uint32_t)&ADCx->CHMUXR0;
         while (u32AdcCh != 0U)
         {
@@ -1425,7 +1324,7 @@ en_result_t ADC_ChannelRemap(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, uint8_t u8
  *   @arg  M4_ADC2:                     ADC unit 2 instance register base.
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
  * @param  [in]  u32AdcCh               ADC channel.
- *                                      This parameter can be one of the following values of @ref ADC_Channle
+ *                                      This parameter can be one of the following values of @ref ADC_Channel
  *   @arg  ADC_CH0 ~ ADC_CH15
  * @retval An uint8_t type value of ADC pin number that corresponding to the specified channel number.
  *   @arg ADC123_xxx:                   Pin number blongs to all of ADC units.
@@ -1477,7 +1376,7 @@ uint8_t ADC_GetChannelPinNum(const M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh)
  *                                      pu16AdcVal[2] = value of Channel 2,
  *                                                  ...
  *                                      u8Length < ADCx_CH_COUNT(ADC1_CH_COUNT or ADC2_CH_COUNT),
- *                                      only the value of the enabled channles will be read:
+ *                                      only the value of the enabled channels will be read:
  *                                      pu16AdcVal[0] = value of the 1st enabled channel,
  *                                      pu16AdcVal[1] = value of the 2nd enabled channel,
  *                                      pu16AdcVal[2] = value of the 3rd enabled channel,
@@ -1485,8 +1384,7 @@ uint8_t ADC_GetChannelPinNum(const M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh)
  * @param  [in]  u32Timeout             Timeout value(millisecond).
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -ADCx == NULL.
- *                                     -pu16AdcVal == NULL.
+ *   @arg  ErrorInvalidParameter:      -pu16AdcVal == NULL.
  *                                     -u8Length == 0.
  *                                     -u32Timeout == 0.
  *                                     -The base address of 'pu16AdcVal' is not 2-byte aligned.
@@ -1499,7 +1397,7 @@ en_result_t ADC_PollingSA(M4_ADC_TypeDef *ADCx, uint16_t pu16AdcVal[], uint8_t u
     uint8_t au8DrLen[ADC_UNIT_COUNT] = {ADC1_CH_COUNT, ADC2_CH_COUNT, ADC3_CH_COUNT};
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((ADCx != NULL) && (pu16AdcVal != NULL) && \
+    if ((pu16AdcVal != NULL) && \
         (u8Length != 0U) && (u32Timeout != 0U) && \
         (((uint32_t)&pu16AdcVal[0U])%2U == 0U))
     {
@@ -1507,10 +1405,10 @@ en_result_t ADC_PollingSA(M4_ADC_TypeDef *ADCx, uint16_t pu16AdcVal[], uint8_t u
 
         u8AdcIdx = ADC_IDX(ADCx);
 
-        u32TimeCnt = u32Timeout * (SystemCoreClock / 10u / 1000u);
-        ADCx->STR  = ADC_STR_STRT;
-
+        u32TimeCnt = u32Timeout * (SystemCoreClock / 10U / 1000U);
         enRet = ErrorTimeout;
+        /* Start ADc.*/
+        WRITE_REG8(ADCx->STR, ADC_STR_STRT);
         while (u32TimeCnt-- != 0U)
         {
             if ((ADCx->ISR & ADC_SEQ_FLAG_EOCA) != 0U)
@@ -1525,6 +1423,7 @@ en_result_t ADC_PollingSA(M4_ADC_TypeDef *ADCx, uint16_t pu16AdcVal[], uint8_t u
                     ADC_GetAllData(ADCx, pu16AdcVal, u8Length);
                 }
                 enRet = Ok;
+                WRITE_REG8(ADCx->ISCLRR, ADC_ISCLRR_CLREOCAF);
                 break;
             }
         }
@@ -1540,22 +1439,12 @@ en_result_t ADC_PollingSA(M4_ADC_TypeDef *ADCx, uint16_t pu16AdcVal[], uint8_t u
  *   @arg  M4_ADC1:                     ADC unit 1 instance register base.
  *   @arg  M4_ADC2:                     ADC unit 2 instance register base.
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_Start(M4_ADC_TypeDef *ADCx)
+void ADC_Start(M4_ADC_TypeDef *ADCx)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        ADCx->STR = ADC_STR_STRT;
-        enRet = Ok;
-    }
-
-    return enRet;
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    WRITE_REG8(ADCx->STR, ADC_STR_STRT);
 }
 
 /**
@@ -1565,22 +1454,12 @@ en_result_t ADC_Start(M4_ADC_TypeDef *ADCx)
  *   @arg  M4_ADC1:                     ADC unit 1 instance register base.
  *   @arg  M4_ADC2:                     ADC unit 2 instance register base.
  *   @arg  M4_ADC3:                     ADC unit 3 instance register base.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       ADCx == NULL.
+ * @retval None
  */
-en_result_t ADC_Stop(M4_ADC_TypeDef *ADCx)
+void ADC_Stop(M4_ADC_TypeDef *ADCx)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
-        ADCx->STR = (uint8_t)0U;
-        enRet = Ok;
-    }
-
-    return enRet;
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    WRITE_REG8(ADCx->STR, 0U);
 }
 
 /**
@@ -1598,8 +1477,7 @@ en_result_t ADC_Stop(M4_ADC_TypeDef *ADCx)
  *                                      It CAN NOT be less than the number of channels of the ADC unit.
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -ADCx == NULL.
- *                                     -pu16AdcVal == NULL.
+ *   @arg  ErrorInvalidParameter:      -pu16AdcVal == NULL.
  *                                     -u8Length is less than the number of channels of the ADC unit.
  *                                     -The base address of 'pu16AdcVal' is not 2-byte aligned.
  */
@@ -1612,7 +1490,7 @@ en_result_t ADC_GetAllData(const M4_ADC_TypeDef *ADCx, uint16_t pu16AdcVal[], ui
     uint8_t au8DrLen[ADC_UNIT_COUNT] = {ADC1_CH_COUNT, ADC2_CH_COUNT, ADC3_CH_COUNT};
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((ADCx != NULL) && (pu16AdcVal != NULL) && ((u32DestAddr%2U) == 0U))
+    if ((pu16AdcVal != NULL) && ((u32DestAddr%2U) == 0U))
     {
         DDL_ASSERT(IS_ADC_UNIT(ADCx));
 
@@ -1647,8 +1525,7 @@ en_result_t ADC_GetAllData(const M4_ADC_TypeDef *ADCx, uint16_t pu16AdcVal[], ui
  * @param  [in]  u8Length               The length of the ADC value to be got.
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -ADCx == NULL.
- *                                     -u32TargetCh = 0.
+ *   @arg  ErrorInvalidParameter:      -u32TargetCh = 0.
  *                                     -pu16AdcVal == NULL.
  *                                     -u8Length == 0.
  *                                     -The base address of 'pu16AdcVal' is not 2-byte aligned.
@@ -1660,14 +1537,14 @@ en_result_t ADC_GetChannelData(const M4_ADC_TypeDef *ADCx, uint32_t u32TargetCh,
     uint32_t i = 0U;
     uint32_t u32DRAddr;
     uint32_t u32DestAddr = (uint32_t)&pu16AdcVal[0U];
+    uint32_t au32ChAllMsk[] = {ADC1_CH_ALL, ADC2_CH_ALL, ADC3_CH_ALL};
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((ADCx != NULL) && (u32TargetCh != 0U) && \
-        (pu16AdcVal != NULL) && ((u32DestAddr%2U) == 0U) && \
-        (u8Length != 0U))
+    if ((u32TargetCh != 0U) && (pu16AdcVal != NULL) &&
+        ((u32DestAddr%2U) == 0U) && (u8Length != 0U))
     {
         DDL_ASSERT(IS_ADC_UNIT(ADCx));
-
+        u32TargetCh &= au32ChAllMsk[ADC_IDX(ADCx)];
         u32DRAddr = (uint32_t)&ADCx->DR0;
         while ((u32TargetCh != 0U) && (u8Length != 0U))
         {
@@ -1699,7 +1576,6 @@ en_result_t ADC_GetChannelData(const M4_ADC_TypeDef *ADCx, uint32_t u32TargetCh,
  *   @arg  ADC_CH_NUM_0 ~ ADC_CH_NUM_19: For ADC3.
  * @retval An uint16_t type value.
  *   @arg  ADC_INVALID_VAL(0xFFFF):    -It's a wrong return value. The following maybe occurred:
- *                                     -ADCx == NULL.
  *                                     -u8ChNum is larger than the max index number of the channel.
  */
 uint16_t ADC_GetValue(const M4_ADC_TypeDef *ADCx, uint8_t u8ChNum)
@@ -1709,16 +1585,13 @@ uint16_t ADC_GetValue(const M4_ADC_TypeDef *ADCx, uint8_t u8ChNum)
     uint16_t u16RetVal = (uint16_t)ADC_INVALID_VAL;
     uint8_t au8DrLen[ADC_UNIT_COUNT] = {ADC1_CH_COUNT, ADC2_CH_COUNT, ADC3_CH_COUNT};
 
-    if (ADCx != NULL)
-    {
-        DDL_ASSERT(IS_ADC_UNIT(ADCx));
+    DDL_ASSERT(IS_ADC_UNIT(ADCx));
 
-        u32DRAddr = (uint32_t)&ADCx->DR0 + ((uint32_t)u8ChNum * 2U);
-        u8AdcIdx  = ADC_IDX(ADCx);
-        if (u8ChNum < au8DrLen[u8AdcIdx])
-        {
-            u16RetVal = RW_MEM16(u32DRAddr);
-        }
+    u32DRAddr = (uint32_t)&ADCx->DR0 + ((uint32_t)u8ChNum * 2U);
+    u8AdcIdx  = ADC_IDX(ADCx);
+    if (u8ChNum < au8DrLen[u8AdcIdx])
+    {
+        u16RetVal = RW_MEM16(u32DRAddr);
     }
 
     return u16RetVal;

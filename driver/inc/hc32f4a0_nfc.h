@@ -50,8 +50,8 @@
  * at all times.
  *******************************************************************************
  */
-#ifndef __HC32F4A0_EXMC_NFC_H__
-#define __HC32F4A0_EXMC_NFC_H__
+#ifndef __HC32F4A0_NFC_H__
+#define __HC32F4A0_NFC_H__
 
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus
@@ -90,29 +90,29 @@ extern "C"
  */
 typedef struct
 {
-    uint32_t    u32CapacitySize;    /*!< Defines the capacity size.
-                                         This parameter can be a value of @ref EXMC_NFC_BANK_Memory_Capacity. */
+    uint32_t    u32CapacitySize;            /*!< Defines the capacity size.
+                                                 This parameter can be a value of @ref EXMC_NFC_BANK_Memory_Capacity. */
 
-    uint32_t    u32MemWidth;        /*!< Defines the memory width.
-                                         This parameter can be a value of @ref EXMC_NFC_Memory_Width. */
+    uint32_t    u32MemWidth;                /*!< Defines the memory width.
+                                                 This parameter can be a value of @ref EXMC_NFC_Memory_Width. */
 
-    uint32_t    u32BankNum;         /*!< Defines the bank number.
-                                         This parameter can be a value of @ref EXMC_NFC_Bank_Number */
+    uint32_t    u32BankNum;                 /*!< Defines the bank number.
+                                                 This parameter can be a value of @ref EXMC_NFC_Bank_Number */
 
-    uint32_t    u32PageSize;        /*!< Defines the page size.
-                                         This parameter can be a value of @ref EXMC_NFC_Page_Size. */
+    uint32_t    u32PageSize;                /*!< Defines the page size.
+                                                 This parameter can be a value of @ref EXMC_NFC_Page_Size. */
 
-    uint32_t    u32WrProtect;       /*!< Defines the write protect.
-                                         This parameter can be a value of @ref EXMC_NFC_Write_Protect. */
+    uint32_t    u32WrProtect;               /*!< Defines the write protect.
+                                                 This parameter can be a value of @ref EXMC_NFC_Write_Protect. */
 
-    uint32_t    u32EccMode;         /*!< Defines the ECC mode.
-                                         This parameter can be a value of @ref EXMC_NFC_ECC_Mode. */
+    uint32_t    u32EccMode;                 /*!< Defines the ECC mode.
+                                                 This parameter can be a value of @ref EXMC_NFC_ECC_Mode. */
 
-    uint32_t    u32RowAddrCycle;    /*!< Defines the row address cycle.
-                                         This parameter can be a value of @ref EXMC_NFC_Row_Address_Cycle. */
+    uint32_t    u32RowAddrCycle;            /*!< Defines the row address cycle.
+                                                 This parameter can be a value of @ref EXMC_NFC_Row_Address_Cycle. */
 
-    uint32_t    u32SpareColSize;    /*!< Defines the spare column size.
-                                         This parameter can be a value between Min_Data = 0 and Max_Data = 0xFF */
+    uint8_t     u8SpareSizeForUserData;     /*!< Defines the spare column size for user data.
+                                                 This parameter can be a value between Min_Data = 0 and Max_Data = 0xFF */
 }stc_exmc_nfc_base_cfg_t;
 
 /**
@@ -206,14 +206,14 @@ typedef struct
  * @defgroup EXMC_NFC_Bank EXMC NFC Bank
  * @{
  */
-#define EXMC_NFC_BANK_0                         ((uint32_t)0UL)     /*!< Bank 0 */
-#define EXMC_NFC_BANK_1                         ((uint32_t)1UL)     /*!< Bank 1 */
-#define EXMC_NFC_BANK_2                         ((uint32_t)2UL)     /*!< Bank 2 */
-#define EXMC_NFC_BANK_3                         ((uint32_t)3UL)     /*!< Bank 3 */
-#define EXMC_NFC_BANK_4                         ((uint32_t)4UL)     /*!< Bank 4 */
-#define EXMC_NFC_BANK_5                         ((uint32_t)5UL)     /*!< Bank 5 */
-#define EXMC_NFC_BANK_6                         ((uint32_t)6UL)     /*!< Bank 6 */
-#define EXMC_NFC_BANK_7                         ((uint32_t)7UL)     /*!< Bank 7 */
+#define EXMC_NFC_BANK_0                         (0UL)     /*!< Bank 0 */
+#define EXMC_NFC_BANK_1                         (1UL)     /*!< Bank 1 */
+#define EXMC_NFC_BANK_2                         (2UL)     /*!< Bank 2 */
+#define EXMC_NFC_BANK_3                         (3UL)     /*!< Bank 3 */
+#define EXMC_NFC_BANK_4                         (4UL)     /*!< Bank 4 */
+#define EXMC_NFC_BANK_5                         (5UL)     /*!< Bank 5 */
+#define EXMC_NFC_BANK_6                         (6UL)     /*!< Bank 6 */
+#define EXMC_NFC_BANK_7                         (7UL)     /*!< Bank 7 */
 /**
  * @}
  */
@@ -222,73 +222,73 @@ typedef struct
  * @defgroup EXMC_NFC_Memory_Command EXMC NFC Memory Command
  * @{
  */
-#define EXMC_NFC_CMD_READ_1ST                           ((uint32_t)0x00UL)
-#define EXMC_NFC_CMD_READ_2ND                           ((uint32_t)0xE0UL)
+#define EXMC_NFC_CMD_READ_1ST                           (0x00UL)
+#define EXMC_NFC_CMD_READ_2ND                           (0xE0UL)
 
-#define EXMC_NFC_CMD_COPYBACK_READ_1ST                  ((uint32_t)0x00UL)
-#define EXMC_NFC_CMD_COPYBACK_READ_2ND                  ((uint32_t)0x35UL)
+#define EXMC_NFC_CMD_COPYBACK_READ_1ST                  (0x00UL)
+#define EXMC_NFC_CMD_COPYBACK_READ_2ND                  (0x35UL)
 
-#define EXMC_NFC_CMD_CHANGE_RD_COL_1ST                  ((uint32_t)0x05UL)
-#define EXMC_NFC_CMD_CHANGE_RD_COL_2ND                  ((uint32_t)0xE0UL)
+#define EXMC_NFC_CMD_CHANGE_RD_COL_1ST                  (0x05UL)
+#define EXMC_NFC_CMD_CHANGE_RD_COL_2ND                  (0xE0UL)
 
-#define EXMC_NFC_CMD_CHANGE_RD_COL_ENHANCED_1ST         ((uint32_t)0x06UL)
-#define EXMC_NFC_CMD_CHANGE_RD_COL_ENHANCED_2ND         ((uint32_t)0xE0UL)
+#define EXMC_NFC_CMD_CHANGE_RD_COL_ENHANCED_1ST         (0x06UL)
+#define EXMC_NFC_CMD_CHANGE_RD_COL_ENHANCED_2ND         (0xE0UL)
 
-#define EXMC_NFC_CMD_READ_CACHE_RANDOM_1ST              ((uint32_t)0x00UL)
-#define EXMC_NFC_CMD_READ_CACHE_RANDOM_2ND              ((uint32_t)0x31UL)
+#define EXMC_NFC_CMD_READ_CACHE_RANDOM_1ST              (0x00UL)
+#define EXMC_NFC_CMD_READ_CACHE_RANDOM_2ND              (0x31UL)
 
-#define EXMC_NFC_CMD_CALCULATE_ECC                      ((uint32_t)0x23UL)
+#define EXMC_NFC_CMD_CALCULATE_ECC                      (0x23UL)
 
-#define EXMC_NFC_CMD_READ_CACHE_SEQ                     ((uint32_t)0x31UL)
+#define EXMC_NFC_CMD_READ_CACHE_SEQ                     (0x31UL)
 
-#define EXMC_NFC_CMD_READ_CACHE_END                     ((uint32_t)0x3FUL)
+#define EXMC_NFC_CMD_READ_CACHE_END                     (0x3FUL)
 
-#define EXMC_NFC_CMD_BLK_ERASE_1ST                      ((uint32_t)0x60UL)
-#define EXMC_NFC_CMD_BLK_ERASE_2ND                      ((uint32_t)0xD0UL)
+#define EXMC_NFC_CMD_BLK_ERASE_1ST                      (0x60UL)
+#define EXMC_NFC_CMD_BLK_ERASE_2ND                      (0xD0UL)
 
-#define EXMC_NFC_CMD_BLK_ERASE_INTERLEAVED_1ST          ((uint32_t)0x60UL)
-#define EXMC_NFC_CMD_BLK_ERASE_INTERLEAVED_2ND          ((uint32_t)0xD1UL)
+#define EXMC_NFC_CMD_BLK_ERASE_INTERLEAVED_1ST          (0x60UL)
+#define EXMC_NFC_CMD_BLK_ERASE_INTERLEAVED_2ND          (0xD1UL)
 
-#define EXMC_NFC_CMD_READ_STATUS                        ((uint32_t)0x70UL)
+#define EXMC_NFC_CMD_READ_STATUS                        (0x70UL)
 
-#define EXMC_NFC_CMD_READ_STATUS_ENHANCED               ((uint32_t)0x78UL)
+#define EXMC_NFC_CMD_READ_STATUS_ENHANCED               (0x78UL)
 
-#define EXMC_NFC_CMD_PAGE_PROGRAM_1ST                   ((uint32_t)0x80UL)
-#define EXMC_NFC_CMD_PAGE_PROGRAM_2ND                   ((uint32_t)0x10UL)
+#define EXMC_NFC_CMD_PAGE_PROGRAM_1ST                   (0x80UL)
+#define EXMC_NFC_CMD_PAGE_PROGRAM_2ND                   (0x10UL)
 
-#define EXMC_NFC_CMD_PAGE_PROGRAM_INTERLEAVED_1ST       ((uint32_t)0x80UL)
-#define EXMC_NFC_CMD_PAGE_PROGRAM_INTERLEAVED_2ND       ((uint32_t)0x11UL)
+#define EXMC_NFC_CMD_PAGE_PROGRAM_INTERLEAVED_1ST       (0x80UL)
+#define EXMC_NFC_CMD_PAGE_PROGRAM_INTERLEAVED_2ND       (0x11UL)
 
-#define EXMC_NFC_CMD_PAGE_CACHE_PROGRAM_1ST             ((uint32_t)0x80UL)
-#define EXMC_NFC_CMD_PAGE_CACHE_PROGRAM_2ND             ((uint32_t)0x15UL)
+#define EXMC_NFC_CMD_PAGE_CACHE_PROGRAM_1ST             (0x80UL)
+#define EXMC_NFC_CMD_PAGE_CACHE_PROGRAM_2ND             (0x15UL)
 
-#define EXMC_NFC_CMD_COPYBACK_PROGRAM_1ST               ((uint32_t)0x85UL)
-#define EXMC_NFC_CMD_COPYBACK_PROGRAM_2ND               ((uint32_t)0x10UL)
+#define EXMC_NFC_CMD_COPYBACK_PROGRAM_1ST               (0x85UL)
+#define EXMC_NFC_CMD_COPYBACK_PROGRAM_2ND               (0x10UL)
 
-#define EXMC_NFC_CMD_COPYBACK_PROGRAM_INTERLEAVED_1ST   ((uint32_t)0x85UL)
-#define EXMC_NFC_CMD_COPYBACK_PROGRAM_INTERLEAVED_2ND   ((uint32_t)0x11UL)
+#define EXMC_NFC_CMD_COPYBACK_PROGRAM_INTERLEAVED_1ST   (0x85UL)
+#define EXMC_NFC_CMD_COPYBACK_PROGRAM_INTERLEAVED_2ND   (0x11UL)
 
-#define EXMC_NFC_CMD_CHANGE_WR_COL                      ((uint32_t)0x85UL)
+#define EXMC_NFC_CMD_CHANGE_WR_COL                      (0x85UL)
 
-#define EXMC_NFC_CMD_CHANGE_ROW_ADDRESS                 ((uint32_t)0x85UL)
+#define EXMC_NFC_CMD_CHANGE_ROW_ADDRESS                 (0x85UL)
 
-#define EXMC_NFC_CMD_READ_ID                            ((uint32_t)0x90UL)
+#define EXMC_NFC_CMD_READ_ID                            (0x90UL)
 
-#define EXMC_NFC_CMD_READ_PARAMETER_PAGE                ((uint32_t)0xECUL)
+#define EXMC_NFC_CMD_READ_PARAMETER_PAGE                (0xECUL)
 
-#define EXMC_NFC_CMD_READ_UNIQUE_ID                     ((uint32_t)0xEDUL)
+#define EXMC_NFC_CMD_READ_UNIQUE_ID                     (0xEDUL)
 
-#define EXMC_NFC_CMD_GET_FEATURES                       ((uint32_t)0xEEUL)
+#define EXMC_NFC_CMD_GET_FEATURES                       (0xEEUL)
 
-#define EXMC_NFC_CMD_SET_FEATURES                       ((uint32_t)0xEFUL)
+#define EXMC_NFC_CMD_SET_FEATURES                       (0xEFUL)
 
-#define EXMC_NFC_CMD_RESET_LUN                          ((uint32_t)0xFAUL)
+#define EXMC_NFC_CMD_RESET_LUN                          (0xFAUL)
 
-#define EXMC_NFC_CMD_ASYNCHRONOUS_RESSET                ((uint32_t)0xFCUL)
+#define EXMC_NFC_CMD_ASYNCHRONOUS_RESSET                (0xFCUL)
 
-#define EXMC_NFC_CMD_DESELECT_CHIP                      ((uint32_t)0xFEUL)
+#define EXMC_NFC_CMD_DESELECT_CHIP                      (0xFEUL)
 
-#define EXMC_NFC_CMD_RESET                              ((uint32_t)0xFFUL)
+#define EXMC_NFC_CMD_RESET                              (0xFFUL)
 /**
  * @}
  */
@@ -313,7 +313,7 @@ typedef struct
 #define EXMC_NFC_BANK_CAPACITY_2GBIT            (NFC_BACR_SIZE_2 | NFC_BACR_SIZE_0)
 #define EXMC_NFC_BANK_CAPACITY_4GBIT            (NFC_BACR_SIZE_2 | NFC_BACR_SIZE_1)
 #define EXMC_NFC_BANK_CAPACITY_8GBIT            (NFC_BACR_SIZE)
-#define EXMC_NFC_BANK_CAPACITY_16GBIT           ((uint32_t)0UL)
+#define EXMC_NFC_BANK_CAPACITY_16GBIT           (0UL)
 #define EXMC_NFC_BANK_CAPACITY_32GBIT           (NFC_BACR_SIZE_0)
 #define EXMC_NFC_BANK_CAPACITY_64GBIT           (NFC_BACR_SIZE_1)
 /**
@@ -324,7 +324,7 @@ typedef struct
  * @defgroup EXMC_NFC_Memory_Width EXMC NFC Memory Width
  * @{
  */
-#define EXMC_NFC_MEM_WIDTH_8                    ((uint32_t)0UL)
+#define EXMC_NFC_MEM_WIDTH_8                    (0UL)
 #define EXMC_NFC_MEM_WIDTH_16                   (NFC_BACR_B16BIT)
 /**
  * @}
@@ -334,7 +334,7 @@ typedef struct
  * @defgroup EXMC_NFC_Bank_Number EXMC NFC Bank Number
  * @{
  */
-#define EXMC_NFC_1_BANK                         ((uint32_t)0UL)
+#define EXMC_NFC_1_BANK                         (0UL)
 #define EXMC_NFC_2_BANKS                        (NFC_BACR_BANK_0)
 #define EXMC_NFC_4_BANKS                        (NFC_BACR_BANK_1)
 #define EXMC_NFC_8_BANKS                        (NFC_BACR_BANK)
@@ -346,7 +346,7 @@ typedef struct
  * @defgroup EXMC_NFC_Open_Page EXMC NFC Open Page
  * @{
  */
-#define EXMC_NFC_OPEN_PAGE_DISABLE              ((uint32_t)0UL)
+#define EXMC_NFC_OPEN_PAGE_DISABLE              (0UL)
 #define EXMC_NFC_OPEN_PAGE_ENABLE               (PERIC_NFC_SYCTLREG_OPO)
 /**
  * @}
@@ -356,7 +356,7 @@ typedef struct
  * @defgroup EXMC_NFC_Write_Protect EXMC NFC Write Protect
  * @{
  */
-#define EXMC_NFC_WR_PROTECT_ENABLE              ((uint32_t)0UL)
+#define EXMC_NFC_WR_PROTECT_ENABLE              (0UL)
 #define EXMC_NFC_WR_PROTECT_DISABLE             (NFC_BACR_WP)
 /**
  * @}
@@ -366,7 +366,7 @@ typedef struct
  * @defgroup EXMC_NFC_ECC_Mode EXMC NFC ECC Mode
  * @{
  */
-#define EXMC_NFC_ECC_1BIT                       ((uint32_t)0UL)
+#define EXMC_NFC_ECC_1BIT                       (0UL)
 #define EXMC_NFC_ECC_4BITS                      (NFC_BACR_ECCM_0)
 /**
  * @}
@@ -376,7 +376,7 @@ typedef struct
  * @defgroup EXMC_NFC_Row_Address_Cycle EXMC NFC Row Address Cycle
  * @{
  */
-#define EXMC_NFC_2_ROW_ADDRESS_CYCLES           ((uint32_t)0UL)
+#define EXMC_NFC_2_ROW_ADDRESS_CYCLES           (0UL)
 #define EXMC_NFC_3_ROW_ADDRESS_CYCLES           (NFC_BACR_RAC)
 /**
  * @}
@@ -427,7 +427,7 @@ typedef struct
  * @defgroup EXMC_NFC_ECC_Calculate_Bytes EXMC NFC ECC Calculate Bytes
  * @{
  */
-#define EXMC_NFC_ECC_CALCULATE_BLOCK_BYTES      ((uint32_t)512UL)
+#define EXMC_NFC_ECC_CALCULATE_BLOCK_BYTES      (512UL)
 /**
  * @}
  */
@@ -436,7 +436,7 @@ typedef struct
  * @defgroup EXMC_NFC_ECC_Value_Bytes EXMC NFC ECC Value Bytes
  * @{
  */
-#define EXMC_NFC_1BIT_ECC_VALUE_BYTES           ((uint32_t)0x04UL)
+#define EXMC_NFC_1BIT_ECC_VALUE_BYTES           (0x03UL)
 /**
  * @}
  */
@@ -445,9 +445,9 @@ typedef struct
  * @defgroup EXMC_NFC_1Bit_ECC_Result EXMC NFC 1Bit ECC Result
  * @{
  */
-#define EXMC_NFC_1BIT_ECC_SINGLE_BIT_ERR        (NFC_ECCR0_SE)
-#define EXMC_NFC_1BIT_ECC_MULTIPLE_BITS_ERR     (NFC_ECCR0_ME)
-#define EXMC_NFC_1BIT_ECC_ERR_LOCATION          (NFC_ECCR0_ERRLOC)
+#define EXMC_NFC_1BIT_ECC_SINGLE_BIT_ERR        (NFC_ECCR_SE)
+#define EXMC_NFC_1BIT_ECC_MULTIPLE_BITS_ERR     (NFC_ECCR_ME)
+#define EXMC_NFC_1BIT_ECC_ERR_LOCATION          (NFC_ECCR_ERRLOC)
 /**
  * @}
  */
@@ -456,8 +456,8 @@ typedef struct
  * @defgroup EXMC_NFC_1Bit_ECC_Error_Location_Position EXMC NFC 1Bit ECC Error Location Position
  * @{
  */
-#define EXMC_NFC_1BIT_ECC_ERR_BIT_POS           (NFC_ECCR0_ERRLOC_POS)
-#define EXMC_NFC_1BIT_ECC_ERR_BYTE_POS          (NFC_ECCR0_ERRLOC_POS + 3UL)
+#define EXMC_NFC_1BIT_ECC_ERR_BIT_POS           (NFC_ECCR_ERRLOC_POS)
+#define EXMC_NFC_1BIT_ECC_ERR_BYTE_POS          (NFC_ECCR_ERRLOC_POS + 3UL)
 /**
  * @}
  */
@@ -466,22 +466,22 @@ typedef struct
  * @defgroup EXMC_NFC_ECC_Section EXMC NFC ECC Section
  * @{
  */
-#define EXMC_NFC_ECC_SECTION0                   ((uint32_t)0UL)
-#define EXMC_NFC_ECC_SECTION1                   ((uint32_t)1UL)
-#define EXMC_NFC_ECC_SECTION2                   ((uint32_t)2UL)
-#define EXMC_NFC_ECC_SECTION3                   ((uint32_t)3UL)
-#define EXMC_NFC_ECC_SECTION4                   ((uint32_t)4UL)
-#define EXMC_NFC_ECC_SECTION5                   ((uint32_t)5UL)
-#define EXMC_NFC_ECC_SECTION6                   ((uint32_t)6UL)
-#define EXMC_NFC_ECC_SECTION7                   ((uint32_t)7UL)
-#define EXMC_NFC_ECC_SECTION8                   ((uint32_t)8UL)
-#define EXMC_NFC_ECC_SECTION9                   ((uint32_t)9UL)
-#define EXMC_NFC_ECC_SECTION10                  ((uint32_t)10UL)
-#define EXMC_NFC_ECC_SECTION11                  ((uint32_t)11UL)
-#define EXMC_NFC_ECC_SECTION12                  ((uint32_t)12UL)
-#define EXMC_NFC_ECC_SECTION13                  ((uint32_t)13UL)
-#define EXMC_NFC_ECC_SECTION14                  ((uint32_t)14UL)
-#define EXMC_NFC_ECC_SECTION15                  ((uint32_t)15UL)
+#define EXMC_NFC_ECC_SECTION0                   (0UL)
+#define EXMC_NFC_ECC_SECTION1                   (1UL)
+#define EXMC_NFC_ECC_SECTION2                   (2UL)
+#define EXMC_NFC_ECC_SECTION3                   (3UL)
+#define EXMC_NFC_ECC_SECTION4                   (4UL)
+#define EXMC_NFC_ECC_SECTION5                   (5UL)
+#define EXMC_NFC_ECC_SECTION6                   (6UL)
+#define EXMC_NFC_ECC_SECTION7                   (7UL)
+#define EXMC_NFC_ECC_SECTION8                   (8UL)
+#define EXMC_NFC_ECC_SECTION9                   (9UL)
+#define EXMC_NFC_ECC_SECTION10                  (10UL)
+#define EXMC_NFC_ECC_SECTION11                  (11UL)
+#define EXMC_NFC_ECC_SECTION12                  (12UL)
+#define EXMC_NFC_ECC_SECTION13                  (13UL)
+#define EXMC_NFC_ECC_SECTION14                  (14UL)
+#define EXMC_NFC_ECC_SECTION15                  (15UL)
 /**
  * @}
  */
@@ -490,7 +490,7 @@ typedef struct
  * @defgroup EXMC_NFC_Operation_Timeout EXMC NFC Operation Timeout
  * @{
  */
-#define EXMC_NFC_MAX_TIMEOUT                    ((uint32_t)0xFFFFFFFFUL)
+#define EXMC_NFC_MAX_TIMEOUT                    (0xFFFFFFFFUL)
 /**
  * @}
  */
@@ -574,28 +574,6 @@ __STATIC_INLINE void EXMC_NFC_DeselectChip(void)
 }
 
 /**
- * @brief  Set NFC spare area size.
- * @param  [in] u32SpareAreaSize              NFC spare area size
- * @retval None
- */
-__STATIC_INLINE void EXMC_NFC_SetSpareAreaSize(uint32_t u32SpareAreaSize)
-{
-    MODIFY_REG32(M4_NFC ->BACR, NFC_BACR_SCS, ((u32SpareAreaSize << NFC_BACR_SCS_POS) & NFC_BACR_SCS));
-}
-
-/**
- * @brief  Set NFC ECC mode.
- * @param  [in] u32EccMode              ECC mode
- *   @arg EXMC_NFC_ECC_1BIT: ECC 1 bit
- *   @arg EXMC_NFC_ECC_4BITS: ECC 4 bits
- * @retval None
- */
-__STATIC_INLINE void EXMC_NFC_SetEccMode(uint32_t u32EccMode)
-{
-    MODIFY_REG32(M4_NFC ->BACR, NFC_BACR_ECCM, u32EccMode);
-}
-
-/**
  * @brief  Enable NFC ECC function.
  * @param  None
  * @retval None
@@ -636,53 +614,7 @@ __STATIC_INLINE void EXMC_NFC_DisableWriteProtect(void)
 }
 
 /**
- * @brief  Get the interrupt result.
- * @param  [in] u32Flag                 The specified flag
- *   @arg EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR: ECC uncorrectable error
- *   @arg EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR: ECC correctable error
- *   @arg EXMC_NFC_FLAG_ECC_CALC_COMPLETION: Calculating ECC completely
- *   @arg EXMC_NFC_FLAG_ECC_ERROR: ECC error
- *   @arg EXMC_NFC_FLAG_RB_BANK0: NFC bank 0 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK1: NFC bank 1 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK2: NFC bank 2 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK3: NFC bank 3 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK4: NFC bank 4 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK5: NFC bank 5 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK6: NFC bank 6 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK7: NFC bank 7 device ready flag
- * @retval An en_flag_status_t enumeration value:
- *           - Set: Flag is set
- *           - Reset: Flag is reset
- */
-__STATIC_INLINE en_flag_status_t EXMC_NFC_GetIntResultFlag(uint32_t u32Flag)
-{
-    return (READ_REG32_BIT(M4_NFC->IRSR, u32Flag) ? Set : Reset);
-}
-
-/**
- * @brief  Get the flag.
- * @param  [in] u32Flag                 The specified flag
- *   @arg EXMC_NFC_FLAG_ECC_UNCORRECTABLE_ERROR: ECC uncorrectable error
- *   @arg EXMC_NFC_FLAG_ECC_CORRECTABLE_ERROR: ECC correctable error
- *   @arg EXMC_NFC_FLAG_ECC_CALC_COMPLETION: Calculating ECC completely
- *   @arg EXMC_NFC_FLAG_ECC_ERROR: ECC error
- *   @arg EXMC_NFC_FLAG_RB_BANK0: NFC bank 0 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK1: NFC bank 1 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK2: NFC bank 2 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK3: NFC bank 3 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK4: NFC bank 4 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK5: NFC bank 5 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK6: NFC bank 6 device ready flag
- *   @arg EXMC_NFC_FLAG_RB_BANK7: NFC bank 7 device ready flag
- * @retval None
- */
-__STATIC_INLINE void EXMC_NFC_ClearFlag(uint32_t u32Flag)
-{
-    CLEAR_REG32_BIT(M4_NFC->ISTR, u32Flag);
-}
-
-/**
- * @brief  Get the 4BIT ECC error sectoin.
+ * @brief  Get the 4BIT ECC error section.
  * @param  None
  * @retval The register value
  */
@@ -693,12 +625,16 @@ __STATIC_INLINE uint32_t EXMC_NFC_GetEcc4BitsErrSection(void)
 
 /* Initialization and configuration EXMC NFC functions */
 en_result_t EXMC_NFC_Init(const stc_exmc_nfc_init_t *pstcInit);
-en_result_t EXMC_NFC_DeInit(void);
+void EXMC_NFC_DeInit(void);
 en_result_t EXMC_NFC_StructInit(stc_exmc_nfc_init_t *pstcInit);
 void EXMC_NFC_IntCmd(uint16_t u16IntSource, en_functional_state_t enNewState);
 en_flag_status_t EXMC_NFC_GetFlag(uint32_t u32Flag);
 uint32_t EXMC_NFC_GetEcc1BitResult(uint32_t u32Section);
-en_result_t EXMC_NFC_GetSyndrome(uint32_t u32Section, uint16_t au16Synd[]);
+en_result_t EXMC_NFC_GetSyndrome(uint32_t u32Section,
+                                        uint16_t au16Synd[],
+                                        uint8_t u8Length);
+void EXMC_NFC_SetSpareAreaSize(uint8_t u8SpareSizeForUserData);
+void EXMC_NFC_SetEccMode(uint32_t u32EccMode);
 
 /* EXMC NFC command functions */
 uint32_t EXMC_NFC_ReadStatus(uint32_t u32Bank);
@@ -773,7 +709,7 @@ en_result_t EXMC_NFC_WritePageHwEcc(uint32_t u32Bank,
 }
 #endif
 
-#endif /* __HC32F4A0_EXMC_NFC_H__ */
+#endif /* __HC32F4A0_NFC_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)

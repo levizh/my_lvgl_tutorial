@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbh_hid_mouse.c
+ * @brief Application layer for USB Host HID Mouse Handling.
+ *     
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2019-12-13       zhangxl         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,23 +48,34 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbh_hid_mouse.c
- **
- ** A detailed description is available at
- ** @link
-        This file is the application layer for USB Host HID Mouse Handling.
-    @endlink
- **
- **   - 2019-12-13  1.0  zhangxl First version for USB HID mouse demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "usbh_hid_mouse.h"
+
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_HOST_CLASS
+ * @{
+ */
+
+/** @defgroup USBH_HID_MOUSE
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -67,12 +88,23 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @defgroup USBH_HID_MOUSE_Local_Functions USBH HID Mouse Local Functions
+ * @{
+ */
 static void  MOUSE_Init (void);
 static void  MOUSE_Decode(uint8_t *data);
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
+/**
+ * @defgroup USBH_HID_MOUSE_Global_Variables USBH HID Mouse Global Variables
+ * @{
+ */
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
  #if defined   (__CC_ARM) /*!< ARM Compiler */
   __align(4)
@@ -88,19 +120,39 @@ static void  MOUSE_Decode(uint8_t *data);
 HID_MOUSE_Data_TypeDef HID_MOUSE_Data;
 HID_cb_TypeDef HID_MOUSE_cb =
 {
-    MOUSE_Init,
-    MOUSE_Decode,
+    &MOUSE_Init,
+    &MOUSE_Decode,
 };
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @defgroup USBH_HID_MOUSE_Local_Functions USBH HID Mouse Local Functions
+ * @{
+ */
 static void  MOUSE_Init (void);
 static void  MOUSE_Decode(uint8_t *data);
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+
+/*******************************************************************************
+ * Function implementation - global ('extern') and local ('static')
+ ******************************************************************************/
+
+/**
+ * @addtogroup USBH_HID_MOUSE_Local_Functions USBH HID Mouse Local Functions
+ * @{
+ */
+
 /**
 * @brief  MOUSE_Init
 *         Init Mouse State.
@@ -121,11 +173,32 @@ static void  MOUSE_Init ( void)
 */
 static void  MOUSE_Decode(uint8_t *data)
 {
-    HID_MOUSE_Data.button = data[0];
-    HID_MOUSE_Data.x      = data[1];
-    HID_MOUSE_Data.y      = data[2];
+    HID_MOUSE_Data.button = data[0U];
+    HID_MOUSE_Data.x      = data[1U];
+    HID_MOUSE_Data.y      = data[2U];
     USR_MOUSE_ProcessData(&HID_MOUSE_Data);
 }
+/**
+ * @}
+ */
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

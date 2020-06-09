@@ -78,7 +78,7 @@
  * @{
  */
 
-uint32_t SystemCoreClock = HRC_VALUE;  /*!< System clock frequency (Core clock) */
+__NO_INIT uint32_t SystemCoreClock;  /*!< System clock frequency (Core clock) */
 
 /**
  * @}
@@ -148,12 +148,12 @@ void SystemCoreClockUpdate(void)
             plln = (uint32_t)((M4_CMU->PLLHCFGR >> CMU_PLLHCFGR_PLLHN_POS) & 0xFFUL);
             pllm = (uint32_t)((M4_CMU->PLLHCFGR >> CMU_PLLHCFGR_PLLHM_POS) & 0x03UL);
 
-            /* use exteranl high speed OSC as PLL source */
+            /* use external high speed OSC as PLL source */
             if (0UL == bM4_CMU->PLLHCFGR_b.PLLSRC)
             {
                 SystemCoreClock = (XTAL_VALUE) / (pllm + 1UL) * (plln + 1UL) / (pllp + 1UL);
             }
-            /* use interanl high RC as PLL source */
+            /* use internal high RC as PLL source */
             else
             {
                 SystemCoreClock = (HRC_VALUE) / (pllm + 1UL) * (plln + 1UL) / (pllp + 1UL);
@@ -161,36 +161,6 @@ void SystemCoreClockUpdate(void)
             break;
     }
 }
-
-#if defined (__CC_ARM) || defined (__CLANG_ARM)
-extern int32_t $Super$$main(void);
-/* re-define main function */
-int $Sub$$main(void)
-{
-    SystemCoreClockUpdate();
-    $Super$$main();
-    return 0;
-}
-#elif defined (__ICCARM__)
-extern int32_t main(void);
-/* __low_level_init will auto called by IAR cstartup */
-extern void __iar_data_init3(void);
-int __low_level_init(void)
-{
-    // call IAR table copy function.
-    __iar_data_init3();
-    SystemCoreClockUpdate();
-    main();
-    return 0;
-}
-#elif defined (__GNUC__)
-/* Add entry to arm-none-eabi-gcc argument */
-int entry(void)
-{
-    SystemCoreClockUpdate();
-    return 0;
-}
-#endif
 
 /**
  * @}

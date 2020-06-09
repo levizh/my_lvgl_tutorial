@@ -1,6 +1,6 @@
  /*******************************************************************************
  * @file  dmac/dmac_base/source/main.c
- * @brief This example demonstrates DMA basical transfer function.
+ * @brief This example demonstrates DMA basic transfer function.
  @verbatim
    Change Logs:
    Date             Author          Notes
@@ -101,7 +101,7 @@ static uint32_t u32ExpectDestBufData[20] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @brief  DMA basical function init
+ * @brief  DMA basic function init
  * @param  None
  * @retval en_result_t
  */
@@ -109,7 +109,7 @@ en_result_t DmaInit(void)
 {
     stc_dma_init_t stcDmaInit;
 
-    DMA_SetTrigSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
+    DMA_SetTriggerSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
 
     DMA_StructInit(&stcDmaInit);
 
@@ -133,11 +133,11 @@ en_result_t DmaInit(void)
 void DMA2_CH4_TransEnd_IrqCallback(void)
 {
     u8DmaTcEnd = Set;
-    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT4);
+    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT_CH4);
 }
 
 /**
- * @brief  DMA basical function interrupt init
+ * @brief  DMA basic function interrupt init
  * @param  None
  * @retval None
  */
@@ -150,7 +150,7 @@ void DmaIntInit(void)
     stcIrqSignConfig.pfnCallback= &DMA2_CH4_TransEnd_IrqCallback;
 
     INTC_IrqSignIn(&stcIrqSignConfig);
-    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT4);
+    DMA_ClearTransIntStatus(DMA_UNIT, DMA_TC_INT_CH4);
 
     /* NVIC setting */
     NVIC_ClearPendingIRQ(DMA_IRQn);
@@ -173,7 +173,7 @@ int32_t main(void)
     BSP_LED_Init();
 
     /* DMA/AOS FCG enable */
-    PWC_Fcg0PeriphClockCmd((PWC_FCG0_DMA2 | PWC_FCG0_PTDIS), Enable);
+    PWC_Fcg0PeriphClockCmd((PWC_FCG0_DMA2 | PWC_FCG0_AOS), Enable);
 
    /* Config DMA */
     if (Ok != DmaInit()) {
@@ -184,7 +184,7 @@ int32_t main(void)
     /* DMA interrupt config */
     DmaIntInit();
 
-    /* DMA moudle enable */
+    /* DMA module enable */
     DMA_Cmd(DMA_UNIT, Enable);
 
     /* DMA channel enable */
@@ -205,7 +205,7 @@ int32_t main(void)
     }
     else
     {
-        /* LED blue */
+        /* LED blue, as expected */
         BSP_LED_On(LED_BLUE);
     }
 

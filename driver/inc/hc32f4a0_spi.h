@@ -110,6 +110,8 @@ typedef struct
                                          This parameter can be a value of @ref SPI_Data_Size_Define */
     uint32_t u32FirstBit;           /*!< MSB first or LSB first.
                                          This parameter can be a value of @ref SPI_First_Bit_Define */
+    uint32_t u32FrameLevel;         /*!< SPI frame level, SPI_FRAME_1 ~ SPI_FRAME_4.
+                                         This parameter can be a value of @ref SPI_Frame_Level_Define */
 } stc_spi_init_t;
 
 /**
@@ -312,7 +314,7 @@ typedef struct
  */
 
 /**
- * @defgroup SPI_Frame_Number_Define SPI data frame number define, The Data in the
+ * @defgroup SPI_Frame_Level_Define SPI data frame level define, The Data in the
  *                                   SPI_DR register will be send to TX_BUFF after
  *                                   enough data frame write to the SPI_DR
  * @{
@@ -412,8 +414,8 @@ typedef struct
 #define SPI_FLAG_MODE_FAULT         (SPI_SR_MODFERF)
 #define SPI_FLAG_PARITY_ERROR       (SPI_SR_PERF)
 #define SPI_FLAG_UNDERLOAD          (SPI_SR_UDRERF)
-#define SPI_FLAG_TX_BUFFER_EMPTY    (SPI_SR_TDEF)       /*!< This flag is set when the data in the data register
-                                                             is copied into the shift register, but the transmission
+#define SPI_FLAG_TX_BUFFER_EMPTY    (SPI_SR_TDEF)       /*!< This flag is set when the data in the data register     \
+                                                             is copied into the shift register, but the transmission \
                                                              of the data bit may not have been completed. */
 #define SPI_FLAG_RX_BUFFER_FULL     (SPI_SR_RDFF)       /*!< When this flag is set, it indicates that a data was received. */
 
@@ -449,15 +451,19 @@ void SPI_FunctionCmd(M4_SPI_TypeDef *SPIx, en_functional_state_t enNewState);
 void SPI_WriteDataReg(M4_SPI_TypeDef *SPIx, uint32_t u32Data);
 uint32_t SPI_ReadDataReg(const M4_SPI_TypeDef *SPIx);
 
-en_flag_status_t SPI_GetFlag(const M4_SPI_TypeDef *SPIx, uint32_t u32Flag);
+en_flag_status_t SPI_GetStatus(const M4_SPI_TypeDef *SPIx, uint32_t u32Flag);
 void SPI_ClearFlag(M4_SPI_TypeDef *SPIx, uint32_t u32Flag);
 
-en_result_t SPI_ValidSSCfg(M4_SPI_TypeDef *SPIx, uint32_t u32ValidSS);
+void SPI_ValidSSCfg(M4_SPI_TypeDef *SPIx, uint32_t u32ValidSS);
 void SPI_LoopbackModeCfg(M4_SPI_TypeDef *SPIx, uint32_t u32Mode);
 void SPI_PateCmd(M4_SPI_TypeDef *SPIx, en_functional_state_t enNewState);
 en_result_t SPI_DelayTimeCfg(M4_SPI_TypeDef *SPIx, const stc_spi_delay_t *pstcDelayCfg);
 en_result_t SPI_SSValidLevelCfg(M4_SPI_TypeDef *SPIx, const stc_spi_ss_valid_level_t *pstcSSValidLevelCfg);
-en_result_t SPI_ReadBufCfg(M4_SPI_TypeDef *SPIx, uint32_t u32ReadBuf);
+void SPI_ReadBufCfg(M4_SPI_TypeDef *SPIx, uint32_t u32ReadBuf);
+
+en_result_t SPI_Transmit(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, uint32_t u32TxLength);
+en_result_t SPI_Receive(M4_SPI_TypeDef *SPIx, void *pvRxBuf, uint32_t u32RxLength);
+en_result_t SPI_TransmitReceive(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, void *pvRxBuf, uint32_t u32Length);
 
 /**
  * @}

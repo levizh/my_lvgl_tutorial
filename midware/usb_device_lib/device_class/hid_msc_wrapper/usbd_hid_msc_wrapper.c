@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usbd_hid_msc_wrapper.c
+ * @brief Composite HID_MSC
+ *
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,8 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_hid_cdc_wrapper.c
- **
- ** A detailed description is available at
- ** @link
-        This file provides the MSC_HID composite functions.
-  @endlink
-
- **   - 2019-11-19  1.0  zhangxl First version for USB MSC_HID composite demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
@@ -60,6 +60,27 @@
 #include "usbd_desc.h"
 #include "usbd_req.h"
 
+/**
+ * @addtogroup MIDWARE
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_LIB
+ * @{
+ */
+
+/**
+ * @addtogroup USB_DEVICE_CLASS
+ * @{
+ */
+
+/** @defgroup USBD_HID_MSC_WRAPPER
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
+
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
@@ -69,32 +90,12 @@
  ******************************************************************************/
 
 /*******************************************************************************
- * Global variable definitions (declared in header file with 'extern')
- ******************************************************************************/
-/*********************************************
-   MSC Device library callbacks
-*********************************************/
-extern uint8_t  USBD_MSC_Init (void  *pdev, uint8_t cfgidx);
-extern uint8_t  USBD_MSC_DeInit (void  *pdev, uint8_t cfgidx);
-extern uint8_t  USBD_MSC_Setup (void  *pdev, USB_SETUP_REQ *req);
-extern uint8_t  USBD_MSC_DataIn (void  *pdev, uint8_t epnum);
-extern uint8_t  USBD_MSC_DataOut (void  *pdev,  uint8_t epnum);
-extern uint8_t  *USBD_MSC_GetCfgDesc (uint8_t speed, uint16_t *length);
-extern uint8_t  USBD_MSC_CfgDesc[USB_MSC_CONFIG_DESC_SIZ];
-
-/*********************************************
-   HID Device library callbacks
-*********************************************/
-extern uint8_t  USBD_CUSTOM_HID_Init (void  *pdev, uint8_t cfgidx);
-extern uint8_t  USBD_CUSTOM_HID_DeInit (void  *pdev, uint8_t cfgidx);
-extern uint8_t  USBD_CUSTOM_HID_Setup (void  *pdev, USB_SETUP_REQ *req);
-extern uint8_t  *USBD_CUSTOM_HID_GetCfgDesc (uint8_t speed, uint16_t *length);
-extern uint8_t  USBD_CUSTOM_HID_DataIn (void  *pdev, uint8_t epnum);
-extern uint8_t  USBD_CUSTOM_HID_DataOut (void  *pdev, uint8_t epnum);
-
-/*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+/**
+ * @defgroup USBD_HID_MSC_WRAPPER_Local_Functions USBD HID MSC Wrapper Local Functions
+ * @{
+ */
 static uint8_t USBD_MSC_HID_Init (void *pdev, uint8_t cfgidx);
 
 static uint8_t USBD_MSC_HID_DeInit (void *pdev, uint8_t cfgidx);
@@ -105,11 +106,17 @@ static uint8_t *USBD_MSC_HID_GetCfgDesc (uint8_t speed, uint16_t *length);
 
 static uint8_t USBD_MSC_HID_DataIn (void *pdev, uint8_t epnum);
 static uint8_t USBD_MSC_HID_DataOut(void *pdev , uint8_t epnum);
+/**
+ * @}
+ */
 
 /*******************************************************************************
- * Local variable definitions ('static')
+ * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
-
+/**
+ * @defgroup USBD_HID_MSC_WRAPPER_Global_Variables USBD HID MSC Wrapper Global Variables
+ * @{
+ */
 USBD_Class_cb_TypeDef  USBD_MSC_HID_cb =
 {
     &USBD_MSC_HID_Init,
@@ -127,6 +134,17 @@ USBD_Class_cb_TypeDef  USBD_MSC_HID_cb =
     &USBD_MSC_HID_GetCfgDesc, /* use same config as per FS */
 #endif
 };
+/**
+ * @}
+ */
+
+/*******************************************************************************
+ * Local variable definitions ('static')
+ ******************************************************************************/
+/**
+ * @defgroup USBD_HID_MSC_WRAPPER_Local_Variables USBD HID MSC Wrapper Local Variables
+ * @{
+ */
 
 #ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
   #if defined ( __ICCARM__ ) /*!< IAR Compiler */
@@ -136,92 +154,101 @@ USBD_Class_cb_TypeDef  USBD_MSC_HID_cb =
 /* USB HID device Configuration Descriptor */
 __USB_ALIGN_BEGIN static uint8_t USBD_MSC_HID_CfgDesc[USB_MSC_HID_CONFIG_DESC_SIZ] __USB_ALIGN_END =
 {
-    0x09, /* bLength: Configuration Descriptor size */
+    0x09U, /* bLength: Configuration Descriptor size */
     USB_CONFIGURATION_DESCRIPTOR_TYPE, /* bDescriptorType: Configuration */
     USB_MSC_HID_CONFIG_DESC_SIZ,
     /* wTotalLength: Bytes returned */
-    0x00,
-    0x02,         /*bNumInterfaces: 2 interface*/
-    0x01,         /*bConfigurationValue: Configuration value*/
-    0x00,         /*iConfiguration: Index of string descriptor describing
+    0x00U,
+    0x02U,         /*bNumInterfaces: 2 interface*/
+    0x01U,         /*bConfigurationValue: Configuration value*/
+    0x00U,         /*iConfiguration: Index of string descriptor describing
     the configuration*/
-    0xE0,         /*bmAttributes: bus powered and Support Remote Wake-up */
-    0x32,         /*MaxPower 100 mA: this current is used for detecting Vbus*/
+    0xE0U,         /*bmAttributes: bus powered and Support Remote Wake-up */
+    0x32U,         /*MaxPower 100 mA: this current is used for detecting Vbus*/
 
     /************** Descriptor of HID interface ****************/
     /* 09 */
-    0x09,         /*bLength: Interface Descriptor size*/
+    0x09U,         /*bLength: Interface Descriptor size*/
     USB_INTERFACE_DESCRIPTOR_TYPE,/*bDescriptorType: Interface descriptor type*/
     HID_INTERFACE,         /*bInterfaceNumber: Number of Interface*/
-    0x00,         /*bAlternateSetting: Alternate setting*/
-    0x02,         /*bNumEndpoints*/
-    0x03,         /*bInterfaceClass: HID*/
-    0x01,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
-    0x02,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
-    0,            /*iInterface: Index of string descriptor*/
+    0x00U,         /*bAlternateSetting: Alternate setting*/
+    0x02U,         /*bNumEndpoints*/
+    0x03U,         /*bInterfaceClass: HID*/
+    0x01U,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
+    0x02U,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
+    0X00U,         /*iInterface: Index of string descriptor*/
     /******************** Descriptor of HID ********************/
     /* 18 */
-    0x09,         /*bLength: HID Descriptor size*/
+    0x09U,         /*bLength: HID Descriptor size*/
     CUSTOM_HID_DESCRIPTOR_TYPE, /*bDescriptorType: HID*/
-    0x11,         /*bcdHID: HID Class Spec release number*/
-    0x01,
-    0x00,         /*bCountryCode: Hardware target country*/
-    0x01,         /*bNumDescriptors: Number of HID class descriptors to follow*/
-    0x22,         /*bDescriptorType*/
+    0x11U,         /*bcdHID: HID Class Spec release number*/
+    0x01U,
+    0x00U,         /*bCountryCode: Hardware target country*/
+    0x01U,         /*bNumDescriptors: Number of HID class descriptors to follow*/
+    0x22U,         /*bDescriptorType*/
     CUSTOM_HID_REPORT_DESC_SIZE,/*wItemLength: Total length of Report descriptor*/
-    0x00,
+    0x00U,
     /******************** Descriptor of HID endpoint ********************/
     /* 27 */
-    0x07,          /*bLength: Endpoint Descriptor size*/
+    0x07U,          /*bLength: Endpoint Descriptor size*/
     USB_ENDPOINT_DESCRIPTOR_TYPE, /*bDescriptorType:*/
 
     HID_IN_EP,     /*bEndpointAddress: Endpoint Address (IN)*/
-    0x03,          /*bmAttributes: Interrupt endpoint*/
+    0x03U,         /*bmAttributes: Interrupt endpoint*/
     HID_IN_PACKET, /*wMaxPacketSize: 4 Byte max */
-    0x00,
-    0x0A,          /*bInterval: Polling Interval (10 ms)*/
+    0x00U,
+    0x0AU,         /*bInterval: Polling Interval (10 ms)*/
     /* 34 */
-    0x07,          /*bLength: Endpoint Descriptor size*/
+    0x07U,         /*bLength: Endpoint Descriptor size*/
     USB_ENDPOINT_DESCRIPTOR_TYPE, /*bDescriptorType:*/
 
     HID_OUT_EP,     /*bEndpointAddress: Endpoint Address (IN)*/
-    0x03,          /*bmAttributes: Interrupt endpoint*/
+    0x03U,          /*bmAttributes: Interrupt endpoint*/
     HID_OUT_PACKET, /*wMaxPacketSize: 4 Byte max */
-    0x00,
-    0x0A,          /*bInterval: Polling Interval (10 ms)*/
+    0x00U,
+    0x0AU,          /*bInterval: Polling Interval (10 ms)*/
     /* 41 */
 
     /********************  Mass Storage interface ********************/
-    0x09,   /* bLength: Interface Descriptor size */
-    0x04,   /* bDescriptorType: */
+    0x09U,   /* bLength: Interface Descriptor size */
+    0x04U,   /* bDescriptorType: */
     MSC_INTERFACE,   /* bInterfaceNumber: Number of Interface */
-    0x00,   /* bAlternateSetting: Alternate setting */
-    0x02,   /* bNumEndpoints*/
-    0x08,   /* bInterfaceClass: MSC Class */
-    0x06,   /* bInterfaceSubClass : SCSI transparent*/
-    0x50,   /* nInterfaceProtocol */
-    0x05,          /* iInterface: */
+    0x00U,   /* bAlternateSetting: Alternate setting */
+    0x02U,   /* bNumEndpoints*/
+    0x08U,   /* bInterfaceClass: MSC Class */
+    0x06U,   /* bInterfaceSubClass : SCSI transparent*/
+    0x50U,   /* nInterfaceProtocol */
+    0x05U,          /* iInterface: */
     /********************  Mass Storage Endpoints ********************/
-    0x07,   /*Endpoint descriptor length = 7*/
-    0x05,   /*Endpoint descriptor type */
+    0x07U,   /*Endpoint descriptor length = 7*/
+    0x05U,   /*Endpoint descriptor type */
     MSC_IN_EP,   /*Endpoint address (IN, address 1) */
-    0x02,   /*Bulk endpoint type */
+    0x02U,   /*Bulk endpoint type */
     LOBYTE(MSC_MAX_PACKET),
     HIBYTE(MSC_MAX_PACKET),
-    0x00,   /*Polling interval in milliseconds */
+    0x00U,   /*Polling interval in milliseconds */
 
-    0x07,   /*Endpoint descriptor length = 7 */
-    0x05,   /*Endpoint descriptor type */
+    0x07U,   /*Endpoint descriptor length = 7 */
+    0x05U,   /*Endpoint descriptor type */
     MSC_OUT_EP,   /*Endpoint address (OUT, address 1) */
-    0x02,   /*Bulk endpoint type */
+    0x02U,   /*Bulk endpoint type */
     LOBYTE(MSC_MAX_PACKET),
     HIBYTE(MSC_MAX_PACKET),
-    0x00     /*Polling interval in milliseconds*/
+    0x00U    /*Polling interval in milliseconds*/
 } ;
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @addtogroup USBD_HID_MSC_WRAPPER_Local_Functions USBD HID MSC Wrapper Local Functions
+ * @{
+ */
+
 /**
   * @brief  USBD_MSC_HID_Init
   *         Initialize the MSC-HID interface
@@ -321,7 +348,7 @@ static uint8_t  USBD_MSC_HID_DataIn (void  *pdev, uint8_t epnum)
 {
     uint8_t u8Ret = 0u;
     /*DataIN can be for MSC or HID */
-    if (epnum == (uint8_t)(MSC_IN_EP&((uint8_t)~0x80u)))
+    if (epnum == (uint8_t)(MSC_IN_EP&((uint8_t)~0x80U)))
     {
         u8Ret = USBD_MSC_DataIn(pdev, epnum);
     }
@@ -343,7 +370,7 @@ static uint8_t  USBD_MSC_HID_DataOut(void *pdev , uint8_t epnum)
 {
     uint8_t u8Ret = 0u;
     /*DataOut can be for MSC*/
-    if (epnum == (uint8_t)(MSC_OUT_EP&((uint8_t)~0x80u)))
+    if (epnum == (uint8_t)(MSC_OUT_EP&((uint8_t)~0x80U)))
     {
         u8Ret = USBD_MSC_DataOut(pdev, epnum);
     }
@@ -354,6 +381,28 @@ static uint8_t  USBD_MSC_HID_DataOut(void *pdev , uint8_t epnum)
     }
     return u8Ret;
 }
+
+/**
+ * @}
+ */
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+* @}
+*/
 
 /*******************************************************************************
  * EOF (not truncated)

@@ -101,54 +101,35 @@ extern "C"
  * @addtogroup IS42S16400J7TLI_Global_Functions IS42S16400J7TLI Global Functions
  * @{
  */
-en_result_t IS42S_Init(void);
+en_result_t IS42S16400J7TLI_Init(void);
 
-void IS42S_GetMemInfo(uint32_t *pu32MemStartAddr,
-                            uint32_t *pu32MemByteSize);
-
-en_result_t IS42S_WriteMem8(const uint8_t au8Buf[],
-                                uint32_t u32Addr,
-                                uint32_t u32Size);
-en_result_t IS42S_ReadMem8(uint8_t au8Buf[],
-                                uint32_t u32Addr,
-                                uint32_t u32Size);
-en_result_t IS42S_WriteMem16(const uint16_t au16Buf[],
-                                uint32_t u32Addr,
-                                uint32_t u32Size);
-en_result_t IS42S_ReadMem16(uint16_t au16Buf[],
-                                uint32_t u32Addr,
-                                uint32_t u32Size);
-en_result_t IS42S_WriteMem32(const uint32_t au32Buf[],
-                                uint32_t u32Addr,
-                                uint32_t u32Size);
-en_result_t IS42S_ReadMem32(uint32_t au32Buf[],
-                                uint32_t u32Addr,
-                                uint32_t u32Size);
-
-/* Implement the intialization function on evb board source */
-en_result_t EV_DMC_IS42S_Init(void);
-
-void EV_DMC_IS42S_GetMemInfo(uint32_t *pu32MemStartAddr,
+void IS42S16400J7TLI_GetMemInfo(uint32_t *pu32MemStartAddr,
                                         uint32_t *pu32MemByteSize);
 
-en_result_t EV_DMC_IS42S_WriteMem8(const uint8_t au8Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32Size);
-en_result_t EV_DMC_IS42S_ReadMem8(uint8_t au8Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32Size);
-en_result_t EV_DMC_IS42S_WriteMem16(const uint16_t au16Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32Size);
-en_result_t EV_DMC_IS42S_ReadMem16(uint16_t au16Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32Size);
-en_result_t EV_DMC_IS42S_WriteMem32(const uint32_t au32Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32Size);
-en_result_t EV_DMC_IS42S_ReadMem32(uint32_t au32Buf[],
-                                        uint32_t u32Addr,
-                                        uint32_t u32Size);
+en_result_t IS42S16400J7TLI_WriteMem8(uint32_t u32Address,
+                                const uint8_t au8SrcBuffer[],
+                                uint32_t u32BufferSize);
+en_result_t IS42S16400J7TLI_ReadMem8(uint32_t u32Address,
+                                uint8_t au8DstBuffer[],
+                                uint32_t u32BufferSize);
+en_result_t IS42S16400J7TLI_WriteMem16(uint32_t u32Address,
+                                const uint16_t au16SrcBuffer[],
+                                uint32_t u32BufferSize);
+en_result_t IS42S16400J7TLI_ReadMem16(uint32_t u32Address,
+                                uint16_t au16DstBuffer[],
+                                uint32_t u32BufferSize);
+en_result_t IS42S16400J7TLI_WriteMem32(uint32_t u32Address,
+                                const uint32_t au32SrcBuffer[],
+                                uint32_t u32BufferSize);
+en_result_t IS42S16400J7TLI_ReadMem32(uint32_t u32Address,
+                                uint32_t au32DstBufferBuf[],
+                                uint32_t u32BufferSize);
+
+/* Implement the below functions for the specified BSP board */
+en_result_t BSP_DMC_IS42S16400J7TLI_Init(void);
+void BSP_DMC_IS42S16400J7TLI_GetMemInfo(uint32_t *pu32MemStartAddr,
+                                                uint32_t *pu32MemByteSize);
+
 /**
  * @}
  */

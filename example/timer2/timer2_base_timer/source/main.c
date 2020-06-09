@@ -111,7 +111,7 @@
 #define APP_CLK_ASYNC_PIN_CLK               (3U)
 
 /* Select a clock source for this example. */
-#define APP_TMR2_CLK                        (APP_CLK_ASYNC_PIN_CLK)
+#define APP_TMR2_CLK                        (APP_CLK_SYNC_PCKL1)
 
 /*
  * Function control of TIMER2.
@@ -120,12 +120,9 @@
  * 'APP_TMR2_USE_INTERRUPT': Interrupt function control.
  * 'APP_TMR2_USE_HW_TRIG': Hardware trigger conditions control. The conditions that can start TIMER2, \
  *                         stop TIMER2 or clear counting register of TIMER2
- * 'APP_TMR2_USE_FILTER': Filter function control. Enable or disable the filter of pin TIM2_<t>_PWMAx. \
- *                        If there is a pin TIM2_<t>_PWMx is used, the filter can be used if needed.
  */
 #define APP_TMR2_USE_INTERRUPT              (1U)
 #define APP_TMR2_USE_HW_TRIG                (0U)
-#define APP_TMR2_USE_FILTER                 (0U)
 
 /*
  * Define configuration values according to the clock source just selected.
@@ -135,7 +132,7 @@
  *   3. Use timer2 to count 10ms.
  *
  * A simple formula for calculating the compare value is:
- *      Tmr2CompareVal = (Tmr2Period(us) * [Tmr2ClockSource(MHz) / Tmr2ClockDiv]) - 1.
+ *   Tmr2CompareVal = (Tmr2Period(us) * [Tmr2ClockSource(MHz) / Tmr2ClockDiv]) - 1.
  */
 #if (APP_TMR2_CLK == APP_CLK_SYNC_PCKL1)
     #define APP_TMR2_CLK_SRC                (TMR2_CLK_SYNC_PCLK1)
@@ -169,11 +166,12 @@
  * TIMER2 independent IRQn: [Int000_IRQn, Int031_IRQn], [Int050_IRQn, Int055_IRQn].
  * TIMER2 share IRQn: [Int131_IRQn].
  *
- * NOTE!!! 'APP_TMR2_INT_TYPE' can only be defined as 'TMR2_INT_CNT_MATCH' for this example.
+ * NOTE:
+ *   'APP_TMR2_INT_TYPE' can only be defined as 'TMR2_INT_CMP' for this example.
  */
 #if (APP_TMR2_USE_INTERRUPT > 0U)
     #define TMR2_SHARE_IRQn                 (Int131_IRQn)
-    #define APP_TMR2_INT_TYPE               (TMR2_INT_CNT_MATCH)
+    #define APP_TMR2_INT_TYPE               (TMR2_INT_CMP)
     #define APP_TMR2_INT_PRIO               (DDL_IRQ_PRIORITY_03)
     #define APP_TMR2_INT_SRC                (INT_TMR2_1_CMPA)
     #define APP_TMR2_IRQ_CB                 TMR2_1_CmpA_IrqHandler
@@ -184,9 +182,13 @@
  * Specify the hardware trigger conditions if enabled(APP_TMR2_USE_HW_TRIG > 0U).
  * 'APP_TMR2_START_COND' specifies the condition of starting TIMER2.
  * 'APP_TMR2_STOP_COND' specifies the condition of stoping TIMER2.
- *
- * NOTE!!! 1. CANNOT specify a condition as both the start condition and the stop condition.
- *         2. Pin TIM2_<t>_PWMAx CANNOT be a trigger condition while it's edge is used as the synchronous clock.
+ * 'APP_TMR2_FILTER_ENABLE': Filter function control. Enable or disable the filter of pin TIM2_<t>_PWMAx. \
+ *                           If there is a pin TIM2_<t>_PWMx is used and in input mode, the filter can be used if needed.
+ * 'APP_TMR2_FILTER_CLK_DIV': The clock divider of filter of each channel depends on the signal that \
+ *                            input from pin TIM2_<t>_PWMx.
+ * NOTE:
+ *   1. CANNOT specify a condition as both the start condition and the stop condition.
+ *   2. Pin TIM2_<t>_PWMAx CANNOT be a trigger condition while it's edge is used as the synchronous clock.
  */
 #if (APP_TMR2_USE_HW_TRIG > 0U)
     #define APP_TMR2_START_COND             (TMR2_START_COND_TRIGR)
@@ -194,12 +196,9 @@
     #define APP_TMR2_TRIG_PORT              (GPIO_PORT_A)
     #define APP_TMR2_TRIG_PIN               (GPIO_PIN_02)
     #define APP_TMR2_TRIG_PIN_FUNC          (GPIO_FUNC_16_TIM21_PWMA)
+    #define APP_TMR2_FILTER_ENABLE          (1U)
+    #define APP_TMR2_FILTER_CLK_DIV         (TMR2_FILTER_CLK_DIV_64)
 #endif /* #if (APP_TMR2_USE_HW_TRIG > 0U) */
-
-/* Specifying clock divider of filter of each channel depends on the signal that input from pin TIM2_<t>_PWMA/B. */
-#if (APP_TMR2_USE_FILTER > 0U)
-    #define APP_TMR2_FILTER_CLK_DIV         (TMR2_FILTER_CLK_DIV_16)
-#endif
 
 /* Indicate pin definition in this example. */
 #define INDICATE_PORT                       (GPIO_PORT_A)
@@ -273,9 +272,9 @@ int32_t main(void)
         /* See APP_TMR2_IRQ_CB in this file. */
 #else
         /* Call TMR2_GetStatus to check the flag state. */
-        if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH) == Set)
+        if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP) == Set)
         {
-            TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH);
+            TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP);
             INDICATE_OUT_TOGGLE();
         }
 #endif /* #if (APP_TMR2_USE_INTERRUPT > 0U) */
@@ -328,12 +327,13 @@ static void SystemClockConfig(void)
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
     SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+
+    /* Set EFM wait cycle. 5 wait cycles needed when system clock is 240MHz */
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
+    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
@@ -436,9 +436,9 @@ static void Tmr2IrqConfig(void)
  */
 void APP_TMR2_IRQ_CB(void)
 {
-    if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH) == Set)
+    if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP) == Set)
     {
-        TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CNT_MATCH);
+        TMR2_ClrStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP);
         INDICATE_OUT_TOGGLE();
     }
 }
@@ -461,7 +461,7 @@ static void Tmr2TrigCondConfig(void)
      * The following operations are only used in this example.
      */
 
-#if (APP_TMR2_USE_FILTER > 0U)
+#if (defined APP_TMR2_FILTER_ENABLE && APP_TMR2_FILTER_ENABLE > 0U)
     TMR2_FilterConfig(APP_TMR2_UNIT, APP_TMR2_CH, APP_TMR2_FILTER_CLK_DIV);
     TMR2_FilterCmd(APP_TMR2_UNIT, APP_TMR2_CH, Enable);
 #endif
@@ -488,14 +488,15 @@ static void ExternalClockConfig(void)
 
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMRA_1, Enable);
 
+    /* TIMERA unit 1: clock source PCLK0(240MHZ). Divider: 2. Final count clock frequency 120MHz. */
     TMRA_StructInit(&stcTmrAInit);
-    stcTmrAInit.u32ClkSrc = TMRA_CLK_PCLK1;
-    stcTmrAInit.u32ClkDiv = TMR2_CLK_DIV_2;
-    stcTmrAInit.u32PeriodRefVal = 29U;
+    stcTmrAInit.u32ClkSrc    = TMRA_CLK_PCLK;
+    stcTmrAInit.u32PCLKDiv   = TMRA_PCLK_DIV_2;
+    stcTmrAInit.u32PeriodVal = 60U - 1U;
     TMRA_Init(M4_TMRA_1, &stcTmrAInit);
 
     TMRA_SetFuncMode(M4_TMRA_1, TMRA_CH_2, TMRA_FUNC_COMPARE);
-    TMRA_SetCmpRefVal(M4_TMRA_1, TMRA_CH_2, 29U);
+    TMRA_SetCmpVal(M4_TMRA_1, TMRA_CH_2, 30U - 1U);
 
     TMRA_PWM_StructInit(&stcPwmCfg);
     TMRA_PWM_Config(M4_TMRA_1, TMRA_CH_2, &stcPwmCfg);

@@ -182,10 +182,10 @@
  * @defgroup EXMC_SMC_Register_Bit_Mask EXMC SMC Register Bit Mask
  * @{
  */
-#define SMC_CSCR0_ADDMSKx_POS(__CHIPx__)    (((__CHIPx__) * 8UL))
+#define SMC_CSCR0_ADDMSKx_POS(__CHIPx__)    ((__CHIPx__) << 3UL)
 #define SMC_CSCR0_ADDMSKx(__CHIPx__)        (SMC_CSCR0_ADDMSK0 << SMC_CSCR0_ADDMSKx_POS((__CHIPx__)))
 
-#define SMC_CSCR1_ADDMATx_POS(__CHIPx__)    (((__CHIPx__) * 8UL))
+#define SMC_CSCR1_ADDMATx_POS(__CHIPx__)    ((__CHIPx__) << 3UL)
 #define SMC_CSCR1_ADDMATx(__CHIPx__)        (SMC_CSCR1_ADDMAT0 << SMC_CSCR1_ADDMATx_POS((__CHIPx__)))
 /**
  * @}
@@ -227,6 +227,12 @@
 
 /**
  * @brief  Initialize EXMC SMC function.
+ * @param  [in] u32Chip                     The chip number.
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_SMC_CHIP_0:          Chip 0
+ *           @arg EXMC_SMC_CHIP_1:          Chip 1
+ *           @arg EXMC_SMC_CHIP_2:          Chip 2
+ *           @arg EXMC_SMC_CHIP_3:          Chip 3
  * @param  [in] pstcInit                Pointer to a @ref stc_exmc_smc_init_t structure (EXMC SMC function configuration structure).
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize success
@@ -234,7 +240,7 @@
  */
 en_result_t EXMC_SMC_Init(uint32_t u32Chip, const stc_exmc_smc_init_t *pstcInit)
 {
-    uint32_t u32RegVal = 0UL;
+    uint32_t u32RegVal;
     en_result_t enRet = ErrorInvalidParameter;
 
     /* Check the pointer pstcInit */
@@ -300,10 +306,9 @@ en_result_t EXMC_SMC_Init(uint32_t u32Chip, const stc_exmc_smc_init_t *pstcInit)
 /**
  * @brief  De-Initialize EXMC SMC function.
  * @param  None
- * @retval An en_result_t enumeration value:
- *           - Ok: De-Initialize success
+ * @retval None
  */
-en_result_t EXMC_SMC_DeInit(void)
+void EXMC_SMC_DeInit(void)
 {
     /* Disable SMC */
     WRITE_REG32(bM4_PERIC->EXMC_ENAR_b.SMCEN, 0UL);
@@ -313,8 +318,6 @@ en_result_t EXMC_SMC_DeInit(void)
 
     /* Set SMC chip configuration.*/
     WRITE_REG32(M4_SMC->CPCR, 0UL);
-
-    return Ok;
 }
 
 /**
@@ -356,7 +359,7 @@ en_result_t EXMC_SMC_StructInit(stc_exmc_smc_init_t *pstcInit)
 
 /**
  * @brief  Set EXMC SMC command.
- * @param  [in] u32Chip                     The command chip number.
+ * @param  [in] u32Chip                     The chip number.
  *         This parameter can be one of the following values:
  *           @arg EXMC_SMC_CHIP_0:          Chip 0
  *           @arg EXMC_SMC_CHIP_1:          Chip 1
@@ -373,15 +376,14 @@ en_result_t EXMC_SMC_StructInit(stc_exmc_smc_init_t *pstcInit)
  *           @arg EXMC_SMC_CRE_POLARITY_HIGH: CRE is HIGH when ModeReg write occurs
  * @param  [in] u32Address                  The address parameter is valid when CMD type is 
  *                                          MdRegConfig or MdRegConfig and UpdateRegs only.
- * @retval An en_result_t enumeration value:
- *           - Ok: Command success
+ * @retval None
  */
-en_result_t EXMC_SMC_SetCommand(uint32_t u32Chip,
-                                    uint32_t u32Cmd,
-                                    uint32_t u32CrePolarity,
-                                    uint32_t u32Address)
+void EXMC_SMC_SetCommand(uint32_t u32Chip,
+                                uint32_t u32Cmd,
+                                uint32_t u32CrePolarity,
+                                uint32_t u32Address)
 {
-    uint32_t u32SmcCmdr = 0UL;
+    uint32_t u32SmcCmdr;
 
     /* Check parameters */
     DDL_ASSERT(IS_EXMC_SMC_CHIP(u32Chip));
@@ -392,8 +394,6 @@ en_result_t EXMC_SMC_SetCommand(uint32_t u32Chip,
     /* Set SMC_CMDR register for SMC.*/
     u32SmcCmdr = (u32Address | u32CrePolarity | u32Cmd | (u32Chip << SMC_CMDR_CMDCHIP_POS));
     WRITE_REG32(M4_SMC->CMDR, u32SmcCmdr);
-
-    return Ok;
 }
 
 /**
@@ -404,7 +404,7 @@ en_result_t EXMC_SMC_SetCommand(uint32_t u32Chip,
  *           @arg EXMC_SMC_CHIP_1:          Chip 1
  *           @arg EXMC_SMC_CHIP_2:          Chip 2
  *           @arg EXMC_SMC_CHIP_3:          Chip 3
- * @retval The start address of the specified DMC chip.
+ * @retval The start address of the specified SMC chip.
  */
 uint32_t EXMC_SMC_ChipStartAddress(uint32_t u32Chip)
 {
@@ -413,24 +413,7 @@ uint32_t EXMC_SMC_ChipStartAddress(uint32_t u32Chip)
     /* Check parameters */
     DDL_ASSERT(IS_EXMC_SMC_CHIP(u32Chip));
 
-    switch (u32Chip)
-    {
-        case EXMC_SMC_CHIP_0:
-            u32StartAddress = (READ_REG32_BIT(M4_SMC->CSCR1, SMC_CSCR1_ADDMAT0) << 24UL);
-            break;
-        case EXMC_SMC_CHIP_1:
-            u32StartAddress = (READ_REG32_BIT(M4_SMC->CSCR1, SMC_CSCR1_ADDMAT1) << 16UL);
-            break;
-        case EXMC_SMC_CHIP_2:
-            u32StartAddress = (READ_REG32_BIT(M4_SMC->CSCR1, SMC_CSCR1_ADDMAT2) << 8UL);
-            break;
-        case EXMC_SMC_CHIP_3:
-            u32StartAddress = (READ_REG32(M4_SMC->CSCR1) & SMC_CSCR1_ADDMAT3);
-            break;
-        default:
-            break;
-    }
-
+    u32StartAddress = (READ_REG32_BIT(M4_SMC->CSCR1, SMC_CSCR1_ADDMATx(u32Chip)) << (24UL - SMC_CSCR1_ADDMATx_POS(u32Chip)));
     return u32StartAddress;
 }
 
@@ -438,16 +421,16 @@ uint32_t EXMC_SMC_ChipStartAddress(uint32_t u32Chip)
  * @brief  Get the end address of the specified SMC chip.
  * @param  [in] u32Chip                     The chip number.
  *         This parameter can be one of the following values:
- *           @arg EXMC_DMC_CHIP_0:          Chip 0
- *           @arg EXMC_DMC_CHIP_1:          Chip 1
- *           @arg EXMC_DMC_CHIP_2:          Chip 2
- *           @arg EXMC_DMC_CHIP_3:          Chip 3
+ *           @arg EXMC_SMC_CHIP_0:          Chip 0
+ *           @arg EXMC_SMC_CHIP_1:          Chip 1
+ *           @arg EXMC_SMC_CHIP_2:          Chip 2
+ *           @arg EXMC_SMC_CHIP_3:          Chip 3
  * @retval The end address of the specified SMC chip
  */
 uint32_t EXMC_SMC_ChipEndAddress(uint32_t u32Chip)
 {
-    uint32_t u32Mask = 0UL;
-    uint32_t u32Match = 0UL;
+    uint32_t u32Mask;
+    uint32_t u32Match;
 
     /* Check parameters */
     DDL_ASSERT(IS_EXMC_SMC_CHIP(u32Chip));
@@ -462,10 +445,10 @@ uint32_t EXMC_SMC_ChipEndAddress(uint32_t u32Chip)
  * @brief  Check SMC chip staus register value
  * @param  [in] u32Chip                     The chip number.
  *         This parameter can be one of the following values:
- *           @arg EXMC_DMC_CHIP_0:          Chip 0
- *           @arg EXMC_DMC_CHIP_1:          Chip 1
- *           @arg EXMC_DMC_CHIP_2:          Chip 2
- *           @arg EXMC_DMC_CHIP_3:          Chip 3
+ *           @arg EXMC_SMC_CHIP_0:          Chip 0
+ *           @arg EXMC_SMC_CHIP_1:          Chip 1
+ *           @arg EXMC_SMC_CHIP_2:          Chip 2
+ *           @arg EXMC_SMC_CHIP_3:          Chip 3
  * @param  [in] pstcTimingCfg               Pointer to a @ref stc_exmc_smc_chip_cfg_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Status is right
@@ -508,10 +491,10 @@ en_result_t EXMC_SMC_CheckChipStatus(uint32_t u32Chip,
  * @brief  Check SMC timing staus register value
  * @param  [in] u32Chip                     The chip number.
  *         This parameter can be one of the following values:
- *           @arg EXMC_DMC_CHIP_0:          Chip 0
- *           @arg EXMC_DMC_CHIP_1:          Chip 1
- *           @arg EXMC_DMC_CHIP_2:          Chip 2
- *           @arg EXMC_DMC_CHIP_3:          Chip 3
+ *           @arg EXMC_SMC_CHIP_0:          Chip 0
+ *           @arg EXMC_SMC_CHIP_1:          Chip 1
+ *           @arg EXMC_SMC_CHIP_2:          Chip 2
+ *           @arg EXMC_SMC_CHIP_3:          Chip 3
  * @param  [in] pstcTimingCfg               Pointer to a @ref stc_exmc_smc_timing_cfg_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Status is right

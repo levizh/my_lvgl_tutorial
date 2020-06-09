@@ -203,7 +203,8 @@ int32_t main(void)
     {
         ADC_PollingSA(APP_ADC_UNIT, m_au16AdcSaVal, APP_ADC_SA_CH_COUNT, APP_TIMEOUT_MS);
 #if (DDL_PRINT_ENABLE == DDL_ON)
-        DBG("The ADC value of potentiometer is %d, voltage is %.3f.\n", m_au16AdcSaVal[0U], APP_CAL_VOL(m_au16AdcSaVal[0U]));
+        DBG("The ADC value of potentiometer is %d, voltage is %.3f.\n", \
+             m_au16AdcSaVal[0U], APP_CAL_VOL(m_au16AdcSaVal[0U]));
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
     }
 }
@@ -239,7 +240,7 @@ static void AdcClockConfig(void)
     CLK_ClkDiv((CLK_CATE_PCLK2 | CLK_CATE_PCLK4), (CLK_PCLK2_DIV8 | CLK_PCLK4_DIV2));
 
 #elif (APP_PRIMARY_CLK == APP_PRIMARY_CLK_PLLH)
-    /* 
+    /*
      * 1. Configures PLLH and the divider of PLLHx(x=Q, R).
      *    PLLHx(x=Q, R) is used as both the digital interface clock and the analog circuit clock.
      *    PLLHx(x=Q, R) must be in range [1MHz, 60MHz] for ADC use.
@@ -273,7 +274,7 @@ static void AdcClockConfig(void)
     CLK_PLLHInit(&stcPLLHInit);
 
 #elif (APP_PRIMARY_CLK == APP_PRIMARY_CLK_PLLA)
-    /* 
+    /*
      * 1. Configures PLLA and the divider of PLLAx(x=P, Q, R).
      *    PLLAx(x=P, Q, R) is used as both the digital interface clock and the analog circuit clock.
      *    PLLAx(x=P, Q, R) must be in range [1MHz, 60MHz] for ADC use.
@@ -426,13 +427,13 @@ static void AdcSetPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint8_t u8PinNum)
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
 
-    if ((ADCx == M4_ADC1) || (ADCx == M4_ADC2))
+    if (ADCx == M4_ADC3)
     {
-        GPIO_Init(astcADC12[u8PinNum].u8Port, astcADC12[u8PinNum].u16Pin, &stcGpioInit);
+        GPIO_Init(astcADC3[u8PinNum].u8Port, astcADC3[u8PinNum].u16Pin, &stcGpioInit);
     }
     else
     {
-        GPIO_Init(astcADC3[u8PinNum].u8Port, astcADC3[u8PinNum].u16Pin, &stcGpioInit);
+        GPIO_Init(astcADC12[u8PinNum].u8Port, astcADC12[u8PinNum].u16Pin, &stcGpioInit);
     }
 }
 

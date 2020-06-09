@@ -131,7 +131,6 @@ void BSP_TS_ReadReg(uint16_t reg, uint8_t *pRxBuf, uint32_t len)
     //tmp[0] = 0x81;
     //tmp[1] = 0x40;
     I2C_SendData(GT9147_I2C_CH, (uint8_t*)&tmp, 2UL, GT9147_TIMEOUT);
-    //I2Cx_SendData(GT9147_I2C_CH, 0X40, 1UL, GT9147_TIMEOUT);
 
     I2C_Restart(GT9147_I2C_CH, GT9147_TIMEOUT);
 

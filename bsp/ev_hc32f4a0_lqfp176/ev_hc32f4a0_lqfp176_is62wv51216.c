@@ -109,9 +109,9 @@
  * @note SRAM address:[0x60000000, 0x607FFFFF] / size: 8M bytes
  * @{
  */
-#define SRAM_IS42S_START_ADDR                   (EXMC_SMC_ChipStartAddress(IS62WV51216_MAP_SMC_CHIP))
-#define SRAM_IS42S_SIZE                         (1UL * 1024UL * 1024UL)     /* 1MBytes*/
-#define SRAM_IS42S_END_ADDR                     (SRAM_IS42S_START_ADDR + SRAM_IS42S_SIZE - 1UL)
+#define SRAM_IS42S16400J7TLI_START_ADDR         (EXMC_SMC_ChipStartAddress(IS62WV51216_MAP_SMC_CHIP))
+#define SRAM_IS42S16400J7TLI_SIZE               (1UL * 1024UL * 1024UL)     /* 1MBytes*/
+#define SRAM_IS42S16400J7TLI_END_ADDR           (SRAM_IS42S16400J7TLI_START_ADDR + SRAM_IS42S16400J7TLI_SIZE - 1UL)
 /**
  * @}
  */
@@ -240,7 +240,7 @@ static void EV_EXMC_SMC_PortInit(void);
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  */
-en_result_t EV_SMC_IS62WV_Init(void)
+en_result_t BSP_SMC_IS62WV51216_Init(void)
 {
     en_result_t enRet;
     stc_exmc_smc_init_t stcSmcInit;
@@ -281,12 +281,14 @@ en_result_t EV_SMC_IS62WV_Init(void)
     EXMC_SMC_SetCommand(IS62WV51216_MAP_SMC_CHIP, EXMC_SMC_CMD_UPDATEREGS, 0UL, 0UL);
 
     /* Check timing status */
-    do {
+    do
+    {
         enRet = EXMC_SMC_CheckTimingStatus(IS62WV51216_MAP_SMC_CHIP, &stcSmcInit.stcTimingCfg);
     } while (Ok != enRet);
 
     /* Check chip status */
-    do {
+    do
+    {
         enRet = EXMC_SMC_CheckChipStatus(IS62WV51216_MAP_SMC_CHIP, &stcSmcInit.stcChipCfg);
     } while (Ok != enRet);
 
@@ -300,186 +302,19 @@ en_result_t EV_SMC_IS62WV_Init(void)
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorInvalidParameter:       The pointer pu32MemStartAddr and pu32MemByteSize is NULL.
-
  */
-void EV_SMC_IS62WV_GetMemInfo(uint32_t *pu32MemStartAddr,
+void BSP_SMC_IS62WV51216_GetMemInfo(uint32_t *pu32MemStartAddr,
                                         uint32_t *pu32MemByteSize)
 {
     if (NULL != pu32MemStartAddr)
     {
-        *pu32MemStartAddr = SRAM_IS42S_START_ADDR;
+        *pu32MemStartAddr = SRAM_IS42S16400J7TLI_START_ADDR;
     }
 
     if (NULL != pu32MemByteSize)
     {
-        *pu32MemByteSize = SRAM_IS42S_SIZE;
+        *pu32MemByteSize = SRAM_IS42S16400J7TLI_SIZE;
     }
-}
-
-/**
- * @brief  Write memory for byte.
- * @param  [in] au8Buf                  Data buffer to write
- * @param  [in] u32Addr                 Memory address to write
- * @param  [in] u32NumBytes             Number bytes to write
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
- */
-en_result_t EV_SMC_IS62WV_WriteMem8(const uint8_t au8Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32NumBytes)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au8Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumBytes; i++)
-        {
-            *(uint8_t *)(u32Addr + i) = au8Buf[i];
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Read memory for byte.
- * @param  [in] au8Buf                  Data buffer to read
- * @param  [in] u32Addr                 Memory address to read
- * @param  [in] u32NumBytes             Number bytes to read
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au8Buf value is NULL.
- */
-en_result_t EV_SMC_IS62WV_ReadMem8(uint8_t au8Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32NumBytes)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au8Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumBytes; i++)
-        {
-            au8Buf[i] = *(uint8_t *)(u32Addr + i);
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Write memory for half-word.
- * @param  [in] au16Buf                 Data buffer to write
- * @param  [in] u32Addr                 Memory address to write
- * @param  [in] u32NumHalfWords         Number half-word to write
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au16Buf value is NULL.
- */
-en_result_t EV_SMC_IS62WV_WriteMem16(const uint16_t au16Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32NumHalfWords)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au16Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumHalfWords; i++)
-        {
-            *((uint16_t *)u32Addr) = au16Buf[i];
-            u32Addr += 2UL;
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Read memory for half-word.
- * @param  [in] au16Buf                 Data buffer to read
- * @param  [in] u32Addr                 Memory address to read
- * @param  [in] u32NumHalfWords         Number half-word to read
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au16Buf value is NULL.
- */
-en_result_t EV_SMC_IS62WV_ReadMem16(uint16_t au16Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32NumHalfWords)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au16Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumHalfWords; i++)
-        {
-            au16Buf[i] = *((uint16_t *)u32Addr);
-            u32Addr += 2UL;
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Write memory for word.
- * @param  [in] au32Buf                 Data buffer to write
- * @param  [in] u32Addr                 Memory address to write
- * @param  [in] u32NumWords             Number word to write
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au32Buf value is NULL.
- */
-en_result_t EV_SMC_IS62WV_WriteMem32(const uint32_t au32Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32NumWords)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au32Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumWords; i++)
-        {
-            *((uint32_t *)u32Addr) = au32Buf[i];
-            u32Addr += 4UL;
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Read memory for word.
- * @param  [in] au32Buf                 Data buffer to read
- * @param  [in] u32Addr                 Memory address to read
- * @param  [in] u32NumWords             Number word to read
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au32Buf value is NULL.
- */
-en_result_t EV_SMC_IS62WV_ReadMem32(uint32_t au32Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32NumWords)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != au32Buf)
-    {
-        for (uint32_t i = 0UL; i < u32NumWords; i++)
-        {
-            au32Buf[i] = *((uint32_t *)u32Addr);
-            u32Addr += 4UL;
-        }
-        enRet = Ok;
-    }
-
-    return enRet;
 }
 
 /**
@@ -500,9 +335,11 @@ static void EV_EXMC_SMC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
+    GPIO_Unlock();
+
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDrv = PIN_MID_DRV;
+    stcGpioInit.u16PinDrv = PIN_DRV_MID;
 
     /* SMC_CS */
     GPIO_Init(SMC_CS_PORT, SMC_CS_PIN, &stcGpioInit);
@@ -608,6 +445,8 @@ static void EV_EXMC_SMC_PortInit(void)
     GPIO_SetFunc(SMC_ADD16_PORT, SMC_ADD16_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(SMC_ADD17_PORT, SMC_ADD17_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(SMC_ADD18_PORT, SMC_ADD18_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
+
+    GPIO_Lock();
 }
 
 /**

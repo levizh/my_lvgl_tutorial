@@ -130,31 +130,17 @@
     (M4_USART8 == (x))                          ||                             \
     (M4_USART9 == (x)))
 
-#define IS_USART_FLAG(x)                                                       \
-(   (USART_FLAG_PE | USART_FLAG_FE  | USART_FLAG_ORE   |                       \
-     USART_FLAG_BE | USART_FLAG_RXNE | USART_FLAG_TC |                         \
-     USART_FLAG_TXE | USART_FLAG_RTOF | USART_FLAG_LBD | \
-     USART_FLAG_WKUP | USART_FLAG_MPB) & (x))
+#define IS_USART_FUNCTION(x)                    ((x) && (!((x) & (~USART_FUNCTION_MASK))))
 
-#define IS_USART_CLEAR_FLAG(x)                                                 \
-(   (USART_CLEAR_FLAG_PE | USART_CLEAR_FLAG_FE | USART_CLEAR_FLAG_ORE |        \
-     USART_CLEAR_FLAG_RTOF | USART_CLEAR_FLAG_BE | USART_CLEAR_FLAG_WKUP |     \
-     USART_CLEAR_FLAG_LBD) & (x))
+#define IS_USART_LIN_FUNCTION(x)                ((x) && (!((x) & (~USART_LIN_FUNCTION_MASK))))
+
+#define IS_USART_FLAG(x)                        ((x) && (!((x) & (~USART_FLAG_MASK))))
+
+#define IS_USART_CLEAR_FLAG(x)                  ((x) && (!((x) & (~USART_CLEAR_FLAG_MASK))))
 
 #define IS_USART_TRANSMISSION_TYPE(x)                                          \
 (   (USART_TRANSMISSION_ID == (x))              ||                             \
     (USART_TRANSMISSION_DATA == (x)))
-
-#define IS_USART_FUNCTION(x)                                                   \
-(   (USART_RX  | USART_INT_RX  |                                               \
-     USART_RTO | USART_INT_RTO |                                               \
-     USART_TX  | USART_INT_TXE |                                               \
-     USART_INT_TC) & (x))
-
-#define IS_USART_LIN_FUNCTION(x)                                               \
-(   (USART_LIN        | USART_LIN_INT_BREAK |                                  \
-     USART_LIN_WKUP   | USART_LIN_INT_WKUP  |                                  \
-     USART_LIN_BUSERR | USART_LIN_INT_BUSERR) & (x))
 
 #define IS_USART_PARITY_CONTROL(x)                                             \
 (   (USART_PARITY_ODD == (x))                   ||                             \
@@ -245,12 +231,93 @@
  */
 
 /**
- * @defgroup USART_CR1 register clear flag bits definition
+ * @defgroup USART flag mask definition
  * @{
  */
-#define USART_CR1_CLR_FLAG_BITS             (USART_CR1_CPE | USART_CR1_CORE  | \
-                                             USART_CR1_CFE | USART_CR1_CRTOF | \
-                                             USART_CR1_CBE | USART_CR1_CWKUP | \
+#define USART_FLAG_MASK                     (USART_FLAG_PE   | \
+                                             USART_FLAG_FE   | \
+                                             USART_FLAG_ORE  | \
+                                             USART_FLAG_BE   | \
+                                             USART_FLAG_RXNE | \
+                                             USART_FLAG_TC   | \
+                                             USART_FLAG_TXE  | \
+                                             USART_FLAG_RTOF | \
+                                             USART_FLAG_LBD  | \
+                                             USART_FLAG_WKUP | \
+                                             USART_FLAG_MPB)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup USART clear flag mask definition
+ * @{
+ */
+#define USART_CLEAR_FLAG_MASK               (USART_CLEAR_FLAG_PE   | \
+                                             USART_CLEAR_FLAG_FE   | \
+                                             USART_CLEAR_FLAG_ORE  | \
+                                             USART_CLEAR_FLAG_RTOF | \
+                                             USART_CLEAR_FLAG_BE   | \
+                                             USART_CLEAR_FLAG_WKUP | \
+                                             USART_CLEAR_FLAG_LBD)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup USART function mask definition
+ * @{
+ */
+#define USART_FUNCTION_MASK                 (USART_RX      | \
+                                             USART_TX      | \
+                                             USART_RTO     | \
+                                             USART_INT_RX  | \
+                                             USART_INT_TC  | \
+                                             USART_INT_TXE | \
+                                             USART_INT_RTO)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup USART LIN function mask definition
+ * @{
+ */
+#define USART_LIN_FUNCTION_MASK             (USART_LIN           | \
+                                             USART_LIN_WKUP      | \
+                                             USART_LIN_BUSERR    | \
+                                             USART_LIN_INT_WKUP  | \
+                                             USART_LIN_INT_BREAK | \
+                                             USART_LIN_INT_BUSERR)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup USART_CR1 register clear flag bits mask definition
+ * @{
+ */
+#define USART_CR1_CLR_FLAG_MASK             (USART_CR1_CPE   | \
+                                             USART_CR1_CORE  | \
+                                             USART_CR1_CFE   | \
+                                             USART_CR1_CRTOF | \
+                                             USART_CR1_CBE   | \
+                                             USART_CR1_CWKUP | \
+                                             USART_CR1_CLBD)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup USART_CR1 register clear flag bits mask definition
+ * @{
+ */
+#define USART_CR1_CLR_FLAG_MASK             (USART_CR1_CPE   | \
+                                             USART_CR1_CORE  | \
+                                             USART_CR1_CFE   | \
+                                             USART_CR1_CRTOF | \
+                                             USART_CR1_CBE   | \
+                                             USART_CR1_CWKUP | \
                                              USART_CR1_CLBD)
 /**
  * @}
@@ -260,8 +327,8 @@
  * @defgroup USART_CR2 register bit 9/10 definition
  * @{
  */
-#define USART_CR2_BIT9                      ((uint32_t)0x00000200UL)
-#define USART_CR2_BIT10                     ((uint32_t)0x00000400UL)
+#define USART_CR2_BIT9                      (0x00000200UL)
+#define USART_CR2_BIT10                     (0x00000400UL)
 /**
  * @}
  */
@@ -274,10 +341,10 @@
 (   1UL << (READ_REG32_BIT(INSTANCE->PR, USART_PR_PSC) * 2UL))
 
 #define USART_BM_PRESCALER(INSTANCE)                                           \
-(   1UL << ((uint32_t)(READ_REG32_BIT(INSTANCE->PR, USART_PR_LBMPSC) >> USART_PR_LBMPSC_POS)))
+(   1UL << (READ_REG32_BIT(INSTANCE->PR, USART_PR_LBMPSC) >> USART_PR_LBMPSC_POS))
 
 #define PCLK_FREQ                                                              \
-(   SystemCoreClock >> ((uint32_t)(READ_REG32_BIT(M4_CMU->SCFGR, CMU_SCFGR_PCLK1S) >> CMU_SCFGR_PCLK1S_POS)))
+(   SystemCoreClock >> (READ_REG32_BIT(M4_CMU->SCFGR, CMU_SCFGR_PCLK1S) >> CMU_SCFGR_PCLK1S_POS))
 /**
  * @}
  */
@@ -349,7 +416,7 @@ en_result_t USART_UartInit(M4_USART_TypeDef *USARTx,
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check USARTx instance and pstcInit */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         /* Check parameters */
@@ -367,7 +434,7 @@ en_result_t USART_UartInit(M4_USART_TypeDef *USARTx,
         DDL_ASSERT(IS_USART_HWFLOWCTRL(pstcInit->u32HwFlowCtrl));
 
         /* Disbale TX/RX && clear flag */
-        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_BITS);
+        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_MASK);
 
         /* Set CR1 */
         WRITE_REG32(USARTx->CR1, (pstcInit->u32Parity | \
@@ -423,7 +490,7 @@ en_result_t USART_HalfduplexInit(M4_USART_TypeDef *USARTx,
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check USARTx instance and pstcInit */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         /* Check parameters */
@@ -441,7 +508,7 @@ en_result_t USART_HalfduplexInit(M4_USART_TypeDef *USARTx,
         DDL_ASSERT(IS_USART_HWFLOWCTRL(pstcInit->u32HwFlowCtrl));
 
         /* Disbale TX/RX && clear flag */
-        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_BITS);
+        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_MASK);
 
         /* Set CR1 */
         WRITE_REG32(USARTx->CR1, (pstcInit->u32Parity | \
@@ -484,7 +551,7 @@ en_result_t USART_UartStructInit(stc_usart_uart_init_t *pstcInit)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check parameters */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         pstcInit->u32Baudrate = 9600UL;
@@ -528,7 +595,7 @@ en_result_t USART_MultiProcessorInit(M4_USART_TypeDef *USARTx,
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check USARTx instance and pstcInit */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         /* Check parameters */
@@ -545,7 +612,7 @@ en_result_t USART_MultiProcessorInit(M4_USART_TypeDef *USARTx,
         DDL_ASSERT(IS_USART_HWFLOWCTRL(pstcInit->u32HwFlowCtrl));
 
         /* Disbale TX/RX && clear flag */
-        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_BITS);
+        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_MASK);
 
         /* Set CR1 */
         WRITE_REG32(USARTx->CR1, (pstcInit->u32DataWidth | \
@@ -588,7 +655,7 @@ en_result_t USART_MultiProcessorStructInit(stc_usart_multiprocessor_init_t *pstc
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check parameters */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         pstcInit->u32Baudrate = 9600UL;
@@ -624,11 +691,11 @@ en_result_t USART_LinInit(M4_USART_TypeDef *USARTx,
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check USARTx instance and pstcInit */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         /* Check parameters */
-        DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+        DDL_ASSERT(IS_USART_LIN_INSTANCE(USARTx));
         DDL_ASSERT(pstcInit->u32Baudrate);
         DDL_ASSERT(IS_USART_CLOCK_MODE(pstcInit->u32ClkMode));
         DDL_ASSERT(IS_USART_CLOCK_PRESCALER(pstcInit->u32ClkPrescaler));
@@ -639,7 +706,7 @@ en_result_t USART_LinInit(M4_USART_TypeDef *USARTx,
         DDL_ASSERT(IS_USART_LIN_SEND_BREAK_MODE(pstcInit->u32SendBreakMode));
 
         /* Disbale TX/RX && clear flag */
-        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_BITS);
+        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_MASK);
 
         /* Set CR1 */
         WRITE_REG32(USARTx->CR1, (pstcInit->u32OversamplingBits | \
@@ -682,7 +749,7 @@ en_result_t USART_LinStructInit(stc_usart_lin_init_t *pstcInit)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check parameters */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         pstcInit->u32Baudrate = 9600UL;
@@ -722,7 +789,7 @@ en_result_t USART_SmartcardInit(M4_USART_TypeDef *USARTx,
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check pointer pstcInit */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         /* Check parameters */
@@ -733,7 +800,7 @@ en_result_t USART_SmartcardInit(M4_USART_TypeDef *USARTx,
         DDL_ASSERT(IS_USART_SIGNIFICANT_BIT(pstcInit->u32BitDirection));
 
         /* Disbale TX/RX && clear flag */
-        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_BITS);
+        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_MASK);
 
         /* Set CR1 */
         WRITE_REG32(USARTx->CR1, (USART_CR1_PCE | \
@@ -773,7 +840,7 @@ en_result_t USART_SmartcardStructInit(stc_usart_smartcard_init_t *pstcInit)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check parameters */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         pstcInit->u32Baudrate = 9600UL;
@@ -810,7 +877,7 @@ en_result_t USART_ClkSyncInit(M4_USART_TypeDef *USARTx,
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check TMRBx instance and pstcInit */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         /* Check parameters */
@@ -821,7 +888,7 @@ en_result_t USART_ClkSyncInit(M4_USART_TypeDef *USARTx,
         DDL_ASSERT(IS_USART_HWFLOWCTRL(pstcInit->u32HwFlowCtrl));
 
         /* Disbale TX/RX && clear flag */
-        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_BITS);
+        WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_MASK);
 
         /* Set CR1 */
         WRITE_REG32(USARTx->CR1, (USART_CR1_MS | \
@@ -860,7 +927,7 @@ en_result_t USART_ClkSyncStructInit(stc_usart_clksync_init_t *pstcInit)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    /* Check parameter */
+    /* Check structure pointer */
     if (NULL != pstcInit)
     {
         pstcInit->u32Baudrate = 9600UL;
@@ -896,7 +963,7 @@ void USART_DeInit(M4_USART_TypeDef *USARTx)
     DDL_ASSERT(IS_USART_INSTANCE(USARTx));
 
     /* Configures the registers to reset value. */
-    WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_BITS);
+    WRITE_REG32(USARTx->CR1, USART_CR1_CLR_FLAG_MASK);
     WRITE_REG32(USARTx->PR, 0x00000000UL);
     WRITE_REG32(USARTx->BRR, 0x0000FF00UL);
     WRITE_REG32(USARTx->CR1, 0x80000000UL);
@@ -940,7 +1007,7 @@ void USART_FuncCmd(M4_USART_TypeDef *USARTx,
     /* Check parameters */
     DDL_ASSERT(IS_USART_INSTANCE(USARTx));
     DDL_ASSERT(IS_USART_TIMEOUT_INSTANCE(USARTx) || \
-               (!IS_USART_TIMEOUT_INSTANCE(USARTx) && (!(u32Func & (USART_RTO | USART_INT_RTO)))));
+               ((!IS_USART_TIMEOUT_INSTANCE(USARTx)) && (!(u32Func & (USART_RTO | USART_INT_RTO)))));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
     DDL_ASSERT(IS_USART_FUNCTION(u32Func));
 
@@ -999,7 +1066,7 @@ en_functional_state_t USART_GetFuncState(const M4_USART_TypeDef *USARTx,
  *           @arg M4_USART9:            USART unit 9 instance register base
  *           @arg M4_USART10:           USART unit 10 instance register base
  * @param  [in] u32Flag                 USART flag type
- *         This parameter can be one of the following values:
+ *         This parameter can be any composed value of the following values:
  *           @arg USART_FLAG_PE:        Parity error flag
  *           @arg USART_FLAG_FE:        Framing error flag
  *           @arg USART_FLAG_ORE:       Overrun error flag
@@ -1507,6 +1574,186 @@ uint32_t USART_GetStopBits(const M4_USART_TypeDef *USARTx)
 }
 
 /**
+ * @brief  USART receive data.
+ * @param  [in] USARTx                  Pointer to USART instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_USART1:            USART unit 1 instance register base
+ *           @arg M4_USART2:            USART unit 2 instance register base
+ *           @arg M4_USART3:            USART unit 3 instance register base
+ *           @arg M4_USART4:            USART unit 4 instance register base
+ *           @arg M4_USART5:            USART unit 5 instance register base
+ *           @arg M4_USART6:            USART unit 6 instance register base
+ *           @arg M4_USART7:            USART unit 7 instance register base
+ *           @arg M4_USART8:            USART unit 8 instance register base
+ *           @arg M4_USART9:            USART unit 9 instance register base
+ *           @arg M4_USART10:           USART unit 10 instance register base
+ * @retval Receive data
+ */
+uint16_t USART_RecData(const M4_USART_TypeDef *USARTx)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+
+    return (uint16_t)(READ_REG32(USARTx->DR) >> USART_DR_RDR_POS);
+}
+
+/**
+ * @brief  USART send data.
+ * @param  [in] USARTx                  Pointer to USART instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_USART1:            USART unit 1 instance register base
+ *           @arg M4_USART2:            USART unit 2 instance register base
+ *           @arg M4_USART3:            USART unit 3 instance register base
+ *           @arg M4_USART4:            USART unit 4 instance register base
+ *           @arg M4_USART5:            USART unit 5 instance register base
+ *           @arg M4_USART6:            USART unit 6 instance register base
+ *           @arg M4_USART7:            USART unit 7 instance register base
+ *           @arg M4_USART8:            USART unit 8 instance register base
+ *           @arg M4_USART9:            USART unit 9 instance register base
+ *           @arg M4_USART10:           USART unit 10 instance register base
+ ** \param [in] u16Data                 Transmit data
+ * @retval None
+ */
+void USART_SendData(M4_USART_TypeDef *USARTx, uint16_t u16Data)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+
+    WRITE_REG32(USARTx->DR, ((uint32_t)u16Data & 0x01FFUL));
+}
+
+/**
+ * @brief  USART send processor ID.
+ * @param  [in] USARTx                  Pointer to USART instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_USART1:            USART unit 1 instance register base
+ *           @arg M4_USART2:            USART unit 2 instance register base
+ *           @arg M4_USART3:            USART unit 3 instance register base
+ *           @arg M4_USART4:            USART unit 4 instance register base
+ *           @arg M4_USART5:            USART unit 5 instance register base
+ *           @arg M4_USART6:            USART unit 6 instance register base
+ *           @arg M4_USART7:            USART unit 7 instance register base
+ *           @arg M4_USART8:            USART unit 8 instance register base
+ *           @arg M4_USART9:            USART unit 9 instance register base
+ *           @arg M4_USART10:           USART unit 10 instance register base
+ ** \param [in] u16ID                   Processor ID
+ * @retval None
+ */
+void USART_SendId(M4_USART_TypeDef *USARTx, uint16_t u16ID)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+
+    WRITE_REG32(USARTx->DR, (USART_DR_MPID | ((uint32_t)u16ID & 0x01FFUL)));
+}
+
+/**
+ * @brief  Enable or disable USART silence.
+ * @param  [in] USARTx                  Pointer to USART instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_USART1:            USART unit 1 instance register base
+ *           @arg M4_USART2:            USART unit 2 instance register base
+ *           @arg M4_USART3:            USART unit 3 instance register base
+ *           @arg M4_USART4:            USART unit 4 instance register base
+ *           @arg M4_USART5:            USART unit 5 instance register base
+ *           @arg M4_USART6:            USART unit 6 instance register base
+ *           @arg M4_USART7:            USART unit 7 instance register base
+ *           @arg M4_USART8:            USART unit 8 instance register base
+ *           @arg M4_USART9:            USART unit 9 instance register base
+ *           @arg M4_USART10:           USART unit 10 instance register base
+ * @param  [in] enNewState              The function new state.
+ *           @arg  This parameter can be: Enable or Disable.
+ * @retval None
+ */
+void USART_SilenceCmd(M4_USART_TypeDef *USARTx,
+                            en_functional_state_t enNewState)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    if (Enable == enNewState)
+    {
+        SET_REG32_BIT(USARTx->CR1, USART_CR1_SLME);
+    }
+    else
+    {
+        CLEAR_REG32_BIT(USARTx->CR1, USART_CR1_SLME);
+    }
+}
+
+/**
+ * @brief  Enable or disable USART loop function.
+ * @param  [in] USARTx                  Pointer to USART instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_USART1:            USART unit 1 instance register base
+ *           @arg M4_USART2:            USART unit 2 instance register base
+ *           @arg M4_USART3:            USART unit 3 instance register base
+ *           @arg M4_USART4:            USART unit 4 instance register base
+ *           @arg M4_USART5:            USART unit 5 instance register base
+ *           @arg M4_USART6:            USART unit 6 instance register base
+ *           @arg M4_USART7:            USART unit 7 instance register base
+ *           @arg M4_USART8:            USART unit 8 instance register base
+ *           @arg M4_USART9:            USART unit 9 instance register base
+ *           @arg M4_USART10:           USART unit 10 instance register base
+ * @param  [in] enNewState              The function new state.
+ *           @arg  This parameter can be: Enable or Disable.
+ * @retval None
+ */
+void USART_LoopCmd(M4_USART_TypeDef *USARTx,
+                        en_functional_state_t enNewState)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    if (Enable == enNewState)
+    {
+        SET_REG32_BIT(USARTx->CR3, USART_CR3_LOOP);
+    }
+    else
+    {
+        CLEAR_REG32_BIT(USARTx->CR3, USART_CR3_LOOP);
+    }
+}
+
+/**
+ * @brief  LIN Request break sending
+ * @param  [in] USARTx                  Pointer to USART instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_USART5:            USART unit 5 instance register base
+ *           @arg M4_USART10:           USART unit 10 instance register base
+ * @retval None
+ * @note   LIN feature is supported by M4_USART5/M4_USART10
+ */
+void USART_LinRequestBreakSending(M4_USART_TypeDef *USARTx)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_USART_LIN_INSTANCE(USARTx));
+
+    SET_REG32_BIT(USARTx->CR2, USART_CR2_SBK);
+}
+
+/**
+ * @brief  Get request break sending status
+ * @param  [in] USARTx                  Pointer to USART instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_USART5:            USART unit 5 instance register base
+ *           @arg M4_USART10:           USART unit 10 instance register base
+ * @retval An en_flag_status_t enumeration value:
+ *           - Set: Sending break
+ *           - Reset: Send break completely
+ * @note   LIN feature is supported by M4_USART5/M4_USART10
+ */
+en_flag_status_t USART_GetLinRequestBreakStatus(const M4_USART_TypeDef *USARTx)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+
+    return READ_REG32_BIT(USARTx->CR2, USART_CR2_SBK) ? Set : Reset;
+}
+
+/**
  * @brief  Set send break mode for USART LIN.
  * @param  [in] USARTx                  Pointer to USART instance register base
  *         This parameter can be one of the following values:
@@ -1522,7 +1769,7 @@ uint32_t USART_GetStopBits(const M4_USART_TypeDef *USARTx)
 void USART_SetLinBreakMode(M4_USART_TypeDef *USARTx, uint32_t u32Mode)
 {
     /* Check parameters */
-    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+    DDL_ASSERT(IS_USART_LIN_INSTANCE(USARTx));
     DDL_ASSERT(IS_USART_LIN_SEND_BREAK_MODE(u32Mode));
 
     MODIFY_REG32(USARTx->CR2, USART_CR2_SBKM, u32Mode);
@@ -1542,7 +1789,7 @@ void USART_SetLinBreakMode(M4_USART_TypeDef *USARTx, uint32_t u32Mode)
 uint32_t USART_GetLinBreakMode(const M4_USART_TypeDef *USARTx)
 {
     /* Check parameters */
-    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+    DDL_ASSERT(IS_USART_LIN_INSTANCE(USARTx));
 
     return READ_REG32_BIT(USARTx->CR2, USART_CR2_SBKM);
 }
@@ -1800,7 +2047,7 @@ void USART_SetLinCntClkPrescaler(M4_USART_TypeDef *USARTx,
                                         uint32_t u32PrescalerVal)
 {
     /* Check parameters */
-    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+    DDL_ASSERT(IS_USART_LIN_INSTANCE(USARTx));
     DDL_ASSERT(IS_USART_LIN_BMC_CLK_PRESCALER(u32PrescalerVal));
 
     MODIFY_REG32(USARTx->PR, USART_PR_LBMPSC, u32PrescalerVal);
@@ -1831,7 +2078,7 @@ void USART_SetLinCntClkPrescaler(M4_USART_TypeDef *USARTx,
 uint32_t USART_GetLinCntClkPrescaler(const M4_USART_TypeDef *USARTx)
 {
     /* Check parameters */
-    DDL_ASSERT(IS_USART_INSTANCE(USARTx));
+    DDL_ASSERT(IS_USART_LIN_INSTANCE(USARTx));
 
     return READ_REG32_BIT(USARTx->PR, USART_PR_LBMPSC);
 }
@@ -1877,7 +2124,7 @@ uint32_t USART_GetStopModeNoiseFilter(const M4_USART_TypeDef *USARTx)
     /* Check parameters */
     DDL_ASSERT(IS_USART_STOPMODE_INSTANCE(USARTx));
 
-    return (READ_REG32(M4_PERIC->USART1_NFC) & (PERIC_USART1_NFC_NFE | PERIC_USART1_NFC_NFS));
+    return READ_REG32_BIT(M4_PERIC->USART1_NFC, (PERIC_USART1_NFC_NFE | PERIC_USART1_NFC_NFS));
 }
 
 /**
@@ -1954,7 +2201,7 @@ uint32_t USART_GetLinMeasureCnt(const M4_USART_TypeDef *USARTx)
     /* Check parameters */
     DDL_ASSERT(IS_USART_LIN_INSTANCE(USARTx));
 
-    return (READ_REG32(USARTx->LBMC) & 0x7FFFUL);
+    return READ_REG32_BIT(USARTx->LBMC, USART_LBMC_LBMC);
 }
 
 /**
@@ -1977,7 +2224,7 @@ uint32_t USART_GetLinMeasureBaudrate(const M4_USART_TypeDef *USARTx)
 
     u32Prescaler = USART_BM_PRESCALER(USARTx);
     u32BmClk = PCLK_FREQ / u32Prescaler;
-    u32LBMC = (READ_REG32(USARTx->LBMC) & 0x7FFFUL);
+    u32LBMC = READ_REG32_BIT(USARTx->LBMC, USART_LBMC_LBMC);
 
     return u32LBMC ? (u32BmClk / u32LBMC) : 0UL;
 }
@@ -2084,7 +2331,7 @@ uint32_t USART_GetLinSendBreakLen(const M4_USART_TypeDef *USARTx)
  *           @arg M4_USART9:            USART unit 9 instance register base
  *           @arg M4_USART10:           USART unit 10 instance register base
  * @param  [in] u32Baudrate             UART baudrate
- * @param  [in] pf32Err                 E(%) baudrate error rate
+ * @param  [out] pf32Err                E(%) baudrate error rate
  * @retval An en_result_t enumeration value:
  *           - Ok: Set successfully
  *           - ErrorInvalidParameter: set unsuccessfully
@@ -2093,11 +2340,11 @@ en_result_t USART_SetBaudrate(M4_USART_TypeDef *USARTx,
                                     uint32_t u32Baudrate,
                                     float32_t *pf32Err)
 {
-    uint32_t u32Mode = 0UL;
+    uint32_t u32Mode;
     uint32_t u32BrrVal = 0UL;
     uint32_t u32FractEn = 0UL;
-    uint32_t u32UsartClk = 0UL;
-    uint32_t u32UsartPrescaler = 0UL;
+    uint32_t u32UsartClk;
+    uint32_t u32UsartPrescaler;
     en_result_t enRet = ErrorInvalidParameter;
 
     /* Check parameter */
@@ -2162,9 +2409,9 @@ en_result_t USART_SetBaudrate(M4_USART_TypeDef *USARTx,
  *           @arg M4_USART10:           USART unit 10 instance register base
  * @param  [in] u32UsartClk             USART clock
  * @param  [in] u32Baudrate             UART baudrate
- * @param  [in] pu32BrrVal              Pointer to BRR register value
- * @param  [in] pu32FractEn             Pointer to CR1 FBME bit value
- * @param  [in] pf32Err                 E(%) baudrate error rate
+ * @param  [out] pu32BrrVal             Pointer to BRR register value
+ * @param  [out] pu32FractEn            Pointer to CR1 FBME bit value
+ * @param  [out] pf32Err                E(%) baudrate error rate
  * @retval An en_result_t enumeration value:
  *           - Ok: Set successfully
  *           - ErrorInvalidParameter: set unsuccessfully
@@ -2177,15 +2424,15 @@ static en_result_t CalcUartBaudrate(const M4_USART_TypeDef *USARTx,
                                         uint32_t *pu32FractEn,
                                         float32_t *pf32Err)
 {
-    uint32_t B = 0UL;
-    uint32_t C = 0UL;
-    uint32_t OVER8 = 0UL;
-    float32_t DIV = 0.0f;
-    float32_t f32Err = 0.0f;
-    uint64_t u64Temp = 0UL;
-    uint64_t u64Dividend = 0UL;
-    uint32_t DIV_Integer = 0UL;
+    uint32_t B;
+    uint32_t C;
+    uint32_t OVER8;
+    float32_t DIV;
+    uint64_t u64Temp;
+    uint64_t u64Dividend;
+    uint32_t DIV_Integer;
     uint32_t DIV_Fraction = 0UL;
+    float32_t f32Err = 0.0f;
     en_result_t enRet = Ok;
 
     /* Check parameter */
@@ -2229,28 +2476,28 @@ static en_result_t CalcUartBaudrate(const M4_USART_TypeDef *USARTx,
             *pu32FractEn = DIV_Fraction ? USART_CR1_FBME : 0UL;
             *pu32BrrVal = DIV_Fraction + (uint32_t)(DIV_Integer << USART_BRR_DIV_INTEGER_POS);
 
-            if (!DIV_Fraction)
+            if (pf32Err)
             {
-                /* E(%) = C / (8 * (2 - OVER8) * (DIV_Integer + 1) * B) - 1 */
-                f32Err = (float32_t)((float64_t)C / (float64_t)u64Temp) - 1.0f;
-            }
-            else
-            {
-                /* E(%) = C * (128 + DIV_Fraction) / (256 * (8 * (2 - OVER8) * (DIV_Integer + 1) * B)) - 1 */
-                u64Temp *= (uint64_t)256UL;
-                u64Dividend = (uint64_t)C * ((uint64_t)128UL + (uint64_t)DIV_Fraction);
-                f32Err = (float32_t)((float64_t)(u64Dividend) / (float64_t)(u64Temp)) - 1.0f;
+                if (!DIV_Fraction)
+                {
+                    /* E(%) = C / (8 * (2 - OVER8) * (DIV_Integer + 1) * B) - 1 */
+                    f32Err = (float32_t)((float64_t)C / (float64_t)u64Temp) - 1.0f;
+                }
+                else
+                {
+                    /* E(%) = C * (128 + DIV_Fraction) / (256 * (8 * (2 - OVER8) * (DIV_Integer + 1) * B)) - 1 */
+                    u64Temp *= (uint64_t)256UL;
+                    u64Dividend = (uint64_t)C * ((uint64_t)128UL + (uint64_t)DIV_Fraction);
+                    f32Err = (float32_t)((float64_t)(u64Dividend) / (float64_t)(u64Temp)) - 1.0f;
+                }
+
+                *pf32Err = f32Err;
             }
         }
     }
     else
     {
-      enRet = ErrorInvalidParameter;
-    }
-
-    if (pf32Err)
-    {
-        *pf32Err = f32Err;
+        enRet = ErrorInvalidParameter;
     }
 
     return enRet;
@@ -2272,9 +2519,9 @@ static en_result_t CalcUartBaudrate(const M4_USART_TypeDef *USARTx,
  *           @arg M4_USART10:           USART unit 10 instance register base
  * @param  [in] u32UsartClk             USART clock
  * @param  [in] u32Baudrate             UART baudrate
- * @param  [in] pu32BrrVal              Pointer to BRR register value
- * @param  [in] pu32FractEn             Pointer to CR1 FBME bit value
- * @param  [in] pf32Err                 E(%) baudrate error rate
+ * @param  [out] pu32BrrVal             Pointer to BRR register value
+ * @param  [out] pu32FractEn            Pointer to CR1 FBME bit value
+ * @param  [out] pf32Err                E(%) baudrate error rate
  * @retval An en_result_t enumeration value:
  *           - Ok: Set successfully
  *           - ErrorInvalidParameter: set unsuccessfully
@@ -2286,14 +2533,14 @@ static en_result_t CalcClkSyncBaudrate(const M4_USART_TypeDef *USARTx,
                                             uint32_t *pu32FractEn,
                                             float32_t *pf32Err)
 {
-    uint32_t C = 0UL;
-    uint32_t B = 0UL;
-    float32_t DIV = 0.0f;
-    float32_t f32Err = 0.0f;
-    uint64_t u64Temp = 0U;
-    uint64_t u64Dividend = 0UL;
-    uint32_t DIV_Integer = 0UL;
+    uint32_t C;
+    uint32_t B;
+    float32_t DIV;
+    uint64_t u64Temp;
+    uint64_t u64Dividend;
+    uint32_t DIV_Integer;
     uint32_t DIV_Fraction = 0UL;
+    float32_t f32Err = 0.0f;
     en_result_t enRet = Ok;
 
     /* Check parameter */
@@ -2335,28 +2582,28 @@ static en_result_t CalcClkSyncBaudrate(const M4_USART_TypeDef *USARTx,
             *pu32FractEn = DIV_Fraction ? USART_CR1_FBME : 0UL;
             *pu32BrrVal = DIV_Fraction + (uint32_t)(DIV_Integer << USART_BRR_DIV_INTEGER_POS);
 
-            if (!DIV_Fraction)
+            if (pf32Err)
             {
-                /* E(%) = C / (4 * (DIV_Integer + 1) * B) - 1 */
-                f32Err = (float32_t)((float64_t)C / (float64_t)u64Temp) - 1.0f;
-            }
-            else
-            {
-                /* E(%) = C * (128 + DIV_Fraction) / (4 * (DIV_Integer + 1) * B * 256) - 1 */
-                u64Temp *= (uint64_t)256UL;
-                u64Dividend = (uint64_t)C * ((uint64_t)128UL + (uint64_t)DIV_Fraction);
-                f32Err = (float32_t)((float64_t)(u64Dividend) / (float64_t)(u64Temp)) - 1.0f;
+                if (!DIV_Fraction)
+                {
+                    /* E(%) = C / (4 * (DIV_Integer + 1) * B) - 1 */
+                    f32Err = (float32_t)((float64_t)C / (float64_t)u64Temp) - 1.0f;
+                }
+                else
+                {
+                    /* E(%) = C * (128 + DIV_Fraction) / (4 * (DIV_Integer + 1) * B * 256) - 1 */
+                    u64Temp *= (uint64_t)256UL;
+                    u64Dividend = (uint64_t)C * ((uint64_t)128UL + (uint64_t)DIV_Fraction);
+                    f32Err = (float32_t)((float64_t)(u64Dividend) / (float64_t)(u64Temp)) - 1.0f;
+                }
+
+                *pf32Err = f32Err;
             }
         }
     }
     else
     {
         enRet = ErrorInvalidParameter;
-    }
-
-    if (pf32Err)
-    {
-        *pf32Err = f32Err;
     }
 
     return enRet;
@@ -2376,9 +2623,9 @@ static en_result_t CalcClkSyncBaudrate(const M4_USART_TypeDef *USARTx,
  *           @arg M4_USART9:            USART unit 9 instance register base
  * @param  [in] u32UsartClk             USART clock
  * @param  [in] u32Baudrate             UART baudrate
- * @param  [in] pu32BrrVal              Pointer to BRR register value
- * @param  [in] pu32FractEn             Pointer to CR1 FBME bit value
- * @param  [in] pf32Err                 E(%) baudrate error rate
+ * @param  [out] pu32BrrVal             Pointer to BRR register value
+ * @param  [out] pu32FractEn            Pointer to CR1 FBME bit value
+ * @param  [out] pf32Err                E(%) baudrate error rate
  * @retval An en_result_t enumeration value:
  *           - Ok: Set successfully
  *           - ErrorInvalidParameter: set unsuccessfully
@@ -2391,16 +2638,16 @@ static en_result_t CalcSmartcardBaudrate(const M4_USART_TypeDef *USARTx,
                                             uint32_t *pu32FractEn,
                                             float32_t *pf32Err)
 {
-    uint32_t B = 0UL;
-    uint32_t C = 0UL;
-    uint32_t BCN = 0UL;
-    float32_t DIV = 0.0f;
-    float32_t f32Err = 0.0f;
-    uint64_t u64Temp = 0U;
-    uint64_t u64Dividend = 0UL;
-    uint32_t DIV_Integer = 0UL;
+    uint32_t B;
+    uint32_t C;
+    uint32_t BCN;
+    float32_t DIV;
+    uint64_t u64Temp;
+    uint64_t u64Dividend;
+    uint32_t DIV_Integer;
     uint32_t DIV_Fraction = 0UL;
     const uint16_t au16EtuClkCnts[] = {32U, 64U, 93U, 128U, 186U, 256U, 372U, 512U};
+    float32_t f32Err = 0.0f;
     en_result_t enRet = Ok;
 
     /* Check parameter */
@@ -2413,8 +2660,6 @@ static en_result_t CalcSmartcardBaudrate(const M4_USART_TypeDef *USARTx,
 
     if (C && B)
     {
-        enRet = Ok;
-
         BCN = READ_REG32_BIT(USARTx->CR3, USART_CR3_BCN);
         DDL_ASSERT(IS_USART_SMARTCARD_ETU_CLK(BCN));
         BCN = au16EtuClkCnts[BCN >> USART_CR3_BCN_POS];
@@ -2449,28 +2694,28 @@ static en_result_t CalcSmartcardBaudrate(const M4_USART_TypeDef *USARTx,
             *pu32FractEn = DIV_Fraction ? USART_CR1_FBME : 0UL;
             *pu32BrrVal = DIV_Fraction + (uint32_t)(DIV_Integer << USART_BRR_DIV_INTEGER_POS);
 
-            if (!DIV_Fraction)
+            if (pf32Err)
             {
-                /* E(%) = C / (2 * BCN * (DIV_Integer + 1) * B) - 1 */
-                f32Err = (float32_t)((float64_t)C / (float64_t)u64Temp) - 1.0f;
-            }
-            else
-            {
-                /* E(%) = C * (128 + DIV_Fraction) / (2 * BCN * (DIV_Integer + 1) * B * 256) - 1 */
-                u64Temp *= (uint64_t)256UL;
-                u64Dividend = (uint64_t)C * ((uint64_t)128UL + (uint64_t)DIV_Fraction);
-                f32Err = (float32_t)((float64_t)u64Dividend / (float64_t)(u64Temp)) - 1.0f;
+                if (!DIV_Fraction)
+                {
+                    /* E(%) = C / (2 * BCN * (DIV_Integer + 1) * B) - 1 */
+                    f32Err = (float32_t)((float64_t)C / (float64_t)u64Temp) - 1.0f;
+                }
+                else
+                {
+                    /* E(%) = C * (128 + DIV_Fraction) / (2 * BCN * (DIV_Integer + 1) * B * 256) - 1 */
+                    u64Temp *= (uint64_t)256UL;
+                    u64Dividend = (uint64_t)C * ((uint64_t)128UL + (uint64_t)DIV_Fraction);
+                    f32Err = (float32_t)((float64_t)u64Dividend / (float64_t)(u64Temp)) - 1.0f;
+                }
+
+                *pf32Err = f32Err;
             }
         }
     }
     else
     {
-      enRet = ErrorInvalidParameter;
-    }
-
-    if (pf32Err)
-    {
-        *pf32Err = f32Err;
+        enRet = ErrorInvalidParameter;
     }
 
     return enRet;

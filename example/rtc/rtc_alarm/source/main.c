@@ -312,6 +312,8 @@ int32_t main(void)
 
     /* Configure clock */
     BSP_CLK_Init();
+    /* Reset the VBAT area */
+    PWC_VBAT_Reset();
     XTAL32_ClkInit();
     /* Configure BSP */
     BSP_IO_Init();

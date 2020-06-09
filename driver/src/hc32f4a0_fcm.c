@@ -155,23 +155,17 @@
     ((func) == FCM_RST_ON))
 
 /* Parameter validity check for FCM abnormal behavior function. */
-#define IS_FCM_ERR_HADNLE(hd)                                                   \
+#define IS_FCM_ERR_HANDLE(hd)                                                   \
 (   ((hd) == FCM_ERR_INT)                   ||                                  \
     ((hd) == FCM_ERR_RESET))
 
 /* Parameter validity check for FCM interrupt. */
-#define IS_FCM_INT(int)                                                         \
-(   ((int) == ((uint32_t)0x00UL))           ||                                  \
-    (((int) & FCM_INT_MSK) != (uint32_t)0x00UL))
+#define IS_FCM_INT(it)      (((it) | FCM_INT_MSK) == FCM_INT_MSK)
 
 /* Parameter validity check for FCM flag state. */
 #define IS_FCM_FLAG(flag)                                                       \
-(   ((flag) == FCM_FLAG_ERR)                ||                                  \
-    ((flag) == FCM_FLAG_END)                ||                                  \
-    ((flag) == FCM_FLAG_OVF))
-
-/* Parameter validity check for FCM flag state. */
-#define IS_FCM_FLAG_MASK(flag)      (((flag) & FCM_FLAG_MSK) != (uint32_t)0x00UL)
+(   ((flag) != 0x00UL)                      &&                                  \
+    (((flag) | FCM_FLAG_MSK) == FCM_FLAG_MSK))
 
 /**
  * @}
@@ -205,7 +199,7 @@
  * @brief  Initialize FCM.
  * @param  [in] pstcFcmInit: Pointer to a stc_fcm_init_t structure
  *                                 that contains configuration information.
- * @retval Ok: FCM initilize successful
+ * @retval Ok: FCM initialize successful
  *         ErrorInvalidParameter: NULL pointer
  */
 en_result_t FCM_Init(const stc_fcm_init_t *pstcFcmInit)
@@ -228,7 +222,7 @@ en_result_t FCM_Init(const stc_fcm_init_t *pstcFcmInit)
         DDL_ASSERT(IS_FCM_REF_SOURCE(pstcFcmInit->u32RefClk));
         DDL_ASSERT(IS_FCM_REF_DIV(pstcFcmInit->u32RefClkDiv));
         DDL_ASSERT(IS_FCM_RESET_FUNC(pstcFcmInit->u32RstEn));
-        DDL_ASSERT(IS_FCM_ERR_HADNLE(pstcFcmInit->u32IntRstSel));
+        DDL_ASSERT(IS_FCM_ERR_HANDLE(pstcFcmInit->u32IntRstSel));
         DDL_ASSERT(IS_FCM_INT(pstcFcmInit->u32IntType));
 
         WRITE_REG32(M4_FCM->LVR, pstcFcmInit->u16LowerLimit);
@@ -244,11 +238,11 @@ en_result_t FCM_Init(const stc_fcm_init_t *pstcFcmInit)
 }
 
 /**
- * @brief  Initialize FCM structure. Fill each pstcEventPortInit with
+ * @brief  Initialize FCM structure. Fill each pstcFcmInit with
  *         default value
  * @param  [in] pstcFcmInit: Pointer to a stc_fcm_init_t structure
  *                                 that contains configuration information.
- * @retval Ok: FCM structure initilize successful
+ * @retval Ok: FCM structure initialize successful
  *         ErrorInvalidParameter: NULL pointer
  */
 en_result_t FCM_StructInit(stc_fcm_init_t *pstcFcmInit)
@@ -282,9 +276,9 @@ en_result_t FCM_StructInit(stc_fcm_init_t *pstcFcmInit)
 /**
  * @brief  De-Initialize FCM.
  * @param  None
- * @retval Ok: FCM De-initilize successful
+ * @retval None
  */
-en_result_t FCM_DeInit(void)
+void FCM_DeInit(void)
 {
     WRITE_REG32(M4_FCM->STR, FCM_REG_RESET_VALUE);
     WRITE_REG32(M4_FCM->CLR, FCM_FLAG_MSK);
@@ -293,42 +287,41 @@ en_result_t FCM_DeInit(void)
     WRITE_REG32(M4_FCM->MCCR,FCM_REG_RESET_VALUE);
     WRITE_REG32(M4_FCM->RCCR,FCM_REG_RESET_VALUE);
     WRITE_REG32(M4_FCM->RIER,FCM_REG_RESET_VALUE);
-    return Ok;
 }
 
 /**
  * @brief  Get FCM state, get FCM overflow, complete, error flag.
- * @param  [in] u8Flag: One of the FCM flags.
- *   @arg  FCM_FLAG_ERR, FCM error.
- *   @arg  FCM_FLAG_END, FCM measure end.
- *   @arg  FCM_FLAG_OVF, FCM overflow.
+ * @param  [in] u32Flag: FCM flags.
+ *   @arg  FCM_FLAG_ERR: FCM error.
+ *   @arg  FCM_FLAG_END: FCM measure end.
+ *   @arg  FCM_FLAG_OVF: FCM overflow.
  * @retval en_flag_status_t: FCM flag status.
  */
-en_flag_status_t FCM_GetStatus(uint32_t u8Flag)
+en_flag_status_t FCM_GetStatus(uint32_t u32Flag)
 {
-    DDL_ASSERT(IS_FCM_FLAG(u8Flag));
+    DDL_ASSERT(IS_FCM_FLAG(u32Flag));
 
-    return (READ_REG32_BIT(M4_FCM->SR, u8Flag) ? Set : Reset);
+    return (READ_REG32_BIT(M4_FCM->SR, u32Flag) ? Set : Reset);
 }
 
 /**
  * @brief  Clear FCM state, Clear FCM overflow, complete, error flag.
- * @param  [in] u8Flag: FCM flags.
- *   @arg  FCM_FLAG_ERR, FCM error.
- *   @arg  FCM_FLAG_END, FCM measure end.
- *   @arg  FCM_FLAG_OVF, FCM overflow.
- *   @arg  FCM_FLAG_MSK, All above 3 flags of FCM.
+ * @param  [in] u32Flag: FCM flags.
+ *   @arg  FCM_FLAG_ERR: FCM error.
+ *   @arg  FCM_FLAG_END: FCM measure end.
+ *   @arg  FCM_FLAG_OVF: FCM overflow.
+ *   @arg  FCM_FLAG_MSK: All above 3 flags of FCM.
  * @retval None.
  */
-void FCM_ClearStatus(uint32_t u8Flag)
+void FCM_ClearStatus(uint32_t u32Flag)
 {
-    DDL_ASSERT(IS_FCM_FLAG_MASK(u8Flag));
+    DDL_ASSERT(IS_FCM_FLAG(u32Flag));
 
-    SET_REG32_BIT(M4_FCM->CLR, u8Flag);
+    SET_REG32_BIT(M4_FCM->CLR, u32Flag);
 }
 
 /**
- * @brief  Get fcm counter value.
+ * @brief  Get FCM counter value.
  * @param  None
  * @retval FCM counter value.
  */
@@ -338,8 +331,8 @@ uint16_t FCM_GetCounter(void)
 }
 
 /**
- * @brief  Set fcm upper limit value.
- * @param  None
+ * @brief  Set FCM upper limit value.
+ * @param  u16Lmt//todo
  * @retval None.
  */
 void FCM_SetUpLimit(uint16_t u16Lmt)
@@ -348,8 +341,8 @@ void FCM_SetUpLimit(uint16_t u16Lmt)
 }
 
 /**
- * @brief  Set fcm lower limit value.
- * @param  None
+ * @brief  Set FCM lower limit value.
+ * @param  u16Lmt//todo
  * @retval None
  */
 void FCM_SetLowLimit(uint16_t u16Lmt)
@@ -379,6 +372,8 @@ void FCM_SetLowLimit(uint16_t u16Lmt)
  */
 void FCM_SetTarClk(uint32_t u32Tar, uint32_t u32Div)
 {
+    DDL_ASSERT(IS_FCM_TAR_SOURCE(u32Tar));
+    DDL_ASSERT(IS_FCM_TAR_DIV(u32Div));
     WRITE_REG32(M4_FCM->MCCR, (u32Tar | u32Div));
 }
 
@@ -405,6 +400,8 @@ void FCM_SetTarClk(uint32_t u32Tar, uint32_t u32Div)
  */
 void FCM_SetRefClk(uint32_t u32Ref, uint32_t u32Div)
 {
+    DDL_ASSERT(IS_FCM_REF_SOURCE(u32Ref));
+    DDL_ASSERT(IS_FCM_REF_DIV(u32Div));
     MODIFY_REG32(M4_FCM->RCCR,                                                  \
                 (FCM_RCCR_INEXS | FCM_RCCR_RCKS | FCM_RCCR_RDIVS),              \
                 (u32Ref | u32Div));
@@ -419,6 +416,7 @@ void FCM_SetRefClk(uint32_t u32Ref, uint32_t u32Div)
  */
 void FCM_Cmd(en_functional_state_t enNewState)
 {
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
     WRITE_REG32(bM4_FCM->STR_b.START, enNewState);
 }
 

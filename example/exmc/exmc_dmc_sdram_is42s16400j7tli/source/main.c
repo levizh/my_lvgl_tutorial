@@ -141,8 +141,14 @@ int32_t main(void)
                               CLK_PCLK2_DIV4 | CLK_PCLK3_DIV4 | \
                               CLK_PCLK4_DIV2 | CLK_EXCLK_DIV4 | CLK_HCLK_DIV1));
 
+    /* Permit write the GPIO configuration register */
+    GPIO_Unlock();
+
     /* Initialize UART print */
     DDL_PrintfInit();
+
+    /* Don't permit write the GPIO configuration register */
+    GPIO_Lock();
 
     /* Initialize LED */
     BSP_IO_Init();
@@ -162,8 +168,8 @@ int32_t main(void)
     }
 
     /* Configure SRAM. */
-    IS42S_Init();
-    IS42S_GetMemInfo(&m_u32MemStartAddr, &m_u32MemByteSize);
+    IS42S16400J7TLI_Init();
+    IS42S16400J7TLI_GetMemInfo(&m_u32MemStartAddr, &m_u32MemByteSize);
     m_u32MemHalfwordSize = m_u32MemByteSize/2UL;
     m_u32MemWordSize = m_u32MemByteSize/4UL;
 
@@ -181,8 +187,8 @@ int32_t main(void)
         u32MemAddr = m_u32MemStartAddr;
         for (i = 0UL; i < m_u32MemByteSize; i += DATA_BUFFER_LEN)
         {
-            IS42S_WriteMem8(m_au8WriteData, u32MemAddr, DATA_BUFFER_LEN);
-            IS42S_ReadMem8(m_au8ReadData, u32MemAddr, DATA_BUFFER_LEN);
+            IS42S16400J7TLI_WriteMem8(u32MemAddr, m_au8WriteData, DATA_BUFFER_LEN);
+            IS42S16400J7TLI_ReadMem8(u32MemAddr, m_au8ReadData, DATA_BUFFER_LEN);
 
             /* Verify write/read data. */
             for (j = 0UL; j < DATA_BUFFER_LEN; j++)
@@ -207,8 +213,8 @@ int32_t main(void)
         u32MemAddr = m_u32MemStartAddr;
         for (i = 0UL; i < m_u32MemHalfwordSize; i += DATA_BUFFER_LEN)
         {
-            IS42S_WriteMem16(m_au16WriteData, u32MemAddr, DATA_BUFFER_LEN);
-            IS42S_ReadMem16(m_au16ReadData, u32MemAddr, DATA_BUFFER_LEN);
+            IS42S16400J7TLI_WriteMem16(u32MemAddr, m_au16WriteData, DATA_BUFFER_LEN);
+            IS42S16400J7TLI_ReadMem16(u32MemAddr, m_au16ReadData, DATA_BUFFER_LEN);
 
             /* Verify write/read data. */
             for (j = 0UL; j < DATA_BUFFER_LEN; j++)
@@ -233,8 +239,8 @@ int32_t main(void)
         u32MemAddr = m_u32MemStartAddr;
         for (i = 0UL; i < m_u32MemWordSize; i += DATA_BUFFER_LEN)
         {
-            IS42S_WriteMem32(m_au32WriteData, u32MemAddr, DATA_BUFFER_LEN);
-            IS42S_ReadMem32(m_au32ReadData, u32MemAddr, DATA_BUFFER_LEN);
+            IS42S16400J7TLI_WriteMem32(u32MemAddr, m_au32WriteData, DATA_BUFFER_LEN);
+            IS42S16400J7TLI_ReadMem32(u32MemAddr, m_au32ReadData, DATA_BUFFER_LEN);
 
             /* Verify write/read data. */
             for (j = 0UL; j < DATA_BUFFER_LEN; j++)

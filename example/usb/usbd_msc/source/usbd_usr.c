@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  usb\usbd_msc\source\usbd_usr.c
+ * @brief This file includes the user application layer.
+ *   
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-05-28       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,27 +48,26 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_usr.c
- **
- ** A detailed description is available at
- ** @link
-        This file includes the user application layer.
-    @endlink
- **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
- **
- ******************************************************************************/
 
 /*******************************************************************************
  * Include files
  ******************************************************************************/
 #include "hc32_ddl.h"
 #include "usbd_usr.h"
-#include "usb_dcd_int.h"
 #include <stdio.h>
 #include "usb_bsp.h"
+
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup USBD_MSC
+ * @{
+ */
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -98,22 +107,20 @@ volatile uint8_t bDeviceState = 0u;
  ******************************************************************************/
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_Init
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_Init
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_Init(void)
 {
     printf("USBD_USR_Init\r\n");
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceReset
- ** \param  speed : device speed
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceReset
+ * @param  speed : device speed
+ * @retval None
+ */
 void USBD_USR_DeviceReset(uint8_t speed)
 {
     switch (speed)
@@ -131,44 +138,40 @@ void USBD_USR_DeviceReset(uint8_t speed)
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceConfigured
- ** \param  None
- ** \retval None
- ******************************************************************************/
-void USBD_USR_DeviceConfigured(void)
+ * @brief  USBD_USR_DeviceConfigured
+ * @param  None
+ * @retval None
+ */
+void USBD_USR_DeviceConfigured (void)
 {
     printf("MSC Interface started.\r\n");
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceSuspended
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceSuspended
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_DeviceSuspended(void)
 {
     printf("Device In suspend mode.\r\n");
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceResumed
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceResumed
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_DeviceResumed(void)
 {
     printf("Device Resumed\r\n");
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceConnected
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceConnected
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_DeviceConnected(void)
 {
     bDeviceState = 1u;
@@ -176,16 +179,24 @@ void USBD_USR_DeviceConnected(void)
 }
 
 /**
- *******************************************************************************
- ** \brief  USBD_USR_DeviceDisonnected
- ** \param  None
- ** \retval None
- ******************************************************************************/
+ * @brief  USBD_USR_DeviceDisonnected
+ * @param  None
+ * @retval None
+ */
 void USBD_USR_DeviceDisconnected(void)
 {
     bDeviceState = 0u;
     printf("USB Device Disconnected.\r\n");
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
 
 /*******************************************************************************
  * EOF (not truncated)

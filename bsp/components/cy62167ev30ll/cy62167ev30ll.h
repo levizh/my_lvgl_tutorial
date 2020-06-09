@@ -105,51 +105,32 @@ extern "C"
 en_result_t CY62167EV30LL_Init(void);
 
 void CY62167EV30LL_GetMemInfo(uint32_t *pu32MemStartAddr,
-                            uint32_t *pu32MemByteSize);
+                                    uint32_t *pu32MemByteSize);
 
-en_result_t CY62167EV30LL_WriteMem8(const uint8_t au8Buf[],
-                                    uint32_t u32Addr,
-                                    uint32_t u32Size);
-en_result_t CY62167EV30LL_ReadMem8(uint8_t au8Buf[],
-                                    uint32_t u32Addr,
-                                    uint32_t u32Size);
-en_result_t CY62167EV30LL_WriteMem16(const uint16_t au16Buf[],
-                                    uint32_t u32Addr,
-                                    uint32_t u32Size);
-en_result_t CY62167EV30LL_ReadMem16(uint16_t au16Buf[],
-                                    uint32_t u32Addr,
-                                    uint32_t u32Size);
-en_result_t CY62167EV30LL_WriteMem32(const uint32_t au32Buf[],
-                                    uint32_t u32Addr,
-                                    uint32_t u32Size);
-en_result_t CY62167EV30LL_ReadMem32(uint32_t au32Buf[],
-                                    uint32_t u32Addr,
-                                    uint32_t u32Size);
+en_result_t CY62167EV30LL_WriteMem8(uint32_t u32Address,
+                                    const uint8_t au8SrcBuffer[],
+                                    uint32_t u32BufferSize);
+en_result_t CY62167EV30LL_ReadMem8(uint32_t u32Address,
+                                    uint8_t au8DstBuffer[],
+                                    uint32_t u32BufferSize);
+en_result_t CY62167EV30LL_WriteMem16(uint32_t u32Address,
+                                    const uint16_t au16SrcBuffer[],
+                                    uint32_t u32BufferSize);
+en_result_t CY62167EV30LL_ReadMem16(uint32_t u32Address,
+                                    uint16_t au16DstBuffer[],
+                                    uint32_t u32BufferSize);
+en_result_t CY62167EV30LL_WriteMem32(uint32_t u32Address,
+                                    const uint32_t au32SrcBuffer[],
+                                    uint32_t u32BufferSize);
+en_result_t CY62167EV30LL_ReadMem32(uint32_t u32Address,
+                                    uint32_t au32DstBufferBuf[],
+                                    uint32_t u32BufferSize);
 
-/* Implement the intialization function on evb board source */
-en_result_t EV_SMC_CY62167EV30LL_Init(void);
+/* Implement the below functions for the specified BSP board */
+en_result_t BSP_SMC_CY62167EV30LL_Init(void);
 
-void EV_SMC_CY62167EV30LL_GetMemInfo(uint32_t *pu32MemStartAddr,
+void BSP_SMC_CY62167EV30LL_GetMemInfo(uint32_t *pu32MemStartAddr,
                                             uint32_t *pu32MemByteSize);
-
-en_result_t EV_SMC_CY62167EV30LL_WriteMem8(const uint8_t au8Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32Size);
-en_result_t EV_SMC_CY62167EV30LL_ReadMem8(uint8_t au8Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32Size);
-en_result_t EV_SMC_CY62167EV30LL_WriteMem16(const uint16_t au16Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32Size);
-en_result_t EV_SMC_CY62167EV30LL_ReadMem16(uint16_t au16Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32Size);
-en_result_t EV_SMC_CY62167EV30LL_WriteMem32(const uint32_t au32Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32Size);
-en_result_t EV_SMC_CY62167EV30LL_ReadMem32(uint32_t au32Buf[],
-                                            uint32_t u32Addr,
-                                            uint32_t u32Size);
 
 /**
  * @}

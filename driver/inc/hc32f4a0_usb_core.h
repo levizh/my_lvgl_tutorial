@@ -1,8 +1,18 @@
-/******************************************************************************
- * Copyright (C) 2016, Huada Semiconductor Co.,Ltd. All rights reserved.
+/**
+ *******************************************************************************
+ * @file  hc32f4a0_usb_core.h
+ * @brief A detailed description is available at  Header of the Core Layer
+ *        
+ @verbatim
+   Change Logs:
+   Date             Author          Notes
+   2020-03-11       Wangmin         First version
+ @endverbatim
+ *******************************************************************************
+ * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
  * This software is owned and published by:
- * Huada Semiconductor Co.,Ltd ("HDSC").
+ * Huada Semiconductor Co., Ltd. ("HDSC").
  *
  * BY DOWNLOADING, INSTALLING OR USING THIS SOFTWARE, YOU AGREE TO BE BOUND
  * BY ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT.
@@ -38,18 +48,17 @@
  * with the restriction that this Disclaimer and Copyright notice must be
  * included with each copy of this software, whether used in part or whole,
  * at all times.
+ *******************************************************************************
  */
-/******************************************************************************/
-/** \file usbd_desc.h
- **
- ** A detailed description is available at
- ** @link Header of the Core Layer @endlink
- **
- **   - 2018-12-26  1.0  wangmin First version for USB demo.
- **
- ******************************************************************************/
-#ifndef __USB_CORE_H__
-#define __USB_CORE_H__
+
+#ifndef __HC32F4A0_USB_CORE_H__
+#define __HC32F4A0_USB_CORE_H__
+
+/* C binding of definitions if building with C++ compiler */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*******************************************************************************
  * Include files
@@ -58,39 +67,65 @@
 #include "hc32f4a0_usb_otg_regs.h"
 #include "hc32f4a0_usb_defines.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Driver
+ * @{
+ */
+
+/**
+ * @addtogroup DDL_USB_CORE
+ * @{
+ */
+
+#if (DDL_USBFS_ENABLE == DDL_ON)
+
+
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define USB_OTG_EP0_IDLE                        (0u)
-#define USB_OTG_EP0_SETUP                       (1u)
-#define USB_OTG_EP0_DATA_IN                     (2u)
-#define USB_OTG_EP0_DATA_OUT                    (3u)
-#define USB_OTG_EP0_STATUS_IN                   (4u)
-#define USB_OTG_EP0_STATUS_OUT                  (5u)
-#define USB_OTG_EP0_STALL                       (6u)
+/**
+ * @defgroup USB_Core_Global_Macros USB Core Global Macros
+ * @{
+ */
 
-#define USB_OTG_EP_TX_DIS                       (0x0000u)
-#define USB_OTG_EP_TX_STALL                     (0x0010u)
-#define USB_OTG_EP_TX_NAK                       (0x0020u)
-#define USB_OTG_EP_TX_VALID                     (0x0030u)
+#define USB_OTG_EP0_IDLE                        (0U)
+#define USB_OTG_EP0_SETUP                       (1U)
+#define USB_OTG_EP0_DATA_IN                     (2U)
+#define USB_OTG_EP0_DATA_OUT                    (3U)
+#define USB_OTG_EP0_STATUS_IN                   (4U)
+#define USB_OTG_EP0_STATUS_OUT                  (5U)
+#define USB_OTG_EP0_STALL                       (6U)
 
-#define USB_OTG_EP_RX_DIS                       (0x0000u)
-#define USB_OTG_EP_RX_STALL                     (0x1000u)
-#define USB_OTG_EP_RX_NAK                       (0x2000u)
-#define USB_OTG_EP_RX_VALID                     (0x3000u)
+#define USB_OTG_EP_TX_DIS                       (0x0000U)
+#define USB_OTG_EP_TX_STALL                     (0x0010U)
+#define USB_OTG_EP_TX_NAK                       (0x0020U)
+#define USB_OTG_EP_TX_VALID                     (0x0030U)
 
-#define   MAX_DATA_LENGTH                       (0x200u)
+#define USB_OTG_EP_RX_DIS                       (0x0000U)
+#define USB_OTG_EP_RX_STALL                     (0x1000U)
+#define USB_OTG_EP_RX_NAK                       (0x2000U)
+#define USB_OTG_EP_RX_VALID                     (0x3000U)
+
+#define   MAX_DATA_LENGTH                       (0x200U)
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
+/**
+ * @defgroup USB_Core_Global_Types USB Core Global Types
+ * @{
+ */
+
 typedef enum {
-    USB_OTG_OK = 0u,
+    USB_OTG_OK = 0U,
     USB_OTG_FAIL
 }USB_OTG_STS;
 
 typedef enum {
-    HC_IDLE = 0u,
+    HC_IDLE = 0U,
     HC_XFRC,
     HC_HALTED,
     HC_NAK,
@@ -102,7 +137,7 @@ typedef enum {
 }HC_STATUS;
 
 typedef enum {
-    URB_IDLE = 0u,
+    URB_IDLE = 0U,
     URB_DONE,
     URB_NOTREADY,
     URB_ERROR,
@@ -110,7 +145,7 @@ typedef enum {
 }URB_STATE;
 
 typedef enum {
-    CTRL_START = 0u,
+    CTRL_START = 0U,
     CTRL_XFRC,
     CTRL_HALTED,
     CTRL_NAK,
@@ -121,7 +156,7 @@ typedef enum {
     CTRL_FAIL
 }CTRL_STATUS;
 
-typedef struct USB_OTG_hc
+typedef struct
 {
     uint8_t       dev_addr ;
     uint8_t       ep_num;
@@ -139,7 +174,7 @@ typedef struct USB_OTG_hc
     uint32_t       dma_addr;
 }USB_OTG_HC , *PUSB_OTG_HC;
 
-typedef struct USB_OTG_ep
+typedef struct
 {
     uint8_t        num;
     uint8_t        is_in;
@@ -161,7 +196,7 @@ typedef struct USB_OTG_ep
 
 }USB_OTG_EP , *PUSB_OTG_EP;
 
-typedef struct USB_OTG_core_cfg
+typedef struct
 {
     uint8_t       host_channels;
     uint8_t       dev_endpoints;
@@ -185,7 +220,7 @@ typedef  struct  usb_setup_req
     uint16_t  wLength;
 } USB_SETUP_REQ;
 
-typedef struct _Device_TypeDef
+typedef struct
 {
     uint8_t  *(*GetDeviceDescriptor)( uint8_t speed , uint16_t *length);
     uint8_t  *(*GetLangIDStrDescriptor)( uint8_t speed , uint16_t *length);
@@ -196,7 +231,7 @@ typedef struct _Device_TypeDef
     uint8_t  *(*GetInterfaceStrDescriptor)( uint8_t speed , uint16_t *length);
 } USBD_DEVICE, *pUSBD_DEVICE;
 
-typedef struct _Device_cb
+typedef struct
 {
     uint8_t  (*Init)         (void *pdev , uint8_t cfgidx);
     uint8_t  (*DeInit)       (void *pdev , uint8_t cfgidx);
@@ -222,7 +257,7 @@ typedef struct _Device_cb
 
 } USBD_Class_cb_TypeDef;
 
-typedef struct _USBD_USR_PROP
+typedef struct
 {
     void (*Init)(void);
     void (*DeviceReset)(uint8_t speed);
@@ -234,7 +269,7 @@ typedef struct _USBD_USR_PROP
     void (*DeviceDisconnected)(void);
 }USBD_Usr_cb_TypeDef;
 
-typedef struct _DCD
+typedef struct
 {
     uint8_t        device_config;
     uint8_t        device_state;
@@ -254,7 +289,7 @@ typedef struct _DCD
     uint8_t        ep0_state;
  }DCD_DEV , *DCD_PDEV;
 
-typedef struct _HCD
+typedef struct
 {
     uint8_t                  Rx_Buffer [MAX_DATA_LENGTH];
     __IO uint32_t            ConnSts;
@@ -267,14 +302,14 @@ typedef struct _HCD
     //  USB_OTG_hPort_TypeDef    *port_cb;
 }HCD_DEV , *USB_OTG_USBH_PDEV;
 
-typedef struct _OTG
+typedef struct
 {
     uint8_t    OTG_State;
     uint8_t    OTG_PrevState;
     uint8_t    OTG_Mode;
 }OTG_DEV , *USB_OTG_USBO_PDEV;
 
-typedef struct USB_OTG_handle
+typedef struct
 {
     USB_OTG_CORE_CFGS    cfg;
     USB_OTG_CORE_REGS    regs;
@@ -287,25 +322,34 @@ typedef struct USB_OTG_handle
 #ifdef USE_OTG_MODE
     OTG_DEV     otg;
 #endif
-  void        *pClassData;
-  void        *pUserData;
+    void        *pClassData;
+    void        *pUserData;
 }USB_OTG_CORE_HANDLE , *PUSB_OTG_CORE_HANDLE;
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+/**
+ * @defgroup USB_Core_Global_Variable USB Core Global Variable
+ * @{
+ */
+
 USB_OTG_STS  USB_OTG_CoreInit        (USB_OTG_CORE_HANDLE *pdev);
 USB_OTG_STS  USB_OTG_SelectCore      (USB_OTG_CORE_HANDLE *pdev,
                                       USB_OTG_CORE_ID_TypeDef coreID);
 USB_OTG_STS  USB_OTG_EnableGlobalInt (USB_OTG_CORE_HANDLE *pdev);
 USB_OTG_STS  USB_OTG_DisableGlobalInt(USB_OTG_CORE_HANDLE *pdev);
 void*           USB_OTG_ReadPacket   (USB_OTG_CORE_HANDLE *pdev ,
-    uint8_t *dest,
-    uint16_t len);
+                                        uint8_t *dest,
+                                        uint16_t len);
 USB_OTG_STS  USB_OTG_WritePacket     (USB_OTG_CORE_HANDLE *pdev ,
-    uint8_t *src,
-    uint8_t ch_ep_num,
-    uint16_t len);
+                                        uint8_t *src,
+                                        uint8_t ch_ep_num,
+                                        uint16_t len);
 USB_OTG_STS  USB_OTG_FlushTxFifo     (USB_OTG_CORE_HANDLE *pdev , uint32_t num);
 USB_OTG_STS  USB_OTG_FlushRxFifo     (USB_OTG_CORE_HANDLE *pdev);
 
@@ -316,10 +360,19 @@ uint8_t      USB_OTG_IsDeviceMode    (USB_OTG_CORE_HANDLE *pdev);
 uint32_t     USB_OTG_GetMode         (USB_OTG_CORE_HANDLE *pdev);
 USB_OTG_STS  USB_OTG_PhyInit         (USB_OTG_CORE_HANDLE *pdev);
 USB_OTG_STS  USB_OTG_SetCurrentMode  (USB_OTG_CORE_HANDLE *pdev, uint8_t mode);
+/**
+ * @}
+ */
 
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+
+/**
+ * @addtogroup USB_Core_Global_Functions
+ * @{
+ */
+
 /*********************** HOST APIs ********************************************/
 #ifdef USE_HOST_MODE
 USB_OTG_STS  USB_OTG_CoreInitHost    (USB_OTG_CORE_HANDLE *pdev);
@@ -330,7 +383,7 @@ USB_OTG_STS  USB_OTG_HC_StartXfer    (USB_OTG_CORE_HANDLE *pdev, uint8_t hc_num)
 USB_OTG_STS  USB_OTG_HC_DoPing       (USB_OTG_CORE_HANDLE *pdev , uint8_t hc_num);
 uint32_t     USB_OTG_ReadHostAllChannels_intr    (USB_OTG_CORE_HANDLE *pdev);
 uint32_t     USB_OTG_ResetPort       (USB_OTG_CORE_HANDLE *pdev);
-uint32_t USB_OTG_testmode(USB_OTG_CORE_HANDLE *pdev, int mode);
+uint32_t     USB_OTG_testmode        (USB_OTG_CORE_HANDLE *pdev, int mode);
 uint32_t     USB_OTG_ReadHPRT0       (USB_OTG_CORE_HANDLE *pdev);
 void         USB_OTG_DriveVbus       (USB_OTG_CORE_HANDLE *pdev, uint8_t state);
 void         USB_OTG_InitFSLSPClkSel (USB_OTG_CORE_HANDLE *pdev ,uint8_t freq);
@@ -342,7 +395,7 @@ void         USB_OTG_StopHost        (USB_OTG_CORE_HANDLE *pdev);
 USB_OTG_STS  USB_OTG_CoreInitDev         (USB_OTG_CORE_HANDLE *pdev);
 USB_OTG_STS  USB_OTG_EnableDevInt        (USB_OTG_CORE_HANDLE *pdev);
 uint32_t     USB_OTG_ReadDevAllInEPItr           (USB_OTG_CORE_HANDLE *pdev);
-enum USB_OTG_SPEED USB_OTG_GetDeviceSpeed (USB_OTG_CORE_HANDLE *pdev);
+enum         USB_OTG_SPEED USB_OTG_GetDeviceSpeed (USB_OTG_CORE_HANDLE *pdev);
 USB_OTG_STS  USB_OTG_EP0Activate (USB_OTG_CORE_HANDLE *pdev);
 USB_OTG_STS  USB_OTG_EPActivate  (USB_OTG_CORE_HANDLE *pdev , USB_OTG_EP *ep);
 USB_OTG_STS  USB_OTG_EPDeactivate(USB_OTG_CORE_HANDLE *pdev , USB_OTG_EP *ep);
@@ -362,10 +415,26 @@ void         USB_OTG_SetEPStatus (USB_OTG_CORE_HANDLE *pdev , USB_OTG_EP *ep , u
 uint32_t     USB_OTG_GetEPStatus(USB_OTG_CORE_HANDLE *pdev ,USB_OTG_EP *ep);
 #endif
 
-#endif  /* __USB_CORE_H__ */
+/**
+ * @}
+ */
+
+#endif /* DDL_USBFS_ENABLE */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* __HC32F4A0_USB_CORE_H__ */
 
 /*******************************************************************************
  * EOF (not truncated)
  ******************************************************************************/
-
-

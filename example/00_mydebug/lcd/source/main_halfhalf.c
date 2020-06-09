@@ -166,7 +166,7 @@ void key_serve(void)
         }
         if (Set == BSP_KEY_GetStatus(BSP_KEY_9))
         {
-            BSP_LED_Toggle(LED_RED | LED_BLUE);
+            BSP_LED_Toggle(LED_YELLOW);
         }
 }
 
@@ -186,7 +186,7 @@ void draw_bmp(void)
     stc_dma_init_t stcDmaInit;
     static uint8_t i = 0;
 
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_AOS, Enable);
 
     DMA_StructInit(&stcDmaInit);
     if(i%2)
@@ -206,7 +206,7 @@ void draw_bmp(void)
     stcDmaInit.u32TransCnt  = 480*272/4;
     stcDmaInit.u32BlockSize = 4;
     DMA_Init(M4_DMA1, DMA_CH2, &stcDmaInit);
-    DMA_SetTrigSrc(M4_DMA1, DMA_CH2, EVT_AOS_STRG);
+    DMA_SetTriggerSrc(M4_DMA1, DMA_CH2, EVT_AOS_STRG);
     DMA_Cmd(M4_DMA1, Enable);
 
 #if 0
@@ -442,13 +442,13 @@ void DVP_DMA_Init(void)
     stcDmaRptInit.u32DestRptEn      = DMA_DEST_RPT_ENABLE;
     stcDmaRptInit.u32DestRptSize    = DVP_BUF_SIZE/2;
     DMA_RepeatInit(M4_DMA1, DMA_CH0, &stcDmaRptInit);
-    DMA_SetTrigSrc(M4_DMA1, DMA_CH0, EVT_TMRA_1_OVF);
+    DMA_SetTriggerSrc(M4_DMA1, DMA_CH0, EVT_TMRA_1_OVF);
 
     /* DMA1_1 for line */
     stcDmaInit.u32DestAddr  = (uint32_t)&DVP_Buf2[0];
     DMA_Init(M4_DMA1, DMA_CH1, &stcDmaInit);
     DMA_RepeatInit(M4_DMA1, DMA_CH1, &stcDmaRptInit);
-    DMA_SetTrigSrc(M4_DMA1, DMA_CH1, EVT_TMRA_1_OVF);
+    DMA_SetTriggerSrc(M4_DMA1, DMA_CH1, EVT_TMRA_1_OVF);
 
     /* DMA2_0 for LCD DVP_Buf1 */
     stcDmaInit.u32SrcAddr   = (uint32_t)&DVP_Buf1[0];
@@ -463,14 +463,14 @@ void DVP_DMA_Init(void)
     stcDmaRptInit.u32SrcRptEn       = DMA_SRC_RPT_ENABLE;
     stcDmaRptInit.u32DestRptEn      = DMA_DEST_RPT_DISABLE;
     DMA_RepeatInit(M4_DMA2, DMA_CH0, &stcDmaRptInit);
-    DMA_SetTrigSrc(M4_DMA2, DMA_CH0, EVT_DMA1_TC0);
+    DMA_SetTriggerSrc(M4_DMA2, DMA_CH0, EVT_DMA1_TC0);
 
     /* DMA2_1 for LCD DVP_Buf2 */
     stcDmaInit.u32SrcAddr   = (uint32_t)&DVP_Buf2[0];
 //    stcDmaInit.u32DestAddr  = 0UL;// test
     DMA_Init(M4_DMA2, DMA_CH1, &stcDmaInit);
     DMA_RepeatInit(M4_DMA2, DMA_CH1, &stcDmaRptInit);
-    DMA_SetTrigSrc(M4_DMA2, DMA_CH1, EVT_DMA1_TC1);
+    DMA_SetTriggerSrc(M4_DMA2, DMA_CH1, EVT_DMA1_TC1);
 
     DMA_Cmd(M4_DMA1, Enable);
     DMA_Cmd(M4_DMA2, Enable);
@@ -578,7 +578,7 @@ void DVP_Int_Init(void)
  */
 int32_t main(void)
 {
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_DMA2 | PWC_FCG0_PTDIS, Enable);
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_DMA1 | PWC_FCG0_DMA2 | PWC_FCG0_AOS, Enable);
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMRA_1, Enable);
 
     BSP_CLK_Init();

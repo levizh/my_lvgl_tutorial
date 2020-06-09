@@ -125,12 +125,12 @@
 /*
  * Definitions about TIMERA interrupt for the example.
  * IRQn of TIMERA:
- *      M4_TMRA_x(x=1, 2): [Int000_IRQn, Int031_IRQn], [Int074_IRQn, Int079_IRQn]; [Int135_IRQn]
- *      M4_TMRA_x(x=3, 4): [Int000_IRQn, Int031_IRQn], [Int080_IRQn, Int085_IRQn]; [Int136_IRQn]
- *      M4_TMRA_x(x=5 ~ 8): [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn]; [Int138_IRQn]
- *      M4_TMRA_x(x=9 ~ 12): [Int000_IRQn, Int031_IRQn], [Int098_IRQn, Int103_IRQn]; [Int139_IRQn]
+ *   M4_TMRA_x(x=1, 2): [Int000_IRQn, Int031_IRQn], [Int074_IRQn, Int079_IRQn]; [Int135_IRQn]
+ *   M4_TMRA_x(x=3, 4): [Int000_IRQn, Int031_IRQn], [Int080_IRQn, Int085_IRQn]; [Int136_IRQn]
+ *   M4_TMRA_x(x=5 ~ 8): [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn]; [Int138_IRQn]
+ *   M4_TMRA_x(x=9 ~ 12): [Int000_IRQn, Int031_IRQn], [Int098_IRQn, Int103_IRQn]; [Int139_IRQn]
  *
- * NOTE!!! 'APP_TMRA_INT_TYPE' can only be defined as 'TMRA_INT_MATCH_CHx'(x=1 ~ 4, depends on 'APP_TMRA_CH') for this example.
+ * NOTE!!! 'APP_TMRA_INT_TYPE' can only be defined as 'TMRA_INT_OVF'(x=1 ~ 4, depends on 'APP_TMRA_CH') for this example.
  */
 #define TMRA_SHARE_IRQn_BASE                (Int135_IRQn)
 

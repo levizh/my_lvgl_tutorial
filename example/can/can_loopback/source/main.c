@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-31       Wuze            First version
+   2020-05-31       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -73,12 +73,29 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 
-/* Unit definition of CAN in this example. */
-#define APP_CAN_SEL_U1                      (1U)
-#define APP_CAN_SEL_U2                      (2U)
+/*
+ * CAN mode definitions.
+ *
+ * CAN_MODE_ELB: External loopback mode. Self transmits self receives, or communicates
+ *               with other CAN modules.
+ * CAN_MODE_NORMAL: Normal communication mode. Can only communicates with other CAN modules.
+ */
+#define APP_CAN_MODE                        (CAN_MODE_ELB)
 
-/* Select one unit. */
-#define APP_CAN_SEL                         (APP_CAN_SEL_U2)
+/* Specify the function of the target. */
+#if (APP_CAN_MODE != CAN_MODE_ELB) && (APP_CAN_MODE != CAN_MODE_NORMAL)
+    #error "The mode is NOT supported in this example."
+#endif
+
+/* CAN FD function control. Non-zero to enable. */
+#define APP_CAN_FD_ENABLE                   (1U)
+
+/* Unit definition of CAN in this example. */
+#define APP_CAN_SEL_U1                      (0U)
+#define APP_CAN_SEL_U2                      (1U)
+
+/* Select a CAN unit. */
+#define APP_CAN_SEL                         (APP_CAN_SEL_U1)
 
 /* Definitions according to 'APP_CAN'. */
 #if (APP_CAN_SEL == APP_CAN_SEL_U1)
@@ -129,6 +146,24 @@
 #define APP_CAN_AF3_ID_MSK                  (0x03)                  /* Accept messages with ID '1100 00xx'. */
 #define APP_CAN_AF3_MSK_TYPE                (CAN_AF_MSK_STD_EXT)    /* Accept standard ID and extended ID. */
 
+/* Message ID definitions. */
+#define APP_ID_1                            (0x9AC01)
+#define APP_ID_1_IDE                        (1U)
+
+#define APP_ID_2                            (0x52)
+#define APP_ID_2_IDE                        (0U)
+
+#define APP_ID_3                            (APP_CAN_AF3_ID)
+#define APP_ID_3_IDE_ENABLE                 (1U)
+#define APP_ID_3_IDE_DISABLE                (0U)
+
+/* Max data size of the frame. */
+#if (APP_CAN_FD_ENABLE > 0U)
+    #define APP_DATA_SIZE                   (64U)
+#else
+    #define APP_DATA_SIZE                   (8U)
+#endif
+
 /* Debug printing definition. */
 #if (DDL_PRINT_ENABLE == DDL_ON)
 #define DBG         printf
@@ -146,19 +181,58 @@
 static void SystemClockConfig(void);
 
 static void CanConfig(void);
+static void Tmr2Config(void);
 
 static void CanTx(void);
+static void CanTxEntity(const stc_can_tx_t *pstcTx);
+
 static void CanRx(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
 #if (DDL_PRINT_ENABLE == DDL_ON)
-    const static char *IDTypeStr[] = {
+    const static char *m_s8IDTypeStr[] = {
         "standard",
         "extended",
     };
+
+    const static char *m_s8FrameTypeStr[] = {
+        "normal",
+        "CAN-FD",
+    };
+
+    const static char *m_s8ErrorType[] = {
+        "no error.",
+        "Bit Error.",
+        "Form Error.",
+        "Stuff Error.",
+        "ACK Error.",
+        "CRC Error.",
+        "Other Error.",
+        "Value of error type is invalid.",
+    };
 #endif
+
+/*
+ * DLC to data size.
+ * Row: 0 is normal frame, 1 is CAN-FD frame.
+ * Column: data length code(0 ~ 15).
+ */
+const static uint8_t m_au8DLC2Size[2U][16U] =
+{
+    {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 8U, 8U, 8U, 8U, 8U, 8U, 8U},
+    {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 12U, 16U, 20U, 24U, 32U, 48U, 64U},
+};
+
+/* Data buffers. */
+static uint8_t m_au8TxPayload[APP_DATA_SIZE];
+static uint8_t m_au8RxPayload1[APP_DATA_SIZE];
+static uint8_t m_au8RxPayload2[APP_DATA_SIZE];
+static uint8_t m_au8RxPayload3[APP_DATA_SIZE];
+
+/* One second timing flag. */
+static uint8_t m_u8TmrFlag = 0U;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -181,88 +255,20 @@ int32_t main(void)
     /* Configures CAN. */
     CanConfig();
 
+    /* Configures and starts TIMER2 for 1 second timing. */
+    Tmr2Config();
+
     /***************** Configuration end, application start **************/
 
     while (1U)
     {
-        CanTx();
+        if (m_u8TmrFlag)
+        {
+            CanTx();
+            m_u8TmrFlag = 0U;
+        }
 
         CanRx();
-
-        /* Delay to transmitting to observe the received data. */
-        DDL_Delay1ms(200U);
-    }
-}
-
-/**
- * @brief  CAN transmits data.
- * @param  None
- * @retval None
- */
-static void CanTx(void)
-{
-    stc_can_tx_t stcTxPkg;
-    uint8_t au8TxPayload[8U];
-
-    au8TxPayload[1U] = 0x12;
-    au8TxPayload[2U] = 0x34;
-    stcTxPkg.u32Ctrl = 0x0U;
-    stcTxPkg.pu8Data = (uint8_t *)&au8TxPayload[0U];
-    stcTxPkg.DLC     = 3U;
-
-    stcTxPkg.u32ID   = APP_CAN_AF1_ID;
-    /* Standard ID. */
-    stcTxPkg.IDE     = 0U;
-    au8TxPayload[0U] = (uint8_t)stcTxPkg.u32ID;
-    CAN_TransData(APP_CAN_UNIT, &stcTxPkg,
-                  CAN_STB, CAN_STB_TRANS_ONE, 1000U);
-    DBG("CAN transmitted data with %s ID: %.8lx\n", IDTypeStr[stcTxPkg.IDE], stcTxPkg.u32ID);
-
-    stcTxPkg.u32ID   = APP_CAN_AF2_ID;
-    /* Extended ID. */
-    stcTxPkg.IDE     = 1U;
-    au8TxPayload[0U] = (uint8_t)stcTxPkg.u32ID;
-    CAN_TransData(APP_CAN_UNIT, &stcTxPkg,
-                  CAN_STB, CAN_STB_TRANS_ONE, 1000U);
-    DBG("CAN transmitted data with %s ID: %.8lx\n", IDTypeStr[stcTxPkg.IDE], stcTxPkg.u32ID);
-
-    stcTxPkg.u32ID   = APP_CAN_AF3_ID;
-    /* Extended ID. */
-    stcTxPkg.IDE     = 1U;
-    au8TxPayload[0U] = (uint8_t)stcTxPkg.u32ID;
-    CAN_TransData(APP_CAN_UNIT, &stcTxPkg,
-                  CAN_STB, CAN_STB_TRANS_ONE, 1000U);
-    DBG("CAN transmitted data with %s ID: %.8lx\n", IDTypeStr[stcTxPkg.IDE], stcTxPkg.u32ID);
-}
-
-/**
- * @brief  CAN receives data.
- * @param  None
- * @retval None
- */
-static void CanRx(void)
-{
-    uint32_t i = 0;
-    uint32_t u32RxCnt = 0;
-    uint32_t u32RxFrameCnt = 0;
-    stc_can_rx_t stcRxPkg[3U];
-    uint8_t au8RxPayload1[8U] = {0U};
-    uint8_t au8RxPayload2[8U] = {0U};
-    uint8_t au8RxPayload3[8U] = {0U};
-
-    stcRxPkg[0U].pu8Data = (uint8_t *)&au8RxPayload1[0U];
-    stcRxPkg[1U].pu8Data = (uint8_t *)&au8RxPayload2[0U];
-    stcRxPkg[2U].pu8Data = (uint8_t *)&au8RxPayload3[0U];
-
-    CAN_ReceiveData(APP_CAN_UNIT, &stcRxPkg[0U], &u32RxFrameCnt);
-    for (u32RxCnt=0U; u32RxCnt<u32RxFrameCnt; u32RxCnt++)
-    {
-        DBG("CAN received data with %s ID %.8lx:\n", IDTypeStr[stcRxPkg[u32RxCnt].IDE], stcRxPkg[u32RxCnt].u32ID);
-        for (i=0; i<stcRxPkg[u32RxCnt].DLC; i++)
-        {
-            DBG(" %.2x.", stcRxPkg[u32RxCnt].pu8Data[i]);
-        }
-        DBG("\n");
     }
 }
 
@@ -288,15 +294,15 @@ static void SystemClockConfig(void)
     /* PCLK1, PCLK4 Max 120MHz */
     /* PCLK2, PCLK3 Max 60MHz  */
     /* EX BUS Max 120MHz */
-    CLK_ClkDiv(CLK_CATE_ALL,                                                    \
-               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV2 | CLK_PCLK2_DIV4 |              \
-                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 |              \
+    CLK_ClkDiv(CLK_CATE_ALL,                                        \
+               (CLK_PCLK0_DIV1 | CLK_PCLK1_DIV16 | CLK_PCLK2_DIV4 | \
+                CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 |  \
                 CLK_HCLK_DIV1));
 
     CLK_PLLHStrucInit(&stcPLLHInit);
     /* VCO = 8/1*120 = 960MHz*/
     stcPLLHInit.u8PLLState = CLK_PLLH_ON;
-    stcPLLHInit.PLLCFGR = 0UL;
+    stcPLLHInit.PLLCFGR    = 0UL;
     stcPLLHInit.PLLCFGR_f.PLLM = 1UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLN = 120UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLP = 8UL - 1UL;
@@ -306,14 +312,10 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set EFM wait cycle. 2 wait cycles needed when system clock is 120MHz */
     EFM_Unlock();
-    EFM_SetLatency(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Unlock();
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_2);
+    EFM_Lock();
 
     CLK_PLLHCmd(Enable);
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
@@ -327,29 +329,260 @@ static void SystemClockConfig(void)
 static void CanConfig(void)
 {
     stc_can_init_t stcInit;
-    stc_can_af_id_t astcID[] = { \
+    stc_can_af_cfg_t astcAFCfg[] = { \
         {APP_CAN_AF1_ID, APP_CAN_AF1_ID_MSK, APP_CAN_AF1_MSK_TYPE}, \
-        {APP_CAN_AF2_ID, APP_CAN_AF2_ID_MSK, APP_CAN_AF2_MSK_TYPE},     \
-        {APP_CAN_AF3_ID, APP_CAN_AF3_ID_MSK, APP_CAN_AF3_MSK_TYPE},     \
+        {APP_CAN_AF2_ID, APP_CAN_AF2_ID_MSK, APP_CAN_AF2_MSK_TYPE}, \
+        {APP_CAN_AF3_ID, APP_CAN_AF3_ID_MSK, APP_CAN_AF3_MSK_TYPE}, \
     };
 
-    /* CAN clock selection. */
-    CLK_CAN_ClkConfig(APP_CAN_CLK_CH, APP_CAN_CLK_DIV);
-
-    CAN_StructInit(&stcInit);
-    stcInit.u8WorkMode   = CAN_MODE_ELB;
-    stcInit.pstcID       = astcID;
-    stcInit.u8SelfACKCmd = CAN_SELF_ACK_ENABLE;
-    stcInit.u8RBOvfOp    = CAN_RB_OVF_SAVE_NEW;
-    stcInit.u16AFSel     = APP_CAN_AF_SEL;
-
+    /* Set the function of CAN pins. */
     GPIO_SetFunc(APP_CAN_TX_PORT, APP_CAN_TX_PIN, \
                  APP_CAN_TX_PIN_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(APP_CAN_RX_PORT, APP_CAN_RX_PIN, \
                  APP_CAN_RX_PIN_FUNC, PIN_SUBFUNC_DISABLE);
 
+    /* Configures the clock of CAN. */
+    CLK_CAN_ClkConfig(APP_CAN_CLK_CH, APP_CAN_CLK_DIV);
+
+    /* Initializes CAN. */
+    CAN_StructInit(&stcInit);
+    stcInit.u8WorkMode   = APP_CAN_MODE;
+    stcInit.pstcAFCfg    = astcAFCfg;
+    stcInit.u8RBOvfOp    = CAN_RB_OVF_SAVE_NEW;
+    stcInit.u16AFSel     = APP_CAN_AF_SEL;
+#if (APP_CAN_MODE == CAN_MODE_ELB)
+    stcInit.u8SelfACKCmd = CAN_SELF_ACK_ENABLE;
+#else
+    stcInit.u8SelfACKCmd = CAN_SELF_ACK_DISABLE;
+#endif
+    stcInit.stcSBT.u32SEG1 = 1U + 14U;
+    stcInit.stcSBT.u32SEG2 = 5U;
+    stcInit.stcSBT.u32SJW  = 5U;
+    stcInit.stcSBT.u32Prescaler = 4U;
+
+#if (APP_CAN_FD_ENABLE > 0U)
+    stcInit.enCANFDCmd = Enable;
+    stcInit.stcFDCfg.u8TDCSSP = 4U;
+    stcInit.stcFDCfg.u8CANFDMode = CAN_FD_MODE_BOSCH;
+    stcInit.stcFDCfg.stcFBT.u32SEG1 = 8U;
+    stcInit.stcFDCfg.stcFBT.u32SEG2 = 2U;
+    stcInit.stcFDCfg.stcFBT.u32SJW  = 2U;
+    stcInit.stcFDCfg.stcFBT.u32Prescaler = 1U;
+#endif
+
     PWC_Fcg1PeriphClockCmd(APP_CAN_PERIP_CLK, Enable);
     CAN_Init(APP_CAN_UNIT, &stcInit);
+}
+
+/**
+ * @brief  TIMER2 configuration.
+ * @param  None
+ * @retval None
+ */
+static void Tmr2Config(void)
+{
+    stc_tmr2_init_t stcInit;
+    stc_irq_signin_config_t stcCfg;
+
+    PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMR2_1, Enable);
+
+    TMR2_StructInit(&stcInit);
+
+    stcInit.u32ClkSrc = TMR2_CLK_SYNC_PCLK1;
+    stcInit.u32ClkDiv = TMR2_CLK_DIV_256;
+    stcInit.u32CmpVal = 29296U;
+    TMR2_Init(M4_TMR2_1, TMR2_CH_A, &stcInit);
+
+    stcCfg.enIntSrc    = INT_TMR2_1_CMPA;
+    stcCfg.enIRQn      = Int050_IRQn;
+    stcCfg.pfnCallback = &TMR2_1_CmpA_IrqHandler;
+    INTC_IrqSignIn(&stcCfg);
+    NVIC_ClearPendingIRQ(stcCfg.enIRQn);
+    NVIC_SetPriority(stcCfg.enIRQn, DDL_IRQ_PRIORITY_03);
+    NVIC_EnableIRQ(stcCfg.enIRQn);
+
+    TMR2_IntCmd(M4_TMR2_1, TMR2_CH_A, TMR2_INT_CMP, Enable);
+    TMR2_Start(M4_TMR2_1, TMR2_CH_A);
+}
+
+/**
+ * @brief  CAN transmits data.
+ * @param  None
+ * @retval None
+ */
+static void CanTx(void)
+{
+    stc_can_tx_t stcTx;
+
+    for (uint8_t i=0U; i<APP_DATA_SIZE; i++)
+    {
+        m_au8TxPayload[i] = i + 1U;
+    }
+
+    stcTx.u32Ctrl = 0x0U;
+    stcTx.pu8Data = (uint8_t *)&m_au8TxPayload[0U];
+
+    /* Configures the frame with ID 'APP_ID_1'. */
+#if (APP_CAN_FD_ENABLE > 0U)
+    stcTx.FDF = 1U;
+    stcTx.BRS = 1U;
+    stcTx.DLC = CAN_DLC_64;
+#else
+    stcTx.DLC = CAN_DLC_8;
+#endif
+    stcTx.u32ID = APP_ID_1;
+    stcTx.IDE   = APP_ID_1_IDE;
+    CanTxEntity(&stcTx);
+
+    /* Configures the frame with ID 'APP_ID_2'. */
+    stcTx.u32Ctrl = 0x0U;
+    stcTx.u32ID   = APP_ID_2;
+    stcTx.IDE     = APP_ID_2_IDE;
+    stcTx.DLC     = CAN_DLC_7;
+    CanTxEntity(&stcTx);
+
+    /* Configures the frame with ID 'APP_ID_3'. */
+    stcTx.u32Ctrl = 0x0U;
+    stcTx.u32ID   = APP_ID_3;
+    stcTx.IDE     = APP_ID_3_IDE_ENABLE;
+    stcTx.DLC     = CAN_DLC_3;
+    CanTxEntity(&stcTx);
+
+    stcTx.u32Ctrl = 0x0U;
+#if (APP_CAN_FD_ENABLE > 0U)
+    stcTx.FDF = 1U;
+    stcTx.BRS = 1U;
+    stcTx.DLC = CAN_DLC_32;
+#else
+    stcTx.DLC = CAN_DLC_3;
+#endif
+    stcTx.u32ID = APP_ID_3;
+    stcTx.IDE   = APP_ID_3_IDE_DISABLE;
+    CanTxEntity(&stcTx);
+}
+
+/**
+ * @brief  CAN transmission entity.
+ * @param  None
+ * @retval None
+ */
+static void CanTxEntity(const stc_can_tx_t *pstcTx)
+{
+    uint8_t u8Tmp;
+    uint8_t u8ErrorType;
+    uint32_t u32StatusVal;
+    en_result_t enTxResult;
+
+    enTxResult = CAN_TransData(APP_CAN_UNIT, pstcTx,
+                               CAN_BUF_STB, CAN_STB_TRANS_ONE, 1000U);
+    u32StatusVal = CAN_GetStatusVal(APP_CAN_UNIT);
+    if (enTxResult == Ok)
+    {
+        DBG("CAN transmitted %s frame with %s ID: %.8lx   Status value: %.8lx\n", \
+             m_s8FrameTypeStr[pstcTx->FDF], m_s8IDTypeStr[pstcTx->IDE], pstcTx->u32ID, u32StatusVal);
+    }
+    else
+    {
+        u8ErrorType  = CAN_GetErrType(APP_CAN_UNIT);
+        u8ErrorType >>= 5U;
+        DBG("---> CAN error type: %d, %s\n", u8ErrorType, m_s8ErrorType[u8ErrorType]);
+        DBG("CAN transmission error. Error status flags %.8lx\n", u32StatusVal);
+
+        if (u32StatusVal & CAN_FLAG_BUS_OFF)
+        {
+            DBG("BUS OFF!!!");
+        }
+        if (u32StatusVal & CAN_FLAG_BUS_TX)
+        {
+            DBG("The transmission is still executing.\n");
+            u8Tmp = CAN_GetTBType(APP_CAN_UNIT);
+            if ((u8Tmp == CAN_BUF_PTB) || (u8Tmp == CAN_BUF_STB))
+            {
+                CAN_AbortTrans(APP_CAN_UNIT, u8Tmp);
+            }
+        }
+        if (u32StatusVal & CAN_FLAG_TB_FULL)
+        {
+            DBG("TX buffers are full.\n");
+            u8Tmp = CAN_GetTBType(APP_CAN_UNIT);
+            if ((u8Tmp == CAN_BUF_PTB) || (u8Tmp == CAN_BUF_STB))
+            {
+                CAN_AbortTrans(APP_CAN_UNIT, u8Tmp);
+            }
+        }
+        if (u32StatusVal & CAN_FLAG_ERR_INT)
+        {
+            DBG("Error interrupt.\n");
+        }
+        if (u32StatusVal & CAN_FLAG_BUS_ERR)
+        {
+            DBG("Bus error.\n");
+        }
+        if (u32StatusVal & CAN_FLAG_ARB_LOST)
+        {
+            DBG("Arbitration lost.\n");
+        }
+        if (u32StatusVal & CAN_FLAG_ERR_PASSIVE)
+        {
+            DBG("Error passive.\n");
+        }
+        if (u32StatusVal & CAN_FLAG_ERR_PASSIVE_NODE)
+        {
+            DBG("The node is an error passive node.\n");
+        }
+        if (u32StatusVal & CAN_FLAG_REACH_WARN_LIMIT)
+        {
+            DBG("TEC or REC reached warning limit.\n");
+        }
+
+        CAN_ClrStatus(APP_CAN_UNIT, u32StatusVal);
+    }
+}
+
+/**
+ * @brief  CAN receives data.
+ * @param  None
+ * @retval None
+ */
+static void CanRx(void)
+{
+    uint8_t u8RxCnt;
+    uint8_t u8DataIdx;
+    uint8_t u8DataSize;
+    uint8_t u8RxFrameCnt;
+    stc_can_rx_t stcRx[3U];
+
+    stcRx[0U].pu8Data = (uint8_t *)&m_au8RxPayload1[0U];
+    stcRx[1U].pu8Data = (uint8_t *)&m_au8RxPayload2[0U];
+    stcRx[2U].pu8Data = (uint8_t *)&m_au8RxPayload3[0U];
+
+    CAN_ReceiveData(APP_CAN_UNIT, &stcRx[0U], &u8RxFrameCnt, 3U);
+    for (u8RxCnt=0U; u8RxCnt<u8RxFrameCnt; u8RxCnt++)
+    {
+        DBG("CAN received %s frame with %s ID %.8lx:\n", \
+            m_s8FrameTypeStr[stcRx[u8RxCnt].FDF], m_s8IDTypeStr[stcRx[u8RxCnt].IDE], stcRx[u8RxCnt].u32ID);
+        u8DataSize = m_au8DLC2Size[stcRx[u8RxCnt].FDF][stcRx[u8RxCnt].DLC];
+        for (u8DataIdx=0; u8DataIdx<u8DataSize; u8DataIdx++)
+        {
+            DBG(" %.2x.", stcRx[u8RxCnt].pu8Data[u8DataIdx]);
+            stcRx[u8RxCnt].pu8Data[u8DataIdx] = 0U;
+        }
+        DBG("\n");
+    }
+}
+
+/**
+ * @brief  TIMER2 interrupt callback.
+ * @param  None
+ * @retval None
+ */
+void TMR2_1_CmpA_IrqHandler(void)
+{
+    if (TMR2_GetStatus(M4_TMR2_1, TMR2_CH_A, TMR2_FLAG_CMP) == Set)
+    {
+        m_u8TmrFlag = 1U;
+        TMR2_ClrStatus(M4_TMR2_1, TMR2_CH_A, TMR2_FLAG_CMP);
+    }
 }
 
 /**

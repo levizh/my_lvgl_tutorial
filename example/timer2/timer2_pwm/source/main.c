@@ -103,14 +103,15 @@
 #define APP_TMR2_CLK_DIV                    (TMR2_CLK_DIV_4)
 
 /*
- * Calculate the comparison value register according to clock source, the prescaler of the clock source and PWM frequency.
- * CmpVal = TIMER2ClockFrequency(Hz) / PwmFrequency(Hz) / 2.
- *      In this example:
- *      TIMER2ClockFrequency = MRC(8MHz) / Timer2ClockPrescaler(4) = 2000000Hz;
- *      PwmFrequency = 1000000Hz;
- *      CmpVal = (2000000 / 1000000 / 2) - 1 = 0.
+ * Calculate the compare value register according to clock source, the prescaler of the clock source and PWM frequency.
+ * CmpVal = (TIMER2ClockFrequency(Hz) / PwmFrequency(Hz) / 2) - 1.
+ * In this example:
+ *   TIMER2ClockFrequency = MRC(8MHz) / Timer2ClockPrescaler(4) = 2000000Hz;
+ *   PwmFrequency = 1000000Hz;
+ *   CmpVal = (2000000 / 1000000 / 2) - 1 = 0.
  *
- * NOTE!!! Duty cycle is a fixed value 50%.
+ * NOTE:
+ *   Duty ratio is fixed as 50%.
  */
 #define APP_TMR2_CMP_VAL                    (0U)
 

@@ -183,14 +183,14 @@ static uint8_t SpiFlash_WriteReadByte(uint8_t u8Data)
     uint8_t u8Byte;
 
     /* Wait tx buffer empty */
-    while (Reset == SPI_GetFlag(SPI_UNIT, SPI_FLAG_TX_BUFFER_EMPTY))
+    while (Reset == SPI_GetStatus(SPI_UNIT, SPI_FLAG_TX_BUFFER_EMPTY))
     {
     }
     /* Send data */
     SPI_WriteDataReg(SPI_UNIT, u8Data);
 
     /* Wait rx buffer full */
-    while (Reset == SPI_GetFlag(SPI_UNIT, SPI_FLAG_RX_BUFFER_FULL))
+    while (Reset == SPI_GetStatus(SPI_UNIT, SPI_FLAG_RX_BUFFER_FULL))
     {
     }
     /* Receive data */
@@ -406,17 +406,17 @@ int32_t main(void)
 
     /* High driving capacity for output pin. */
     stcGpioCfg.u16PinDir = PIN_DIR_OUT;
-    stcGpioCfg.u16PinDrv = PIN_HIGH_DRV;
+    stcGpioCfg.u16PinDrv = PIN_DRV_HIGH;
     stcGpioCfg.u16PinState = PIN_STATE_SET;
     GPIO_Init(SPI_NSS_PORT,  SPI_NSS_PIN, &stcGpioCfg);
 
     GPIO_StructInit(&stcGpioCfg);
-    stcGpioCfg.u16PinDrv = PIN_HIGH_DRV;
+    stcGpioCfg.u16PinDrv = PIN_DRV_HIGH;
     GPIO_Init(SPI_SCK_PORT,  SPI_SCK_PIN, &stcGpioCfg);
     GPIO_Init(SPI_MOSI_PORT, SPI_MOSI_PIN, &stcGpioCfg);
 
     /* CMOS input for input pin */
-    stcGpioCfg.u16PinDrv = PIN_LOW_DRV;
+    stcGpioCfg.u16PinDrv = PIN_DRV_LOW;
     stcGpioCfg.u16PinIType = PIN_ITYPE_CMOS;
     GPIO_Init(SPI_MISO_PORT, SPI_MISO_PIN, &stcGpioCfg);
 
@@ -433,11 +433,11 @@ int32_t main(void)
     /* Get tx buffer length */
     bufferLen = (uint16_t)sizeof(txBuffer);
 
-    uint8_t u8Read = SpiFlash_ReadID();
+    //uint8_t u8Read = SpiFlash_ReadID();
 
     while (1)
     {
-        //if (1u == u8ExIntFlag)
+        if (1u == u8ExIntFlag)
         {
             u8ExIntFlag = 0u;
             BSP_LED_Off(LED_RED);
@@ -460,7 +460,6 @@ int32_t main(void)
                 BSP_LED_On(LED_BLUE);
             }
 
-            while(1);
             /* Flash address offset */
             flashAddr += FLASH_SRCTOR_SIZE;
             if (flashAddr >= FALSH_MAX_ADDR)

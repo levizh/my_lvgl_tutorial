@@ -17,12 +17,12 @@ GCC工程，由Eclipse IDE外挂GNU-ARM Toolchain，再结合pyOCD GDB Server实
 ================================================================================
 本样例主要是系统时钟切换，并128分频后，通过MCO1(PA8)输出。
 通过按键选择系统时钟：
-KEY1: MRC   (8MHz)
-KEY2: HRC   (16MHz)
-KEY3: LRC   (32KHz)
-KEY4: XTAL  (8MHz)
-KEY5: XTAL32(32.768KHz)
-KEY6: PLLH  (240MHz)
+KEY1: MRC   (8MHz)      62.5 KHz
+KEY2: HRC   (16MHz)     125  KHz
+KEY3: LRC   (32KHz)     250  Hz
+KEY4: XTAL  (8MHz)      62.5 KHz
+KEY5: XTAL32(32.768KHz) 256  Hz
+KEY6: PLLH  (240MHz)    1.875MHz
 
 ================================================================================
 测试环境

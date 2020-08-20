@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-24       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -81,7 +81,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -89,6 +90,57 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    //SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    //SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  Main function of EFM project
@@ -101,6 +153,8 @@ int32_t main(void)
     uint32_t flag1, flag2;
     uint32_t u32Data = 0x5A5A5A5AU;
 
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* LED & KEY Init */
     BSP_IO_Init();
     BSP_LED_Init();
@@ -108,10 +162,8 @@ int32_t main(void)
     /* Turn on LED_B */
     BSP_LED_On(LED_BLUE);
 
-    /* Unlock EFM. */
-    EFM_Unlock();
     /* EFM default config. */
-    EFM_StrucInit(&stcEfmCfg);
+    EFM_StructInit(&stcEfmCfg);
     /* EFM config */
     EFM_Init(&stcEfmCfg);
 
@@ -121,11 +173,10 @@ int32_t main(void)
         flag2 = EFM_GetFlagStatus(EFM_FLAG_RDY1);
     }while((Set != flag1) || (Set != flag2));
     /* Sector 15 disables write protection */
-    EFM_SectorUnlock(EFM_SECTOR15_ADDR, sizeof(u32Data), Enable);
+    EFM_SectorCmd_Single(EFM_SECTOR_15, Enable);
     /* Erase sector 15.  sector 15: 0x0001E000~0x0001FFFF */
-    EFM_SectorErase(EFM_SECTOR15_ADDR);
-    /* Write data to sector 15 */
-    EFM_SingleProgram(EFM_OTP_BLOCK15, 0xEEEEEEEEUL);
+    EFM_SectorErase(EFM_ADDR_SECTOR15);
+
     /* SW1 */
     while(Reset == BSP_KEY_GetStatus(BSP_KEY_1))
     {
@@ -138,7 +189,7 @@ int32_t main(void)
     }
     /*  Flash sector 15(OTP block 15) is latched 
         Please fill in the lock address correctly */
-    EFM_OTPLock(0x03001AD0);  /* 0x03001AD0 is the latch address of the OTP block 15 */
+    EFM_OTPLock(0x0300183CUL);  /* 0x0300183C is the latch address of the OTP block 15 */
     /* Single program */
     if(Ok != EFM_SingleProgram(EFM_OTP_BLOCK15, u32Data))
     {
@@ -147,8 +198,8 @@ int32_t main(void)
         /* Turn on LED_R */
         BSP_LED_On(LED_RED);
     }
-    /* Lock EFM. */
-    EFM_Lock();
+    /* Lock peripherals or registers */
+    Peripheral_WP();
 
     while(1)
     {

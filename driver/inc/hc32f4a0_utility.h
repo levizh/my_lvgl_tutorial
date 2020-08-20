@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-04       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -97,8 +97,8 @@ extern "C"
  */
 
 /* Imprecise delay */
-void DDL_Delay1ms(uint32_t u32Cnt);
-void DDL_Delay1us(uint32_t u32Cnt);
+void DDL_DelayMS(uint32_t u32Cnt);
+void DDL_DelayUS(uint32_t u32Cnt);
 
 /* Systick functions */
 en_result_t SysTick_Init(uint32_t u32Freq);
@@ -113,10 +113,10 @@ void SysTick_Resume(void);
 #ifdef __DEBUG
     #define DDL_ASSERT(x)                                                      \
     do{                                                                        \
-        ((x) ? (void)0 : DDL_AssertHandler((uint8_t *)__FILE__, __LINE__));    \
+        ((x) ? (void)0 : DDL_AssertHandler(__FILE__, __LINE__));    \
     }while(0)
     /* Exported function */
-    void DDL_AssertHandler(const uint8_t *file, int16_t line);
+    void DDL_AssertHandler(const char *file, int line);
 #else
     #define DDL_ASSERT(x)               ((void)0U)
 #endif /* __DEBUG */

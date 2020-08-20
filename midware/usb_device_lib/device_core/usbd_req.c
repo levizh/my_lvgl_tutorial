@@ -2,11 +2,11 @@
  *******************************************************************************
  * @file  usbd_req.c
  * @brief Standard USB requests following chapter 9.
- *       
+ *
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -178,7 +178,7 @@ extern __IO USB_OTG_DCTL_TypeDef SET_TEST_MODE;
 USBD_Status  USBD_StdDevReq (USB_OTG_CORE_HANDLE  *pdev, USB_SETUP_REQ  *req)
 {
     USBD_Status ret = USBD_OK;
-    if (req->bRequest & 0x80u)
+    if (req->bRequest & 0x80U)
     {
         pdev->dev.ep0_state = USB_OTG_EP0_DATA_IN;
     }
@@ -259,7 +259,7 @@ USBD_Status  USBD_StdItfReq (USB_OTG_CORE_HANDLE  *pdev, USB_SETUP_REQ  *req)
         //
     }
 
-    if(1u != u8RetFlag)
+    if(1U != u8RetFlag)
     {
         switch (pdev->dev.device_status)
         {
@@ -267,7 +267,7 @@ USBD_Status  USBD_StdItfReq (USB_OTG_CORE_HANDLE  *pdev, USB_SETUP_REQ  *req)
                 if (LOBYTE(req->wIndex) <= USBD_ITF_MAX_NUM)
                 {
                     pdev->dev.class_cb->Setup (pdev, req);
-                    //if((req->wLength == 0u)&& (ret == USBD_OK)) /* MISRAC2004*/
+                    //if((req->wLength == 0U)&& (ret == USBD_OK)) /* MISRAC2004*/
                     if(req->wLength == 0U)
                     {
                         USBD_CtlSendStatus(pdev);
@@ -433,7 +433,9 @@ void USBD_CtlError( USB_OTG_CORE_HANDLE  *pdev)  /* MISRAC 2004*/
 {
     DCD_EP_Stall(pdev , 0x80U);
     DCD_EP_Stall(pdev , 0U);
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("ctl error\n");
+#endif
     USB_OTG_EP0_OutStart(pdev);
 }
 
@@ -701,7 +703,9 @@ static void USBD_SetConfig(USB_OTG_CORE_HANDLE  *pdev,
                 }
                 break;
             case USB_OTG_SUSPENDED:
+#if (DDL_PRINT_ENABLE == DDL_ON)
                 printf("set cfg fail,suspended\n");
+#endif
                 break;
             default:
                 USBD_CtlError(pdev);

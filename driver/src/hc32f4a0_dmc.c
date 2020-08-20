@@ -6,7 +6,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-09       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-14       Hongjh          Merge API from EXMC_DMC_Enable/Disable to EXMC_DMC_Cmd
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -63,7 +64,7 @@
  */
 
 /**
- * @defgroup DDL_EXMC_DMC External Memory Controller: Dynamic Memory Controller
+ * @defgroup DDL_EXMC_DMC EXMC_DMC
  * @brief Dynamic Memory Controller Driver Library
  * @{
  */
@@ -88,12 +89,8 @@
  */
 
 #define IS_EXMC_DMC_MEM_WIDTH(x)                                               \
-(   (EXMC_DMC_MEM_WIDTH_16 == (x))              ||                             \
-    (EXMC_DMC_MEM_WIDTH_32 == (x)))
-
-#define IS_EXMC_DMC_MEM_WIDTH(x)                                               \
-(   (EXMC_DMC_MEM_WIDTH_16 == (x))              ||                             \
-    (EXMC_DMC_MEM_WIDTH_32 == (x)))
+(   (EXMC_DMC_MEMORY_WIDTH_16BIT == (x))        ||                             \
+    (EXMC_DMC_MEMORY_WIDTH_32BIT == (x)))
 
 #define IS_EXMC_DMC_CHIP(x)                                                    \
 (   (EXMC_DMC_CHIP_0 == (x))                    ||                             \
@@ -249,7 +246,7 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/** 
+/**
  * @defgroup EXMC_DMC_Global_Functions Dynamic Memory Controller Global Functions
  * @{
  */
@@ -376,7 +373,7 @@ en_result_t EXMC_DMC_StructInit(stc_exmc_dmc_init_t *pstcInit)
 
     if (NULL != pstcInit)
     {
-        pstcInit->u32DmcMemWidth = EXMC_DMC_MEM_WIDTH_16;
+        pstcInit->u32DmcMemWidth = EXMC_DMC_MEMORY_WIDTH_16BIT;
         pstcInit->u32RefreshPeriod = 0xA60UL;
         pstcInit->stcChipCfg.u32ColumnBitsNumber = EXMC_DMC_COLUMN_BITS_NUM_8;
         pstcInit->stcChipCfg.u32RowBitsNumber = EXMC_DMC_ROW_BITS_NUM_15;
@@ -406,6 +403,22 @@ en_result_t EXMC_DMC_StructInit(stc_exmc_dmc_init_t *pstcInit)
     }
 
     return enRet;
+}
+
+/**
+ * @brief  Enable/disable DMC.
+ * @param  [in]  enNewState                 An en_functional_state_t enumeration value.
+ *         This parameter can be one of the following values:
+ *           @arg Enable:                   Enable function.
+ *           @arg Disable:                  Disable function.
+ * @retval None
+ */
+void EXMC_DMC_Cmd(en_functional_state_t enNewState)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    WRITE_REG32(bM4_PERIC->EXMC_ENAR_b.DMCEN, enNewState);
 }
 
 /**

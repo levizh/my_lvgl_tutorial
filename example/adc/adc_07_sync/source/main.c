@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-12       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -74,44 +74,38 @@
  ******************************************************************************/
 
 /* 'ADC_SYNC_ADC1_ADC2' and 'ADC_SYNC_ADC1_ADC2_ADC3' can be used. */
-#define APP_SYNC_UNITS                      (ADC_SYNC_ADC1_ADC2_ADC3)
+#define APP_ADC_SYNC_UNITS                  (ADC_SYNC_ADC1_ADC2)
 
-/* ADC synchronous mode. */
-#define APP_SYNC_MODE_SSHOT_SEQUENTIAL      (0U)
-#define APP_SYNC_MODE_SSHOT_SIMULTANEOUS    (1U)
-#define APP_SYNC_MODE_CONT_SEQUENTIAL       (2U)
-#define APP_SYNC_MODE_CONT_SIMULTANEOUS     (3U)
+/* ADC synchronous mode. @ref ADC_Synchronous_Mode */
+#define APP_ADC_SYNC_MODE                   (ADC_SYNC_SSHOT_SEQUENTIAL)
 
-#define APP_SYNC_MODE                       (APP_SYNC_MODE_CONT_SEQUENTIAL)
-
-#if (APP_SYNC_MODE == APP_SYNC_MODE_SSHOT_SEQUENTIAL)
-    #define APP_ADC_SYNC_MODE               (ADC_SYNC_SSHOT_SEQUENTIAL)
+#if (APP_ADC_SYNC_MODE == ADC_SYNC_SSHOT_SEQUENTIAL)
     #define APP_ADC_SYNC_SAMPLE_TIME        (11U)
     #define APP_ADC_SYNC_TRIG_DELAY         (12U)
     #define APP_ADC_MODE                    (ADC_MODE_SA_CONT)
 
-#elif (APP_SYNC_MODE == APP_SYNC_MODE_SSHOT_SIMULTANEOUS)
-    #define APP_ADC_SYNC_MODE               (ADC_SYNC_SSHOT_SIMULTANEOUS)
+#elif (APP_ADC_SYNC_MODE == ADC_SYNC_SSHOT_SIMULTANEOUS)
     #define APP_ADC_SYNC_SAMPLE_TIME        (11U)
-    #define APP_ADC_SYNC_TRIG_DELAY         (11U)
+    #define APP_ADC_SYNC_TRIG_DELAY         (20U)
     #define APP_ADC_MODE                    (ADC_MODE_SA_SSHOT)
 
-#elif (APP_SYNC_MODE == APP_SYNC_MODE_CONT_SEQUENTIAL)
-    #define APP_ADC_SYNC_MODE               (ADC_SYNC_CONT_SEQUENTIAL)
+#elif (APP_ADC_SYNC_MODE == ADC_SYNC_CONT_SEQUENTIAL)
     #define APP_ADC_SYNC_SAMPLE_TIME        (11U)
     #define APP_ADC_SYNC_TRIG_DELAY         (17U)
     #define APP_ADC_MODE                    (ADC_MODE_SA_SSHOT)
 
-#else /* (APP_SYNC_MODE == APP_SYNC_MODE_CONT_SIMULTANEOUS) */
-    #define APP_ADC_SYNC_MODE               (ADC_SYNC_CONT_SIMULTANEOUS)
+#elif (APP_ADC_SYNC_MODE == ADC_SYNC_CONT_SIMULTANEOUS)
     #define APP_ADC_SYNC_SAMPLE_TIME        (11U)
     #define APP_ADC_SYNC_TRIG_DELAY         (40U)
     #define APP_ADC_MODE                    (ADC_MODE_SA_SSHOT)
 
+#else
+    #error "This sync mode is NOT supported."
+
 #endif /* #if (APP_SYNC_MODE == APP_SYNC_MODE_SSHOT_SEQUENTIAL) */
 
 /* ADC peripheral clock for this example. */
-#if (APP_SYNC_UNITS == ADC_SYNC_ADC1_ADC2)
+#if (APP_ADC_SYNC_UNITS == ADC_SYNC_ADC1_ADC2)
     #define APP_ADC_PERIP_CLK               (PWC_FCG3_ADC1 | PWC_FCG3_ADC2)
 #else
     #define APP_ADC_PERIP_CLK               (PWC_FCG3_ADC1 | PWC_FCG3_ADC2 | PWC_FCG3_ADC3)
@@ -121,11 +115,23 @@
  * ADC channels definition for this example.
  * NOTE!!! DO NOT enable sequence B, otherwise it will disturb the synchronization timing.
  */
-#define APP_ADC_SA_CH                       (ADC_CH0)
+#if (APP_ADC_SYNC_UNITS == ADC_SYNC_ADC1_ADC2) && (APP_ADC_SYNC_MODE == APP_SYNC_MODE_SSHOT_SEQUENTIAL)
+/* These definitions just for a sampling rate of 5Mbps. */
+#define APP_ADC_SA_CH                       (ADC_CH3)
 #define APP_ADC_SA_CH_COUNT                 (1U)
-
+#define APP_ADC1_SA_CH                      (APP_ADC_SA_CH)
+#define APP_ADC2_SA_CH                      (APP_ADC_SA_CH)
 /* ADC channel sampling time.                        ADC_CH0 */
 #define APP_ADC_SA_SAMPLE_TIME              { APP_ADC_SYNC_SAMPLE_TIME }
+
+#else
+#define APP_ADC_SA_CH_COUNT                 (3U)
+#define APP_ADC1_SA_CH                      (ADC_CH0 | ADC_CH1 | ADC_CH2)
+#define APP_ADC2_SA_CH                      (ADC_CH5 | ADC_CH6 | ADC_CH7)
+#define APP_ADC3_SA_CH                      (ADC_CH3 | ADC_CH4 | ADC_CH5)
+/* ADC channel sampling time.                        3 channels */
+#define APP_ADC_SA_SAMPLE_TIME              { APP_ADC_SYNC_SAMPLE_TIME,  APP_ADC_SYNC_SAMPLE_TIME, APP_ADC_SYNC_SAMPLE_TIME}
+#endif
 
 /* 
  * Trigger source definitions.
@@ -140,12 +146,24 @@
 #define APP_ADC_SA_TRIG_SRC_PIN             (GPIO_PIN_07)
 #define APP_ADC_SA_TRIG_PIN_FUNC            (GPIO_FUNC_1_ADTRG)
 
-/* Debug printing definition. */
-#if (DDL_PRINT_ENABLE == DDL_ON)
-#define DBG         printf
-#else
-#define DBG(...)
-#endif
+/*
+ * Definitions of DMA.
+ * 'APP_DMA_BLOCK_SIZE': 1~1024, inclusive. 1~16 for ADC1 and ADC2; 1~20 for ADC3.
+ * 'APP_DMA_TRANS_COUNT': 0~65535, inclusive. 0: always transmit.
+ */
+#define APP_DMA_UNIT                        (M4_DMA1)
+#define APP_DMA_CH                          (DMA_CH0)
+#define APP_DMA_PERIP_CLK                   (PWC_FCG0_DMA1)
+#define APP_DMA_BLOCK_SIZE                  (1U)
+#define APP_DMA_TRANS_COUNT                 (100UL)
+#define APP_DMA_DATA_WIDTH                  (DMA_DATAWIDTH_16BIT)
+#define APP_DMA_TRIG_SRC                    (EVT_ADC1_EOCA)
+#define APP_DMA_SRC_ADDR                    (&M4_ADC1->DR3)
+
+#define APP_DMA_IRQ_SRC                     (INT_DMA1_TC0)
+#define APP_DMA_IRQn                        (Int010_IRQn)
+#define APP_DMA_INT_PRIO                    (DDL_IRQ_PRIORITY_03)
+#define APP_DMA_TRANS_CPLT_FLAG             (DMA_TC_INT_CH0)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -154,14 +172,21 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
 
 static void AdcConfig(void);
 static void AdcClockConfig(void);
 static void AdcInitConfig(void);
 static void AdcChannelConfig(void);
+static void AdcDmaConfig(void);
+static void AdcDmaIrqConfig(void);
 static void AdcSyncConfig(void);
 static void AdcTrigSrcConfig(void);
+
+static void DMA_Btc0_IrqCallback(void);
 
 static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32Channel);
 static void AdcSetPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint8_t u8PinNum);
@@ -172,6 +197,7 @@ static void IndicateConfig(void);
  * Local variable definitions ('static')
  ******************************************************************************/
 /*static uint16_t m_au16AdcSaVal[APP_ADC_SA_CH_COUNT];*/
+static uint16_t m_au16AdcSaVal[APP_DMA_TRANS_COUNT];
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -184,25 +210,74 @@ static void IndicateConfig(void);
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the PLLHP(240MHz) as the system clock. */
     SystemClockConfig();
-
-#if (DDL_PRINT_ENABLE == DDL_ON)
-    /* Initializes UART for debug printing. Baudrate is 115200. */
-    DDL_PrintfInit();
-#endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures ADC. */
     AdcConfig();
-
-    /* Use TIMERA's PWM to indicate the scan timing of ADC synchronous mode. */
+    /* Use TimerA's PWM to indicate the scan timing of ADC synchronous mode. */
     IndicateConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
     /***************** Configuration end, application start **************/
 
-    while (1u)
+    while (1U)
     {
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -249,17 +324,15 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set SRAM wait cycles. */
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     /* Set EFM wait cycle. 5 wait cycles needed when system clock is 240MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
-    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
+    PWC_Lock(PWC_UNLOCK_CODE_0);
 }
 
 /**
@@ -273,6 +346,7 @@ static void AdcConfig(void)
     AdcClockConfig();
     AdcInitConfig();
     AdcChannelConfig();
+    AdcDmaConfig();
     AdcSyncConfig();
     AdcTrigSrcConfig();
 }
@@ -313,7 +387,7 @@ static void AdcInitConfig(void)
     ADC_Init(M4_ADC1, &stcInit);
     ADC_Init(M4_ADC2, &stcInit);
 
-#if (APP_SYNC_UNITS == ADC_SYNC_ADC1_ADC2_ADC3)
+#if (APP_ADC_SYNC_UNITS == ADC_SYNC_ADC1_ADC2_ADC3)
     ADC_Init(M4_ADC3, &stcInit);
 #endif
 }
@@ -328,20 +402,25 @@ static void AdcChannelConfig(void)
     uint8_t au8AdcSASplTime[] = APP_ADC_SA_SAMPLE_TIME;
 
     /* 1. Set the ADC pin to analog input mode. */
-    AdcSetChannelPinAnalogMode(M4_ADC1, APP_ADC_SA_CH);
+    AdcSetChannelPinAnalogMode(M4_ADC1, APP_ADC1_SA_CH);
+    AdcSetChannelPinAnalogMode(M4_ADC2, APP_ADC2_SA_CH);
+
+#if (APP_ADC_SYNC_UNITS == ADC_SYNC_ADC1_ADC2_ADC3)
+    AdcSetChannelPinAnalogMode(M4_ADC3, APP_ADC3_SA_CH);
+#endif
 
     /* 2. Enable the ADC channels. */
     ADC_ChannelCmd(M4_ADC1, ADC_SEQ_A, \
-                   APP_ADC_SA_CH, au8AdcSASplTime, \
+                   APP_ADC1_SA_CH, au8AdcSASplTime, \
                    Enable);
 
     ADC_ChannelCmd(M4_ADC2, ADC_SEQ_A, \
-                   APP_ADC_SA_CH, au8AdcSASplTime, \
+                   APP_ADC2_SA_CH, au8AdcSASplTime, \
                    Enable);
 
-#if (APP_SYNC_UNITS == ADC_SYNC_ADC1_ADC2_ADC3)
+#if (APP_ADC_SYNC_UNITS == ADC_SYNC_ADC1_ADC2_ADC3)
     ADC_ChannelCmd(M4_ADC3, ADC_SEQ_A, \
-                   APP_ADC_SA_CH, au8AdcSASplTime, \
+                   APP_ADC3_SA_CH, au8AdcSASplTime, \
                    Enable);
 #endif
 }
@@ -353,7 +432,7 @@ static void AdcChannelConfig(void)
  */
 static void AdcSyncConfig(void)
 {
-    ADC_SYNC_Config(APP_SYNC_UNITS, APP_ADC_SYNC_MODE, APP_ADC_SYNC_TRIG_DELAY);
+    ADC_SYNC_Config(APP_ADC_SYNC_UNITS, APP_ADC_SYNC_MODE, APP_ADC_SYNC_TRIG_DELAY);
     ADC_SYNC_Cmd(Enable);
 }
 
@@ -380,6 +459,79 @@ static void AdcTrigSrcConfig(void)
 }
 
 /**
+ * @brief  DMA configuration.
+ * @param  None
+ * @retval None
+ */
+static void AdcDmaConfig(void)
+{
+    stc_dma_init_t stcDmaInit;
+    stc_dma_rpt_init_t stcDmaRptInit;
+
+    /* Enable DMA peripheral clock and AOS function. */
+    PWC_Fcg0PeriphClockCmd((APP_DMA_PERIP_CLK | PWC_FCG0_AOS), Enable);
+
+    DMA_SetTriggerSrc(APP_DMA_UNIT, APP_DMA_CH, APP_DMA_TRIG_SRC);
+
+    DMA_StructInit(&stcDmaInit);
+    stcDmaInit.u32IntEn     = DMA_INT_ENABLE;
+    stcDmaInit.u32BlockSize = APP_DMA_BLOCK_SIZE;
+    stcDmaInit.u32TransCnt  = APP_DMA_TRANS_COUNT;
+    stcDmaInit.u32DataWidth = APP_DMA_DATA_WIDTH;
+    stcDmaInit.u32DestAddr  = (uint32_t)(&m_au16AdcSaVal[0U]);
+    stcDmaInit.u32SrcAddr   = (uint32_t)APP_DMA_SRC_ADDR;
+    stcDmaInit.u32SrcInc    = DMA_SRC_ADDR_FIX;
+    stcDmaInit.u32DestInc   = DMA_DEST_ADDR_INC;
+    DMA_Init(APP_DMA_UNIT, APP_DMA_CH, &stcDmaInit);
+
+    DMA_RepeatStructInit(&stcDmaRptInit);
+    stcDmaRptInit.u32SrcRptEn    = DMA_SRC_RPT_ENABLE;
+    stcDmaRptInit.u32SrcRptSize  = APP_DMA_BLOCK_SIZE;
+    stcDmaRptInit.u32DestRptEn   = DMA_DEST_RPT_ENABLE;
+    stcDmaRptInit.u32DestRptSize = APP_DMA_TRANS_COUNT;
+    DMA_RepeatInit(APP_DMA_UNIT, APP_DMA_CH, &stcDmaRptInit);
+
+    AdcDmaIrqConfig();
+
+    DMA_Cmd(APP_DMA_UNIT, Enable);
+    DMA_ChannelCmd(APP_DMA_UNIT, APP_DMA_CH, Enable);
+}
+
+/**
+ * @brief  Interrupt configuration.
+ * @param  None
+ * @retval None
+ */
+static void AdcDmaIrqConfig(void)
+{
+    stc_irq_signin_config_t stcIrqSignConfig;
+
+    stcIrqSignConfig.enIntSrc    = APP_DMA_IRQ_SRC;
+    stcIrqSignConfig.enIRQn      = APP_DMA_IRQn;
+    stcIrqSignConfig.pfnCallback = &DMA_Btc0_IrqCallback;
+
+    INTC_IrqSignIn(&stcIrqSignConfig);
+    DMA_ClearTransIntStatus(APP_DMA_UNIT, APP_DMA_TRANS_CPLT_FLAG);
+
+    /* NVIC setting */
+    NVIC_ClearPendingIRQ(APP_DMA_IRQn);
+    NVIC_SetPriority(APP_DMA_IRQn, APP_DMA_INT_PRIO);
+    NVIC_EnableIRQ(APP_DMA_IRQn);
+}
+
+/**
+ * @brief  DMA IRQ handler.
+ * @param  None
+ * @retval None
+ */
+static void DMA_Btc0_IrqCallback(void)
+{
+	DMA_SetTransCnt(APP_DMA_UNIT, APP_DMA_CH, APP_DMA_TRANS_COUNT);
+	DMA_ChannelCmd(APP_DMA_UNIT, APP_DMA_CH, Enable);
+    DMA_ClearTransIntStatus(APP_DMA_UNIT, APP_DMA_TRANS_CPLT_FLAG);
+}
+
+/**
  * @brief  Set the pin(s) corresponding to the specified channel(s) to analog mode.
  * @param  [in]  ADCx                   Pointer to ADC instance register base.
  *                                      This parameter can be a value of the following:
@@ -393,15 +545,15 @@ static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32C
 {
     uint8_t u8PinNum;
 
-    u8PinNum = 0u;
-    while (u32Channel != 0u)
+    u8PinNum = 0U;
+    while (u32Channel != 0U)
     {
-        if (u32Channel & 0x1u)
+        if (u32Channel & 0x1U)
         {
             AdcSetPinAnalogMode(ADCx, u8PinNum);
         }
 
-        u32Channel >>= 1u;
+        u32Channel >>= 1U;
         u8PinNum++;
     }
 }
@@ -464,7 +616,7 @@ static void AdcSetPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint8_t u8PinNum)
 }
 
 /**
- * @brief  Use TIMERA's PWM to indicate the scan timing of ADC synchronous mode.
+ * @brief  Use TimerA's PWM to indicate the scan timing of ADC synchronous mode.
  *         The inversion of PWM level indicates the end of ADC scanning.
  *         ADC1: PE11
  *         ADC2: PB10
@@ -481,14 +633,14 @@ static void IndicateConfig(void)
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMRA_1 | PWC_FCG2_TMRA_2 | PWC_FCG2_TMRA_7, Enable);
 
     TMRA_StructInit(&stcTmrAInit);
-    stcTmrAInit.u32ClkSrc    = TMRA_CLK_EVENT;
+    stcTmrAInit.u32ClkSrc    = TMRA_CLK_HW_UP_EVENT;
     stcTmrAInit.u32PeriodVal = 0U;
     TMRA_Init(M4_TMRA_1, &stcTmrAInit);
     TMRA_Init(M4_TMRA_2, &stcTmrAInit);
     TMRA_Init(M4_TMRA_7, &stcTmrAInit);
-    TMRA_SetCntEvent(M4_TMRA_1, EVT_ADC1_EOCA);
-    TMRA_SetCntEvent(M4_TMRA_2, EVT_ADC2_EOCA);
-    TMRA_SetCntEvent(M4_TMRA_7, EVT_ADC3_EOCA);
+    TMRA_SetTriggerSrc(M4_TMRA_1, TMRA_EVENT_USAGE_CNT, EVT_ADC1_EOCA);
+    TMRA_SetTriggerSrc(M4_TMRA_2, TMRA_EVENT_USAGE_CNT, EVT_ADC2_EOCA);
+    TMRA_SetTriggerSrc(M4_TMRA_7, TMRA_EVENT_USAGE_CNT, EVT_ADC3_EOCA);
 
     TMRA_SetFuncMode(M4_TMRA_1, TMRA_CH_2, TMRA_FUNC_COMPARE);
     TMRA_SetFuncMode(M4_TMRA_2, TMRA_CH_3, TMRA_FUNC_COMPARE);

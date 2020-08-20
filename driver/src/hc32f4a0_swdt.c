@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-26       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -129,9 +129,9 @@
     ((x) == SWDT_RANGE_0TO25PCT_50TO100PCT)     ||                             \
     ((x) == SWDT_RANGE_25TO100PCT))
 
-#define IS_SWDT_LPW_MODE_COUNT(x)                                              \
-(   ((x) == SWDT_LPW_MODE_COUNT_CONTINUE)       ||                             \
-    ((x) == SWDT_LPW_MODE_COUNT_STOP))
+#define IS_SWDT_LPM_COUNT(x)                                                   \
+(   ((x) == SWDT_LPM_COUNT_CONTINUE)            ||                             \
+    ((x) == SWDT_LPM_COUNT_STOP))
 
 #define IS_SWDT_REQUEST_TYPE(x)                                                \
 (   ((x) == SWDT_TRIG_EVENT_INT)                ||                             \
@@ -190,7 +190,7 @@ en_result_t SWDT_Init(const stc_swdt_init_t *pstcSwdtInit)
         DDL_ASSERT(IS_SWDT_COUNTER_CYCLE(pstcSwdtInit->u32CountCycle));
         DDL_ASSERT(IS_SWDT_CLOCK_DIVISION(pstcSwdtInit->u32ClockDivision));
         DDL_ASSERT(IS_SWDT_ALLOW_REFRESH_RANGE(pstcSwdtInit->u32RefreshRange));
-        DDL_ASSERT(IS_SWDT_LPW_MODE_COUNT(pstcSwdtInit->u32LPModeCountEn));
+        DDL_ASSERT(IS_SWDT_LPM_COUNT(pstcSwdtInit->u32LPModeCountEn));
         DDL_ASSERT(IS_SWDT_REQUEST_TYPE(pstcSwdtInit->u32TrigType));
 
         /* SWDT CR Configuration(Software Start Mode) */
@@ -204,12 +204,12 @@ en_result_t SWDT_Init(const stc_swdt_init_t *pstcSwdtInit)
 }
 
 /**
- * @brief  SWDT reload counter
+ * @brief  SWDT feed dog.
  * @note   In software startup mode, Start counter when refreshing for the first time.
  * @param  None
  * @retval None
  */
-void SWDT_ReloadCounter(void)
+void SWDT_Feed(void)
 {
     WRITE_REG32(M4_SWDT->RR, SWDT_REFRESH_KEY_START);
     WRITE_REG32(M4_SWDT->RR, SWDT_REFRESH_KEY_END);
@@ -232,7 +232,7 @@ en_flag_status_t SWDT_GetStatus(uint32_t u32Flag)
     /* Check parameters */
     DDL_ASSERT(IS_SWDT_FLAG(u32Flag));
 
-    if (Reset != (READ_REG32_BIT(M4_SWDT->SR, u32Flag)))
+    if (0UL != (READ_REG32_BIT(M4_SWDT->SR, u32Flag)))
     {
         enFlagSta = Set;
     }
@@ -252,7 +252,7 @@ en_flag_status_t SWDT_GetStatus(uint32_t u32Flag)
  */
 en_result_t SWDT_ClearStatus(uint32_t u32Flag)
 {
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
     en_result_t enRet = Ok;
 
     /* Check parameters */
@@ -263,7 +263,7 @@ en_result_t SWDT_ClearStatus(uint32_t u32Flag)
     u32Count = SWDT_CLEAR_FLAG_TIMEOUT * (HCLK_VALUE / 20000UL);
     do
     {
-        if (--u32Count == 0UL)
+        if (u32Count-- == 0UL)
         {
             enRet = ErrorTimeout;
             break;

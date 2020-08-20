@@ -2,11 +2,12 @@
  *******************************************************************************
  * @file  hc32f4a0_usb_dcd.c
  * @brief Peripheral Device Interface Layer.
- *       
+ *
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
+   2020-08-18       Wangmin         Modify DCD_Init() function
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -101,9 +102,9 @@
 
 /**
  * @brief  Device intialize
- * @param pdev : Device instance
- * @param coreID : Core ID
- * @retval : None
+ * @param pdev      Device instance
+ * @param coreID    Core ID
+ * @retval None
  */
 void DCD_Init(USB_OTG_CORE_HANDLE *pdev ,
               USB_OTG_CORE_ID_TypeDef coreID)
@@ -145,8 +146,6 @@ void DCD_Init(USB_OTG_CORE_HANDLE *pdev ,
         ep->xfer_len = 0U;
     }
 
-    pdev->dev.device_address = pdev->dev.device_address;
-
     USB_OTG_DisableGlobalInt(pdev);
 
     /*Init the Core (common init.) */
@@ -166,9 +165,11 @@ void DCD_Init(USB_OTG_CORE_HANDLE *pdev ,
 
 /**
  * @brief  Configure an EP
- * @param pdev : Device instance
- * @param epdesc : Endpoint Descriptor
- * @retval : status
+ * @param pdev      Device instance
+ * @param ep_addr   Endpoint address
+ * @param ep_mps    Endpoint max packet size
+ * @param ep_type   Endpoint type
+ * @retval Status
  */
 uint32_t DCD_EP_Open(USB_OTG_CORE_HANDLE *pdev ,
                      uint8_t ep_addr,
@@ -187,10 +188,10 @@ uint32_t DCD_EP_Open(USB_OTG_CORE_HANDLE *pdev ,
     }
     ep->num   = ep_addr & 0x7FU;
 
-    ep->is_in = ((0x80U & ep_addr) != 0U);
+    ep->is_in = (uint8_t)((0x80U & ep_addr) != 0U);
     ep->maxpacket = ep_mps;
     ep->type = ep_type;
-    if (ep->is_in)
+    if (ep->is_in != 0U)
     {
         /* Assign a Tx FIFO */
         ep->tx_fifo_num = ep->num;
@@ -206,9 +207,9 @@ uint32_t DCD_EP_Open(USB_OTG_CORE_HANDLE *pdev ,
 
 /**
  * @brief  called when an EP is disabled
- * @param pdev: device instance
- * @param ep_addr: endpoint address
- * @retval : status
+ * @param pdev      Device instance
+ * @param ep_addr   Endpoint address
+ * @retval Status
  */
 uint32_t DCD_EP_Close(USB_OTG_CORE_HANDLE *pdev , uint8_t  ep_addr)
 {
@@ -223,27 +224,27 @@ uint32_t DCD_EP_Close(USB_OTG_CORE_HANDLE *pdev , uint8_t  ep_addr)
         ep = &pdev->dev.out_ep[ep_addr & 0x7FU];
     }
     ep->num   = ep_addr & 0x7FU;
-    ep->is_in = ((0x80U & ep_addr) != 0U);
+    ep->is_in = (uint8_t)((0x80U & ep_addr) != 0U);
     USB_OTG_EPDeactivate(pdev, ep);
     return 0U;
 }
 
 /**
- * @brief  DCD_EP_PrepareRx
- * @param pdev: device instance
- * @param ep_addr: endpoint address
- * @param pbuf: pointer to Rx buffer
- * @param buf_len: data length
- * @retval : status
+ * @brief DCD_EP_PrepareRx
+ * @param pdev      Device instance
+ * @param ep_addr   Endpoint address
+ * @param pbuf      Pointer to Rx buffer
+ * @param buf_len   Data length
+ * @retval Status
  */
-uint32_t   DCD_EP_PrepareRx( USB_OTG_CORE_HANDLE *pdev,
-                            uint8_t   ep_addr,
-                            uint8_t *pbuf,
-                            uint16_t  buf_len)
+uint32_t DCD_EP_PrepareRx( USB_OTG_CORE_HANDLE *pdev,
+                           uint8_t ep_addr,
+                           uint8_t *pbuf,
+                           uint16_t  buf_len)
 {
     USB_OTG_EP *ep;
 
-    ep = &pdev->dev.out_ep[ep_addr & 0x7Fu];
+    ep = &pdev->dev.out_ep[ep_addr & 0x7FU];
 
     /*setup and start the Xfer */
     ep->xfer_buff = pbuf;
@@ -269,12 +270,12 @@ uint32_t   DCD_EP_PrepareRx( USB_OTG_CORE_HANDLE *pdev,
 }
 
 /**
- * @brief  Transmit data over USB
- * @param pdev: device instance
- * @param ep_addr: endpoint address
- * @param pbuf: pointer to Tx buffer
- * @param buf_len: data length
- * @retval : status
+ * @brief Transmit data over USB
+ * @param pdev      Device instance
+ * @param ep_addr   Endpoint address
+ * @param pbuf      pointer to Tx buffer
+ * @param buf_len   Data length
+ * @retval Status
  */
 uint32_t  DCD_EP_Tx ( USB_OTG_CORE_HANDLE *pdev,
                      uint8_t   ep_addr,
@@ -306,11 +307,11 @@ uint32_t  DCD_EP_Tx ( USB_OTG_CORE_HANDLE *pdev,
 
 /**
  * @brief  Stall an endpoint.
- * @param pdev: device instance
- * @param epnum: endpoint address
- * @retval : status
+ * @param pdev      Device instance
+ * @param epnum     Endpoint address
+ * @retval Status
  */
-uint32_t  DCD_EP_Stall (USB_OTG_CORE_HANDLE *pdev, uint8_t   epnum)
+uint32_t DCD_EP_Stall (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum)
 {
     USB_OTG_EP *ep;
     if ((0x80U & epnum) == 0x80U)
@@ -324,7 +325,7 @@ uint32_t  DCD_EP_Stall (USB_OTG_CORE_HANDLE *pdev, uint8_t   epnum)
 
     ep->is_stall = 1U;
     ep->num   = epnum & 0x7FU;
-    ep->is_in = ((epnum & 0x80U) == 0x80U);
+    ep->is_in = (uint8_t)((epnum & 0x80U) == 0x80U);
 
     USB_OTG_EPSetStall(pdev, ep);
     return (0U);
@@ -332,9 +333,9 @@ uint32_t  DCD_EP_Stall (USB_OTG_CORE_HANDLE *pdev, uint8_t   epnum)
 
 /**
  * @brief  Clear stall condition on endpoints.
- * @param pdev: device instance
- * @param epnum: endpoint address
- * @retval : status
+ * @param pdev      Device instance
+ * @param epnum     Endpoint address
+ * @retval Status
  */
 uint32_t  DCD_EP_ClrStall (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum)
 {
@@ -350,7 +351,7 @@ uint32_t  DCD_EP_ClrStall (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum)
 
     ep->is_stall = 0U;
     ep->num   = epnum & 0x7FU;
-    ep->is_in = ((epnum & 0x80U) == 0x80U);
+    ep->is_in = (uint8_t)((epnum & 0x80U) == 0x80U);
 
     USB_OTG_EPClearStall(pdev, ep);
     return (0U);
@@ -358,9 +359,9 @@ uint32_t  DCD_EP_ClrStall (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum)
 
 /**
  * @brief  This Function flushes the FIFOs.
- * @param pdev: device instance
- * @param epnum: endpoint address
- * @retval : status
+ * @param pdev      Device instance
+ * @param epnum     Endpoint address
+ * @retval Status
  */
 uint32_t  DCD_EP_Flush (USB_OTG_CORE_HANDLE *pdev , uint8_t epnum)
 {
@@ -377,22 +378,22 @@ uint32_t  DCD_EP_Flush (USB_OTG_CORE_HANDLE *pdev , uint8_t epnum)
 
 /**
  * @brief  This Function set USB device address
- * @param pdev: device instance
- * @param address: new device address
- * @retval : status
+ * @param pdev      Device instance
+ * @param address   New device address
+ * @retval Status
  */
 void  DCD_EP_SetAddress (USB_OTG_CORE_HANDLE *pdev, uint8_t address)
 {
     USB_OTG_DCFG_TypeDef  dcfg;
     dcfg.d32 = 0UL;
     dcfg.b.devaddr = address;
-    USB_OTG_MODIFY_REG32( &pdev->regs.DREGS->DCFG, 0UL, dcfg.d32);
+    USB_OTG_MODIFY_REG32(&pdev->regs.DREGS->DCFG, 0UL, dcfg.d32);
 }
 
 /**
  * @brief  Connect device (enable internal pull-up)
- * @param pdev: device instance
- * @retval : None
+ * @param pdev      Device instance
+ * @retval None
  */
 void  DCD_DevConnect (USB_OTG_CORE_HANDLE *pdev)
 {
@@ -408,8 +409,8 @@ void  DCD_DevConnect (USB_OTG_CORE_HANDLE *pdev)
 
 /**
  * @brief  Disconnect device (disable internal pull-up)
- * @param pdev: device instance
- * @retval : None
+ * @param pdev      Device instance
+ * @retval None
  */
 void  DCD_DevDisconnect (USB_OTG_CORE_HANDLE *pdev)
 {
@@ -425,14 +426,14 @@ void  DCD_DevDisconnect (USB_OTG_CORE_HANDLE *pdev)
 
 /**
  * @brief  returns the EP Status
- * @param  pdev : Selected device
- *         epnum : endpoint address
- * @retval : EP status
+ * @param  [in] pdev     Selected device
+ * @param  [in] epnum    Endpoint address
+ * @retval EP status
  */
 uint32_t DCD_GetEPStatus(USB_OTG_CORE_HANDLE *pdev ,uint8_t epnum)
 {
     USB_OTG_EP *ep;
-    uint32_t Status = 0UL;
+    uint32_t Status;
 
     if ((0x80U & epnum) == 0x80U)
     {
@@ -450,10 +451,10 @@ uint32_t DCD_GetEPStatus(USB_OTG_CORE_HANDLE *pdev ,uint8_t epnum)
 
 /**
  * @brief  Set the EP Status
- * @param  pdev : Selected device
- *         Status : new Status
- *         epnum : EP address
- * @retval : None
+ * @param  [in] pdev         Selected device
+ * @param  [in] Status       New Status
+ * @param  [in] epnum        EP address
+ * @retval None
  */
 void DCD_SetEPStatus (USB_OTG_CORE_HANDLE *pdev , uint8_t epnum , uint32_t Status)
 {

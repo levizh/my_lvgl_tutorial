@@ -114,15 +114,15 @@ int32_t main(void)
     SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     CLK_PLLHStrucInit(&stcPLLHInit);
-    /* VCO = 16/2*120 = 960MHz*/
+    /* VCO = (8/1)*120 = 960MHz*/
     stcPLLHInit.u8PLLState = CLK_PLLH_ON;
     stcPLLHInit.PLLCFGR = 0UL;
-    stcPLLHInit.PLLCFGR_f.PLLM = (2UL  - 1UL);
+    stcPLLHInit.PLLCFGR_f.PLLM = (1UL  - 1UL);
     stcPLLHInit.PLLCFGR_f.PLLN = (120UL - 1UL);
     stcPLLHInit.PLLCFGR_f.PLLP = (4UL  - 1UL);
     stcPLLHInit.PLLCFGR_f.PLLQ = (4UL  - 1UL);
     stcPLLHInit.PLLCFGR_f.PLLR = (4UL  - 1UL);
-    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_HRC;      /* 16MHz */
+    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL;      /* 16MHz */
     CLK_PLLHInit(&stcPLLHInit);
 
     EFM_Unlock();

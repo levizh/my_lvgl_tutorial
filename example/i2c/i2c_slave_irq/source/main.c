@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  i2c/i2c_slave_irq/source/main.c
- * @brief Main program of I2C for the Device Driver Library.
+ * @brief Main program of I2C slave irq for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-07-09       Wangmin         First version
+   2020-06-12       Hexiao         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -108,6 +108,8 @@
 #define I2C_TEI_IRQn                    (Int016_IRQn)
 #define I2C_TEI_SOURCE                  (INT_I2C1_TEI)
 
+#define LED_GREEN_PORT                  (GPIO_PORT_C)
+#define LED_GREEN_PIN                   (GPIO_PIN_09)
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -127,6 +129,79 @@ static __IO uint8_t u8FinishFlag = 0U;
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+static void Slave_LedInit(void)
+{
+    stc_gpio_init_t stcGpioInit;
+
+    /* RGB LED initialize */
+    GPIO_StructInit(&stcGpioInit);
+    GPIO_Init(LED_GREEN_PORT, LED_GREEN_PIN, &stcGpioInit);
+
+    /* "Turn off" LED before set to output */
+    GPIO_ResetPins(LED_GREEN_PORT, LED_GREEN_PIN);
+
+    /* Output enable */
+    GPIO_OE(LED_GREEN_PORT, LED_GREEN_PIN, Enable);
+}
+
+static void Slave_LedOn(void)
+{
+    GPIO_SetPins(LED_GREEN_PORT, LED_GREEN_PIN);
+}
+
 /**
  * @brief   static function for buffer write.
  * @param   [in]   u8Data the data to be write.
@@ -209,7 +284,7 @@ static void I2C_EEI_Callback(void)
 
             /* Read DRR register to release SCL*/
             I2C_ReadDataReg(M4_I2C1);
-            
+
         }
         else
         {
@@ -304,9 +379,9 @@ static uint8_t Slave_Initialize(void)
 
     /* Set slave address*/
 #ifdef I2C_10BITS_ADDRESS
-    I2C_SlaveAdrConfig(M4_I2C1, I2C_ADR_0, I2C_ADR_CONFIG_10BIT, DEVICE_ADDRESS);
+    I2C_SlaveAddrConfig(M4_I2C1, I2C_ADDR_0, I2C_ADDR_MODE_10BIT, DEVICE_ADDRESS);
 #else
-    I2C_SlaveAdrConfig(M4_I2C1,I2C_ADR_0, I2C_ADR_CONFIG_7BIT, DEVICE_ADDRESS);
+    I2C_SlaveAddrConfig(M4_I2C1,I2C_ADDR_0, I2C_ADDR_MODE_7BIT, DEVICE_ADDRESS);
 #endif
 
     /* Register IRQ handler && configure NVIC. */
@@ -358,8 +433,11 @@ static uint8_t Slave_Initialize(void)
  */
 int32_t main(void)
 {
+    Peripheral_WE();
+
     /* Configure system clock. */
     BSP_CLK_Init();
+    Slave_LedInit();
 
     /* Initialize I2C port*/
     stc_gpio_init_t stcGpioInit;
@@ -382,9 +460,10 @@ int32_t main(void)
     }
 
     /* Communication finished */
+    Slave_LedOn();
     while(1)
     {
-        DDL_Delay1ms(500U);
+        DDL_DelayMS(500U);
     }
 
 }

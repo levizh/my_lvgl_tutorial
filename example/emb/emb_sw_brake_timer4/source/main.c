@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-12       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -73,8 +73,9 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* Key definition */
-#define USER_KEY                        (BSP_KEY_1)
+/* Key port&pin definition */
+#define KEY_PORT                        (GPIO_PORT_A)
+#define KEY_PIN                         (GPIO_PIN_00)
 
 /* EMB unit & fcg & interrupt number definition */
 #define EMB_UNIT                        (M4_EMB4)
@@ -87,6 +88,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+static en_flag_status_t KeyState(void);
 static uint32_t Tmr4PclkFreq(void);
 static void Tmr4PwmConfig(void);
 
@@ -97,6 +101,85 @@ static void Tmr4PwmConfig(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
+ * @brief  Get key state
+ * @param  None
+ * @retval An en_result_t enumeration value:
+ *           - Set: Released after key is pressed
+ *           - Reset: Key isn't pressed
+ */
+static en_flag_status_t KeyState(void)
+{
+    en_flag_status_t enKeyState = Reset;
+
+    if (Pin_Reset == GPIO_ReadInputPins(KEY_PORT, KEY_PIN))
+    {
+        DDL_DelayMS(50UL);
+
+        if (Pin_Reset == GPIO_ReadInputPins(KEY_PORT, KEY_PIN))
+        {
+            while (Pin_Reset == GPIO_ReadInputPins(KEY_PORT, KEY_PIN))
+            {
+            }
+            enKeyState = Set;
+        }
+    }
+
+    return enKeyState;
+}
 
 /**
  * @brief  Get TIMER4 PCLK frequency.
@@ -129,8 +212,8 @@ static void Tmr4PwmConfig(void)
 
     /* Initialize TIMER4 Counter */
     TMR4_CNT_StructInit(&stcTmr4CntInit);
-    stcTmr4CntInit.u16ClkDiv = TMR4_CNT_CLK_DIV512;
-    stcTmr4CntInit.u16CycleVal = (uint16_t)(Tmr4PclkFreq() / (2UL * (1UL << (uint32_t)(stcTmr4CntInit.u16ClkDiv)))); /* Period_Value(500ms) */
+    stcTmr4CntInit.u16PclkDiv = TMR4_CNT_PCLK_DIV1024;
+    stcTmr4CntInit.u16CycleVal = (uint16_t)(Tmr4PclkFreq() / (4UL * (1UL << (uint32_t)(stcTmr4CntInit.u16PclkDiv)))); /* Period_Value(500ms) */
     TMR4_CNT_Init(M4_TMR4_1, &stcTmr4CntInit);
 
     /* Initialize TIMER4 OCO high&&low channel */
@@ -176,10 +259,8 @@ static void Tmr4PwmConfig(void)
     TMR4_OCO_SetLowChCompareMode(M4_TMR4_1, TMR4_OCO_UL, &stcLowChCmpMode);  /* Set OCO low channel compare mode */
 
     /* Initialize PWM I/O */
-    GPIO_Unlock();
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_09, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_08, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
-    GPIO_Lock();
 
     /* Initialize Timer4 PWM */
     TMR4_PWM_StructInit(&stcTmr4PwmInit);
@@ -202,33 +283,36 @@ static void Tmr4PwmConfig(void)
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
+
     /* Initialize system clock. */
     BSP_CLK_Init();
 
     /* Initialize IO. */
     BSP_IO_Init();
 
-    /* Initialize key. */
-    BSP_KEY_Init();
-
     /* Configure Timer4 PWM. */
     Tmr4PwmConfig();
+
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
 
     /* Enable peripheral clock */
     PWC_Fcg2PeriphClockCmd(EMB_FUNCTION_CLK_GATE, Enable);
 
     while (1)
     {
-        /* Wait key release */
-        while (Reset == BSP_KEY_GetStatus(USER_KEY))
+        /* Wait key pressed */
+        while (Reset == KeyState())
         {
         }
 
         /* Software start brake signal */
         EMB_SwBrake(EMB_UNIT, Enable);
 
-        /* Wait key release */
-        while (Reset == BSP_KEY_GetStatus(USER_KEY))
+        /* Wait key pressed */
+        while (Reset == KeyState())
         {
         }
 

@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_msc\source\usbd_usr.c
+ * @file  usb/usbd_msc/source/usbd_usr.c
  * @brief This file includes the user application layer.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -92,7 +92,7 @@ USBD_Usr_cb_TypeDef USR_cb =
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
 /* Disconnected in default */
-volatile uint8_t bDeviceState = 0u;
+volatile uint8_t bDeviceState = 0U;
 
 /*******************************************************************************
  * Local function prototypes ('static')
@@ -113,7 +113,9 @@ volatile uint8_t bDeviceState = 0u;
  */
 void USBD_USR_Init(void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("USBD_USR_Init\r\n");
+#endif
 }
 
 /**
@@ -126,13 +128,19 @@ void USBD_USR_DeviceReset(uint8_t speed)
     switch (speed)
     {
         case USB_OTG_SPEED_HIGH:
+#if (DDL_PRINT_ENABLE == DDL_ON)
             printf("USB Device Library v1.1.0  [HS]\r\n");
+#endif
             break;
         case USB_OTG_SPEED_FULL:
+#if (DDL_PRINT_ENABLE == DDL_ON)
             printf("USB Device Library v1.1.0  [FS]\r\n");
+#endif
             break;
         default:
+#if (DDL_PRINT_ENABLE == DDL_ON)
             printf("USB Device Library v1.1.0  [??]\r\n");
+#endif
             break;
     }
 }
@@ -144,7 +152,9 @@ void USBD_USR_DeviceReset(uint8_t speed)
  */
 void USBD_USR_DeviceConfigured (void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("MSC Interface started.\r\n");
+#endif
 }
 
 /**
@@ -154,7 +164,9 @@ void USBD_USR_DeviceConfigured (void)
  */
 void USBD_USR_DeviceSuspended(void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("Device In suspend mode.\r\n");
+#endif
 }
 
 /**
@@ -164,7 +176,9 @@ void USBD_USR_DeviceSuspended(void)
  */
 void USBD_USR_DeviceResumed(void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("Device Resumed\r\n");
+#endif
 }
 
 /**
@@ -174,8 +188,10 @@ void USBD_USR_DeviceResumed(void)
  */
 void USBD_USR_DeviceConnected(void)
 {
-    bDeviceState = 1u;
+    bDeviceState = 1U;
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("USB Device Connected.\r\n");
+#endif
 }
 
 /**
@@ -185,8 +201,10 @@ void USBD_USR_DeviceConnected(void)
  */
 void USBD_USR_DeviceDisconnected(void)
 {
-    bDeviceState = 0u;
+    bDeviceState = 0U;
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("USB Device Disconnected.\r\n");
+#endif
 }
 
 /**

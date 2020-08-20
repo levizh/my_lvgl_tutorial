@@ -6,7 +6,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-12-30       Heqb          First version
+   2020-06-12       Heqb          First version
+   2020-07-21       Heqb          Add write protect check for RMU_ClrStatus function
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -81,13 +82,25 @@
  * @defgroup RMU_Local_Macros RMU Local Macros
  * @{
  */
+#define RMU_STATUS_MASK            (0x40007FFFUL)
 
-#define RMU_FLAG_TIMEOUT            (0x40U)
+/**
+ * @defgroup RMU_Check_Parameters_Validity RMU Check Parameters Validity
+ * @{
+ */
+
+/*! Parameter validity check for RMU reset cause. */
+#define IS_VALID_RMU_RESET_STATUS(x)                                           \
+(   ((x) != 0U)                              ||                                \
+    ((x) | RMU_STATUS_MASK) == RMU_STATUS_MASK)
 
 /**
  * @}
  */
 
+/**
+ * @}
+ */
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -107,79 +120,67 @@
  * @defgroup RMU_Global_Functions RMU Global Functions
  * @{
  */
- 
+
 /**
  * @brief  Get the reset cause.
- * @param  [in] pstcData    Pointer to return reset cause structure.
- *                          See the definition for stc_rmu_rstcause_t
- * @retval Ok: Get successfully.
- *         ErrorInvalidParameter: NULL pointer
+ * @param  [in] u32RmuResetCause    Reset flags that need to be queried
+ *   @arg  RMU_RST_POWER_ON:        Power on reset
+ *   @arg  RMU_RST_RESET_PIN:       Reset pin reset
+ *   @arg  RMU_RST_BROWN_OUT:       Brown-out reset
+ *   @arg  RMU_RST_PVD1:            Program voltage Detection 1 reset
+ *   @arg  RMU_RST_PVD2:            Program voltage Detection 2 reset
+ *   @arg  RMU_RST_WDT:             Watchdog timer reset
+ *   @arg  RMU_RST_SWDT:            Special watchdog timer reset
+ *   @arg  RMU_RST_POWER_DOWN:      Power down reset
+ *   @arg  RMU_RST_SOFTWARE:        Software reset
+ *   @arg  RMU_RST_MPU_ERR:         Mpu error reset
+ *   @arg  RMU_RST_RAM_PARITY_ERR:  Ram parity error reset
+ *   @arg  RMU_RST_RAM_ECC:         Ram ECC reset
+ *   @arg  RMU_RST_CLK_ERR:         Clk frequence error reset
+ *   @arg  RMU_RST_XTAL_ERR:        Xtal error reset
+ *   @arg  RMU_RST_LOCKUP:          M4 Lockup reset
+ *   @arg  RMU_RST_MULTI:           Multiply reset cause
+ * @retval Set: Flag is Set.
+ *         Reset: Flag is Reset
  */
-en_result_t RMU_GetStatus(stc_rmu_rstcause_t *pstcData)
+en_flag_status_t RMU_GetStatus(uint32_t u32RmuResetCause)
 {
-    en_result_t enRet = Ok;
-    uint32_t u32RstReg;
+    en_flag_status_t enRet;
+    DDL_ASSERT(IS_VALID_RMU_RESET_STATUS(u32RmuResetCause));
 
-    if(NULL == pstcData)
-    {
-        enRet = ErrorInvalidParameter;
-    }
-    else
-    {
-        u32RstReg = READ_REG32(M4_RMU->RSTF0);
-        pstcData->enMultiRst = u32RstReg & RMU_RSTF0_MULTIRF ? Set : Reset;
-        pstcData->enCpuLockErrRst = u32RstReg & RMU_RSTF0_LKUPRF ? Set : Reset;
-        pstcData->enXtalErrRst = u32RstReg & RMU_RSTF0_XTALERF ? Set : Reset;
-        pstcData->enClkFreqErrRst = u32RstReg & RMU_RSTF0_CKFERF ? Set : Reset;
-        pstcData->enRamEccRst = u32RstReg & RMU_RSTF0_RAECRF ? Set : Reset;
-        pstcData->enRamParityErrRst = u32RstReg & RMU_RSTF0_RAPERF ? Set : Reset;
-        pstcData->enMpuErrRst = u32RstReg & RMU_RSTF0_MPUERF ? Set : Reset;
-        pstcData->enSoftwareRst = u32RstReg & RMU_RSTF0_SWRF ? Set : Reset;
-        pstcData->enPowerDownRst = u32RstReg & RMU_RSTF0_PDRF ? Set : Reset;
-        pstcData->enSwdtRst = u32RstReg & RMU_RSTF0_SWDRF ? Set : Reset;
-        pstcData->enWdtRst = u32RstReg & RMU_RSTF0_WDRF ? Set : Reset;
-        pstcData->enPvd2Rst = u32RstReg & RMU_RSTF0_PVD2RF ? Set : Reset;
-        pstcData->enPvd1Rst = u32RstReg & RMU_RSTF0_PVD1RF ? Set : Reset;
-        pstcData->enBrownOutRst = u32RstReg & RMU_RSTF0_BORF ? Set : Reset;
-        pstcData->enRstPinRst = u32RstReg & RMU_RSTF0_PINRF ? Set : Reset;
-        pstcData->enPowerOnRst = u32RstReg & RMU_RSTF0_PORF ? Set : Reset;
-    }
+    enRet = ((0UL == READ_REG32_BIT(M4_RMU->RSTF0, u32RmuResetCause)) ? Reset :Set);
     return enRet;
 }
 
 /**
  * @brief  Clear reset Status.
  * @param  None
- * @retval Ok: Clear successfully.
- *         ErrorTimeout: Process timeout
+ * @retval NOne
  * @note   Clear reset flag should be done after read RMU_RSTF0 register.
+ *         Call PWC_Unlock(PWC_UNLOCK_CODE_1) unlock RMU_RSTF0 register first.
  */
-en_result_t RMU_ClrStatus(void)
+void RMU_ClrStatus(void)
 {
-    en_result_t enRet = Ok;
-    uint32_t u32Status;
-    uint8_t  u8Timeout = 0U;
-    do
-    {
-        u8Timeout++;
-        SET_REG32_BIT(M4_RMU->RSTF0, RMU_RSTF0_CLRF);
-        u32Status = READ_REG32(M4_RMU->RSTF0);
-    }while((u8Timeout != RMU_FLAG_TIMEOUT) && u32Status);
+    DDL_ASSERT((M4_PWC->FPRC & PWC_FPRC_FPRCB1) == PWC_FPRC_FPRCB1);
 
-     if(u8Timeout >= RMU_FLAG_TIMEOUT)
-    {
-        enRet = ErrorTimeout;
-    }
-    return enRet;
+    SET_REG32_BIT(M4_RMU->RSTF0, RMU_RSTF0_CLRF);
+    __NOP();
+    __NOP();
+    __NOP();
+    __NOP();
+    __NOP();
+    __NOP();
 }
 
 /**
  * @brief  Enable or disable LOCKUP reset.
  * @param  [in] enNewState    Enable or disable LOCKUP reset.
  * @retval None
+ * @note   Call PWC_Unlock(PWC_UNLOCK_CODE_1) unlock RMU_PRSTCR0 register first.
  */
 void RMU_CPULockUpCmd(en_functional_state_t enNewState)
 {
+    DDL_ASSERT((M4_PWC->FPRC & PWC_FPRC_FPRCB1) == PWC_FPRC_FPRCB1);
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
     WRITE_REG8(bM4_RMU->PRSTCR0_b.LKUPREN, enNewState);
 }
@@ -200,4 +201,3 @@ void RMU_CPULockUpCmd(en_functional_state_t enNewState)
 /*******************************************************************************
  * EOF (not truncated)
  ******************************************************************************/
-

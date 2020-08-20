@@ -5,7 +5,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
+   2020-07-15       Zhangxl         Use XTAL 8MHz as PLL source
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -56,14 +57,13 @@
 #include "ev_hc32f4a0_lqfp176.h"
 #include "ev_hc32f4a0_lqfp176_tca9539.h"
 
-
 /**
  * @defgroup BSP BSP
  * @{
  */
 
 /**
- * @defgroup EV_HC32F4A0_LQFP176 HC32F460 LQFP176 EVB
+ * @defgroup EV_HC32F4A0_LQFP176 HC32F4A0_LQFP176_EVB
  * @{
  */
 
@@ -80,7 +80,6 @@
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
-uint32_t gu32GlobalKey = 0x00000000UL;
 
 /*******************************************************************************
  * Local function prototypes ('static')
@@ -89,6 +88,7 @@ uint32_t gu32GlobalKey = 0x00000000UL;
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+static uint32_t gu32GlobalKey = 0x00000000UL;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -99,12 +99,12 @@ uint32_t gu32GlobalKey = 0x00000000UL;
  */
 /**
   * @brief  EIO delay
-  * @param  [in] u32Delay: Delay in ms
+  * @param  [in] u32Delay Delay in ms
   * @retval none
   */
 void EIO_Delay(uint32_t u32Delay)
 {
-    DDL_Delay1ms(u32Delay);
+    DDL_DelayMS(u32Delay);
 }
 
 /**
@@ -146,7 +146,7 @@ void EIO_Init(void)
 
 /**
   * @brief  EIO register write
-  * @param  [in] u8Reg, register definition
+  * @param  [in] u8Reg register definition
   *   @arg  TCA9539_REG_INPUT_0
   *   @arg  TCA9539_REG_INPUT_1
   *   @arg  TCA9539_REG_OUTPUT_0
@@ -155,7 +155,7 @@ void EIO_Init(void)
   *   @arg  TCA9539_REG_INVERT_1
   *   @arg  TCA9539_REG_CONFIG_0
   *   @arg  TCA9539_REG_CONFIG_1
-  * @param  [in] u8Val, register value
+  * @param  [in] u8Val register value
   * @retval en_result_t
   */
 en_result_t EIO_Write(uint8_t u8Reg, uint8_t u8Val)
@@ -170,7 +170,7 @@ en_result_t EIO_Write(uint8_t u8Reg, uint8_t u8Val)
 
 /**
   * @brief  EIO register read
-  * @param  [in] u8Reg, register definition
+  * @param  [in] u8Reg register definition
   *   @arg  TCA9539_REG_INPUT_0
   *   @arg  TCA9539_REG_INPUT_1
   *   @arg  TCA9539_REG_OUTPUT_0
@@ -179,7 +179,7 @@ en_result_t EIO_Write(uint8_t u8Reg, uint8_t u8Val)
   *   @arg  TCA9539_REG_INVERT_1
   *   @arg  TCA9539_REG_CONFIG_0
   *   @arg  TCA9539_REG_CONFIG_1
-  * @param  [out] *u8Val, register value
+  * @param  [out] *u8Val register value
   * @retval en_result_t
   */
 en_result_t EIO_Read(uint8_t u8Reg, uint8_t *u8Val)
@@ -201,22 +201,19 @@ en_result_t EIO_Read(uint8_t u8Reg, uint8_t *u8Val)
   */
 void EIO_Reset(void)
 {
-    GPIO_Unlock();
     GPIO_OE(GPIO_PORT_C, GPIO_PIN_13, Enable);
     GPIO_ResetPins(GPIO_PORT_C, GPIO_PIN_13);
-    DDL_Delay1ms(3UL);
+    DDL_DelayMS(3UL);
     GPIO_SetPins(GPIO_PORT_C, GPIO_PIN_13);
-    GPIO_Lock();
 }
 
 /**
-  * @brief  EIO interrupt initilize
+  * @brief  EIO interrupt initialize
   * @retval none
   */
 void EIO_IntInit(void)
 {
     /* interrupt config*/
-
 }
 
 /**
@@ -226,9 +223,7 @@ void EIO_IntInit(void)
  */
 void BSP_CAM_Init(void)
 {
-    //BSP_IO_Init();
-
-    /* Turn off LED before output */ //todo
+    /* Set initial state before output */
     BSP_IO_WritePortPin(CAM_PORT, (CAM_RST_PIN | CAM_STB_PIN), EIO_PIN_SET);
     /* CAM pins set to output */
     BSP_IO_ConfigPortPin(CAM_PORT, (CAM_RST_PIN | CAM_STB_PIN), EIO_DIR_OUT);
@@ -265,14 +260,37 @@ void BSP_CAM_STBCmd(uint8_t Cmd)
  */
 void BSP_LCD_IO_Init(void)
 {
-    /* Turn off LED before output */ //todo
+    /* Set initial state before output */
     BSP_IO_WritePortPin(LCD_RST_PORT, LCD_RST_PIN, EIO_PIN_SET);
-//    BSP_IO_WritePortPin(LCD_BKL_PORT, LCD_BKL_PIN, EIO_PIN_RESET);
     BSP_IO_WritePortPin(LCD_CTRST_PORT, LCD_CTRST_PIN, EIO_PIN_SET);
-    /* CAM pins set to output */
+    /* LCD control IO pins set to output */
     BSP_IO_ConfigPortPin(LCD_RST_PORT, LCD_RST_PIN, EIO_DIR_OUT);
-//    BSP_IO_ConfigPortPin(LCD_BKL_PORT, LCD_BKL_PIN, EIO_DIR_OUT);
     BSP_IO_ConfigPortPin(LCD_CTRST_PORT, LCD_CTRST_PIN, EIO_DIR_OUT);
+}
+
+/**
+ * @brief  CAN PYH STB pin initialization.
+ * @param  None
+ * @retval none
+ */
+void BSP_CAN_STB_IO_Init(void)
+{
+    /* Set STB pin high before output */
+    BSP_IO_WritePortPin(CAN_STB_PORT, CAN_STB_PIN, EIO_PIN_SET);
+    /* STB pin set to output */
+    BSP_IO_ConfigPortPin(CAN_STB_PORT, CAN_STB_PIN, EIO_DIR_OUT);
+}
+
+/**
+ * @brief  CAN PYH STB pin control
+ * @param  [in] Cmd
+ *   @arg  EIO_PIN_SET
+ *   @arg  EIO_PIN_RESET
+ * @retval none
+ */
+void BSP_CAN_STBCmd(uint8_t Cmd)
+{
+    BSP_IO_WritePortPin(CAN_STB_PORT, CAN_STB_PIN, Cmd);
 }
 
 /**
@@ -296,8 +314,7 @@ void BSP_LCD_RSTCmd(uint8_t Cmd)
  */
 void BSP_LCD_BKLCmd(uint8_t Cmd)
 {
-    //todo
-//    BSP_IO_WritePortPin(LCD_BKL_PORT, LCD_BKL_PIN, Cmd);
+    // todo
 }
 
 /**
@@ -307,8 +324,6 @@ void BSP_LCD_BKLCmd(uint8_t Cmd)
  */
 void BSP_LED_Init(void)
 {
-    //BSP_IO_Init();
-
     /* Turn off LED before output */
     BSP_IO_WritePortPin(LED_PORT, (LED_RED_PIN | LED_YELLOW_PIN | LED_BLUE_PIN), LED_OFF);
     /* LED pins set to output */
@@ -317,7 +332,7 @@ void BSP_LED_Init(void)
 
 /**
  * @brief  Turn on LEDs.
- * @param  [in] u8Led: LED
+ * @param  [in] u8Led LED
  *   @arg  LED_RED
  *   @arg  LED_YELLOW
  *   @arg  LED_BLUE
@@ -330,7 +345,7 @@ void BSP_LED_On(uint8_t u8Led)
 
 /**
  * @brief  Turn off LEDs.
- * @param  [in] u8Led: LED
+ * @param  [in] u8Led LED
  *   @arg  LED_RED
  *   @arg  LED_YELLOW
  *   @arg  LED_BLUE
@@ -343,8 +358,9 @@ void BSP_LED_Off(uint8_t u8Led)
 
 /**
  * @brief  Toggle LEDs.
- * @param  [in] u8Led: LED
+ * @param  [in] u8Led LED
  *   @arg  LED_RED
+ *   @arg  LED_YELLOW
  *   @arg  LED_BLUE
  * @retval none
  */
@@ -360,7 +376,7 @@ void BSP_LED_Toggle(uint8_t u8Led)
  */
 static void BSP_KEY_ROW0_IrqCallback(void)
 {
-    uint32_t u32Idx = KEYSCAN_GetKeyoutIdx();
+    const uint32_t u32Idx = KEYSCAN_GetKeyoutIdx();
     if (Set == EXINT_GetExIntSrc(BSP_KEY_ROW0_EXINT))
     {
         while (1)
@@ -386,7 +402,7 @@ static void BSP_KEY_ROW0_IrqCallback(void)
  */
 static void BSP_KEY_ROW1_IrqCallback(void)
 {
-    uint32_t u32Idx = KEYSCAN_GetKeyoutIdx();
+    const uint32_t u32Idx = KEYSCAN_GetKeyoutIdx();
     if (Set == EXINT_GetExIntSrc(BSP_KEY_ROW1_EXINT))
     {
         while (1)
@@ -412,7 +428,7 @@ static void BSP_KEY_ROW1_IrqCallback(void)
  */
 static void BSP_KEY_ROW2_IrqCallback(void)
 {
-    uint32_t u32Idx = KEYSCAN_GetKeyoutIdx();
+    const uint32_t u32Idx = KEYSCAN_GetKeyoutIdx();
     if (Set == EXINT_GetExIntSrc(BSP_KEY_ROW2_EXINT))
     {
         while (1)
@@ -551,13 +567,13 @@ static void BSP_KEY_COL_Init(void)
 
 //    stcGpioInit.u16PullUp = PIN_PU_ON;
     GPIO_Init(BSP_KEYOUT0_PORT, BSP_KEYOUT0_PIN, &stcGpioInit);
-    GPIO_SetFunc(BSP_KEYOUT0_PORT, BSP_KEYOUT0_PIN, GPIO_FUNC_8_KEYSCAN, Disable);
+    GPIO_SetFunc(BSP_KEYOUT0_PORT, BSP_KEYOUT0_PIN, GPIO_FUNC_8_KEYSCAN, PIN_SUBFUNC_DISABLE);
 
     GPIO_Init(BSP_KEYOUT1_PORT, BSP_KEYOUT1_PIN, &stcGpioInit);
-    GPIO_SetFunc(BSP_KEYOUT1_PORT, BSP_KEYOUT1_PIN, GPIO_FUNC_8_KEYSCAN, Disable);
+    GPIO_SetFunc(BSP_KEYOUT1_PORT, BSP_KEYOUT1_PIN, GPIO_FUNC_8_KEYSCAN, PIN_SUBFUNC_DISABLE);
 
     GPIO_Init(BSP_KEYOUT2_PORT, BSP_KEYOUT2_PIN, &stcGpioInit);
-    GPIO_SetFunc(BSP_KEYOUT2_PORT, BSP_KEYOUT2_PIN, GPIO_FUNC_8_KEYSCAN, Disable);
+    GPIO_SetFunc(BSP_KEYOUT2_PORT, BSP_KEYOUT2_PIN, GPIO_FUNC_8_KEYSCAN, PIN_SUBFUNC_DISABLE);
 
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_KEY, Enable);
 
@@ -567,8 +583,8 @@ static void BSP_KEY_COL_Init(void)
     stcKeyscanInit.u32HizCycle = KEYSCAN_HIZ_CLC_4;
     stcKeyscanInit.u32LowCycle = KEYSCAN_LOW_CLC_512;
     stcKeyscanInit.u32KeyClk   = KEYSCAN_CLK_LRC;
-    stcKeyscanInit.u32Keyout   = KEYSCAN_OUT_0T2;
-    stcKeyscanInit.u32Keyin    = (KEYSCAN_IN_8 | KEYSCAN_IN_3 | KEYSCAN_IN_7);
+    stcKeyscanInit.u32KeyOut   = KEYSCAN_OUT_0T2;
+    stcKeyscanInit.u32KeyIn    = (KEYSCAN_IN_8 | KEYSCAN_IN_3 | KEYSCAN_IN_7);
 
     KEYSCAN_Init(&stcKeyscanInit);
 }
@@ -586,12 +602,17 @@ void BSP_KEY_Init(void)
 
     BSP_KEY_COL_Init();
 
+    /* Clear all KEYIN interrupt flag before enable */
+    EXINT_ClrExIntSrc(BSP_KEY_ROW0_EXINT);
+    EXINT_ClrExIntSrc(BSP_KEY_ROW1_EXINT);
+    EXINT_ClrExIntSrc(BSP_KEY_ROW2_EXINT);
+
     KEYSCAN_Cmd(Enable);
 }
 
 /**
  * @brief  Get BSP key status
- * @param  [in] u16Key, chose one macro from below
+ * @param  [in] u32Key chose one macro from below
  *   @arg  BSP_KEY_1
  *   @arg  BSP_KEY_2
  *   @arg  BSP_KEY_3
@@ -649,25 +670,28 @@ void BSP_CLK_Init(void)
                 CLK_HCLK_DIV1));
 
     CLK_PLLHStrucInit(&stcPLLHInit);
-    /* VCO = 16/2*120 = 960MHz*/
+    /* VCO = (8/1)*120 = 960MHz*/
     stcPLLHInit.u8PLLState = CLK_PLLH_ON;
     stcPLLHInit.PLLCFGR = 0UL;
-    stcPLLHInit.PLLCFGR_f.PLLM = 2UL - 1UL;
+    stcPLLHInit.PLLCFGR_f.PLLM = 1UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLN = 120UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLP = 4UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLQ = 4UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLR = 4UL - 1UL;
-    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_HRC;
+    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL;
     CLK_PLLHInit(&stcPLLHInit);
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
 
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
-    EFM_Unlock();
-    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Lock();
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+
+    /* 0-wait @ 40MHz */
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
+
+    /* 4 cycles for 200 ~ 250MHz */
+    GPIO_SetReadWaitCycle(GPIO_READ_WAIT_4);
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }

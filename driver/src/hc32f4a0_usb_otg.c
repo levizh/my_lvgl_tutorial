@@ -2,11 +2,11 @@
  *******************************************************************************
  * @file  hc32f4a0_usb_otg.c
  * @brief USB Core Layer.
- *       
+ *
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -95,8 +95,8 @@
 #ifdef USE_OTG_MODE
 static uint32_t USB_OTG_HandleConnectorIDStatusChange_ISR(USB_OTG_CORE_HANDLE *pdev);
 static uint32_t USB_OTG_HandleSessionRequest_ISR(USB_OTG_CORE_HANDLE *pdev);
-#endif
 static uint32_t USB_OTG_Read_itr(USB_OTG_CORE_HANDLE *pdev);
+#endif
 /**
  * @}
  */
@@ -113,11 +113,13 @@ static uint32_t USB_OTG_Read_itr(USB_OTG_CORE_HANDLE *pdev);
  * @{
  */
 
+#ifdef USE_OTG_MODE
+
 /**
  * @brief  USBO_OTG_ISR_Handler
  *
- * @param  pdev
- * @retval : uint32_t
+ * @param  [in] pdev     Selected device
+ * @retval uint32_t
  */
 uint32_t USBO_OTG_ISR_Handler(USB_OTG_CORE_HANDLE *pdev)
 {
@@ -145,15 +147,11 @@ uint32_t USBO_OTG_ISR_Handler(USB_OTG_CORE_HANDLE *pdev)
     return retval;
 }
 
-
-
-#ifdef USE_OTG_MODE
-
 /**
  * @brief  USB_OTG_InitiateSRP
  *         Initiate an srp session
- * @param  None
- * @retval : None
+ * @param  [in] pdev     Selected device
+ * @retval None
  */
 void USB_OTG_InitiateSRP(USB_OTG_CORE_HANDLE *pdev)
 {
@@ -174,8 +172,9 @@ void USB_OTG_InitiateSRP(USB_OTG_CORE_HANDLE *pdev)
 /**
  * @brief  USB_OTG_InitiateHNP
  *         Initiate HNP
- * @param  None
- * @retval : None
+ * @param  [in] pdev     Selected device
+ * @param  [in] mode     Host or device mode
+ * @retval None
  */
 void USB_OTG_InitiateHNP(USB_OTG_CORE_HANDLE *pdev , uint8_t state, uint8_t mode)
 {
@@ -214,8 +213,8 @@ void USB_OTG_InitiateHNP(USB_OTG_CORE_HANDLE *pdev , uint8_t state, uint8_t mode
 /**
  * @brief  USB_OTG_GetCurrentState
  *         Return current OTG State
- * @param  None
- * @retval : None
+  * @param pdev     Selected device
+ * @retval None
  */
 uint32_t USB_OTG_GetCurrentState (USB_OTG_CORE_HANDLE *pdev)
 {
@@ -240,8 +239,8 @@ uint32_t USB_OTG_GetCurrentState (USB_OTG_CORE_HANDLE *pdev)
 /**
  * @brief  USB_OTG_HandleConnectorIDStatusChange_ISR
  *         handles the Connector ID Status Change Interrupt
- * @param  None
- * @retval : status
+ * @param  [in] pdev     Selected device
+ * @retval Status
  */
 static uint32_t USB_OTG_HandleConnectorIDStatusChange_ISR(USB_OTG_CORE_HANDLE *pdev)
 {
@@ -282,15 +281,17 @@ static uint32_t USB_OTG_HandleConnectorIDStatusChange_ISR(USB_OTG_CORE_HANDLE *p
 /**
  * @brief  USB_OTG_HandleSessionRequest_ISR
  *           Initiating the Session Request Protocol
- * @param  None
- * @retval : status
+  * @param  [in] pdev     Selected device
+ * @retval Status
  */
 static uint32_t USB_OTG_HandleSessionRequest_ISR(USB_OTG_CORE_HANDLE *pdev)
 {
     USB_OTG_GINTSTS_TypeDef  gintsts;
     USB_OTG_GOTGCTL_TypeDef   gotgctl;
 
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("SRP IRQ\n");
+#endif
     gotgctl.d32 = 0UL;
     gintsts.d32 = 0UL;
 
@@ -308,13 +309,12 @@ static uint32_t USB_OTG_HandleSessionRequest_ISR(USB_OTG_CORE_HANDLE *pdev)
     USB_OTG_WRITE_REG32 (&pdev->regs.GREGS->GINTSTS, gintsts.d32);
     return 1UL;
 }
-#endif
 
 /**
  * @brief  USB_OTG_Read_itr
  *         returns the Core Interrupt register
- * @param  None
- * @retval : status
+ * @param  [in] pdev     Selected device
+ * @retval Status
  */
 static uint32_t USB_OTG_Read_itr(USB_OTG_CORE_HANDLE *pdev)
 {
@@ -335,6 +335,7 @@ static uint32_t USB_OTG_Read_itr(USB_OTG_CORE_HANDLE *pdev)
     return ((gintsts.d32 & gintmsk.d32 ) & gintmsk_common.d32);
 }
 
+#endif
 
 /**
  * @}

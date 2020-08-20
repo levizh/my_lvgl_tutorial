@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-28       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -63,16 +63,6 @@ extern "C"
  ******************************************************************************/
 #include "hc32_ddl.h"
 
-/**
- * @addtogroup HC32F4A0_DDL_Examples
- * @{
- */
-
-/**
- * @addtogroup FatFS_SD_Card
- * @{
- */
-
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
@@ -89,14 +79,6 @@ extern const stc_diskio_drv_t gSDDriver;
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
-
-/**
- * @}
- */
-
-/**
- * @}
- */
 
 /**
  * @}

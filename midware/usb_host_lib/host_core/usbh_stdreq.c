@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -595,9 +595,9 @@ static void USBH_ParseStringDesc (uint8_t* psrc,
 
         /* psrc[0] contains Size of Descriptor, subtract 2 to get the length of string */
         strlength = (( ((uint16_t)psrc[0U])-2U) <= length) ? (((uint16_t)psrc[0U])-2U) : length;
-        psrc += 2u; /* Adjust the offset ignoring the String Len and Descriptor type */
+        psrc += 2U; /* Adjust the offset ignoring the String Len and Descriptor type */
 
-        for (idx = 0U; idx < strlength; idx+=2u )
+        for (idx = 0U; idx < strlength; idx+=2U)
         {/* Copy Only the string and ignore the UNICODE ID, hence add the src */
             *pdest =  psrc[idx];
             pdest++;

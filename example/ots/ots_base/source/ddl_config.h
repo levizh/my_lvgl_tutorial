@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-03       Yangjp          First version
+   2020-01-01       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -135,15 +135,6 @@ extern "C"
 #define DDL_USBHS_ENABLE                            (DDL_OFF)
 #define DDL_VBAT_ENABLE                             (DDL_OFF)
 #define DDL_WDT_ENABLE                              (DDL_OFF)
-
-/* Midware module on-off define */
-#define MW_ON                                       (1U)
-#define MW_OFF                                      (0U)
-
-/**
- * @brief This is the list of midware modules to be used.
- * Select the modules you need to use to MW_ON.
- */
 
 /* BSP on-off define */
 #define BSP_ON                                      (1U)

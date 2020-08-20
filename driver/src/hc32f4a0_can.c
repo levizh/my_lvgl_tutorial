@@ -5,7 +5,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Wuze            First version
+   2020-06-12       Wuze            First version
+   2020-08-10       Wuze            Refined CAN_GetStatusVal()
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -114,39 +115,39 @@
     ((x) == M4_CAN2))
 
 #define IS_CAN_SBT_SEG1(x)                                                     \
-(   ((x) >= 2U)                                 ||                             \
+(   ((x) >= 2U)                                 &&                             \
     ((x) <= 65U))
 
 #define IS_CAN_SBT_SEG2(x)                                                     \
-(   ((x) >= 1U)                                 ||                             \
+(   ((x) >= 1U)                                 &&                             \
     ((x) <= 8U))
 
 #define IS_CAN_FD_SBT_SEG2(x)                                                  \
-(   ((x) >= 1U)                                 ||                             \
+(   ((x) >= 1U)                                 &&                             \
     ((x) <= 32U))
 
 #define IS_CAN_SBT_SJW(x)                                                      \
-(   ((x) >= 1U)                                 ||                             \
+(   ((x) >= 1U)                                 &&                             \
     ((x) <= 16U))
 
 #define IS_CAN_SBT_PRESC(x)                                                    \
-(   ((x) >= 1U)                                 ||                             \
+(   ((x) >= 1U)                                 &&                             \
     ((x) <= 256U))
 
 #define IS_CAN_FBT_SEG1(x)                                                     \
-(   ((x) >= 2U)                                 ||                             \
+(   ((x) >= 2U)                                 &&                             \
     ((x) <= 17U))
 
 #define IS_CAN_FBT_SEG2(x)                                                     \
-(   ((x) >= 1U)                                 ||                             \
+(   ((x) >= 1U)                                 &&                             \
     ((x) <= 8U))
 
 #define IS_CAN_FBT_SJW(x)                                                      \
-(   ((x) >= 1U)                                 ||                             \
+(   ((x) >= 1U)                                 &&                             \
     ((x) <= 8U))
 
 #define IS_CAN_FBT_PRESC(x)                                                    \
-(   ((x) >= 1U)                                 ||                             \
+(   ((x) >= 1U)                                 &&                             \
     ((x) <= 256U))
 
 #define IS_CAN_SBT_PRIO_MODE(x)                                                \
@@ -290,14 +291,13 @@
  *                                      contains the configuration information for the CAN.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No error occurred.
- *   @arg  ErrorInvalidParameter:      -CANx == NULL
- *                                     -pstcInit == NULL.
+ *   @arg  ErrorInvalidParameter:       pstcInit == NULL
  */
 en_result_t CAN_Init(M4_CAN_TypeDef *CANx, const stc_can_init_t *pstcInit)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((CANx != NULL) && (pstcInit != NULL))
+    if (pstcInit != NULL)
     {
 #ifdef __DEBUG
         DDL_ASSERT(IS_FUNCTIONAL_STATE(pstcInit->enCANFDCmd));
@@ -313,16 +313,16 @@ en_result_t CAN_Init(M4_CAN_TypeDef *CANx, const stc_can_init_t *pstcInit)
         /* Software reset. */
         CAN_SWReset(CANx);
         /* Defines slow bit time. */
-        CAN_SBTConfig(CANx, &pstcInit->stcSBT);
+        (void)CAN_SBTConfig(CANx, &pstcInit->stcSBT);
         /* Specifies STB priority mode. */
         CAN_SetSTBPrioMode(CANx, pstcInit->u8STBPrioMode);
         /* Configures acceptance filters. */
-        CAN_AFConfig(CANx, pstcInit->u16AFSel, pstcInit->pstcAFCfg);
+        (void)CAN_AFConfig(CANx, pstcInit->u16AFSel, pstcInit->pstcAFCfg);
         /* Configures CAN-FD if enabled. */
         CAN_FD_Cmd(CANx, Disable);
         if (pstcInit->enCANFDCmd == Enable)
         {
-            CAN_FD_Config(CANx, &pstcInit->stcFDCfg);
+            (void)CAN_FD_Config(CANx, &pstcInit->stcFDCfg);
             CAN_FD_Cmd(CANx, Enable);
         }
 
@@ -339,7 +339,7 @@ en_result_t CAN_Init(M4_CAN_TypeDef *CANx, const stc_can_init_t *pstcInit)
         /* Specifies the operation when receiving buffer overflow. */
         CAN_SetRBOvfOp(CANx, pstcInit->u8RBOvfOp);
         /* Enable acceptance filters that configured before. */
-        CAN_AFCmd(CANx, pstcInit->u16AFSel, Enable);
+        SET_REG16_BIT(CANx->ACFEN, pstcInit->u16AFSel);
 
         /* Enable or disable self-ACK. */
         DDL_ASSERT(IS_CAN_SELF_ACK_CMD(pstcInit->u8SelfACKCmd));
@@ -356,10 +356,10 @@ en_result_t CAN_Init(M4_CAN_TypeDef *CANx, const stc_can_init_t *pstcInit)
 
 /**
  * @brief  Set a default value for CAN initialization structure. \
- *         Nominal bit rate configuration:
+ *         Slow bit time configuration:
  *         Based on 40MHz CAN clock, TQ clock is CAN clock divided by 4. \
  *         Bit rate 500Kbps, 1 bit time is 20TQs, sample point is 80%.
- *         CAN-FD bit rate configuration:
+ *         CAN-FD bit time configuration:
  *         Based on 40MHz CAN clock, TQ clock is CAN clock divided by 1. \
  *         Bit rate 2Mbps, 1 bit time is 20TQs, primary sample point is 80%, \
  *         secondary sample point is 80%.
@@ -379,7 +379,7 @@ en_result_t CAN_StructInit(stc_can_init_t *pstcInit)
         pstcInit->u8TransMode    = CAN_TRANS_PTB_STB_AUTO_RETX;
         pstcInit->u8STBPrioMode  = CAN_STB_PRIO_FIFO;
         pstcInit->u8RBSWarnLimit = 6U;
-    	pstcInit->u8ErrWarnLimit = 7U;
+        pstcInit->u8ErrWarnLimit = 7U;
         pstcInit->u16AFSel       = CAN_AF1;
         pstcInit->u8RBStoreSel   = CAN_RB_STORE_CORRECT_DATA;
         pstcInit->u8RBOvfOp      = CAN_RB_OVF_DISCARD_NEW;
@@ -411,7 +411,7 @@ en_result_t CAN_StructInit(stc_can_init_t *pstcInit)
          * Secondary sample point: u8TDCSSP / (u32SEG1 + u32SEG2) = 80%
          */
         pstcInit->enCANFDCmd = Disable;
-        CAN_FD_StructInit(&pstcInit->stcFDCfg);
+        (void)CAN_FD_StructInit(&pstcInit->stcFDCfg);
 
         enRet = Ok;
     }
@@ -434,7 +434,7 @@ void CAN_DeInit(M4_CAN_TypeDef *CANx)
     DDL_ASSERT(IS_CAN_UNIT(CANx));
 
     CLEAR_REG8_BIT(CANx->CFG_STAT, CAN_CFG_STAT_RESET);
-    for (i = 0U; i < 2U; i++)
+    for (i=0U; i<2U; i++)
     {
         WRITE_REG8(CANx->CFG_STAT, 0x80U);
         WRITE_REG8(CANx->TCMD, 0x00U);
@@ -686,7 +686,7 @@ void CAN_IntCmd(M4_CAN_TypeDef *CANx, uint32_t u32IntType, en_functional_state_t
  *   @arg  ErrorInvalidParameter:       pstcCfg == NULL.
  * @note 1. Restrictions: u32SEG1 >= u32SEG2 + 1, u32SEG2 >= u32SJW.
  * @note 2. TQ = u32Prescaler / CANClock.
- * @note 3. Slow bit time = (u32SEG1 + u32SEG2) × TQ.
+ * @note 3. Slow bit time = (u32SEG1 + u32SEG2) * TQ.
  * @note 4. Call this function when CFG_STAT.RESET is 1.
  */
 en_result_t CAN_SBTConfig(M4_CAN_TypeDef *CANx, const stc_can_bt_cfg_t *pstcCfg)
@@ -886,6 +886,8 @@ en_result_t CAN_AFConfig(M4_CAN_TypeDef *CANx, uint16_t u16AFSel, const stc_can_
             u16AFSel >>= 1U;
             u8AFAddr++;
         }
+
+        enRet = Ok;
     }
 
     return enRet;
@@ -937,11 +939,11 @@ uint8_t CAN_GetTBType(const M4_CAN_TypeDef *CANx)
     uint8_t u8Ret;
 
     u8Tmp = CANx->TCMD;
-    if (u8Tmp & CAN_TCMD_TPE)
+    if ((u8Tmp & CAN_TCMD_TPE) != 0U)
     {
         u8Ret = CAN_BUF_PTB;
     }
-    else if (u8Tmp & (CAN_TCMD_TSALL | CAN_TCMD_TSONE))
+    else if ((u8Tmp & (CAN_TCMD_TSALL | CAN_TCMD_TSONE)) != 0U)
     {
         u8Ret = CAN_BUF_STB;
     }
@@ -1028,11 +1030,11 @@ en_flag_status_t CAN_GetStatus(const M4_CAN_TypeDef *CANx, uint32_t u32Flag)
     u8RTIF    = (uint8_t)(u32Flag >> 16U);
     u8ERRINT  = (uint8_t)(u32Flag >> 24U);
 
-    u8CFGSTAT = CANx->CFG_STAT & u8CFGSTAT;
-    u8RCTRL   = CANx->RCTRL & u8RCTRL;
-    u8RTIE    = CANx->RTIE & u8RTIE;
-    u8RTIF    = CANx->RTIF & u8RTIF;
-    u8ERRINT  = CANx->ERRINT & u8ERRINT;
+    u8CFGSTAT = READ_REG8_BIT(CANx->CFG_STAT, u8CFGSTAT);
+    u8RCTRL   = READ_REG8_BIT(CANx->RCTRL, u8RCTRL);
+    u8RTIE    = READ_REG8_BIT(CANx->RTIE, u8RTIE);
+    u8RTIF    = READ_REG8_BIT(CANx->RTIF, u8RTIF);
+    u8ERRINT  = READ_REG8_BIT(CANx->ERRINT, u8ERRINT);
 
     if ((u8CFGSTAT != 0U) || (u8RCTRL != 0U) || \
         (u8RTIE != 0U) || (u8RTIF != 0U) || (u8ERRINT != 0U))
@@ -1071,23 +1073,21 @@ en_flag_status_t CAN_GetStatus(const M4_CAN_TypeDef *CANx, uint32_t u32Flag)
  */
 void CAN_ClrStatus(M4_CAN_TypeDef *CANx, uint32_t u32Flag)
 {
-    uint8_t u8RCTRL;
     uint8_t u8RTIF;
     uint8_t u8ERRINT;
 
     DDL_ASSERT(IS_CAN_UNIT(CANx));
 
     u32Flag &= CAN_FLAG_CLR_MSK;
-    u8RCTRL  = (uint8_t)(u32Flag & CAN_FLAG_RB_OVF);
     u8RTIF   = (uint8_t)(u32Flag >> 16U);
     u8ERRINT = (uint8_t)(u32Flag >> 24U);
 
-    if (u8RCTRL != 0U)
+    if ((u32Flag & CAN_FLAG_RB_OVF) != 0U)
     {
-        CANx->RCTRL |= CAN_RCTRL_RREL;
+        SET_REG8_BIT(CANx->RCTRL, CAN_RCTRL_RREL);
     }
-    CANx->RTIF   |= u8RTIF;
-    CANx->ERRINT |= u8ERRINT;
+    SET_REG8_BIT(CANx->RTIF, u8RTIF);
+    SET_REG8_BIT(CANx->ERRINT, u8ERRINT);
 }
 
 /**
@@ -1131,7 +1131,8 @@ uint32_t CAN_GetStatusVal(const M4_CAN_TypeDef *CANx)
     DDL_ASSERT(IS_CAN_UNIT(CANx));
 
     u32RetVal  = CANx->CFG_STAT;
-    u32RCTRL   = CANx->RCTRL & CAN_FLAG_RB_OVF;
+    u32RCTRL   = CANx->RCTRL;
+    u32RCTRL  &= CAN_FLAG_RB_OVF;
     u32RTIE    = CANx->RTIE;
     u32RTIF    = CANx->RTIF;
     u32ERRINT  = CANx->ERRINT;
@@ -1243,7 +1244,7 @@ en_result_t CAN_FD_Config(M4_CAN_TypeDef *CANx, const stc_can_fd_cfg_t *pstcCfg)
  *         Based on 40MHz CAN clock, TQ clock is CAN clock divided by 1. \
  *         Bit rate 2Mbps, 1 bit time is 20TQs, primary sample point is 80%, \
  *         secondary sample point is 80%.
- * @param  [in]  pstcInit               Pointer to a stc_can_fd_cfg_t structure value that
+ * @param  [in]  pstcCfg                Pointer to a stc_can_fd_cfg_t structure value that
  *                                      contains the configuration information for the CAN FD.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No error occurred.
@@ -1310,7 +1311,7 @@ void CAN_FD_Cmd(const M4_CAN_TypeDef *CANx, en_functional_state_t enNewState)
 
 /**
  * @brief  Set a default value for the CAN TTC(time-triggered communication) configuration structure.
- * @param  [in]  pstcInit               Pointer to a stc_can_ttc_cfg_t structure value that
+ * @param  [in]  pstcCfg                Pointer to a stc_can_ttc_cfg_t structure value that
  *                                      contains the configuration information for the CAN TTC.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No error occurred.
@@ -1323,7 +1324,7 @@ en_result_t CAN_TTC_StructInit(stc_can_ttc_cfg_t *pstcCfg)
     if (pstcCfg != NULL)
     {
         pstcCfg->u8TransBufMode   = CAN_TTC_TB_MODE_PTR;
-        pstcCfg->u8NTUPrescaler   = CAN_TTC_NTU_PRESC_4;
+        pstcCfg->u8NTUPrescaler   = CAN_TTC_NTU_PRESC_1;
         pstcCfg->u32RefMsgIDE     = 0U;
         pstcCfg->u32RefMsgID      = 0x0U;
         pstcCfg->u16TrigType      = CAN_TTC_TRIG_SSHOT_TRANS_TRIG;
@@ -1413,7 +1414,7 @@ void CAN_TTC_Cmd(M4_CAN_TypeDef *CANx, en_functional_state_t enNewState)
  *                                      This parameter can be a value of the following:
  *   @arg  M4_CAN1:                     CAN unit 1 instance register base.
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
- * @param  [in]  u16SlotPtr             Transmit-trigger transmit buffer slot.
+ * @param  [in]  u8SlotPtr              Transmit-trigger transmit buffer slot.
  *                                      This parameter can be a value of @ref CAN_TTC_TBS_Pointer
  *   @arg  CAN_TTC_TBS_PTB:             TBS pointer points to PTB.
  *   @arg  CAN_TTC_TBS_STB1:            TBS pointer points to STB slot 1.
@@ -1439,7 +1440,7 @@ void CAN_TTC_SetTBSToBeFilled(M4_CAN_TypeDef *CANx, uint8_t u8SlotPtr)
 void CAN_TTC_SetTBSFilled(M4_CAN_TypeDef *CANx)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
-    WRITE_REG8(CANx->TBSLOT, CAN_TBSLOT_TBF);
+    SET_REG8_BIT(CANx->TBSLOT, CAN_TBSLOT_TBF);
 }
 
 /**
@@ -1514,8 +1515,7 @@ en_flag_status_t CAN_TTC_GetStatus(const M4_CAN_TypeDef *CANx, uint8_t u8Flag)
     en_flag_status_t enFlag = Reset;
 
     DDL_ASSERT(IS_CAN_UNIT(CANx));
-    u8Flag &= CAN_TTC_FLAG_ALL;
-    if ((CANx->TTCFG & u8Flag) != 0U)
+    if (READ_REG8_BIT(CANx->TTCFG, (u8Flag & (uint8_t)CAN_TTC_FLAG_ALL)) != 0U)
     {
         enFlag = Set;
     }
@@ -1559,19 +1559,18 @@ uint8_t CAN_TTC_GetStatusVal(const M4_CAN_TypeDef *CANx)
 }
 
 /**
- * @brief  Specifies reference message ID of time-triggered communication(TTC).
+ * @brief  Specifies reference message ID and IDE for time-triggered communication(TTC).
  * @param  [in]  CANx                   Pointer to CAN instance register base.
  *                                      This parameter can be a value of the following:
  *   @arg  M4_CAN1:                     CAN unit 1 instance register base.
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
  * @param  [in]  u32ID                  Reference message ID.
  * @retval None
- * @note Call this function when CFG_STAT.RESET is 1.
  */
 void CAN_TTC_SetRefMsgID(M4_CAN_TypeDef *CANx, uint32_t u32ID)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
-    u32ID &= (uint32_t)(~CAN_REF_MSG_REF_ID);
+    u32ID &= (uint32_t)(~CAN_REF_MSG_REF_IDE);
     MODIFY_REG32(CANx->REF_MSG, CAN_REF_MSG_REF_ID, u32ID);
 }
 
@@ -1643,7 +1642,7 @@ uint32_t CAN_TTC_GetRefMsgIDE(const M4_CAN_TypeDef *CANx)
  *   @arg  CAN_TTC_TBS_STB_S3:          TBS pointer points to STB slot 3.
  * @retval None
  */
-void CAN_TTC_SetTxTriggerTBS(M4_CAN_TypeDef *CANx, uint8_t u8TBSlotPtr)
+void CAN_TTC_SetTxTrigTBS(M4_CAN_TypeDef *CANx, uint8_t u8TBSlotPtr)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
     DDL_ASSERT(IS_CAN_TTC_TBS(u8TBSlotPtr));
@@ -1662,7 +1661,7 @@ void CAN_TTC_SetTxTriggerTBS(M4_CAN_TypeDef *CANx, uint8_t u8TBSlotPtr)
  *   @arg  CAN_TTC_TBS_STB2:            TBS pointer points to STB slot 2.
  *   @arg  CAN_TTC_TBS_STB3:            TBS pointer points to STB slot 3.
  */
-uint8_t CAN_TTC_GetTxTriggerTBS(const M4_CAN_TypeDef *CANx)
+uint8_t CAN_TTC_GetTxTrigTBS(const M4_CAN_TypeDef *CANx)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
     return (uint8_t)(READ_REG16_BIT(CANx->TRG_CFG, CAN_TRG_CFG_TTPTR));
@@ -1674,20 +1673,20 @@ uint8_t CAN_TTC_GetTxTriggerTBS(const M4_CAN_TypeDef *CANx)
  *                                      This parameter can be a value of the following:
  *   @arg  M4_CAN1:                     CAN unit 1 instance register base.
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
- * @param  [in]  u16TriggerType         Time-triggered communication trigger type.
+ * @param  [in]  u16TrigType            Time-triggered communication trigger type.
  *                                      This parameter can be a value of @ref CAN_TTC_Trigger_Type
- *   @arg  CAN_TTC_TRIG_IMMED:          Immediate trigger for immediate transmission.
- *   @arg  CAN_TTC_TRIG_TIME:           Time trigger for receive triggers.
- *   @arg  CAN_TTC_TRIG_SSHOT_TRANS:    Single shot transmit trigger for exclusive time windows.
- *   @arg  CAN_TTC_TRIG_TRANS_START:    Transmit start trigger for merged arbitrating time windows.
- *   @arg  CAN_TTC_TRIG_TRANS_STOP:     Transmit stop trigger for merged arbitrating time windows.
+ *   @arg  CAN_TTC_TRIG_IMMED_TRIG:          Immediate trigger for immediate transmission.
+ *   @arg  CAN_TTC_TRIG_TIME_TRIG:           Time trigger for receive triggers.
+ *   @arg  CAN_TTC_TRIG_SSHOT_TRANS_TRIG:    Single shot transmit trigger for exclusive time windows.
+ *   @arg  CAN_TTC_TRIG_TRANS_START_TRIG:    Transmit start trigger for merged arbitrating time windows.
+ *   @arg  CAN_TTC_TRIG_TRANS_STOP_TRIG:     Transmit stop trigger for merged arbitrating time windows.
  * @retval None
  */
-void CAN_TTC_SetTriggerType(M4_CAN_TypeDef *CANx, uint16_t u16TriggerType)
+void CAN_TTC_SetTrigType(M4_CAN_TypeDef *CANx, uint16_t u16TrigType)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
-    DDL_ASSERT(IS_CAN_TTC_TRIG_TYPE(u16TriggerType));
-    MODIFY_REG16(CANx->TRG_CFG, CAN_TRG_CFG_TTYPE, u16TriggerType);
+    DDL_ASSERT(IS_CAN_TTC_TRIG_TYPE(u16TrigType));
+    MODIFY_REG16(CANx->TRG_CFG, CAN_TRG_CFG_TTYPE, u16TrigType);
 }
 
 /**
@@ -1697,13 +1696,13 @@ void CAN_TTC_SetTriggerType(M4_CAN_TypeDef *CANx, uint16_t u16TriggerType)
  *   @arg  M4_CAN1:                     CAN unit 1 instance register base.
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
  * @retval An uint16_t type value of TTC trigger type.
- *   @arg  CAN_TTC_TRIG_IMMED:          Immediate trigger for immediate transmission.
- *   @arg  CAN_TTC_TRIG_TIME:           Time trigger for receive triggers.
- *   @arg  CAN_TTC_TRIG_SSHOT_TRANS:    Single shot transmit trigger for exclusive time windows.
- *   @arg  CAN_TTC_TRIG_TRANS_START:    Transmit start trigger for merged arbitrating time windows.
- *   @arg  CAN_TTC_TRIG_TRANS_STOP:     Transmit stop trigger for merged arbitrating time windows.
+ *   @arg  CAN_TTC_TRIG_IMMED_TRIG:          Immediate trigger for immediate transmission.
+ *   @arg  CAN_TTC_TRIG_TIME_TRIG:           Time trigger for receive triggers.
+ *   @arg  CAN_TTC_TRIG_SSHOT_TRANS_TRIG:    Single shot transmit trigger for exclusive time windows.
+ *   @arg  CAN_TTC_TRIG_TRANS_START_TRIG:    Transmit start trigger for merged arbitrating time windows.
+ *   @arg  CAN_TTC_TRIG_TRANS_STOP_TRIG:     Transmit stop trigger for merged arbitrating time windows.
  */
-uint16_t CAN_TTC_GetTriggerType(const M4_CAN_TypeDef *CANx)
+uint16_t CAN_TTC_GetTrigType(const M4_CAN_TypeDef *CANx)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
     return READ_REG16_BIT(CANx->TRG_CFG, CAN_TRG_CFG_TTYPE);
@@ -1723,7 +1722,7 @@ void CAN_TTC_SetTxEnableWindow(M4_CAN_TypeDef *CANx, uint16_t u16TxEnableWindow)
     DDL_ASSERT(IS_CAN_UNIT(CANx));
     DDL_ASSERT(IS_CAN_TTC_TX_EN_WINDOW(u16TxEnableWindow));
     u16TxEnableWindow -= 1U;
-    u16TxEnableWindow <<= CAN_TRG_CFG_TEW_POS;
+    u16TxEnableWindow  = (uint16_t)((uint32_t)u16TxEnableWindow << CAN_TRG_CFG_TEW_POS);
     MODIFY_REG16(CANx->TRG_CFG, CAN_TRG_CFG_TEW, u16TxEnableWindow);
 }
 
@@ -1747,13 +1746,13 @@ uint16_t CAN_TTC_GetTxEnableWindow(const M4_CAN_TypeDef *CANx)
  *                                      This parameter can be a value of the following:
  *   @arg  M4_CAN1:                     CAN unit 1 instance register base.
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
- * @param  [in]  u16TxTriggerTime       Transmission trigger time. Number of NTU.
+ * @param  [in]  u16TxTrigTime          Transmission trigger time. Number of NTU.
  * @retval None
  */
-void CAN_TTC_SetTxTriggerTime(M4_CAN_TypeDef *CANx, uint16_t u16TxTriggerTime)
+void CAN_TTC_SetTxTrigTime(M4_CAN_TypeDef *CANx, uint16_t u16TxTrigTime)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
-    WRITE_REG16(CANx->TT_TRIG, u16TxTriggerTime);
+    WRITE_REG16(CANx->TT_TRIG, u16TxTrigTime);
 }
 
 /**
@@ -1764,7 +1763,7 @@ void CAN_TTC_SetTxTriggerTime(M4_CAN_TypeDef *CANx, uint16_t u16TxTriggerTime)
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
  * @retval An uint16_t type value of cycle time.
  */
-uint16_t CAN_TTC_GetTxTriggerTime(const M4_CAN_TypeDef *CANx)
+uint16_t CAN_TTC_GetTxTrigTime(const M4_CAN_TypeDef *CANx)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
     return (CANx->TT_TRIG);
@@ -1776,13 +1775,13 @@ uint16_t CAN_TTC_GetTxTriggerTime(const M4_CAN_TypeDef *CANx)
  *                                      This parameter can be a value of the following:
  *   @arg  M4_CAN1:                     CAN unit 1 instance register base.
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
- * @param  [in]  u16WatchTriggerTime    Watch trigger time. Number of NTU.
+ * @param  [in]  u16WatchTrigTime       Watch trigger time. Number of NTU.
  * @retval None
  */
-void CAN_TTC_SetWatchTriggerTime(M4_CAN_TypeDef *CANx, uint16_t u16WatchTriggerTime)
+void CAN_TTC_SetWatchTrigTime(M4_CAN_TypeDef *CANx, uint16_t u16WatchTrigTime)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
-    WRITE_REG16(CANx->TT_WTRIG, u16WatchTriggerTime);
+    WRITE_REG16(CANx->TT_WTRIG, u16WatchTrigTime);
 }
 
 /**
@@ -1793,7 +1792,7 @@ void CAN_TTC_SetWatchTriggerTime(M4_CAN_TypeDef *CANx, uint16_t u16WatchTriggerT
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
  * @retval An uint16_t type value of cycle time.
  */
-uint16_t CAN_TTC_GetWatchTriggerTime(const M4_CAN_TypeDef *CANx)
+uint16_t CAN_TTC_GetWatchTrigTime(const M4_CAN_TypeDef *CANx)
 {
     DDL_ASSERT(IS_CAN_UNIT(CANx));
     return (CANx->TT_WTRIG);
@@ -1806,7 +1805,7 @@ uint16_t CAN_TTC_GetWatchTriggerTime(const M4_CAN_TypeDef *CANx)
  *   @arg  M4_CAN1:                     CAN unit 1 instance register base.
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
  * @param  [in]  pstcTx                 Points to a stc_can_tx_t structure type data which stores the frames to be transmitted.
- * @param  [in]  u8TBType               CAN transmit buffer type.
+ * @param  [in]  u8TxBufType            CAN transmit buffer type.
  *                                      This parameter can be a value of @ref CAN_Transmit_Buffer_Type
  *   @arg  CAN_BUF_PTB:                 Primary transmit buffer.
  *   @arg  CAN_BUF_STB:                 Secondary transmit buffer.
@@ -1819,7 +1818,7 @@ uint16_t CAN_TTC_GetWatchTriggerTime(const M4_CAN_TypeDef *CANx)
  *   @arg  Ok:                          No error occurred.
  *   @arg  ErrorInvalidParameter:       pstcTx == NULL.
  *   @arg  ErrorBufferFull:             The target transmit buffer is full.
- *   @arg  OperationInProgress:         The target transmit buffer is being transmitted.
+ *   @arg  ErrorOperationInProgress:    The target transmit buffer is being transmitted.
  *   @arg  ErrorAddressAlignment:       Data address is not 4-byte aligned.
  *   @arg  ErrorTimeout:                Transmit timeout.
  *   @arg  Error:                       CAN bus transmission error.
@@ -1852,19 +1851,19 @@ en_result_t CAN_TransData(M4_CAN_TypeDef *CANx, const stc_can_tx_t *pstcTx,
 
         u32SrcDataAddr = (uint32_t)pstcTx->pu8Data;
 
-        if (((CANx->TCTRL & CAN_TB_STAT_FULL) == CAN_TB_STAT_FULL)&& \
+        if ((READ_REG8_BIT(CANx->TCTRL, CAN_TB_STAT_FULL) == CAN_TB_STAT_FULL) && \
             (u8TxBufType == CAN_BUF_STB))
         {
             /* All STBs are full. */
             enRet = ErrorBufferFull;
         }
-        else if ((CANx->TCMD & CAN_TCMD_TPE) && \
+        else if ((READ_REG8_BIT(CANx->TCMD, CAN_TCMD_TPE) != 0U) && \
                  (u8TxBufType == CAN_BUF_PTB))
         {
             /* PTB is being transmitted. */
-            enRet = OperationInProgress;
+            enRet = ErrorOperationInProgress;
         }
-        else if ((u32SrcDataAddr % 4U) != 0U)
+        else if ((u32SrcDataAddr & 0x03UL) != 0U)
         {
             enRet = ErrorAddressAlignment;
         }
@@ -1872,7 +1871,10 @@ en_result_t CAN_TransData(M4_CAN_TypeDef *CANx, const stc_can_tx_t *pstcTx,
         {
             u8DataSize = au8DLC2Size[pstcTx->FDF][pstcTx->DLC];
             u8WordLen  = u8DataSize / 4U;
-            u8WordLen += (u8DataSize % 4U) ? 1U : 0U;
+            if ((u8DataSize % 4U) != 0U)
+            {
+                u8WordLen += 1U;
+            }
 
             /* Specifies the transmit buffer, PTB or STB. */
             u32Addr = (uint32_t)&CANx->TCMD;
@@ -1908,15 +1910,15 @@ en_result_t CAN_TransData(M4_CAN_TypeDef *CANx, const stc_can_tx_t *pstcTx,
             else
             {
                 /* Check transmission. */
-                u32TimeCnt = u32Timeout * (SystemCoreClock / 10U / 1000U);
+                u32TimeCnt = u32Timeout * (HCLK_VALUE / 10U / 1000U);
                 enRet = ErrorTimeout;
-                while (u32TimeCnt--)
+                while (u32TimeCnt-- != 0U)
                 {
                     if ((CAN_GetStatusVal(CANx) & CAN_FLAG_TX_ERR_MSK) != 0U)
                     {
                         enRet = Error;
                     }
-                    else if ((CANx->RTIF & au8Check[u8TxBufType]) != 0U)
+                    else if (READ_REG8_BIT(CANx->RTIF, au8Check[u8TxBufType]) != 0U)
                     {
                         /* Clear the transmit-OK status flag. */
                         CANx->RTIF |= au8Check[u8TxBufType];
@@ -1979,17 +1981,17 @@ en_result_t CAN_TTC_TransData(M4_CAN_TypeDef *CANx, const stc_can_tx_t *pstcTx, 
         u32SrcDataAddr = (uint32_t)pstcTx->pu8Data;
         u8Tmp = CANx->TBSLOT;
         WRITE_REG8(CANx->TBSLOT, u8TBSlot);
-        if ((CANx->TCTRL & CAN_TB_STAT_FULL) == CAN_TB_STAT_FULL)
+        if (READ_REG8_BIT(CANx->TCTRL, CAN_TB_STAT_FULL) == CAN_TB_STAT_FULL)
         {
             enRet = ErrorBufferFull;
         }
-        else if (CANx->RTIE & CAN_RTIE_TSFF)
+        else if (READ_REG8_BIT(CANx->RTIE, CAN_RTIE_TSFF) != 0U)
         {
             WRITE_REG8(CANx->TBSLOT, CAN_TBSLOT_TBF|u8Tmp);
             WRITE_REG16(CANx->TT_TRIG, CANx->TT_TRIG);
             enRet = ErrorBufferFull;
         }
-        else if ((u32SrcDataAddr % 4U) != 0U)
+        else if ((u32SrcDataAddr & 0x03UL) != 0U)
         {
             enRet = ErrorAddressAlignment;
         }
@@ -1997,7 +1999,10 @@ en_result_t CAN_TTC_TransData(M4_CAN_TypeDef *CANx, const stc_can_tx_t *pstcTx, 
         {
             u8DataSize = au8DLC2Size[pstcTx->FDF][pstcTx->DLC];
             u8WordLen  = u8DataSize / 4U;
-            u8WordLen += (u8DataSize % 4U) ? 1U : 0U;
+            if ((u8DataSize % 4U) != 0U)
+            {
+                u8WordLen += 1U;
+            }
 
             u32TBAddr = (uint32_t)&CANx->TBUF;
             MODIFY_REG16(CANx->TRG_CFG, CAN_TRG_CFG_TTPTR, u8TBSlot);
@@ -2030,14 +2035,15 @@ en_result_t CAN_TTC_TransData(M4_CAN_TypeDef *CANx, const stc_can_tx_t *pstcTx, 
  *                                      This parameter can be a value of the following:
  *   @arg  M4_CAN1:                     CAN unit 1 instance register base.
  *   @arg  M4_CAN2:                     CAN unit 2 instance register base.
- * @param [out]  pstcRx                 Points to a stc_can_rx_t structure type array which is used to \
+ * @param  [out] pstcRx                 Points to a stc_can_rx_t structure type array which is used to \
  *                                      store the received frames.
- * @param [out]  pu8RxFrameCnt          The number of frames received.
+ * @param  [out] pu8RxFrameCnt          Address to store the number of frames received.
+ *                                      If you do not need it, set it as NULL.\
+ * @param  [in] u8RxFrameBufLength      The length of the buffer which is used to store the received frames.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No error occurred.
  *   @arg  ErrorInvalidParameter:      -pstcRx == NULL.
- *                                     -pu8RxFrameCnt == NULL.
- *                                     -u8RxFrameBufLength = 0U.
+ *                                     -u8RxFrameBufLength == 0U.
  */
 en_result_t CAN_ReceiveData(M4_CAN_TypeDef *CANx, stc_can_rx_t pstcRx[], uint8_t *pu8RxFrameCnt, uint8_t u8RxFrameBufLength)
 {
@@ -2054,13 +2060,14 @@ en_result_t CAN_ReceiveData(M4_CAN_TypeDef *CANx, stc_can_rx_t pstcRx[], uint8_t
         {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 12U, 16U, 20U, 24U, 32U, 48U, 64U},
     };
 
-    if ((pstcRx == NULL) || (pu8RxFrameCnt == NULL) || (u8RxFrameBufLength == 0U))
+    if ((pstcRx == NULL) || (u8RxFrameBufLength == 0U))
     {
         enRet = ErrorInvalidParameter;
     }
     else
     {
-        while ((CANx->RCTRL & CAN_RCTRL_RSTAT) != CAN_RB_STAT_EMPTY)
+        enRet = Ok;
+        while (READ_REG8_BIT(CANx->RCTRL, CAN_RCTRL_RSTAT) != CAN_RB_STAT_EMPTY)
         {
             u32RBAddr = (uint32_t)&CANx->RBUF;
             pstcRx[u8RxFrameCnt].u32ID   = RW_MEM32(u32RBAddr);
@@ -2068,9 +2075,17 @@ en_result_t CAN_ReceiveData(M4_CAN_TypeDef *CANx, stc_can_rx_t pstcRx[], uint8_t
 
             u8DataSize = au8DLC2Size[pstcRx[u8RxFrameCnt].FDF][pstcRx[u8RxFrameCnt].DLC];
             u8WordLen  = u8DataSize / 4U;
-            u8WordLen += (u8DataSize % 4U) ? 1U : 0U;
+            if ((u8DataSize % 4U) != 0U)
+            {
+                u8WordLen += 1U;
+            }
 
             u32DestDataAddr = (uint32_t)pstcRx[u8RxFrameCnt].pu8Data;
+            if (!IS_ADDRESS_ALIGN_WORD(u32DestDataAddr))
+            {
+                enRet = ErrorAddressAlignment;
+                break;
+            }
             i = 0U;
             u32RBAddr += 8U;
             while (i < u8WordLen)
@@ -2089,8 +2104,10 @@ en_result_t CAN_ReceiveData(M4_CAN_TypeDef *CANx, stc_can_rx_t pstcRx[], uint8_t
             }
         }
 
-        *pu8RxFrameCnt = u8RxFrameCnt;
-        enRet = Ok;
+        if (pu8RxFrameCnt != NULL)
+        {
+            *pu8RxFrameCnt = u8RxFrameCnt;
+        }
     }
 
     return enRet;

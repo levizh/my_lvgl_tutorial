@@ -1,12 +1,13 @@
 /**
  *******************************************************************************
- * @file  hc32f4a0_exmc_smc.h
+ * @file  hc32f4a0_smc.h
  * @brief This file contains all the functions prototypes of the EXMC SMC
  *        (External Memory Controller: Static Memory Controller) driver library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-09       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-14       Hongjh          Merge API from EXMC_SMC_Enable/Disable to EXMC_SMC_Cmd
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -106,10 +107,10 @@ typedef struct
                                          This parameter can be a value of @ref EXMC_SMC_Memory_Width. */
 
     uint32_t    u32BAA;             /*!< Defines the SMC BAA signal enable.
-                                         This parameter can be a value of @ref EXMC_SMC_BAA_Port_Selecton. */
+                                         This parameter can be a value of @ref EXMC_SMC_BAA_Port_Selection. */
 
     uint32_t    u32ADV;             /*!< Defines the SMC ADVS signal enable.
-                                         This parameter can be a value of @ref EXMC_SMC_ADVS_Port_Selecton. */
+                                         This parameter can be a value of @ref EXMC_SMC_ADV_Port_Selection. */
 
     uint32_t    u32BLS;             /*!< Defines the SMC BLS signal selection.
                                          This parameter can be a value of @ref EXMC_SMC_BLS_Synchronization_Selection. */
@@ -237,14 +238,14 @@ typedef struct
  * @defgroup EXMC_SMC_Memory_Width EXMC SMC Memory Width
  * @{
  */
-#define EXMC_SMC_MEM_WIDTH_16                   (SMC_CPCR_MW_0)
-#define EXMC_SMC_MEM_WIDTH_32                   (SMC_CPCR_MW_1)
+#define EXMC_SMC_MEMORY_WIDTH_16BIT             (SMC_CPCR_MW_0)
+#define EXMC_SMC_MEMORY_WIDTH_32BIT             (SMC_CPCR_MW_1)
 /**
  * @}
  */
 
 /**
- * @defgroup EXMC_SMC_BAA_Port_Selecton EXMC SMC BAA Port Selecton
+ * @defgroup EXMC_SMC_BAA_Port_Selection EXMC SMC BAA Port Selection
  * @{
  */
 #define EXMC_SMC_BAA_PORT_DISABLE               (0UL)
@@ -254,7 +255,7 @@ typedef struct
  */
 
 /**
- * @defgroup EXMC_SMC_ADV_Port_Selecton EXMC SMC ADV Port Selecton
+ * @defgroup EXMC_SMC_ADV_Port_Selection EXMC SMC ADV Port Selection
  * @{
  */
 #define EXMC_SMC_ADV_PORT_DISABLE               (0UL)
@@ -308,12 +309,12 @@ typedef struct
   * @brief  SMC device memory address shifting.
   * @param  [in] mem_base_address       SMC base address
   * @param  [in] mem_width              SMC memory width
-  * @param  address                     SMC device memory address
+  * @param  [in] address                SMC device memory address
   * @retval SMC device shifted address value
   */
 #define SMC_ADDR_SHIFT(mem_base_address, mem_width, address)                  \
-(    ((EXMC_SMC_MEM_WIDTH_16 == (mem_width))? (((mem_base_address) + ((address) << 1UL))):\
-                                               (((mem_base_address) + ((address) << 2UL)))))
+(    ((EXMC_SMC_MEMORY_WIDTH_16BIT == (mem_width))? (((mem_base_address) + ((address) << 1UL))):\
+                                (((mem_base_address) + ((address) << 2UL)))))
 
 /**
  * @}
@@ -327,29 +328,9 @@ typedef struct
   Global function prototypes (definition in C source)
  ******************************************************************************/
 /**
- * @addtogroup EXMC_EXMC_Global_Functions Static Memory Controller Global Functions
+ * @addtogroup EXMC_SMC_Global_Functions
  * @{
  */
-
-/**
- * @brief  Enable SMC.
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void EXMC_SMC_Enable(void)
-{
-    WRITE_REG32(bM4_PERIC->EXMC_ENAR_b.SMCEN, 1UL);
-}
-
-/**
- * @brief  Disable SMC.
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void EXMC_SMC_Disable(void)
-{
-    WRITE_REG32(bM4_PERIC->EXMC_ENAR_b.SMCEN, 0UL);
-}
 
 /**
  * @brief  SMC entry low power state
@@ -388,6 +369,7 @@ en_result_t EXMC_SMC_Init(uint32_t u32Chip, const stc_exmc_smc_init_t *pstcInit)
 void EXMC_SMC_DeInit(void);
 en_result_t EXMC_SMC_StructInit(stc_exmc_smc_init_t *pstcInit);
 
+void EXMC_SMC_Cmd(en_functional_state_t enNewState);
 void EXMC_SMC_SetCommand(uint32_t u32Chip,
                                 uint32_t u32Cmd,
                                 uint32_t u32CrePolarity,

@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_mouse\source\usb_conf.h
+ * @file  usb/usbd_mouse/source/usb_conf.h
  * @brief USB peripheral configuration for example.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -159,20 +159,20 @@ extern "C"
 *******************************************************************************/
 
 /************** USB DEVICE ENDPOINT CONFIGURATION *****************************/
-#define HID_IN_EP                       0x81u
-#define HID_OUT_EP                      0x01u
+#define HID_IN_EP                       0x81U
+#define HID_OUT_EP                      0x01U
 
 /****************** USB OTG HS CONFIGURATION **********************************/
 #ifdef USB_OTG_HS_CORE
- #define RX_FIFO_HS_SIZE                          512u
- #define TX0_FIFO_HS_SIZE                         128u
- #define TX1_FIFO_HS_SIZE                         256u
- #define TX2_FIFO_HS_SIZE                           0u
- #define TX3_FIFO_HS_SIZE                           0u
- #define TX4_FIFO_HS_SIZE                           0u
- #define TX5_FIFO_HS_SIZE                           0u
- #define TX6_FIFO_HS_SIZE                           0u
- #define TX7_FIFO_HS_SIZE                           0u
+ #define RX_FIFO_HS_SIZE                          512U
+ #define TX0_FIFO_HS_SIZE                         128U
+ #define TX1_FIFO_HS_SIZE                         256U
+ #define TX2_FIFO_HS_SIZE                           0U
+ #define TX3_FIFO_HS_SIZE                           0U
+ #define TX4_FIFO_HS_SIZE                           0U
+ #define TX5_FIFO_HS_SIZE                           0U
+ #define TX6_FIFO_HS_SIZE                           0U
+ #define TX7_FIFO_HS_SIZE                           0U
 
 // #define USB_OTG_HS_SOF_OUTPUT_ENABLED
 
@@ -189,13 +189,13 @@ extern "C"
 
 /****************** USB OTG FS CONFIGURATION **********************************/
 #ifdef USB_OTG_FS_CORE
- #define RX_FIFO_FS_SIZE                          128u
- #define TX0_FIFO_FS_SIZE                          64u
- #define TX1_FIFO_FS_SIZE                          64u
- #define TX2_FIFO_FS_SIZE                          64u
- #define TX3_FIFO_FS_SIZE                           0u
- #define TX4_FIFO_FS_SIZE                           0u
- #define TX5_FIFO_FS_SIZE                           0u
+ #define RX_FIFO_FS_SIZE                          128U
+ #define TX0_FIFO_FS_SIZE                          64U
+ #define TX1_FIFO_FS_SIZE                          64U
+ #define TX2_FIFO_FS_SIZE                          64U
+ #define TX3_FIFO_FS_SIZE                           0U
+ #define TX4_FIFO_FS_SIZE                           0U
+ #define TX5_FIFO_FS_SIZE                           0U
 
  #ifdef USE_ULPI_PHY
   #define USB_OTG_ULPI_PHY_ENABLED

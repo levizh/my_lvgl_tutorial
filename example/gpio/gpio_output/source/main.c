@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-02       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -70,6 +70,7 @@
  ******************************************************************************/
 #define LED_PORT                (GPIO_PORT_C)
 #define LED_PIN                 (GPIO_PIN_09)
+
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
@@ -81,6 +82,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -90,6 +93,58 @@
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+//    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+//    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+//    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+//    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+//    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+//    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+//    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+//    EFM_Lock();
+}
+
+/**
  * @brief  Main function of GPIO project
  * @param  None
  * @retval int32_t return value, if needed
@@ -98,11 +153,15 @@ int32_t main(void)
 {
     stc_gpio_init_t stcGpioInit;
 
-    GPIO_StructInit(&stcGpioInit);
+    /* Register write enable for some required peripherals. */
+    Peripheral_WE();
 
-    /* RGB LED initialize */
+    /* LED initialize */
     GPIO_StructInit(&stcGpioInit);
     GPIO_Init(LED_PORT, LED_PIN, &stcGpioInit);
+
+    /* Register write protected for some required peripherals. */
+    Peripheral_WP();
 
     /* "Turn off" LED before set to output */
     GPIO_ResetPins(LED_PORT, LED_PIN);
@@ -113,9 +172,9 @@ int32_t main(void)
     {
         /* LED */
         GPIO_SetPins(LED_PORT, LED_PIN);
-        DDL_Delay1ms(2000UL);
+        DDL_DelayMS(2000UL);
         GPIO_ResetPins(LED_PORT, LED_PIN);
-        DDL_Delay1ms(2000UL);
+        DDL_DelayMS(2000UL);
         /* De-init port if necessary */
         //GPIO_DeInit();
     }

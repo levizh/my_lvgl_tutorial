@@ -2,11 +2,12 @@
  *******************************************************************************
  * @file  ev_hc32f4a0_lqfp176_is42s16400j7tli.c
  * @brief This file provides configure functions for is42s16400j7tli of the 
- *        board EV-HC32F4A0-LQF176-050.
+ *        board EV_F4A0_LQ176_V10.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-30       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-03       Hongjh          Adjust EXMC pin drive capacity to high drive
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -67,8 +68,8 @@
  */
 
 /** @defgroup EV_HC32F4A0_LQFP176_IS42S16400J7TLI HC32F4A0 EVB LQFP176 IS42S16400J7TLI
-  * @{
-  */
+ * @{
+ */
 
 #if ((BSP_ON == BSP_IS42S16400J7TLI_ENABLE) && \
      (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0))
@@ -81,7 +82,7 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup EV_HC32F4A0_LQFP176_IS42S16400J7TLI_Local_Macros IS42S16400J7TLI Local Macros
+ * @defgroup EV_HC32F4A0_LQFP176_IS42S16400J7TLI_Local_Macros HC32F4A0 EVB LQFP176 IS42S16400J7TLI Local Macros
  * @{
  */
 
@@ -89,7 +90,7 @@
  * @defgroup IS42S16400J7TLI_Map_DMC_Chip IS42S16400J7TLI Map DMC Chip
  * @{
  */
-#define IS42S16400J_MAP_DMC_CHIP                (EXMC_DMC_CHIP_1)
+#define IS42S16400J7TLI_MAP_DMC_CHIP            (EXMC_DMC_CHIP_1)
 /**
  * @}
  */
@@ -99,7 +100,7 @@
  * @note SRAM address:[0x80000000, 0x807FFFFF] / size: 8M bytes
  * @{
  */
-#define SDRAM_IS42S16400J7TLI_START_ADDR        (EXMC_DMC_ChipStartAddress(IS42S16400J_MAP_DMC_CHIP))
+#define SDRAM_IS42S16400J7TLI_START_ADDR        (EXMC_DMC_ChipStartAddress(IS42S16400J7TLI_MAP_DMC_CHIP))
 #define SDRAM_IS42S16400J7TLI_SIZE              (8UL * 1024UL * 1024UL)     /* 8MBytes*/
 #define SDRAM_IS42S16400J7TLI_END_ADDR          (SDRAM_IS42S16400J7TLI_START_ADDR + SDRAM_IS42S16400J7TLI_SIZE - 1UL)
 /**
@@ -228,7 +229,7 @@
  */
 
 /**
- * @defgroup IS42S16400J_Mode_Register_Value IS42S16400J Mode Register Value
+ * @defgroup IS42S16400J7TLI_Mode_Register_Value IS42S16400J7TLI Mode Register Value
  * @{
  */
 #define IS42S16400J7TLI_MR_VALUE                                               \
@@ -239,7 +240,7 @@
  */
 
 /**
- * @defgroup IS42S16400J_Map_DMC_Address_Space IS42S16400J Map DMC Address Space
+ * @defgroup IS42S16400J7TLI_Map_DMC_Address_Space IS42S16400J7TLI Map DMC Address Space
  * @{
  */
 #define IS42S16400J7TLI_MAP_DMC_ADDR_MATCH      (EXMC_DMC_ADDR_MATCH_0X80000000)
@@ -263,10 +264,19 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @addtogroup EV_HC32F4A0_LQFP176_IS42S16400J7TLI_Local_Functions
+ * @{
+ */
+
 static void EV_EXMC_DMC_PortInit(void);
 static void EV_EXMC_DMC_InitSequence(uint32_t u32Chip,
                                      uint32_t u32Bank,
                                      uint32_t u32MdRegVal);
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -284,7 +294,7 @@ static void EV_EXMC_DMC_InitSequence(uint32_t u32Chip,
  */
 en_result_t BSP_DMC_IS42S16400J7TLI_Init(void)
 {
-    uint32_t u32MdRegVal = 0UL;
+    uint32_t u32MdRegVal;
     stc_exmc_dmc_init_t stcDmcInit;
     stc_exmc_dmc_cs_cfg_t stcCsCfg;
 
@@ -295,7 +305,7 @@ en_result_t BSP_DMC_IS42S16400J7TLI_Init(void)
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_DMC, Enable);
 
     /* Enable DMC. */
-    EXMC_DMC_Enable();
+    EXMC_DMC_Cmd(Enable);
 
     /* Configure DMC width && refresh period & chip & timing. */
     EXMC_DMC_StructInit(&stcDmcInit);
@@ -325,7 +335,7 @@ en_result_t BSP_DMC_IS42S16400J7TLI_Init(void)
     stcCsCfg.u32AddrMask = IS42S16400J7TLI_MAP_DMC_ADDR_MASK;
     stcCsCfg.u32AddrMatch = IS42S16400J7TLI_MAP_DMC_ADDR_MATCH;
     stcCsCfg.u32AddrDecodeMode = EXMC_DMC_CS_DECODE_ROWBANKCOL;
-    EXMC_DMC_CsConfig(IS42S16400J_MAP_DMC_CHIP, &stcCsCfg);
+    EXMC_DMC_CsConfig(IS42S16400J7TLI_MAP_DMC_CHIP, &stcCsCfg);
 
     /* SDRAM initialization sequence. */
     u32MdRegVal = IS42S16400J7TLI_MR_VALUE;
@@ -356,7 +366,7 @@ en_result_t BSP_DMC_IS42S16400J7TLI_Init(void)
         u32MdRegVal |= IS42S16400J7TLI_MR_BURST_LEN_8;
     }
 
-    EV_EXMC_DMC_InitSequence(IS42S16400J_MAP_DMC_CHIP, EXMC_DMC_BANK_0, u32MdRegVal);
+    EV_EXMC_DMC_InitSequence(IS42S16400J7TLI_MAP_DMC_CHIP, EXMC_DMC_BANK_0, u32MdRegVal);
 
     /* Switch state from configure to ready */
     EXMC_DMC_SetState(EXMC_DMC_CTL_STATE_GO);
@@ -415,11 +425,9 @@ static void EV_EXMC_DMC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
-    GPIO_Unlock();
-
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDrv = PIN_DRV_MID;
+    stcGpioInit.u16PinDrv = PIN_DRV_HIGH;
 
     /* DMC_CKE */
     GPIO_Init(DMC_CKE_PORT, DMC_CKE_PIN, &stcGpioInit);
@@ -530,13 +538,23 @@ static void EV_EXMC_DMC_PortInit(void)
     GPIO_SetFunc(DMC_ADD9_PORT, DMC_ADD9_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(DMC_ADD10_PORT, DMC_ADD10_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(DMC_ADD11_PORT, DMC_ADD11_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
-
-    GPIO_Lock();
 }
 
 /**
  * @brief  SDRAM IS42S16400J7TLI initialization sequence.
- * @param  None
+ * @param  [in] u32Chip                     The command chip number.
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_DMC_CHIP_0:          Chip 0
+ *           @arg EXMC_DMC_CHIP_1:          Chip 1
+ *           @arg EXMC_DMC_CHIP_2:          Chip 2
+ *           @arg EXMC_DMC_CHIP_3:          Chip 3
+ * @param  [in] u32Bank                     The command bank.
+ *         This parameter can be one of the following values:
+ *           @arg EXMC_DMC_BANK_0:          Bank 0
+ *           @arg EXMC_DMC_BANK_1:          Bank 1
+ *           @arg EXMC_DMC_BANK_2:          Bank 2
+ *           @arg EXMC_DMC_BANK_3:          Bank 3
+ * @param  [in] u32MdRegVal                 The SDRAM mode register value
  * @retval None
  */
 static void EV_EXMC_DMC_InitSequence(uint32_t u32Chip,
@@ -566,10 +584,6 @@ static void EV_EXMC_DMC_InitSequence(uint32_t u32Chip,
 /**
  * @}
  */
-
-/**
-* @}
-*/
 
 /**
 * @}

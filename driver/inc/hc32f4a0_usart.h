@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
  * @file  hc32f4a0_usart.h
- * @brief This file contains all the functions prototypes of the USART driver
- *        library.
+ * @brief This file contains all the functions prototypes of the USART(Universal
+ *        Synchronous/Asynchronous Receiver Transmitter) driver library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-20       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -90,19 +90,19 @@ extern "C"
  */
 typedef struct
 {
-    uint32_t u32Baudrate;               /*!< UART baudrate */
+    uint32_t u32Baudrate;               /*!< UART baudrate. The baudrate is valid when clock source is PCLK. */
 
     uint32_t u32ClkMode;                /*!< Clock mode.
                                              This parameter can be a value of @ref USART_Clock_Mode */
 
-    uint32_t u32ClkPrescaler;           /*!< Clock prescaler.
-                                             This parameter can be a value of @ref USART_Clock_Prescaler_Division */
+    uint32_t u32PclkDiv;                /*!< PCLK division. The PCLK division function is valid when clock source is PCLK.
+                                             This parameter can be a value of @ref USART_PCLK_Division */
 
     uint32_t u32Parity;                 /*!< Parity format.
                                              This parameter can be a value of @ref USART_Parity_Control */
 
     uint32_t u32DataWidth;              /*!< Data width.
-                                             This parameter can be a value of @ref USART_Data_Width_Bits */
+                                             This parameter can be a value of @ref USART_Data_Length_Bits */
 
     uint32_t u32StopBit;                /*!< Stop Bits.
                                              This parameter can be a value of @ref USART_Stop_Bits */
@@ -128,16 +128,16 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t u32Baudrate;               /*!< UART baudrate */
+    uint32_t u32Baudrate;               /*!< UART baudrate. The baudrate is valid when clock source is PCLK. */
 
     uint32_t u32ClkMode;                /*!< Clock mode.
                                              This parameter can be a value of @ref USART_Clock_Mode */
 
-    uint32_t u32ClkPrescaler;           /*!< Clock prescaler.
-                                             This parameter can be a value of @ref USART_Clock_Prescaler_Division */
+    uint32_t u32PclkDiv;                /*!< PCLK division. The PCLK division function is valid when clock source is PCLK.
+                                             This parameter can be a value of @ref USART_PCLK_Division */
 
     uint32_t u32DataWidth;              /*!< Data width.
-                                             This parameter can be a value of @ref USART_Data_Width_Bits */
+                                             This parameter can be a value of @ref USART_Data_Length_Bits */
 
     uint32_t u32StopBit;                /*!< Stop Bits.
                                              This parameter can be a value of @ref USART_Stop_Bits */
@@ -163,16 +163,16 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t u32Baudrate;               /*!< UART baudrate */
+    uint32_t u32Baudrate;               /*!< UART baudrate. The baudrate is valid when clock source is PCLK. */
 
     uint32_t u32ClkMode;                /*!< Clock mode.
                                              This parameter can be a value of @ref USART_Clock_Mode */
 
-    uint32_t u32ClkPrescaler;           /*!< Clock prescaler.
-                                             This parameter can be a value of @ref USART_Clock_Prescaler_Division */
+    uint32_t u32PclkDiv;                /*!< PCLK division. The PCLK division function is valid when clock source is PCLK.
+                                             This parameter can be a value of @ref USART_PCLK_Division */
 
-    uint32_t u32BmcClkPrescaler;        /*!< Clock prescaler.
-                                             This parameter can be a value of @ref USART_LIN_Baudrate_Measure_Counter_Clock_Prescaler_Division */
+    uint32_t u32BmcPclkDiv;             /*!< BMC PCLK division. The PCLK division function is valid when clock source is PCLK.
+                                             This parameter can be a value of @ref USART_LIN_BMC_PCLK_Division */
 
     uint32_t u32OversamplingBits;       /*!< Oversampling Bits.
                                              This parameter can be a value of @ref USART_Oversampling_Bits */
@@ -197,8 +197,8 @@ typedef struct
     uint32_t u32ClkMode;                /*!< Clock mode.
                                              This parameter can be a value of @ref USART_Clock_Mode */
 
-    uint32_t u32ClkPrescaler;           /*!< Clock prescaler.
-                                             This parameter can be a value of @ref USART_Clock_Prescaler_Division */
+    uint32_t u32PclkDiv;                /*!< PCLK division. The PCLK division function is valid when clock source is PCLK.
+                                             This parameter can be a value of @ref USART_PCLK_Division */
 
     uint32_t u32StopBit;                /*!< Stop Bits.
                                              This parameter can be a value of @ref USART_Stop_Bits */
@@ -212,13 +212,13 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t u32Baudrate;               /*!< UART baudrate */
+    uint32_t u32Baudrate;               /*!< UART baudrate. The baudrate is valid when clock source is PCLK. */
 
     uint32_t u32ClkMode;                /*!< Clock mode.
                                              This parameter can be a value of @ref USART_Clock_Mode */
 
-    uint32_t u32ClkPrescaler;           /*!< Clock prescaler.
-                                             This parameter can be a value of @ref USART_Clock_Prescaler_Division */
+    uint32_t u32PclkDiv;                /*!< PCLK division. The PCLK division function is valid when clock source is PCLK.
+                                             This parameter can be a value of @ref USART_PCLK_Division */
 
     uint32_t u32BitDirection;           /*!< Significant bit.
                                              This parameter can be a value of @ref USART_Significant_Bit */
@@ -325,11 +325,11 @@ typedef struct
  */
 
 /**
- * @defgroup USART_Data_Width_Bits Data Width Bits
+ * @defgroup USART_Data_Length_Bits Data Length Bits
  * @{
  */
-#define USART_DATA_WIDTH_BITS_8             (0UL)           /*!< 8 bits word length : Start bit, 8 data bits, n stop bits */
-#define USART_DATA_WIDTH_BITS_9             (USART_CR1_M)   /*!< 9 bits word length : Start bit, 9 data bits, n stop bits */
+#define USART_DATA_LENGTH_8BIT              (0UL)               /*!< 8 bits */
+#define USART_DATA_LENGTH_9BIT              (USART_CR1_M)       /*!< 9 bits */
 /**
  * @}
  */
@@ -338,8 +338,8 @@ typedef struct
  * @defgroup USART_Oversampling_Bits USART Oversampling Bits
  * @{
  */
-#define USART_OVERSAMPLING_BITS_8           (USART_CR1_OVER8)   /*!< Oversampling by 8 bits */
-#define USART_OVERSAMPLING_BITS_16          (0UL)               /*!< Oversampling by 16 bits */
+#define USART_OVERSAMPLING_16BIT            (0UL)               /*!< Oversampling by 16 bits */
+#define USART_OVERSAMPLING_8BIT             (USART_CR1_OVER8)   /*!< Oversampling by 8 bits */
 /**
  * @}
  */
@@ -379,7 +379,7 @@ typedef struct
  * @{
  */
 #define USART_LIN_SEND_BREAK_MODE_SBK       (0UL)               /*!< Start send break after USART_CR2 SBK bit set 1 value */
-#define USART_LIN_SEND_BREAK_MODE_TDR       (USART_CR2_SBKM)    /*!< Start send break after USART_DR TDR wrtie 0x00 value */
+#define USART_LIN_SEND_BREAK_MODE_TDR       (USART_CR2_SBKM)    /*!< Start send break after USART_DR TDR write 0x00 value */
 /**
  * @}
  */
@@ -398,8 +398,8 @@ typedef struct
  * @defgroup USART_LIN_Detect_Break_Length USART LIN Detect Break Length
  * @{
  */
-#define USART_LIN_DETECT_BREAK_10B          (0UL)               /*!< Detect break 10-bit */
-#define USART_LIN_DETECT_BREAK_11B          (USART_CR2_LBDL)    /*!< Detect break 11-bit */
+#define USART_LIN_DETECT_BREAK_10BIT        (0UL)               /*!< Detect break 10-bit */
+#define USART_LIN_DETECT_BREAK_11BIT        (USART_CR2_LBDL)    /*!< Detect break 11-bit */
 /**
  * @}
  */
@@ -408,10 +408,10 @@ typedef struct
  * @defgroup USART_LIN_Send_Break_Length USART LIN Send Break Length
  * @{
  */
-#define USART_LIN_SEND_BREAK_10B            (0UL)               /*!< Send break 10-bit */
-#define USART_LIN_SEND_BREAK_11B            (USART_CR2_SBKL_0)  /*!< Send break 11-bit */
-#define USART_LIN_SEND_BREAK_13B            (USART_CR2_SBKL_1)  /*!< Send break 13-bit */
-#define USART_LIN_SEND_BREAK_14B            (USART_CR2_SBKL)    /*!< Send break 14-bit */
+#define USART_LIN_SEND_BREAK_10BIT          (0UL)               /*!< Send break 10-bit */
+#define USART_LIN_SEND_BREAK_11BIT          (USART_CR2_SBKL_0)  /*!< Send break 11-bit */
+#define USART_LIN_SEND_BREAK_13BIT          (USART_CR2_SBKL_1)  /*!< Send break 13-bit */
+#define USART_LIN_SEND_BREAK_14BIT          (USART_CR2_SBKL)    /*!< Send break 14-bit */
 /**
  * @}
  */
@@ -421,8 +421,8 @@ typedef struct
  * @{
  */
 #define USART_EXTCLK                        (USART_CR2_CLKC_1)  /*!< Select external clock source. */
-#define USART_INTCLK_OUTPUT                 (USART_CR2_CLKC_0)  /*!< Select internal clock source and output clock. */
-#define USART_INTCLK_NONE_OUTPUT            (0UL)               /*!< Select internal clock source and don't output clock */
+#define USART_INTERNCLK_OUTPUT              (USART_CR2_CLKC_0)  /*!< Select internal clock source and output clock. */
+#define USART_INTERNCLK_NONE_OUTPUT         (0UL)               /*!< Select internal clock source and don't output clock */
 /**
  * @}
  */
@@ -431,8 +431,8 @@ typedef struct
  * @defgroup USART_Stop_Bits USART Stop Bits
  * @{
  */
-#define USART_STOP_BITS_1                   (0UL)               /*!< 1 stop bit */
-#define USART_STOP_BITS_2                   (USART_CR2_STOP)    /*!< 2 stop bit */
+#define USART_STOPBIT_1BIT                  (0UL)               /*!< 1 stop bit */
+#define USART_STOPBIT_2BIT                  (USART_CR2_STOP)    /*!< 2 stop bit */
 /**
  * @}
  */
@@ -477,26 +477,25 @@ typedef struct
  */
 
 /**
- * @defgroup USART_Clock_Prescaler_Division USART Clock Prescaler Division
+ * @defgroup USART_PCLK_Division USART PCLK Clock Prescaler Division
  * @{
  */
-#define USART_CLK_PRESCALER_DIV1            (0UL)               /*!< PCLK */
-#define USART_CLK_PRESCALER_DIV4            (USART_PR_PSC_0)    /*!< PCLK/4 */
-#define USART_CLK_PRESCALER_DIV16           (USART_PR_PSC_1)    /*!< PCLK/16 */
-#define USART_CLK_PRESCALER_DIV64           (USART_PR_PSC)      /*!< PCLK/64 */
+#define USART_PCLK_DIV1                     (0UL)               /*!< PCLK */
+#define USART_PCLK_DIV4                     (USART_PR_PSC_0)    /*!< PCLK/4 */
+#define USART_PCLK_DIV16                    (USART_PR_PSC_1)    /*!< PCLK/16 */
+#define USART_PCLK_DIV64                    (USART_PR_PSC)      /*!< PCLK/64 */
 /**
  * @}
  */
 
 /**
- * @defgroup USART_LIN_Baudrate_Measure_Counter_Clock_Prescaler_Division USART 
- *           LIN Baudrate Measure Counter Clock Prescaler Division
+ * @defgroup USART_LIN_BMC_PCLK_Division USART LIN Baudrate Measure Counter PCLK Division
  * @{
  */
-#define USART_LIN_BMC_CLK_PRESCALER_DIV1    (0UL)               /*!< PCLK */
-#define USART_LIN_BMC_CLK_PRESCALER_DIV2    (USART_PR_LBMPSC_0) /*!< PCLK/2 */
-#define USART_LIN_BMC_CLK_PRESCALER_DIV4    (USART_PR_LBMPSC_1) /*!< PCLK/4 */
-#define USART_LIN_BMC_CLK_PRESCALER_DIV8    (USART_PR_LBMPSC)   /*!< PCLK/8 */
+#define USART_LIN_BMC_PCLK_DIV1             (0UL)               /*!< PCLK */
+#define USART_LIN_BMC_PCLK_DIV2             (USART_PR_LBMPSC_0) /*!< PCLK/2 */
+#define USART_LIN_BMC_PCLK_DIV4             (USART_PR_LBMPSC_1) /*!< PCLK/4 */
+#define USART_LIN_BMC_PCLK_DIV8             (USART_PR_LBMPSC)   /*!< PCLK/8 */
 /**
  * @}
  */
@@ -505,14 +504,14 @@ typedef struct
  * @defgroup USART_Stop_Mode_Noise_Filter USART Stop Mode Noise_Filter
  * @{
  */
-#define USART_STOP_MODE_FILTER_NONE         (0UL)                       /*!< Disable noise filter */
-#define USART_STOP_MODE_FILTER_WIDTH_0P5_US (PERIC_USART1_NFC_NFE)      /*!< Filter range less 0.5uS */
-#define USART_STOP_MODE_FILTER_WIDTH_1P0_US (PERIC_USART1_NFC_NFE | \
-                                             PERIC_USART1_NFC_NFS_0)    /*!< Filter range less 1.0uS */
-#define USART_STOP_MODE_FILTER_WIDTH_1P1_US (PERIC_USART1_NFC_NFE | \
-                                             PERIC_USART1_NFC_NFS_1)    /*!< Filter range less 1.1uS */
-#define USART_STOP_MODE_FILTER_WIDTH_2P0_US (PERIC_USART1_NFC_NFE | \
-                                             PERIC_USART1_NFC_NFS)      /*!< Filter range less 2.0uS */
+#define USART_STOP_MODE_FILTER_NONE             (0UL)                       /*!< Disable noise filter */
+#define USART_STOP_MODE_FILTER_WIDTH_LEVEL_1    (PERIC_USART1_NFC_NFE)      /*!< Filter width level 1 */
+#define USART_STOP_MODE_FILTER_WIDTH_LEVEL_2    (PERIC_USART1_NFC_NFE | \
+                                                 PERIC_USART1_NFC_NFS_0)    /*!< Filter width level 2 */
+#define USART_STOP_MODE_FILTER_WIDTH_LEVEL_3    (PERIC_USART1_NFC_NFE | \
+                                                 PERIC_USART1_NFC_NFS_1)    /*!< Filter width level 3 */
+#define USART_STOP_MODE_FILTER_WIDTH_LEVEL_4    (PERIC_USART1_NFC_NFE | \
+                                                 PERIC_USART1_NFC_NFS)      /*!< Filter width level 4 */
 /**
  * @}
  */
@@ -555,9 +554,9 @@ void USART_FuncCmd(M4_USART_TypeDef *USARTx,
                         en_functional_state_t enNewState);
 en_functional_state_t USART_GetFuncState(const M4_USART_TypeDef *USARTx,
                                             uint32_t u32Func);
-en_flag_status_t USART_GetFlag(const M4_USART_TypeDef *USARTx,
+en_flag_status_t USART_GetStatus(const M4_USART_TypeDef *USARTx,
                                     uint32_t u32Flag);
-void USART_ClearFlag(M4_USART_TypeDef *USARTx, uint32_t u32Flag);
+void USART_ClearStatus(M4_USART_TypeDef *USARTx, uint32_t u32Flag);
 void USART_SetTransmissionType(M4_USART_TypeDef *USARTx, uint32_t u32Type);
 uint32_t USART_GetTransmissionType(const M4_USART_TypeDef *USARTx);
 void USART_SetParity(M4_USART_TypeDef *USARTx, uint32_t u32Parity);
@@ -581,7 +580,7 @@ void USART_SendData(M4_USART_TypeDef *USARTx, uint16_t u16Data);
 void USART_SendId(M4_USART_TypeDef *USARTx, uint16_t u16ID);
 void USART_SilenceCmd(M4_USART_TypeDef *USARTx,
                             en_functional_state_t enNewState);
-void USART_LoopCmd(M4_USART_TypeDef *USARTx,
+void USART_LinLoopCmd(M4_USART_TypeDef *USARTx,
                         en_functional_state_t enNewState);
 void USART_LinRequestBreakSending(M4_USART_TypeDef *USARTx);
 en_flag_status_t USART_GetLinRequestBreakStatus(const M4_USART_TypeDef *USARTx);
@@ -594,12 +593,12 @@ uint32_t USART_GetHwFlowCtrl(const M4_USART_TypeDef *USARTx);
 void USART_SetSmartcardEtuClk(M4_USART_TypeDef *USARTx,
                                     uint32_t u32EtuClk);
 uint32_t USART_GetSmartcardEtuClk(const M4_USART_TypeDef *USARTx);
-void USART_SetClkPrescaler(M4_USART_TypeDef *USARTx,
-                                uint32_t u32PrescalerVal);
-uint32_t USART_GetClkPrescaler(const M4_USART_TypeDef *USARTx);
-void USART_SetLinCntClkPrescaler(M4_USART_TypeDef *USARTx,
-                                        uint32_t u32PrescalerVal);
-uint32_t USART_GetLinCntClkPrescaler(const M4_USART_TypeDef *USARTx);
+void USART_SetPclkDiv(M4_USART_TypeDef *USARTx,
+                                uint32_t u32PclkDiv);
+uint32_t USART_GetPclkDiv(const M4_USART_TypeDef *USARTx);
+void USART_SetLinBmcPclkDiv(M4_USART_TypeDef *USARTx,
+                                        uint32_t u32PclkDiv);
+uint32_t USART_GetLinBmcPclkDiv(const M4_USART_TypeDef *USARTx);
 void USART_SetStopModeNoiseFilter(const M4_USART_TypeDef *USARTx,
                                             uint32_t u32Filter);
 uint32_t USART_GetStopModeNoiseFilter(const M4_USART_TypeDef *USARTx);

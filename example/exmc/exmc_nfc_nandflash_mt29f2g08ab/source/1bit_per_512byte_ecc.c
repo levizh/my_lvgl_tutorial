@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-24       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -57,7 +57,12 @@
 #include "hc32_common.h"
 
 /**
- * @addtogroup EXMC_NFC_Nandflash
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB
  * @{
  */
 
@@ -68,6 +73,10 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB_Local_Macros
+ * @{
+ */
 #define BIT0(x)                 (((x) & 0x01U) >> 0U)
 #define BIT1(x)                 (((x) & 0x02U) >> 1U)
 #define BIT2(x)                 (((x) & 0x04U) >> 2U)
@@ -76,6 +85,10 @@
 #define BIT5(x)                 (((x) & 0x20U) >> 5U)
 #define BIT6(x)                 (((x) & 0x40U) >> 6U)
 #define BIT7(x)                 (((x) & 0x80U) >> 7U)
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -88,6 +101,11 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB_Local_Variable
+ * @{
+ */
+
 /*
  * Pre-calculated 256-way 1 byte column parity
  */
@@ -110,9 +128,17 @@ static const uint8_t nand_ecc_precalc_table[256] = {
     0x00, 0xD5, 0xD6, 0x03, 0xD9, 0x0C, 0x0F, 0xDA, 0xDA, 0x0F, 0x0C, 0xD9, 0x03, 0xD6, 0xD5, 0x00,
 };
 
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB_Global_Functions
+ * @{
+ */
 
 /**
  * @brief  Calculate 3-byte ECC for 512-bytes
@@ -178,6 +204,14 @@ en_result_t NFC_SwCalculateEcc1Bit(const uint8_t au8Data[],
 
     return enRet;
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /**
  * @}

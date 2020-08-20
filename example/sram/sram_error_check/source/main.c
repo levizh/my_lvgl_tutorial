@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -81,15 +81,15 @@
 #define APP_FUNC_SRAM_ECC_CHECK                 (2U)
 
 /* Select a function of SRAM checking */
-#define APP_FUNC                                (APP_FUNC_SRAM_PARITY_CHECK)
+#define APP_FUNC                                (APP_FUNC_SRAM_ECC_CHECK)
 
 /* Definitions according to the function that just specified. */
 #if (APP_FUNC == APP_FUNC_SRAM_PARITY_CHECK)
-    #define APP_SRAM_SELECT                     (SRAM123 | SRAMH)
+    #define APP_SRAM_SELECT                     (SRAM_SRAM123 | SRAM_SRAMH)
     #define APP_SRAM_CHECK_ADDR                 (0x20020000UL)
     #define APP_SRAM_NMI_SRC                    (NMI_SRC_SRAM_PARITY)
 #else
-    #define APP_SRAM_SELECT                     (SRAM4 | SRAMB)
+    #define APP_SRAM_SELECT                     (SRAM_SRAM4 | SRAM_SRAMB)
     #define APP_SRAM_CHECK_ADDR                 (0x20058000UL)
     #define APP_SRAM_ECC_MODE                   (SRAM_ECC_MODE_3)
     #define APP_SRAM_NMI_SRC                    (NMI_SRC_SRAM_ECC)
@@ -108,6 +108,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SramConfig(void);
 
 #if (APP_MAKE_ERROR_FOR_TEST > 0U)
@@ -132,15 +135,71 @@ static void SramConfig(void);
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
+    /* SRAM configuration. */
     SramConfig();
-
 #if (APP_MAKE_ERROR_FOR_TEST > 0U)
     SramMakeError();
 #endif
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
     while (1U)
     {
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    // GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    // PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    // PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    // EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    // GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    // PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    // PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    // EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -153,6 +212,7 @@ static void SramConfig(void)
     stc_nmi_init_t stcInit;
 
     SRAM_Init();
+
     SRAM_SetErrOperation(APP_SRAM_SELECT, APP_SRAM_ERR_OP);
 
 #if (APP_FUNC == APP_FUNC_SRAM_ECC_CHECK)

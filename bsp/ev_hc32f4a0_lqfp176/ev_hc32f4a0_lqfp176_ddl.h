@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -79,6 +79,12 @@ extern "C"
  * @addtogroup BSP
  * @{
  */
+
+/**
+ * @addtogroup EV_HC32F4A0_LQFP176
+ * @{
+ */
+
 
 #if (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0)
 
@@ -153,13 +159,20 @@ extern "C"
  * @}
  */
 
-/** @defgroup BSP_LCD_PortPin_Sel BSP LCD pannel port/pin definition
+/** @defgroup BSP_CAN_PortPin_Sel BSP CAN PHY STB port/pin definition
+ * @{
+ */
+#define CAN_STB_PORT            (EIO_PORT1)
+#define CAN_STB_PIN             (EIO_CAN_STB)
+/**
+ * @}
+ */
+
+/** @defgroup BSP_LCD_PortPin_Sel BSP LCD panel port/pin definition
  * @{
  */
 #define LCD_RST_PORT            (EIO_PORT1)
 #define LCD_RST_PIN             (EIO_LCD_RST)
-#define LCD_BKL_PORT            (EIO_PORT0)//todo
-#define LCD_BKL_PIN             (EIO_LCD_BK)
 #define LCD_RTCS_PORT           (EIO_PORT0)
 #define LCD_RTCS_PIN            (EIO_RTCS_CTRST)
 #define LCD_CTRST_PORT          (EIO_PORT0)
@@ -178,7 +191,7 @@ extern "C"
 #define LED_YELLOW_PORT         (EIO_PORT1)
 #define LED_YELLOW_PIN          (EIO_LED_YELLOW)
 #define LED_BLUE_PORT           (EIO_PORT1)
-#define LED_BLUE_PIN            (EIO_LED_BULE)
+#define LED_BLUE_PIN            (EIO_LED_BLUE)
 /**
  * @}
  */
@@ -188,7 +201,7 @@ extern "C"
  */
 #define LED_RED                 (EIO_LED_RED)
 #define LED_YELLOW              (EIO_LED_YELLOW)
-#define LED_BLUE                (EIO_LED_BULE)
+#define LED_BLUE                (EIO_LED_BLUE)
 /**
  * @}
  */
@@ -246,6 +259,10 @@ void BSP_CLK_Init(void);
 void BSP_CAM_Init(void);
 void BSP_CAM_RSTCmd(uint8_t Cmd);
 void BSP_CAM_STBCmd(uint8_t Cmd);
+
+void BSP_CAN_STB_IO_Init(void);
+void BSP_CAN_STBCmd(uint8_t Cmd);
+
 void BSP_LCD_IO_Init(void);
 void BSP_LCD_RSTCmd(uint8_t Cmd);
 void BSP_LCD_BKLCmd(uint8_t Cmd);
@@ -255,6 +272,10 @@ void BSP_LCD_BKLCmd(uint8_t Cmd);
  */
 
 #endif /* BSP_EV_HC32F4A0_LQFP176 */
+/**
+ * @}
+ */
+
 /**
  * @}
  */

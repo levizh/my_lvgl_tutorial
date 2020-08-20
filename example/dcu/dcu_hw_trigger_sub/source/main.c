@@ -5,7 +5,9 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-11       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-23       Hongjh          1. Modify macro from DCU_HW_TRIG_SUB to DCU_HW_SUB;
+                                    2. Modify DCU DATA read/write API.
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -86,6 +88,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -94,6 +98,59 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
 /**
  * @brief  Main function of DCU hardware trigger sub project
  * @param  None
@@ -101,11 +158,15 @@
  */
 int32_t main(void)
 {
+    uint32_t i;
     stc_dcu_init_t stcDcuInit;
     en_result_t enTestResult = Ok;
     uint32_t au32Data0Val[4];
     uint32_t au32Data2Val[4];
     uint32_t au32Data1Val[4] = {0x00000000, 0x22222222, 0x22222222, 0x22222222};
+
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
 
     /* Initialize system clock. */
     BSP_CLK_Init();
@@ -117,31 +178,33 @@ int32_t main(void)
     BSP_LED_Init();
 
     /* Enable peripheral clock */
-    PWC_Fcg0PeriphClockCmd(DCU_FUNCTION_CLK_GATE, Enable);
+    PWC_Fcg0PeriphClockCmd((DCU_FUNCTION_CLK_GATE | PWC_FCG0_AOS), Enable);
+
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
 
     /* Initialize DCU */
     DCU_StructInit(&stcDcuInit);
-    stcDcuInit.u32Mode = DCU_HW_TRIG_SUB;
-    stcDcuInit.u32DataSize = DCU_DATA_BITS_32;
+    stcDcuInit.u32Mode = DCU_HW_SUB;
+    stcDcuInit.u32DataSize = DCU_DATA_SIZE_32BIT;
     DCU_Init(DCU_UNIT, &stcDcuInit);
-    DCU_WriteReg32Data0(DCU_UNIT, 0x88888888UL);
+    DCU_WriteData32(DCU_UNIT, DCU_DATA0_IDX, 0x88888888UL);
 
     /* Set hardware trigger source */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     DCU_SetTriggerSrc(DCU_UNIT, EVT_SRC_TRIG_DCU);
 
-    for (uint32_t i = 0UL; i < ARRAY_SZ(au32Data1Val); i++)
+    for (i = 0UL; i < ARRAY_SZ(au32Data1Val); i++)
     {
-        DCU_WriteReg32Data1(DCU_UNIT, au32Data1Val[i]);
+        DCU_WriteData32(DCU_UNIT, DCU_DATA1_IDX, au32Data1Val[i]);
 
         /* Start soft trigger event */
         AOS_SW_Trigger();
 
-        au32Data0Val[i] = DCU_ReadReg32Data0(DCU_UNIT);
-        au32Data2Val[i] = DCU_ReadReg32Data2(DCU_UNIT);
+        au32Data0Val[i] = DCU_ReadData32(DCU_UNIT, DCU_DATA0_IDX);
+        au32Data2Val[i] = DCU_ReadData32(DCU_UNIT, DCU_DATA2_IDX);
 
         /* Compare DCU regisger DATA0 && DATA2 value: DATA0 value == 2 * DATA2 value */
-        if (au32Data0Val[i] != (2ul * au32Data2Val[i]))
+        if (au32Data0Val[i] != (2UL * au32Data2Val[i]))
         {
             enTestResult = Error;
             break;

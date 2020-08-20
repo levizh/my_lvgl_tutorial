@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  timera/timera_oc_position_count/source/main.c
- * @brief Main program TIMERA OC position count for the Device Driver Library.
+ * @brief Main program TimerA OC position count for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-07       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup TimerA_OC_Position_Count
+ * @addtogroup TMRA_OC_Position_Count
  * @{
  */
 
@@ -81,7 +81,7 @@
 #define APP_FUNC                            (APP_FUNC_PHASE_DIFF_COUNT_X2)
 
 /*
- * TIMERA unit and channel definitions for this example.
+ * TimerA unit and channel definitions for this example.
  * 'APP_TMRA_UNIT' can be defined as M4_TMRA_<t>(t=1 ~ 12).
  */
 #define APP_TMRA_UNIT                       (M4_TMRA_9)
@@ -127,6 +127,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void TmrAConfig(void);
 
 /*******************************************************************************
@@ -150,15 +153,18 @@ int32_t main(void)
 
     /* The default system clock is MRC(8MHz). */
 
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
-    /* Configures TIMERA. */
+    /* Configures TimerA. */
     TmrAConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
-    /* Starts TIMERA. */
+    /* Starts TimerA. */
     TMRA_Start(APP_TMRA_UNIT);
 
     /***************** Configuration end, application start **************/
@@ -172,21 +178,75 @@ int32_t main(void)
             u32TmrADir = TMRA_GetCntDir(APP_TMRA_UNIT);
             if (u32TmrADir == TMRA_DIR_DOWN)
             {
-                DBG("TIMERA counts down. Number of clocks: %d \n", (s16TmrACntCurr - s16TmrACntLast));
+                DBG("TimerA counts down. Number of clocks: %d \n", (s16TmrACntCurr - s16TmrACntLast));
             }
             else if (u32TmrADir == TMRA_DIR_UP)
             {
-                DBG("TIMERA counts up. Number of clocks: %d \n", (s16TmrACntCurr - s16TmrACntLast));
+                DBG("TimerA counts up. Number of clocks: %d \n", (s16TmrACntCurr - s16TmrACntLast));
             }
             else
-            {}
+            {
+                /* rsvd */
+            }
             s16TmrACntLast = s16TmrACntCurr;
         }
     }
 }
 
 /**
- * @brief  TIMERA configuration.
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    // PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    // PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    // EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    // PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    // PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    // EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
+}
+
+/**
+ * @brief  TimerA configuration.
  * @param  None
  * @retval None
  */
@@ -194,7 +254,7 @@ static void TmrAConfig(void)
 {
     stc_tmra_init_t stcInit;
 
-    /* 1. Enable TIMERA peripheral clock. */
+    /* 1. Enable TimerA peripheral clock. */
     PWC_Fcg2PeriphClockCmd(APP_TMRA_PERIP_CLK, Enable);
 
     /* 2. Set a default initialization value for stcInit. */

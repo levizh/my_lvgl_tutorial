@@ -1,11 +1,12 @@
 /**
  *******************************************************************************
- * @file  hc32f4a0_timera.c
- * @brief This file provides firmware functions to manage the TimerA.
+ * @file  hc32f4a0_tmra.c
+ * @brief This file provides firmware functions to manage the TMRA(TimerA).
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Wuze            First version
+   2020-06-12       Wuze            First version
+   2020-07-02       Wuze            API TMRA_SyncStartCmd() refine.
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,8 +63,8 @@
  */
 
 /**
- * @defgroup DDL_TIMERA TIMERA
- * @brief TimerA Driver Library
+ * @defgroup DDL_TMRA TMRA
+ * @brief TMRA Driver Library
  * @{
  */
 
@@ -77,40 +78,30 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup TMRA_Local_Macros TimerA Local Macros
+ * @defgroup TMRA_Local_Macros TMRA Local Macros
  * @{
  */
 
 /**
- * @defgroup TMRA_Configuration_Bit_Mask TIMERA Configuration Bit Mask
+ * @defgroup TMRA_Configuration_Bit_Mask TMRA Configuration Bit Mask
  * @{
  */
 #define TMRA_BCSTR_INIT_MSK                     (0x01F6UL)
-#define TMRA_INT_TYPE_MSK                       (0x000F3000UL)
 #define TMRA_BCSTR_INT_MSK                      (0x00003000UL)
-#define TMRA_FLAG_MSK                           (0x000FC000UL)
 #define TMRA_BCSTR_FLAG_MSK                     (0x0000C000UL)
-#define TMRA_EVENT_TYPE_MSK                     (0xFUL)
-#define TMRA_FCONR_FILTER_CFG_MSK               (0x7UL)
 #define TMRA_FCONR_FILTER_CLK_MSK               (0x3UL)
-#define TMRA_CCONR_FILTER_CFG_MSK               (TMRA_CCONR_NOFIENCP | TMRA_CCONR_NOFICKCP)
 #define TMRA_CCONR_FILTER_CLK_MSK               (TMRA_CCONR_NOFICKCP)
-#define TMRA_CAPT_COND_MSK                      (0x0370UL)
 #define TMRA_PWM_POLARITY_MSK                   (0x03FFUL)
-#define TMRA_START_COND_MSK                     (0x0007UL)
-#define TMRA_STOP_COND_MSK                      (0x0070UL)
-#define TMRA_CLR_COND_MSK                       (0xF700UL)
-#define TMRA_TRIG_COND_MSK                      (TMRA_START_COND_MSK | TMRA_STOP_COND_MSK | TMRA_CLR_COND_MSK)
+#define TMRA_TRIG_COND_MSK                      (TMRA_START_COND_ALL | TMRA_STOP_COND_ALL | TMRA_CLR_COND_ALL)
 #define TMRA_CACHE_COND_MSK                     (TMRA_BCONR_BSE0 | TMRA_BCONR_BSE1)
-#define TMRA_HW_CLK_MSK                         (0x1FFFUL)
-#define TMRA_COM_EVENT_EN_MSK                   (TMRA_COM1_TRIG_ENABLE | TMRA_COM2_TRIG_ENABLE)
-#define TMRA_TRIG_EVENT_MSK                     (AOS_TMRA_HTSSR0_TRGSEL)
+#define TMRA_COM_TRIG_MSK                       (TMRA_COM_TRIG1 | TMRA_COM_TRIG2)
+#define TMRA_TRIG_EVENT_MSK                     (AOS_TMRA_HTSSR_TRGSEL)
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_Unit_Index TIMERA Unit Index
+ * @defgroup TMRA_Unit_Index TMRA Unit Index
  * @{
  */
 #define __TMRA_BASE                             (0x4003A000UL)
@@ -121,7 +112,7 @@
  */
 
 /**
- * @defgroup TMRA_Register_Bit_Band TIMERA Register Bit Band
+ * @defgroup TMRA_Register_Bit_Band TMRA Register Bit Band
  * @{
  */
 #define __BIT_BAND_BASE                         (0x42000000UL)
@@ -146,7 +137,7 @@
  */
 
 /**
- * @defgroup TMRA_Check_Parameters_Validity TIMERA check parameters validity
+ * @defgroup TMRA_Check_Parameters_Validity TMRA check parameters validity
  * @{
  */
 #define IS_TMRA_UNIT(x)                                                        \
@@ -163,6 +154,14 @@
     ((x) == M4_TMRA_11)                     ||                                 \
     ((x) == M4_TMRA_12))
 
+#define IS_TMRA_EVEN_UNIT(x)                                                   \
+(   ((x) == M4_TMRA_2)                      ||                                 \
+    ((x) == M4_TMRA_4)                      ||                                 \
+    ((x) == M4_TMRA_6)                      ||                                 \
+    ((x) == M4_TMRA_8)                      ||                                 \
+    ((x) == M4_TMRA_10)                     ||                                 \
+    ((x) == M4_TMRA_12))
+
 #define IS_TMRA_CH(x)                                                          \
 (   ((x) <= TMRA_CH_4))
 
@@ -170,26 +169,18 @@
 (   ((x) == TMRA_FUNC_COMPARE)              ||                                 \
     ((x) == TMRA_FUNC_CAPTURE))
 
-#define IS_TMRA_1_BIT_MSK(x)                                                   \
-(   ((x) != 0U)                             &&                                 \
-    (((x) & ((x) - 1U)) == 0U))
-
-#define IS_TMRA_BIT_MSK(x, msk)                                                \
-(   ((x) != 0U)                             &&                                 \
-    (((x) | (msk)) == (msk)))
-
 #define IS_TMRA_PCLK_DIV(x)                                                    \
-(   ((x) == TMRA_PCLK_DIV_1)                ||                                 \
-    ((x) == TMRA_PCLK_DIV_2)                ||                                 \
-    ((x) == TMRA_PCLK_DIV_4)                ||                                 \
-    ((x) == TMRA_PCLK_DIV_8)                ||                                 \
-    ((x) == TMRA_PCLK_DIV_16)               ||                                 \
-    ((x) == TMRA_PCLK_DIV_32)               ||                                 \
-    ((x) == TMRA_PCLK_DIV_64)               ||                                 \
-    ((x) == TMRA_PCLK_DIV_128)              ||                                 \
-    ((x) == TMRA_PCLK_DIV_256)              ||                                 \
-    ((x) == TMRA_PCLK_DIV_512)              ||                                 \
-    ((x) == TMRA_PCLK_DIV_1024))
+(   ((x) == TMRA_PCLK_DIV1)                 ||                                 \
+    ((x) == TMRA_PCLK_DIV2)                 ||                                 \
+    ((x) == TMRA_PCLK_DIV4)                 ||                                 \
+    ((x) == TMRA_PCLK_DIV8)                 ||                                 \
+    ((x) == TMRA_PCLK_DIV16)                ||                                 \
+    ((x) == TMRA_PCLK_DIV32)                ||                                 \
+    ((x) == TMRA_PCLK_DIV64)                ||                                 \
+    ((x) == TMRA_PCLK_DIV128)               ||                                 \
+    ((x) == TMRA_PCLK_DIV256)               ||                                 \
+    ((x) == TMRA_PCLK_DIV512)               ||                                 \
+    ((x) == TMRA_PCLK_DIV1024))
 
 #define IS_TMRA_CNT_DIR(x)                                                     \
 (   ((x) == TMRA_DIR_DOWN)                  ||                                 \
@@ -200,11 +191,11 @@
     ((x) == TMRA_MODE_TRIANGLE))
 
 #define IS_TMRA_OVF_OPERATION(x)                                               \
-(   ((x) == TMRA_OVF_KEEP_CNT)              ||                                 \
-    ((x) == TMRA_OVF_STOP))
+(   ((x) == TMRA_OVF_CNT_CONTINUE)          ||                                 \
+    ((x) == TMRA_OVF_CNT_STOP))
 
 #define IS_TMRA_FILTER_CLK_DIV(x)                                              \
-(   ((x) <= TMRA_FILTER_CLK_DIV_64))
+(   ((x) <= TMRA_FILTER_CLK_DIV64))
 
 #define IS_TMRA_CACHE_COND(x)                                                  \
 (   ((x) == TMRA_CACHE_COND_OVF_CLR)        ||                                 \
@@ -213,50 +204,52 @@
 
 #define IS_TMRA_PWM_START_POLARITY(x)                                          \
 (   ((x) == TMRA_PWM_START_LOW)             ||                                 \
-    ((x) == TMRA_PWM_START_HI)              ||                                 \
+    ((x) == TMRA_PWM_START_HIGH)            ||                                 \
     ((x) == TMRA_PWM_START_KEEP))
 
 #define IS_TMRA_PWM_STOP_POLARITY(x)                                           \
 (   ((x) == TMRA_PWM_STOP_LOW)              ||                                 \
-    ((x) == TMRA_PWM_STOP_HI)               ||                                 \
+    ((x) == TMRA_PWM_STOP_HIGH)             ||                                 \
     ((x) == TMRA_PWM_STOP_KEEP))
 
-#define IS_TMRA_PWM_CM_POLARITY(x)                                             \
-(   ((x) == TMRA_PWM_CM_LOW)                ||                                 \
-    ((x) == TMRA_PWM_CM_HI)                 ||                                 \
-    ((x) == TMRA_PWM_CM_KEEP)               ||                                 \
-    ((x) == TMRA_PWM_CM_REVERSE))
+#define IS_TMRA_PWM_CMP_POLARITY(x)                                            \
+(   ((x) == TMRA_PWM_CMP_LOW)               ||                                 \
+    ((x) == TMRA_PWM_CMP_HIGH)              ||                                 \
+    ((x) == TMRA_PWM_CMP_KEEP)              ||                                 \
+    ((x) == TMRA_PWM_CMP_REVERSE))
 
-#define IS_TMRA_PWM_PM_POLARITY(x)                                             \
-(   ((x) == TMRA_PWM_PM_LOW)                ||                                 \
-    ((x) == TMRA_PWM_PM_HI)                 ||                                 \
-    ((x) == TMRA_PWM_PM_KEEP)               ||                                 \
-    ((x) == TMRA_PWM_PM_REVERSE))
+#define IS_TMRA_PWM_PERIOD_POLARITY(x)                                         \
+(   ((x) == TMRA_PWM_PERIOD_LOW)            ||                                 \
+    ((x) == TMRA_PWM_PERIOD_HIGH)           ||                                 \
+    ((x) == TMRA_PWM_PERIOD_KEEP)           ||                                 \
+    ((x) == TMRA_PWM_PERIOD_REVERSE))
 
 #define IS_TMRA_PWM_FORCE_POLARITY(x)                                          \
 (   ((x) == TMRA_PWM_FORCE_INVALID)         ||                                 \
     ((x) == TMRA_PWM_FORCE_LOW)             ||                                 \
-    ((x) == TMRA_PWM_FORCE_HI))
+    ((x) == TMRA_PWM_FORCE_HIGH))
 
-#define IS_TMRA_CAPT_COND(x)                                                   \
-(   ((x) == TMRA_CAPT_COND_INVALID)         ||                                 \
-    ((x) == TMRA_CAPT_COND_PWMR)            ||                                 \
-    ((x) == TMRA_CAPT_COND_PWMF)            ||                                 \
-    ((x) == TMRA_CAPT_COND_EVENT)           ||                                 \
-    ((x) == TMRA_CAPT_COND_TRIGR)           ||                                 \
-    ((x) == TMRA_CAPT_COND_TRIGF))
+#define IS_TMRA_EVT_USAGE(x)                                                   \
+(   ((x) == TMRA_EVENT_USAGE_CNT)           ||                                 \
+    ((x) == TMRA_EVENT_USAGE_CAPT))
+
+#define IS_TMRA_COM_TRIGGER(x)                                                 \
+(   ((x) != 0U)                             &&                                 \
+    (((x) | TMRA_COM_TRIG_MSK) == TMRA_COM_TRIG_MSK))
+
+#define IS_TMRA_VALID_VAL(x)                                                   \
+(   (x) <= 0xFFFFUL)
 
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_Miscellaneous_Macros TIMERA Miscellaneous Macros
+ * @defgroup TMRA_Miscellaneous_Macros TMRA Miscellaneous Macros
  * @{
  */
 #define TMRA_CH_COUNT                       (4U)
 #define TMRA_PIN_PWM_OFFSET                 (3U)
-#define IO_REG32(reg)                       ((__IO uint32_t *)((uint32_t)&(reg)))
 /**
  * @}
  */
@@ -281,18 +274,18 @@
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @defgroup TMRA_Global_Functions TimerA Global Functions
+ * @defgroup TMRA_Global_Functions TMRA Global Functions
  * @{
  */
 
 /**
- * @brief  Initializes the specified TIMERA peripheral according to the specified parameters \
+ * @brief  Initializes the specified TMRA peripheral according to the specified parameters \
  *         in the structure stc_tmra_init_t
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @param  [in]  pstcInit               Pointer to a stc_tmra_init_t structure value that \
- *                                      contains the configuration information for the TIMERA.
+ *                                      contains the configuration information for the TMRA.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No error occurred.
  *   @arg  ErrorInvalidParameter:       pstcInit == NULL.
@@ -308,6 +301,8 @@ en_result_t TMRA_Init(M4_TMRA_TypeDef *TMRAx, const stc_tmra_init_t *pstcInit)
         DDL_ASSERT(IS_TMRA_CNT_DIR(pstcInit->u32CntDir));
         DDL_ASSERT(IS_TMRA_CNT_MODE(pstcInit->u32CntMode));
         DDL_ASSERT(IS_TMRA_OVF_OPERATION(pstcInit->u32CntOvfOp));
+        DDL_ASSERT(IS_TMRA_VALID_VAL(pstcInit->u32PeriodVal));
+        DDL_ASSERT(IS_TMRA_VALID_VAL(pstcInit->u32CntVal));
 
         if (pstcInit->u32ClkSrc == TMRA_CLK_PCLK)
         {
@@ -333,9 +328,9 @@ en_result_t TMRA_Init(M4_TMRA_TypeDef *TMRAx, const stc_tmra_init_t *pstcInit)
 }
 
 /**
- * @brief  Set a default value for the TIMERA initialization structure.
+ * @brief  Set a default value for the TMRA initialization structure.
  * @param  [in]  pstcInit               Pointer to a stc_tmra_init_t structure value that \
- *                                      contains the configuration information for the TIMERA.
+ *                                      contains the configuration information for the TMRA.
  * @retval An en_result_t enumeration type value.
  *   @arg  Ok:                          No error occurred.
  *   @arg  ErrorInvalidParameter:       pstcInit == NULL.
@@ -347,12 +342,12 @@ en_result_t TMRA_StructInit(stc_tmra_init_t *pstcInit)
     if (pstcInit != NULL)
     {
         pstcInit->u32ClkSrc    = TMRA_CLK_PCLK;
-        pstcInit->u32PCLKDiv   = TMRA_PCLK_DIV_1;
+        pstcInit->u32PCLKDiv   = TMRA_PCLK_DIV1;
         pstcInit->u32CntDir    = TMRA_DIR_UP;
         pstcInit->u32CntMode   = TMRA_MODE_SAWTOOTH;
-        pstcInit->u32CntOvfOp  = TMRA_OVF_KEEP_CNT;
-        pstcInit->u32PeriodVal = 0xFFFFU;
-        pstcInit->u32CntVal    = 0U;
+        pstcInit->u32CntOvfOp  = TMRA_OVF_CNT_CONTINUE;
+        pstcInit->u32PeriodVal = 0xFFFFUL;
+        pstcInit->u32CntVal    = 0UL;
         enRet = Ok;
     }
 
@@ -360,10 +355,10 @@ en_result_t TMRA_StructInit(stc_tmra_init_t *pstcInit)
 }
 
 /**
- * @brief  De-initializes the TIMERA peripheral. Reset all registers of the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  De-initializes the TMRA peripheral. Reset all registers of the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @retval None
  */
 void TMRA_DeInit(M4_TMRA_TypeDef *TMRAx)
@@ -376,16 +371,16 @@ void TMRA_DeInit(M4_TMRA_TypeDef *TMRAx)
 
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
 
-    u32CMPARAddr = (uint32_t)TMRAx->CMPAR1;
-    u32CCONRAddr = (uint32_t)TMRAx->CCONR1;
-    u32PCONRAddr = (uint32_t)TMRAx->PCONR1;
+    u32CMPARAddr = TMRAx->CMPAR1;
+    u32CCONRAddr = TMRAx->CCONR1;
+    u32PCONRAddr = TMRAx->PCONR1;
 
     for (i=0U; i<TMRA_CH_COUNT; i++)
     {
         u32AddrOffset = i * 4U;
-        RW_MEM32(u32CMPARAddr + u32AddrOffset) = (uint32_t)0xFFFFU;
-        RW_MEM32(u32CCONRAddr + u32AddrOffset) = (uint32_t)0x0U;
-        RW_MEM32(u32PCONRAddr + u32AddrOffset) = (uint32_t)0x0U;
+        RW_MEM32(u32CMPARAddr + u32AddrOffset) = 0xFFFFUL;
+        RW_MEM32(u32CCONRAddr + u32AddrOffset) = 0x0UL;
+        RW_MEM32(u32PCONRAddr + u32AddrOffset) = 0x0UL;
     }
 
     WRITE_REG32(TMRAx->CNTER, 0x0U);
@@ -404,24 +399,26 @@ void TMRA_DeInit(M4_TMRA_TypeDef *TMRAx)
 
 /**
  * @brief  Set general count value.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @param  [in]  u32Val                 The general count value to be set.
+ *                                      This parameter can be a number between 0U and 0xFFFFU, inclusive.
  * @retval None
  */
 void TMRA_SetCntVal(M4_TMRA_TypeDef *TMRAx, uint32_t u32Val)
 {
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
+    DDL_ASSERT(IS_TMRA_VALID_VAL(u32Val));
     WRITE_REG32(TMRAx->CNTER, u32Val);
 }
 
 /**
  * @brief  Get general count value.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @retval An uint32_t type type value of general count value.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @retval An uint32_t type type value of general count value between 0U and 0xFFFFU, inclusive.
  */
 uint32_t TMRA_GetCntVal(const M4_TMRA_TypeDef *TMRAx)
 {
@@ -431,24 +428,26 @@ uint32_t TMRA_GetCntVal(const M4_TMRA_TypeDef *TMRAx)
 
 /**
  * @brief  Set period reference value.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @param  [in]  u32Val                 The period reference value to be set.
+ *                                      This parameter can be a number between 0U and 0xFFFFU, inclusive.
  * @retval None
  */
 void TMRA_SetPeriodVal(M4_TMRA_TypeDef *TMRAx, uint32_t u32Val)
 {
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
+    DDL_ASSERT(IS_TMRA_VALID_VAL(u32Val));
     WRITE_REG32(TMRAx->PERAR, u32Val);
 }
 
 /**
  * @brief  Get period reference value.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @retval An uint32_t type type value of period reference value.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @retval An uint32_t type type value of period reference value between 0U and 0xFFFFU, inclusive.
  */
 uint32_t TMRA_GetPeriodVal(const M4_TMRA_TypeDef *TMRAx)
 {
@@ -457,20 +456,20 @@ uint32_t TMRA_GetPeriodVal(const M4_TMRA_TypeDef *TMRAx)
 }
 
 /**
- * @brief  Specify the function mode of the specified TIMERA channle.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the function mode of the specified TMRA channle.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
- * @param  [in]  u32FuncMode            Function mode of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
+ * @param  [in]  u32FuncMode            Function mode of TMRA.
  *                                      This parameter can be a value of @ref TMRA_Function_Mode
- *   @arg  TMRA_FUNC_COMPARE:           The function mode of TIMERA is comparison ouput.
- *   @arg  TMRA_FUNC_CAPTURE:           The function mode of TIMERA is capture the input.
+ *   @arg  TMRA_FUNC_COMPARE:           The function mode of TMRA is comparison ouput.
+ *   @arg  TMRA_FUNC_CAPTURE:           The function mode of TMRA is capture the input.
  * @retval None
  */
 void TMRA_SetFuncMode(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32FuncMode)
@@ -482,21 +481,22 @@ void TMRA_SetFuncMode(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32FuncM
     DDL_ASSERT(IS_TMRA_FUNC_MODE(u32FuncMode));
 
     u32CCONRAddr = (uint32_t)&TMRAx->CCONR1 + (uint32_t)u8TmrCh * 4U;
-    BIT_BAND(RW_MEM32(u32CCONRAddr), TMRA_CCONR_CAPMD_POS) = (uint32_t)u32FuncMode;
+    BIT_BAND(u32CCONRAddr, TMRA_CCONR_CAPMD_POS) = u32FuncMode;
 }
 
 /**
  * @brief  Set compare reference value.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  u32Val                 The comparison reference value to be set.
+ *                                      This parameter can be a number between 0U and 0xFFFFU, inclusive.
  * @retval None
  */
 void TMRA_SetCmpVal(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Val)
@@ -504,23 +504,23 @@ void TMRA_SetCmpVal(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Val)
     uint32_t u32CMPARAddr;
 
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
-
+    DDL_ASSERT(IS_TMRA_VALID_VAL(u32Val));
     u32CMPARAddr = (uint32_t)&TMRAx->CMPAR1 + (uint32_t)u8TmrCh * 4U;
     RW_MEM32(u32CMPARAddr) = u32Val;
 }
 
 /**
  * @brief  Get compare reference value.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
- * @retval An uint32_t type type value of comparison reference value.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
+ * @retval An uint32_t type type value of comparison reference value between 0U and 0xFFFFU, inclusive.
  */
 uint32_t TMRA_GetCmpVal(const M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh)
 {
@@ -534,17 +534,17 @@ uint32_t TMRA_GetCmpVal(const M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh)
 }
 
 /**
- * @brief  Configures the specified channel's PWM of TIMERA according to the specified parameters
+ * @brief  Configures the specified channel's PWM of TMRA according to the specified parameters
  *         in the structure stc_tmra_pwm_cfg_t.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  pstcCfg                Pointer to a stc_tmra_pwm_cfg_t structure value that
  *                                      contains the configuration information for the PWM.
  * @retval An en_result_t enumeration type value.
@@ -563,15 +563,15 @@ en_result_t TMRA_PWM_Config(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, const stc_t
         DDL_ASSERT(IS_TMRA_CH(u8TmrCh));
         DDL_ASSERT(IS_TMRA_PWM_START_POLARITY(pstcCfg->u32StartPolarity));
         DDL_ASSERT(IS_TMRA_PWM_STOP_POLARITY(pstcCfg->u32StopPolarity));
-        DDL_ASSERT(IS_TMRA_PWM_CM_POLARITY(pstcCfg->u32CMPolarity));
-        DDL_ASSERT(IS_TMRA_PWM_PM_POLARITY(pstcCfg->u32PMPolarity));
+        DDL_ASSERT(IS_TMRA_PWM_CMP_POLARITY(pstcCfg->u32CmpPolarity));
+        DDL_ASSERT(IS_TMRA_PWM_PERIOD_POLARITY(pstcCfg->u32PeriodPolarity));
         DDL_ASSERT(IS_TMRA_PWM_FORCE_POLARITY(pstcCfg->u32ForcePolarity));
 
         u32PCONRAddr = (uint32_t)&TMRAx->PCONR1 + (uint32_t)u8TmrCh * 4U;
-        u32Cfg = pstcCfg->u32StartPolarity | \
-                 pstcCfg->u32StopPolarity  | \
-                 pstcCfg->u32CMPolarity    | \
-                 pstcCfg->u32PMPolarity    | \
+        u32Cfg = pstcCfg->u32StartPolarity  | \
+                 pstcCfg->u32StopPolarity   | \
+                 pstcCfg->u32CmpPolarity    | \
+                 pstcCfg->u32PeriodPolarity | \
                  pstcCfg->u32ForcePolarity;
         MODIFY_REG32(RW_MEM32(u32PCONRAddr), TMRA_PWM_POLARITY_MSK, u32Cfg);
 
@@ -595,11 +595,11 @@ en_result_t TMRA_PWM_StructInit(stc_tmra_pwm_cfg_t *pstcCfg)
 
     if (pstcCfg != NULL)
     {
-        pstcCfg->u32StartPolarity = TMRA_PWM_START_HI;
-        pstcCfg->u32StopPolarity  = TMRA_PWM_STOP_LOW;
-        pstcCfg->u32CMPolarity    = TMRA_PWM_CM_REVERSE;
-        pstcCfg->u32PMPolarity    = TMRA_PWM_PM_REVERSE;
-        pstcCfg->u32ForcePolarity = TMRA_PWM_FORCE_INVALID;
+        pstcCfg->u32StartPolarity  = TMRA_PWM_START_HIGH;
+        pstcCfg->u32StopPolarity   = TMRA_PWM_STOP_LOW;
+        pstcCfg->u32CmpPolarity    = TMRA_PWM_CMP_REVERSE;
+        pstcCfg->u32PeriodPolarity = TMRA_PWM_PERIOD_REVERSE;
+        pstcCfg->u32ForcePolarity  = TMRA_PWM_FORCE_INVALID;
         enRet = Ok;
     }
 
@@ -608,15 +608,15 @@ en_result_t TMRA_PWM_StructInit(stc_tmra_pwm_cfg_t *pstcCfg)
 
 /**
  * @brief  Enable or disable the specified channel's PWM output.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  enNewState             An en_functional_state_t enumeration type value.
  *   @arg  Enable:                      Enable the specified channel's PWM output.
  *   @arg  Disable:                     Disable the specified channel's PWM output.
@@ -631,29 +631,29 @@ void TMRA_PWM_Cmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, en_functional_state_t
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     u32PCONRAddr = (uint32_t)&TMRAx->PCONR1 + (uint32_t)u8TmrCh * 4U;
-    BIT_BAND(RW_MEM32(u32PCONRAddr), TMRA_PCONR_OUTEN_POS) = (uint32_t)enNewState;
+    BIT_BAND(u32PCONRAddr, TMRA_PCONR_OUTEN_POS) = (uint32_t)enNewState;
 }
 
 /**
- * @brief  Specify the devision of filter's clock source for the specified TIMERA input pin.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the divider of filter's clock source for the specified TMRA input pin.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u32InputPin            The input pin of TIMERA.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8InputPin             The input pin of TMRA.
  *                                      This parameter can be values of @ref TMRA_Input_Pin
  *   @arg  TMRA_PIN_TRIG:               Pin TIMA_<t>_TRIG.
- *   @arg  TMRA_PIN_CLKA:               Pin TIMA_<t>_PWM1/TIMA_<t>_CLKA.
- *   @arg  TMRA_PIN_CLKB:               Pin TIMA_<t>_PWM2/TIMA_<t>_CLKB.
+ *   @arg  TMRA_PIN_CLKA:               Pin TIMA_<t>_CLKA.
+ *   @arg  TMRA_PIN_CLKB:               Pin TIMA_<t>_CLKB.
  *   @arg  TMRA_PIN_PWM1:               Pin TIMA_<t>_PWM1.
  *   @arg  TMRA_PIN_PWM2:               Pin TIMA_<t>_PWM2.
  *   @arg  TMRA_PIN_PWM3:               Pin TIMA_<t>_PWM3.
  *   @arg  TMRA_PIN_PWM4:               Pin TIMA_<t>_PWM4.
- * @param  [in]  u32ClkDiv              The clock source division of the filter. Set it to zero while enNewState == Disable.
+ * @param  [in]  u32ClkDiv              The clock source divider of the filter.
  *                                      This parameter can be a value of @ref TMRA_Filter_Clock_Divider
- *   @arg  TMRA_FILTER_CLK_DIV_1:       The filter clock is PCLK / 1.
- *   @arg  TMRA_FILTER_CLK_DIV_4:       The filter clock is PCLK / 4.
- *   @arg  TMRA_FILTER_CLK_DIV_16:      The filter clock is PCLK / 16.
- *   @arg  TMRA_FILTER_CLK_DIV_64:      The filter clock is PCLK / 64.
+ *   @arg  TMRA_FILTER_CLK_DIV1:        The filter clock is PCLK / 1.
+ *   @arg  TMRA_FILTER_CLK_DIV4:        The filter clock is PCLK / 4.
+ *   @arg  TMRA_FILTER_CLK_DIV16:       The filter clock is PCLK / 16.
+ *   @arg  TMRA_FILTER_CLK_DIV64:       The filter clock is PCLK / 64.
  * @retval None
  */
 void TMRA_FilterConfig(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, uint32_t u32ClkDiv)
@@ -674,17 +674,18 @@ void TMRA_FilterConfig(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, uint32_t u32C
     {
         if ((u8InputPin & 0x1U) != 0U)
         {
-            u32ClkDiv <<= au8Offset[u8PinIdx];
             if (u8PinIdx < TMRA_PIN_PWM_OFFSET)
             {
                 u32CfgMsk = (uint32_t)(TMRA_FCONR_FILTER_CLK_MSK << au8Offset[u8PinIdx]);
-                MODIFY_REG32(TMRAx->FCONR, u32CfgMsk, u32ClkDiv);
+                MODIFY_REG32(TMRAx->FCONR, u32CfgMsk, (u32ClkDiv << au8Offset[u8PinIdx]));
             }
             else
             {
                 u8TmrCh = u8PinIdx - TMRA_PIN_PWM_OFFSET;
                 u32CCONRAddr = (uint32_t)&TMRAx->CCONR1 + (uint32_t)u8TmrCh * 4U;
-                MODIFY_REG32(RW_MEM32(u32CCONRAddr), TMRA_CCONR_FILTER_CLK_MSK, u32ClkDiv);
+                MODIFY_REG32(RW_MEM32(u32CCONRAddr),    \
+                             TMRA_CCONR_FILTER_CLK_MSK, \
+                             (u32ClkDiv << au8Offset[u8PinIdx]));
             }
         }
         u8InputPin >>= 1U;
@@ -693,25 +694,19 @@ void TMRA_FilterConfig(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, uint32_t u32C
 }
 
 /**
- * @brief  Enable or disable the filter function of the specified TIMERA input pin.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Enable or disable the filter function of the specified TMRA input pin.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u32InputPin            The input pin of TIMERA.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8InputPin             The input pin of TMRA.
  *                                      This parameter can be values of @ref TMRA_Input_Pin
  *   @arg  TMRA_PIN_TRIG:               Pin TIMA_<t>_TRIG.
- *   @arg  TMRA_PIN_CLKA:               Pin TIMA_<t>_PWM1/TIMA_<t>_CLKA.
- *   @arg  TMRA_PIN_CLKB:               Pin TIMA_<t>_PWM2/TIMA_<t>_CLKB.
+ *   @arg  TMRA_PIN_CLKA:               Pin TIMA_<t>_CLKA.
+ *   @arg  TMRA_PIN_CLKB:               Pin TIMA_<t>_CLKB.
  *   @arg  TMRA_PIN_PWM1:               Pin TIMA_<t>_PWM1.
  *   @arg  TMRA_PIN_PWM2:               Pin TIMA_<t>_PWM2.
  *   @arg  TMRA_PIN_PWM3:               Pin TIMA_<t>_PWM3.
  *   @arg  TMRA_PIN_PWM4:               Pin TIMA_<t>_PWM4.
- * @param  [in]  u32ClkDiv              The clock source division of the filter. Set it to zero while enNewState == Disable.
- *                                      This parameter can be a value of @ref TMRA_Filter_Clock_Divider
- *   @arg  TMRA_FILTER_CLK_DIV_1:       The filter clock is PCLK / 1.
- *   @arg  TMRA_FILTER_CLK_DIV_4:       The filter clock is PCLK / 4.
- *   @arg  TMRA_FILTER_CLK_DIV_16:      The filter clock is PCLK / 16.
- *   @arg  TMRA_FILTER_CLK_DIV_64:      The filter clock is PCLK / 64.
  * @param  [in]  enNewState             An en_functional_state_t enumeration type value.
  *   @arg  Enable:                      Enable the specified pin's filter.
  *   @arg  Disable:                     Disable the specified pin's filter.
@@ -743,7 +738,7 @@ void TMRA_FilterCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, en_functional_st
                 u8TmrCh = u8PinIdx - TMRA_PIN_PWM_OFFSET;
                 u32CCONRAddr = (uint32_t)&TMRAx->CCONR1 + (uint32_t)u8TmrCh * 4U;
             }
-            BIT_BAND(RW_MEM32(u32CCONRAddr), au8Offset[u8PinIdx]) = enNewState;
+            BIT_BAND(u32CCONRAddr, au8Offset[u8PinIdx]) = (uint32_t)enNewState;
         }
         u8InputPin >>= 1U;
         u8PinIdx++;
@@ -751,16 +746,16 @@ void TMRA_FilterCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, en_functional_st
 }
 
 /**
- * @brief  Specify the capture condition for the specified channel.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the capture condition for the specified channel.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  u32Cond                The capture condition. Set this parameter to 0xFFFF to select all the conditions of capturing start.
  *                                      This parameter can be values of @ref TMRA_Channel_Capture_Condition
  *   @arg  TMRA_CAPT_COND_INVALID:      The condition of capture is INVALID.
@@ -778,17 +773,16 @@ void TMRA_SetCaptCond(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Cond)
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
     DDL_ASSERT(IS_TMRA_CH(u8TmrCh));
 
-    u32Cond &= TMRA_CAPT_COND_MSK;
     u32CCONRAddr = (uint32_t)&TMRAx->CCONR1 + (uint32_t)u8TmrCh * 4U;
-    MODIFY_REG32(RW_MEM32(u32CCONRAddr), TMRA_CAPT_COND_MSK, u32Cond);
+    MODIFY_REG32(RW_MEM32(u32CCONRAddr), TMRA_CAPT_COND_ALL, u32Cond);
 }
 
 /**
- * @brief  Specify the hardware trigger condition of TIMERA according to the specified parameters
+ * @brief  Specifies the hardware trigger condition of TMRA according to the specified parameters
  *         in the structure stc_tmra_trig_cond_t.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @param  [in]  pstcCond               Pointer to a stc_tmra_trig_cond_t structure value that contains \
  *                                      the configuration information of hardware trigger condition.
  * @retval An en_result_t enumeration type value.
@@ -836,82 +830,33 @@ en_result_t TMRA_TrigCondStructInit(stc_tmra_trig_cond_t *pstcCond)
 }
 
 /**
- * @brief  Specify the event that is used to trigger counting.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the event for specified usage.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  enEvent                An en_event_src_t enumeration type value.
- * @retval None
- * @note Correspondence of TIMERA instances and the event setting registers is as follows:
- *      -TIMERA uint1  ---- TMRA_HTSSR0
- *      -TIMERA uint2  ---- TMRA_HTSSR1
- *      -TIMERA uint3  ---- TMRA_HTSSR2
- *      -TIMERA uint4  ---- TMRA_HTSSR3
- *      -TIMERA uint5  ---- TMRA_HTSSR0
- *      -TIMERA uint6  ---- TMRA_HTSSR1
- *      -TIMERA uint7  ---- TMRA_HTSSR2
- *      -TIMERA uint8  ---- TMRA_HTSSR3
- *      -TIMERA uint9  ---- TMRA_HTSSR0
- *      -TIMERA uint10 ---- TMRA_HTSSR1
- *      -TIMERA uint11 ---- TMRA_HTSSR2
- *      -TIMERA uint12 ---- TMRA_HTSSR3
- */
-void TMRA_SetCntEvent(M4_TMRA_TypeDef *TMRAx, en_event_src_t enEvent)
-{
-    uint32_t u32Idx;
-    uint32_t u32HTSSRAddr;
-
-    u32Idx = TMRA_IDX(TMRAx) % TMRA_CH_COUNT;
-    u32HTSSRAddr = (uint32_t)&M4_AOS->TMRA_HTSSR0 + u32Idx * 4U;
-    MODIFY_REG32(RW_MEM32(u32HTSSRAddr), TMRA_TRIG_EVENT_MSK, enEvent);
-}
-
-/**
- * @brief  Specify the event that is used to trigger capturing.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
- *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  enEvent                An en_event_src_t enumeration type value.
- * @retval None
- * @note Correspondence of TIMERA instances and the event setting registers is as follows:
- *      -TIMERA uint1  ---- TMRA_HTSSR1
- *      -TIMERA uint2  ---- TMRA_HTSSR0
- *      -TIMERA uint3  ---- TMRA_HTSSR3
- *      -TIMERA uint4  ---- TMRA_HTSSR2
- *      -TIMERA uint5  ---- TMRA_HTSSR1
- *      -TIMERA uint6  ---- TMRA_HTSSR0
- *      -TIMERA uint7  ---- TMRA_HTSSR3
- *      -TIMERA uint8  ---- TMRA_HTSSR2
- *      -TIMERA uint9  ---- TMRA_HTSSR1
- *      -TIMERA uint10 ---- TMRA_HTSSR0
- *      -TIMERA uint11 ---- TMRA_HTSSR3
- *      -TIMERA uint12 ---- TMRA_HTSSR2
- */
-void TMRA_SetCaptEvent(M4_TMRA_TypeDef *TMRAx, en_event_src_t enEvent)
-{
-    uint32_t u32Idx;
-    uint32_t au32HTSSRAddr[] = {TMRA_HTSSR1_ADDR, TMRA_HTSSR0_ADDR, \
-                                TMRA_HTSSR3_ADDR, TMRA_HTSSR2_ADDR};
-
-    DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
-
-    u32Idx = TMRA_IDX(TMRAx) % TMRA_CH_COUNT;
-    MODIFY_REG32(RW_MEM32(au32HTSSRAddr[u32Idx]), TMRA_TRIG_EVENT_MSK, enEvent);
-}
-
-/**
- * @brief  Specify the event for specified usage.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
- *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @param  [in]  u8EvtUsage             Usage of the event.
  *                                      This parameter can be a value of @ref TMRA_Event_Usage
  *   @arg  TMRA_EVENT_USAGE_CNT:        The specified event is used for counting.
  *   @arg  TMRA_EVENT_USAGE_CAPT:       The specified event is used for capturing.
  * @param  [in]  enEvent                An en_event_src_t enumeration type value.
  * @retval None
+ * @note   Correspondence of TMRA instances and the event setting registers is as follows:
+ *      TMRA unit         USAGE_CNT        USAGE_CAPT
+ * ----------------------------------------------------------
+ *      TMRA uint1   |   TMRA_HTSSR0   |   TMRA_HTSSR1
+ *      TMRA uint2   |   TMRA_HTSSR1   |   TMRA_HTSSR0
+ *      TMRA uint3   |   TMRA_HTSSR2   |   TMRA_HTSSR3
+ *      TMRA uint4   |   TMRA_HTSSR3   |   TMRA_HTSSR2
+ *      TMRA uint5   |   TMRA_HTSSR0   |   TMRA_HTSSR1
+ *      TMRA uint6   |   TMRA_HTSSR1   |   TMRA_HTSSR0
+ *      TMRA uint7   |   TMRA_HTSSR2   |   TMRA_HTSSR3
+ *      TMRA uint8   |   TMRA_HTSSR3   |   TMRA_HTSSR2
+ *      TMRA uint9   |   TMRA_HTSSR0   |   TMRA_HTSSR1
+ *      TMRA uint10  |   TMRA_HTSSR1   |   TMRA_HTSSR0
+ *      TMRA uint11  |   TMRA_HTSSR2   |   TMRA_HTSSR3
+ *      TMRA uint12  |   TMRA_HTSSR3   |   TMRA_HTSSR2
  */
-void TMRA_SetTrigEvent(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, en_event_src_t enEvent)
+void TMRA_SetTriggerSrc(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, en_event_src_t enEvent)
 {
     uint32_t u32Idx;
     uint32_t u32HTSSRAddr;
@@ -919,7 +864,7 @@ void TMRA_SetTrigEvent(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, en_event_src_
                                     TMRA_HTSSR3_ADDR, TMRA_HTSSR2_ADDR};
 
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
-    DDL_ASSERT((u8EvtUsage == TMRA_EVENT_USAGE_CNT) || (u8EvtUsage == TMRA_EVENT_USAGE_CAPT));
+    DDL_ASSERT(IS_TMRA_EVT_USAGE(u8EvtUsage));
 
     u32Idx = TMRA_IDX(TMRAx) % TMRA_CH_COUNT;
     if (u8EvtUsage == TMRA_EVENT_USAGE_CNT)
@@ -936,22 +881,24 @@ void TMRA_SetTrigEvent(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, en_event_src_
 
 /**
  * @brief  Enable or disable common trigger event for the specified usage.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @param  [in]  u8EvtUsage             Usage of the event.
  *                                      This parameter can be a value of @ref TMRA_Event_Usage
  *   @arg  TMRA_EVENT_USAGE_CNT:        The specified event is used for counting.
  *   @arg  TMRA_EVENT_USAGE_CAPT:       The specified event is used for capturing.
- * @param  [in]  u32ComTrigEn           Common trigger event enable bit mask.
- *                                      This parameter can be values of @ref TMRA_Common_Trigger_Event_Command
- *   @arg  ADC_COM1_TRIG_DISABLE:       Enable common trigger event 1 for the specified usage.
- *   @arg  ADC_COM2_TRIG_DISABLE:       Enable common trigger event 2 for the specified usage.
- *   @arg  ADC_COM1_TRIG_ENABLE:        Disable common trigger event 1 for the specified usage.
- *   @arg  ADC_COM2_TRIG_ENABLE:        Disable common trigger event 2 for the specified usage.
+ * @param  [in]  u32ComTrig             Common trigger event enable bit mask.
+ *                                      This parameter can be values of @ref TMRA_Common_Trigger_Sel
+ *   @arg  TMRA_COM_TRIG1:              Common trigger 1.
+ *   @arg  TMRA_COM_TRIG2:              Common trigger 2.
+ * @param  [in]  enNewState             An en_functional_state_t enumeration type value.
+ *   @arg Enable:                       Enable the specified common trigger.
+ *   @arg Disable:                      Disable the specified common trigger.
  * @retval None
  */
-void TMRA_ComTrigCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, uint32_t u32ComTrigEn)
+void TMRA_ComTriggerCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, \
+                        uint32_t u32ComTrig, en_functional_state_t enNewState)
 {
     uint32_t u32Idx;
     uint32_t u32HTSSRAddr;
@@ -959,7 +906,9 @@ void TMRA_ComTrigCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, uint32_t u32Com
                                     TMRA_HTSSR3_ADDR, TMRA_HTSSR2_ADDR};
 
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
-    DDL_ASSERT((u8EvtUsage == TMRA_EVENT_USAGE_CNT) || (u8EvtUsage == TMRA_EVENT_USAGE_CAPT));
+    DDL_ASSERT(IS_TMRA_EVT_USAGE(u8EvtUsage));
+    DDL_ASSERT(IS_TMRA_COM_TRIGGER(u32ComTrig));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     u32Idx = TMRA_IDX(TMRAx) % TMRA_CH_COUNT;
     if (u8EvtUsage == TMRA_EVENT_USAGE_CNT)
@@ -971,20 +920,26 @@ void TMRA_ComTrigCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, uint32_t u32Com
         u32HTSSRAddr = au32CaptEventAddr[u32Idx];
     }
 
-    u32ComTrigEn &= TMRA_COM_EVENT_EN_MSK;
-    MODIFY_REG32(RW_MEM32(u32HTSSRAddr), TMRA_COM_EVENT_EN_MSK, u32ComTrigEn);
+    if (enNewState == Enable)
+    {
+        SET_REG32_BIT(RW_MEM32(u32HTSSRAddr), u32ComTrig);
+    }
+    else
+    {
+        CLEAR_REG32_BIT(RW_MEM32(u32HTSSRAddr), u32ComTrig);
+    }
 }
 
 /**
- * @brief  Configures cache function. Specify the cache condition of compare value.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Configures cache function. Specifies the cache condition of compare value.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be one of the following values of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- * @param  [in]  u32CacheCond           Cache condition of the specified TIMERA unit.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ * @param  [in]  u32CacheCond           Cache condition of the specified TMRA unit.
  *                                      This parameter can be a value of @ref TMRA_Cmp_Value_Cache_Condition
  *   @arg  TIEMRA_CACHE_POS_OVF_CLR:    This configuration value applies to non-triangular wave counting mode. \
  *                                      When counting overflow or underflow or counting register was cleared, \
@@ -1009,13 +964,13 @@ void TMRA_CmpValCacheConfig(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u3
 
 /**
  * @brief  Enable or disable the compare value function..
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be one of the following values of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
  * @param  [in]  enNewState             An en_functional_state_t enumeration type value.
  *   @arg  Enable:                      Enable the comparison reference value function.
  *   @arg  Disable:                     Disable the comparison reference value function.
@@ -1030,17 +985,17 @@ void TMRA_CmpValCacheCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, en_functional_
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     u32BCONRAddr = (uint32_t)&TMRAx->BCONR1 + (uint32_t)u8TmrCh * 4U;
-    BIT_BAND(RW_MEM32(u32BCONRAddr), TMRA_BCONR_BEN_POS) = (uint32_t)enNewState;
+    BIT_BAND(u32BCONRAddr, TMRA_BCONR_BEN_POS) = (uint32_t)enNewState;
 }
 
 /**
- * @brief  Specify the operation when counting overflow/underflow.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the operation when counting overflow/underflow.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @param  [in]  u32OvfOp               The operation when count overflow/underflow.
- *   @arg  TMRA_OVF_KEEP_CNT:           When count overflow(or underflow), counting keep going.
- *   @arg  TMRA_OVF_STOP:               When count overflow(or underflow), counting stop.
+ *   @arg  TMRA_OVF_CNT_CONTINUE:       When counting overflow(or underflow), counting continue.
+ *   @arg  TMRA_OVF_CNT_STOP:           When count overflow(or underflow), counting stop.
  * @retval None
  */
 void TMRA_SetOvfOperation(M4_TMRA_TypeDef *TMRAx, uint32_t u32OvfOp)
@@ -1051,20 +1006,28 @@ void TMRA_SetOvfOperation(M4_TMRA_TypeDef *TMRAx, uint32_t u32OvfOp)
 }
 
 /**
- * @brief  Enable or disable synchronous start.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Enable or disable synchronous-start. When an even unit enables synchronous-start function, \
+ *         start the symmetric odd unit can start the even unit at the same time.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_2:                   TMRA unit 2 instance register base.
+ *   @arg  M4_TMRA_4:                   TMRA unit 4 instance register base.
+ *   @arg  M4_TMRA_6:                   TMRA unit 6 instance register base.
+ *   @arg  M4_TMRA_8:                   TMRA unit 8 instance register base.
+ *   @arg  M4_TMRA_10:                  TMRA unit 10 instance register base.
+ *   @arg  M4_TMRA_12:                  TMRA unit 12 instance register base.
  * @param  [in]  enNewState             An en_functional_state_t enumeration type value.
  *   @arg  Enable:                      Enable the synchronous start.
  *   @arg  Disable:                     Disable the synchronous start.
  * @retval None
+ * @note   Only even units can be enabled/disabled synchronous-start function.
+ * @note   Symmetric units: uint 1 and 2; uint 3 and 4; ...; uint 11 and 12.
  */
 void TMRA_SyncStartCmd(M4_TMRA_TypeDef *TMRAx, en_functional_state_t enNewState)
 {
     uint32_t u32Addr;
 
-    DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
+    DDL_ASSERT(IS_TMRA_EVEN_UNIT(TMRAx));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     u32Addr = (uint32_t)&TMRAx->BCSTR;
@@ -1072,11 +1035,11 @@ void TMRA_SyncStartCmd(M4_TMRA_TypeDef *TMRAx, en_functional_state_t enNewState)
 }
 
 /**
- * @brief  Enable of disable the specified interrupts of the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Enable of disable the specified interrupts of the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u32IntType             The interrupt type of TIMERA. Set this parameter to 0xFFFFFFFF to select all interrupts.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u32IntType             The interrupt type of TMRA. Set this parameter to 0xFFFFFFFF to select all interrupts.
  *                                      This parameter can be values of @ref TMRA_Interrupt_Type
  *   @arg  TMRA_INT_OVF:                Count overflow interrupt.
  *   @arg  TMRA_INT_UNF:                Count underflow interrupt.
@@ -1097,7 +1060,7 @@ void TMRA_IntCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32IntType, en_functional_stat
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    u32IntType &= TMRA_INT_TYPE_MSK;
+    u32IntType &= TMRA_INT_ALL;
     u32BCSTR    = u32IntType & TMRA_BCSTR_INT_MSK;
     u32ICONR    = u32IntType >> 16U;
     if (enNewState == Enable)
@@ -1113,11 +1076,11 @@ void TMRA_IntCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32IntType, en_functional_stat
 }
 
 /**
- * @brief  Enable of disable the specified event of the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Enable of disable the specified event of the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u32EvtType             The event type of TIMERA. Set this parameter to 0xFFFF to select all events.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u32EvtType             The event type of TMRA. Set this parameter to 0xFFFF to select all events.
  *                                      This parameter can be values of @ref TMRA_Event_Type
  *   @arg  TMRA_EVENT_CMP_CH1:          Compare-match event of channel 1.
  *   @arg  TMRA_EVENT_CMP_CH2:          Compare-match event of channel 2.
@@ -1133,7 +1096,7 @@ void TMRA_EventCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32EvtType, en_functional_st
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    u32EvtType &= TMRA_EVENT_TYPE_MSK;
+    u32EvtType &= TMRA_EVENT_ALL;
     if (enNewState == Enable)
     {
         SET_REG32_BIT(TMRAx->ECONR, u32EvtType);
@@ -1146,10 +1109,10 @@ void TMRA_EventCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32EvtType, en_functional_st
 
 /**
  * @brief  Get the specified flag's status.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u32Flag                The status flags of TIMERA.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u32Flag                The status flags of TMRA.
  *                                      This parameter can be values of @ref TMRA_Status_Flag
  *   @arg  TMRA_FLAG_OVF:               Count overflow flag.
  *   @arg  TMRA_FLAG_UNF:               Count underflow flag.
@@ -1159,7 +1122,7 @@ void TMRA_EventCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32EvtType, en_functional_st
  *   @arg  TMRA_FLAG_CMP_CH4:           Compare-match flag of channel 4.
  * @retval An en_flag_status_t enumeration type value.
  *   @arg Set:                          At least one of the specified flags is set.
- *   @arg Reset:                        None of the specifies flag is set.
+ *   @arg Reset:                        None of the specified flags is set.
  */
 en_flag_status_t TMRA_GetStatus(const M4_TMRA_TypeDef *TMRAx, uint32_t u32Flag)
 {
@@ -1168,12 +1131,10 @@ en_flag_status_t TMRA_GetStatus(const M4_TMRA_TypeDef *TMRAx, uint32_t u32Flag)
     en_flag_status_t enFlag = Reset;
 
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
-    DDL_ASSERT(IS_TMRA_BIT_MSK(u32Flag, TMRA_FLAG_MSK));
-    DDL_ASSERT(IS_TMRA_1_BIT_MSK(u32Flag));
 
-    u32Flag &= TMRA_FLAG_MSK;
-    u32BCSTR = TMRAx->BCSTR & (u32Flag & TMRA_BCSTR_FLAG_MSK);
-    u32STFLR = TMRAx->STFLR & (u32Flag >> 16U);
+    u32Flag &= TMRA_FLAG_ALL;
+    u32BCSTR = READ_REG32_BIT(TMRAx->BCSTR, (u32Flag & TMRA_BCSTR_FLAG_MSK));
+    u32STFLR = READ_REG32_BIT(TMRAx->STFLR, (u32Flag >> 16U));
 
     if ((u32BCSTR != 0U) || (u32STFLR != 0U))
     {
@@ -1185,10 +1146,10 @@ en_flag_status_t TMRA_GetStatus(const M4_TMRA_TypeDef *TMRAx, uint32_t u32Flag)
 
 /**
  * @brief  Clear the specified flags' status.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u32Flag                The status flags of TIMERA. Set this parameter to 0xFFFFFFFF to select all status flags.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u32Flag                The status flags of TMRA. Set this parameter to 0xFFFFFFFF to select all status flags.
  *                                      This parameter can be values of @ref TMRA_Status_Flag
  *   @arg  TMRA_FLAG_OVF:               Count overflow flag.
  *   @arg  TMRA_FLAG_UNF:               Count underflow flag.
@@ -1202,16 +1163,16 @@ void TMRA_ClrStatus(M4_TMRA_TypeDef *TMRAx, uint32_t u32Flag)
 {
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
 
-    u32Flag &= TMRA_FLAG_MSK;
+    u32Flag &= TMRA_FLAG_ALL;
     TMRAx->BCSTR &= (uint32_t)(~(u32Flag & TMRA_BCSTR_FLAG_MSK));
     TMRAx->STFLR &= (uint32_t)(~(u32Flag >> 16U));
 }
 
 /**
- * @brief  Start the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Start the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @retval None
  */
 void TMRA_Start(M4_TMRA_TypeDef *TMRAx)
@@ -1221,10 +1182,10 @@ void TMRA_Start(M4_TMRA_TypeDef *TMRAx)
 }
 
 /**
- * @brief  Stop the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Stop the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @retval None
  */
 void TMRA_Stop(M4_TMRA_TypeDef *TMRAx)
@@ -1234,14 +1195,14 @@ void TMRA_Stop(M4_TMRA_TypeDef *TMRAx)
 }
 
 /**
- * @brief  Specify the counting direction for the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the counting direction for the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @param  [in]  u32CntDir              Count direction.
  *                                      This parameter can be a value of @ref TMRA_Count_Direction
- *   @arg  TMRA_DIR_DOWN:               TIMERA count goes down.
- *   @arg  TMRA_DIR_UP:                 TIMERA count goes up.
+ *   @arg  TMRA_DIR_DOWN:               TMRA count down.
+ *   @arg  TMRA_DIR_UP:                 TMRA count up.
  * @retval None
  */
 void TMRA_SetCntDir(M4_TMRA_TypeDef *TMRAx, uint32_t u32CntDir)
@@ -1252,11 +1213,11 @@ void TMRA_SetCntDir(M4_TMRA_TypeDef *TMRAx, uint32_t u32CntDir)
 }
 
 /**
- * @brief  Specify the counting mode for the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the counting mode for the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u32CntDir              Count direction.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u32CntMode             Count mode.
  *                                      This parameter can be a value of @ref TMRA_Count_Mode
  *   @arg  TMRA_MODE_SAWTOOTH:          Count mode is sawtooth wave.
  *   @arg  TMRA_MODE_TRIANGLE:          Count mode is triangle wave.
@@ -1274,23 +1235,23 @@ void TMRA_SetCntMode(M4_TMRA_TypeDef *TMRAx, uint32_t u32CntMode)
 }
 
 /**
- * @brief  Specify the divider of PCLK when the clock source is PCLK.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the divider of PCLK when the clock source is PCLK.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
  * @param  [in]  u32ClkDiv              The clock source division.
  *                                      This parameter can be a value of @ref TMRA_PCLK_Divider
- *   @arg  TMRA_PCLK_DIV_1:             The clock source of TIMERA is PCLK.
- *   @arg  TMRA_PCLK_DIV_2:             The clock source of TIMERA is PCLK / 2.
- *   @arg  TMRA_PCLK_DIV_4:             The clock source of TIMERA is PCLK / 4.
- *   @arg  TMRA_PCLK_DIV_8:             The clock source of TIMERA is PCLK / 8.
- *   @arg  TMRA_PCLK_DIV_16:            The clock source of TIMERA is PCLK / 16.
- *   @arg  TMRA_PCLK_DIV_32:            The clock source of TIMERA is PCLK / 32.
- *   @arg  TMRA_PCLK_DIV_64:            The clock source of TIMERA is PCLK / 64.
- *   @arg  TMRA_PCLK_DIV_128:           The clock source of TIMERA is PCLK / 128.
- *   @arg  TMRA_PCLK_DIV_256:           The clock source of TIMERA is PCLK / 256.
- *   @arg  TMRA_PCLK_DIV_512:           The clock source of TIMERA is PCLK / 512.
- *   @arg  TMRA_PCLK_DIV_1024:          The clock source of TIMERA is PCLK / 1024.
+ *   @arg  TMRA_PCLK_DIV1:              The clock source of TMRA is PCLK.
+ *   @arg  TMRA_PCLK_DIV2:              The clock source of TMRA is PCLK / 2.
+ *   @arg  TMRA_PCLK_DIV4:              The clock source of TMRA is PCLK / 4.
+ *   @arg  TMRA_PCLK_DIV8:              The clock source of TMRA is PCLK / 8.
+ *   @arg  TMRA_PCLK_DIV16:             The clock source of TMRA is PCLK / 16.
+ *   @arg  TMRA_PCLK_DIV32:             The clock source of TMRA is PCLK / 32.
+ *   @arg  TMRA_PCLK_DIV64:             The clock source of TMRA is PCLK / 64.
+ *   @arg  TMRA_PCLK_DIV128:            The clock source of TMRA is PCLK / 128.
+ *   @arg  TMRA_PCLK_DIV256:            The clock source of TMRA is PCLK / 256.
+ *   @arg  TMRA_PCLK_DIV512:            The clock source of TMRA is PCLK / 512.
+ *   @arg  TMRA_PCLK_DIV1024:           The clock source of TMRA is PCLK / 1024.
  * @retval None
  */
 void TMRA_SetPCLKDiv(M4_TMRA_TypeDef *TMRAx, uint32_t u32ClkDiv)
@@ -1301,13 +1262,13 @@ void TMRA_SetPCLKDiv(M4_TMRA_TypeDef *TMRAx, uint32_t u32ClkDiv)
 }
 
 /**
- * @brief  Get the counting direction of the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Get the counting direction of the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA1 ~ M4_TMRA12:        TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA1 ~ M4_TMRA12:        TMRA unit 1 ~ 12 instance register base.
  * @retval An uint32_t type value of counting direction.
- *   @arg  TMRA_DIR_DOWN:               TIMERA count goes down.
- *   @arg  TMRA_DIR_UP:                 TIMERA count goes up.
+ *   @arg  TMRA_DIR_DOWN:               TMRA count goes down.
+ *   @arg  TMRA_DIR_UP:                 TMRA count goes up.
  */
 uint32_t TMRA_GetCntDir(const M4_TMRA_TypeDef *TMRAx)
 {
@@ -1316,11 +1277,11 @@ uint32_t TMRA_GetCntDir(const M4_TMRA_TypeDef *TMRAx)
 }
 
 /**
- * @brief  Specifies the clock source for the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the clock source for the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA1 ~ M4_TMRA12:        TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u32ClkSrc              The clock source of TIMERA.
+ *   @arg  M4_TMRA1 ~ M4_TMRA12:        TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u32ClkSrc              The clock source of TMRA.
  *                                      This parameter can be values of @ref TMRA_Clock_Source
  * @retval None
  */
@@ -1332,11 +1293,11 @@ void TMRA_SetClkSrc(M4_TMRA_TypeDef *TMRAx, uint32_t u32ClkSrc)
 }
 
 /**
- * @brief  Enable or disable the specified hardware clock source of the specified TIMERA unit.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Enable or disable the specified hardware clock source of the specified TMRA unit.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA1 ~ M4_TMRA12:        TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u32HwClkSrc            The hardware clock source of TIMERA.
+ *   @arg  M4_TMRA1 ~ M4_TMRA12:        TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u32HwClkSrc            The hardware clock source of TMRA.
  *                                      This parameter can be values of @ref TMRA_Clock_Source except TMRA_CLK_PCLK
  * @param  [in]  enNewState             An en_functional_state_t enumeration type value.
  *   @arg Enable:                       Enable the specified hardware clock source.
@@ -1345,8 +1306,8 @@ void TMRA_SetClkSrc(M4_TMRA_TypeDef *TMRAx, uint32_t u32ClkSrc)
  */
 void TMRA_HwClkSrcCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32HwClkSrc, en_functional_state_t enNewState)
 {
-    uint32_t u32HwCntUpClk   = u32HwClkSrc & TMRA_CLK_HW_UP_ALL;
-    uint32_t u32HwCntDownClk = (u32HwClkSrc & TMRA_CLK_HW_DOWN_ALL) >> 16U;
+    const uint32_t u32HwCntUpClk   = u32HwClkSrc & TMRA_CLK_HW_UP_ALL;
+    const uint32_t u32HwCntDownClk = (u32HwClkSrc & TMRA_CLK_HW_DOWN_ALL) >> 16U;
 
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
@@ -1357,26 +1318,26 @@ void TMRA_HwClkSrcCmd(M4_TMRA_TypeDef *TMRAx, uint32_t u32HwClkSrc, en_functiona
     }
     else
     {
-        SET_REG32_BIT(TMRAx->HCUPR, u32HwCntUpClk);
-        SET_REG32_BIT(TMRAx->HCDOR, u32HwCntDownClk);
+        CLEAR_REG32_BIT(TMRAx->HCUPR, u32HwCntUpClk);
+        CLEAR_REG32_BIT(TMRAx->HCDOR, u32HwCntDownClk);
     }
 }
 
 /**
- * @brief  Specify the PWM polarity when counting start.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the PWM polarity when counting start.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  u32Polarity            Polarity of PWM output.
  *                                      This parameter can be a value of @ref TMRA_PWM_Start_Polarity
  *   @arg  TMRA_PWM_START_LOW:          The polarity of PWM output is low.
- *   @arg  TMRA_PWM_START_HI:           The polarity of PWM output is high.
+ *   @arg  TMRA_PWM_START_HIGH:         The polarity of PWM output is high.
  *   @arg  TMRA_PWM_START_KEEP:         The polarity of PWM output keeps the current polarity.
  * @retval None
  */
@@ -1393,20 +1354,20 @@ void TMRA_PWM_SetStartPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t
 }
 
 /**
- * @brief  Specify the PWM polarity when counting stop.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the PWM polarity when counting stop.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  u32Polarity            Polarity of PWM output.
  *                                      This parameter can be a value of @ref TMRA_PWM_Stop_Polarity
  *   @arg  TMRA_PWM_STOP_LOW:           The polarity of PWM output is low.
- *   @arg  TMRA_PWM_STOP_HI:            The polarity of PWM output is high.
+ *   @arg  TMRA_PWM_STOP_HIGH:          The polarity of PWM output is high.
  *   @arg  TMRA_PWM_STOP_KEEP:          The polarity of PWM output keeps the current polarity.
  * @retval None
  */
@@ -1423,85 +1384,85 @@ void TMRA_PWM_SetStopPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t 
 }
 
 /**
- * @brief  Specify the PWM polarity when counting matchs the compare reference value.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the PWM polarity when counting matches the compare reference value.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  u32Polarity            Polarity of PWM output.
- *                                      This parameter can be a value of @ref TMRA_PWM_Count_Match_Polarity
- *   @arg  TMRA_PWM_CM_LOW:             The polarity of PWM output is low.
- *   @arg  TMRA_PWM_CM_HI:              The polarity of PWM output is high.
- *   @arg  TMRA_PWM_CM_KEEP:            The polarity of PWM output keeps the current polarity.
- *   @arg  TMRA_PWM_CM_REVERSE:         PWM output reverses the current polarity.
+ *                                      This parameter can be a value of @ref TMRA_PWM_Match_Cmp_Polarity
+ *   @arg  TMRA_PWM_CMP_LOW:            The polarity of PWM output is low.
+ *   @arg  TMRA_PWM_CMP_HIGH:           The polarity of PWM output is high.
+ *   @arg  TMRA_PWM_CMP_KEEP:           The polarity of PWM output keeps the current polarity.
+ *   @arg  TMRA_PWM_CMP_REVERSE:        PWM output reverses the current polarity.
  * @retval None
  */
-void TMRA_PWM_SetCntMatchPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity)
+void TMRA_PWM_SetMatchCmpPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity)
 {
     uint32_t u32PCONRAddr;
 
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
     DDL_ASSERT(IS_TMRA_CH(u8TmrCh));
-    DDL_ASSERT(IS_TMRA_PWM_CM_POLARITY(u32Polarity));
+    DDL_ASSERT(IS_TMRA_PWM_CMP_POLARITY(u32Polarity));
 
     u32PCONRAddr = (uint32_t)&TMRAx->PCONR1 + (uint32_t)u8TmrCh * 4U;
     MODIFY_REG32(RW_MEM32(u32PCONRAddr), TMRA_PCONR_CMPC, u32Polarity);
 }
 
 /**
- * @brief  Specify the PWM polarity when counting matchs the period reference value.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the PWM polarity when counting matches the period reference value.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  u32Polarity            Polarity of PWM output.
- *                                      This parameter can be a value of @ref TMRA_PWM_Period_Match_Polarity
- *   @arg  TMRA_PWM_PM_LOW:             The polarity of PWM output is low.
- *   @arg  TMRA_PWM_PM_HI:              The polarity of PWM output is high.
- *   @arg  TMRA_PWM_PM_KEEP:            The polarity of PWM output keeps the current polarity.
- *   @arg  TMRA_PWM_PM_REVERSE:         PWM output reverses the current polarity.
+ *                                      This parameter can be a value of @ref TMRA_PWM_Match_Period_Polarity
+ *   @arg  TMRA_PWM_PERIOD_LOW:         The polarity of PWM output is low.
+ *   @arg  TMRA_PWM_PERIOD_HIGH:        The polarity of PWM output is high.
+ *   @arg  TMRA_PWM_PERIOD_KEEP:        The polarity of PWM output keeps the current polarity.
+ *   @arg  TMRA_PWM_PERIOD_REVERSE:     PWM output reverses the current polarity.
  * @retval None
  */
-void TMRA_PWM_SetPeriodMatchPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity)
+void TMRA_PWM_SetMatchPeriodPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity)
 {
     uint32_t u32PCONRAddr;
 
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
     DDL_ASSERT(IS_TMRA_CH(u8TmrCh));
-    DDL_ASSERT(IS_TMRA_PWM_PM_POLARITY(u32Polarity));
+    DDL_ASSERT(IS_TMRA_PWM_PERIOD_POLARITY(u32Polarity));
 
     u32PCONRAddr = (uint32_t)&TMRAx->PCONR1 + (uint32_t)u8TmrCh * 4U;
     MODIFY_REG32(RW_MEM32(u32PCONRAddr), TMRA_PCONR_PERC, u32Polarity);
 }
 
 /**
- * @brief  Specify the PWM polarity when next cycle start.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the PWM polarity when next cycle start.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  u32Polarity            Polarity of PWM output.
- *                                      This parameter can be a value of @ref TMRA_PWM_Count_Match_Polarity
+ *                                      This parameter can be a value of @ref TMRA_PWM_Force_Polarity
  *   @arg  TMRA_PWM_FORCE_INVALID:      Force polarity is invalid.
  *   @arg  TMRA_PWM_FORCE_LOW:          Force the PWM output low at the beginning of the next cycle. \
  *                                      The beginning of the next cycle: overflow position or underflow position \
  *                                      of sawtooth wave; valley position of triangle wave.
- *   @arg  TMRA_PWM_FORCE_HI:           Force the PWM output high at the beginning of the next cycle. \
+ *   @arg  TMRA_PWM_FORCE_HIGH:         Force the PWM output high at the beginning of the next cycle. \
  *                                      The beginning of the next cycle: overflow position or underflow position \
  *                                      of sawtooth wave; valley position of triangle wave.
  * @retval None
@@ -1519,16 +1480,16 @@ void TMRA_PWM_SetForcePolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t
 }
 
 /**
- * @brief  Specify the capture condition for the specified channel.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @brief  Specifies the capture condition for the specified channel.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
- * @param  [in]  u8TmrCh                TIMERA channel number.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
  *                                      This parameter can be a value of @ref TMRA_Channel
- *   @arg  TMRA_CH_1:                   Channel 1 of TIMERA.
- *   @arg  TMRA_CH_2:                   Channel 2 of TIMERA.
- *   @arg  TMRA_CH_3:                   Channel 3 of TIMERA.
- *   @arg  TMRA_CH_4:                   Channel 4 of TIMERA.
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  u32CaptCond            The capture condition. Set this parameter to 0xFFFF to select all the conditions of capturing start.
  *                                      This parameter can be values of @ref TMRA_Channel_Capture_Condition
  *   @arg  TMRA_CAPT_COND_PWMR:         The condition of capture is a rising edge is sampled on PWM(pin).
@@ -1536,6 +1497,9 @@ void TMRA_PWM_SetForcePolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t
  *   @arg  TMRA_CAPT_COND_EVENT:        The condition of capture is the specified event occurred.
  *   @arg  TMRA_CAPT_COND_TRIGR:        The condition of capture is a rising edge is sampled on TRIG.
  *   @arg  TMRA_CAPT_COND_TRIGF:        The condition of capture is a falling edge is sampled on TRIG.
+ * @param  [in]  enNewState             An @ref en_functional_state_t value.
+ *   @arg  Enable:                      Enable the sepcified capture conditions.
+ *   @arg  Disable:                     Disable the sepcified capture conditions.
  * @retval None
  */
 void TMRA_CaptCondCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32CaptCond, en_functional_state_t enNewState)
@@ -1544,8 +1508,9 @@ void TMRA_CaptCondCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32CaptC
 
     DDL_ASSERT(IS_TMRA_UNIT(TMRAx));
     DDL_ASSERT(IS_TMRA_CH(u8TmrCh));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    u32CaptCond &= TMRA_CAPT_COND_MSK;
+    u32CaptCond &= TMRA_CAPT_COND_ALL;
     u32CCONRAddr = (uint32_t)&TMRAx->CCONR1 + (uint32_t)u8TmrCh * 4U;
     if (enNewState == Enable)
     {
@@ -1559,29 +1524,35 @@ void TMRA_CaptCondCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32CaptC
 
 /**
  * @brief  Enable or disable the specified hardware start condition.
- * @param  [in]  TMRAx                  Pointer to TIMERA instance register base.
+ * @param  [in]  TMRAx                  Pointer to TMRA instance register base.
  *                                      This parameter can be a value of the following:
- *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TIMERA unit 1 ~ 12 instance register base.
+ *   @arg  M4_TMRA_1 ~ M4_TMRA_12:      TMRA unit 1 ~ 12 instance register base.
+ * @param  [in]  u8TmrCh                TMRA channel number.
+ *                                      This parameter can be a value of @ref TMRA_Channel
+ *   @arg  TMRA_CH_1:                   Channel 1 of TMRA.
+ *   @arg  TMRA_CH_2:                   Channel 2 of TMRA.
+ *   @arg  TMRA_CH_3:                   Channel 3 of TMRA.
+ *   @arg  TMRA_CH_4:                   Channel 4 of TMRA.
  * @param  [in]  u32TrigCond            The trigger condition.
  *                                      This parameter can be a value of:
  *                                      @ref TMRA_Hardware_Start_Condition
- *                                      @ref TMRA_Hardware_Start_Condition
- *                                      @ref TMRA_Hardware_Start_Condition
- *   @arg  TMRA_START_COND_TRIGR:       1. Sync start is invalid: The condition is that a rising edge is sampled on TRIG of the current TIMERA unit. \
- *                                      2. Sync start is valid: The condition is that a rising edge is sampled on TRIG of the symmetric TIMERA unit.
- *   @arg  TMRA_START_COND_TRIGF:       1. Sync start is invalid: The condition is that a falling edge is sampled on TRIG of the current TIMERA unit. \
- *                                      2. Sync start is valid: The condition is that a falling edge is sampled on TRIG of the symmetric TIMERA unit.
+ *                                      @ref TMRA_Hardware_Stop_Condition
+ *                                      @ref TMRA_Hardware_Clear_Condition
+ *   @arg  TMRA_START_COND_TRIGR:       1. Sync start is invalid: The condition is that a rising edge is sampled on TRIG of the current TMRA unit. \
+ *                                      2. Sync start is valid: The condition is that a rising edge is sampled on TRIG of the symmetric TMRA unit.
+ *   @arg  TMRA_START_COND_TRIGF:       1. Sync start is invalid: The condition is that a falling edge is sampled on TRIG of the current TMRA unit. \
+ *                                      2. Sync start is valid: The condition is that a falling edge is sampled on TRIG of the symmetric TMRA unit.
  *   @arg  TMRA_START_COND_EVENT:       The condition is that the event which is set in register TMRA_HTSSR0 has occurred.
- *   @arg  TMRA_STOP_COND_TRIGR:        The condition is that a rising edge is sampled on pin TRIG of the current TIMERA unit.
- *   @arg  TMRA_STOP_COND_TRIGF:        The condition is that a falling edge is sampled on pin TRIG of the current TIMERA unit.
+ *   @arg  TMRA_STOP_COND_TRIGR:        The condition is that a rising edge is sampled on pin TRIG of the current TMRA unit.
+ *   @arg  TMRA_STOP_COND_TRIGF:        The condition is that a falling edge is sampled on pin TRIG of the current TMRA unit.
  *   @arg  TMRA_STOP_COND_EVENT:        The condition is that the event which is set in register TMRA_HTSSR0 has occurred.
- *   @arg  TMRA_CLR_COND_TRIGR:         The condition is that a rising edge is sampled on TRIG of the current TIMERA unit.
- *   @arg  TMRA_CLR_COND_TRIGF:         The condition is that a falling edge is sampled on TRIG of the current TIMERA unit.
+ *   @arg  TMRA_CLR_COND_TRIGR:         The condition is that a rising edge is sampled on TRIG of the current TMRA unit.
+ *   @arg  TMRA_CLR_COND_TRIGF:         The condition is that a falling edge is sampled on TRIG of the current TMRA unit.
  *   @arg  TMRA_CLR_COND_EVENT:         The condition is that the event which is set in register TMRA_HTSSR0 has occurred.
  *   @arg  TMRA_CLR_COND_SYM_TRIGR:     The condition is that a rising edge is sampled on TRIG of the symmetric unit.
  *   @arg  TMRA_CLR_COND_SYM_TRIGF:     The condition is that a falling edge is sampled on TRIG of the symmetric unit.
- *   @arg  TMRA_CLR_COND_PWM3R:         The condition is that a rising edge is sampled on PWM3 of the current TIMERA unit.
- *   @arg  TMRA_CLR_COND_PWM3F:         The condition is that a falling edge is sampled on PWM3 of the current TIMERA unit.
+ *   @arg  TMRA_CLR_COND_PWM3R:         The condition is that a rising edge is sampled on PWM3 of the current TMRA unit.
+ *   @arg  TMRA_CLR_COND_PWM3F:         The condition is that a falling edge is sampled on PWM3 of the current TMRA unit.
  * @param  [in]  enNewState             An en_functional_state_t enumeration type value.
  *   @arg  Enable:                      Enable the specified hardware start condition.
  *   @arg  Disable:                     Disable the specified hardware start condition.

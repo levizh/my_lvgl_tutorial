@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  usb\usbh_mouse_kb\source\usb_bsp_template.c
+ * @file  usb/usbh_mouse_kb/source/usb_bsp.c
  * @brief BSP for example.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -155,22 +155,77 @@ extern      USB_OTG_CORE_HANDLE      USB_OTG_Core;
  * @param  None
  * @retval None
  */
-void USB_IRQ_Handler(void)
+static void USB_IRQ_Handler(void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     //printf("usb isr\n");
+#endif
     USBH_OTG_ISR_Handler(&USB_OTG_Core);
 }
 
 /**
- * @brief  Initilizes BSP configurations
+ * @brief  MCU Peripheral registers write unprotected.
  * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
+ * @brief  Initializes BSP configurations
+ * @param  pdev     Selected device
  * @retval None
  */
 void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
 {
     stc_gpio_init_t stcGpioCfg;
 
-    /* System clock configurate */
+    Peripheral_WE();
+
     BSP_CLK_Init();
     BSP_IO_Init();
     BSP_LED_Init();
@@ -180,9 +235,9 @@ void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
 #endif
     /* USB clock source configurate */
     CLK_USB_ClkConfig(CLK_USB_CLK_MCLK_DIV5);
-
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("USBFS start !!\n");
-
+#endif
     GPIO_StructInit(&stcGpioCfg);
 
 #ifdef USE_EMBEDDED_PHY
@@ -269,8 +324,8 @@ void USB_OTG_BSP_EnableInterrupt(void)
 
 /**
  * @brief  Drives the Vbus signal through IO
- * @param  speed : Full, Low
- * @param  state : VBUS states
+ * @param  pdev     Selected device
+ * @param  state    VBUS states
  * @retval None
  */
 void USB_OTG_BSP_DriveVBUS(USB_OTG_CORE_HANDLE *pdev,uint8_t state)
@@ -281,7 +336,7 @@ void USB_OTG_BSP_DriveVBUS(USB_OTG_CORE_HANDLE *pdev,uint8_t state)
 
 /**
  * @brief  Configures the IO for the Vbus and OverCurrent
- * @param  speed : Full, Low
+ * @param  pdev     Selected device
  * @retval None
 */
 void  USB_OTG_BSP_ConfigVBUS(USB_OTG_CORE_HANDLE *pdev)
@@ -300,15 +355,15 @@ void USB_OTG_BSP_TimeInit ( void )
 
 /**
  * @brief  This function provides delay time in micro sec
- * @param  usec : Value of delay required in micro sec
+ * @param  usec    Value of delay required in micro sec
  * @retval None
 */
-void USB_OTG_BSP_uDelay (const uint32_t t)
+void USB_OTG_BSP_uDelay (const uint32_t usec)
 {
     uint32_t    i;
     uint32_t    j;
-    j=SystemCoreClock / 1000000ul * t;
-    for(i = 0ul; i < j; i++)
+    j = HCLK_VALUE / 1000000UL * usec;
+    for(i = 0UL; i < j; i++)
     {
         ;
     }
@@ -316,12 +371,12 @@ void USB_OTG_BSP_uDelay (const uint32_t t)
 
 /**
  * @brief  This function provides delay time in milli sec
- * @param  msec : Value of delay required in milli sec
+ * @param  msec     Value of delay required in milli sec
  * @retval None
 */
 void USB_OTG_BSP_mDelay (const uint32_t msec)
 {
-    USB_OTG_BSP_uDelay(msec * 1000ul);
+    USB_OTG_BSP_uDelay(msec * 1000UL);
 }
 
 /**

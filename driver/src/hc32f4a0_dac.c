@@ -6,7 +6,10 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-09       Hexiao          First version
+   2020-06-12       Hexiao          First version
+   2020-07-15       Hexiao          1. Modify DAC_ChannelCmd to DAC_Start and DAC_Stop
+                                    2. Modify DAC_DualChannelCmd to DAC_DualChannelStart
+                                       and DAC_DualChannelStop
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -81,6 +84,7 @@
  * @defgroup DAC_Local_Macros DAC Local Macros
  * @{
  */
+#define DAC_ADP_SELECT_ALL  (DAC_DAADPCR_ADPSL1 | DAC_DAADPCR_ADPSL2 | DAC_DAADPCR_ADPSL3)
 
 /**
  * @defgroup DAC_Check_Parameters_Validity DAC Check Parameters Validity
@@ -91,20 +95,21 @@
 (   ((x) == M4_DAC1)                               ||                          \
     ((x) == M4_DAC2))
 
-#define IS_VALID_CHN(x)                                                        \
-(   ((x) == DAC_Channel_1)                         ||                          \
-    ((x) == DAC_Channel_2))
+#define IS_VALID_CH(x)                                                         \
+(   ((x) == DAC_CH_1)                              ||                          \
+    ((x) == DAC_CH_2))
 
 #define IS_VALID_DATA_ALIGN(x)                                                 \
-(   ((x) == DAC_Align_12b_R)                       ||                          \
-    ((x) == DAC_Align_12b_L))
+(   ((x) == DAC_DATA_ALIGN_L)                      ||                          \
+    ((x) == DAC_DATA_ALIGN_R))
 
 #define IS_VALID_DATA_SRC(x)                                                   \
-(   ((x) == DAC_Data_From_DataReg)                 ||                          \
-    ((x) == DAC_Data_From_DCU))
+(   ((x) == DAC_DATA_SRC_DATAREG)                  ||                          \
+    ((x) == DAC_DATA_SRC_DCU))
 
-#define IS_VALID_ADCPRIO_CONFIG(x)   (0U == ((x) & (uint16_t)(~DAC_ADPCR_CONFIG_ALL)))
-
+#define IS_VALID_ADCPRIO_CONFIG(x)                                             \
+(   (0U != (x))                                    &&                          \
+    (DAC_ADP_SELECT_ALL == ((x) | DAC_ADP_SELECT_ALL)))
 
 /**
  * @}
@@ -136,200 +141,512 @@
  */
 
 /**
- * @brief  ADC priority function command
- * @param  [in] pstcDACx   Pointer to the DAC peripheral register
+ * @brief  Set DAC data source for specified channel
+ * @param  [in] DACx       Pointer to the DAC peripheral register.
  *         This parameter can be one of the following values:
  *         @arg M4_DAC1
  *         @arg M4_DAC2
- * @param  [in] enNewState           New state of the ADC priority function,
- *                                   @ref en_functional_state_t
+ * @param  [in] u16Ch      Specify the DAC channel @ref DAC_CH.
+ *         This parameter can be one of the following values:
+ *         @arg DAC_CH_1
+ *         @arg DAC_CH_2
+ * @param  [in] u16Src     Specify the data source.
+ *         This parameter can be a value of @ref DAC_DATA_SRC
+ *         - DAC_DATA_SRC_DATAREG:   convert source is from data register
+ *         - DAC_DATA_SRC_DCU:       convert source is from DCU
  * @retval None
  */
-void DAC_ADCPrioCmd(M4_DAC_TypeDef* pstcDACx, en_functional_state_t enNewState)
+void DAC_SetDataSource(M4_DAC_TypeDef *DACx, uint16_t u16Ch, uint16_t u16Src)
 {
-    DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
-    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+    DDL_ASSERT(IS_VALID_CH(u16Ch));
+    DDL_ASSERT(IS_VALID_DATA_SRC(u16Src));
 
-    MODIFY_REG16(pstcDACx->DAADPCR, DAC_DAADPCR_ADPEN, (uint32_t)enNewState << DAC_DAADPCR_ADPEN_POS);
+    SET_REG16_BIT(DACx->DACR, u16Src << (DAC_DACR_EXTDSL1_POS + u16Ch));
 }
 
 /**
- * @brief  ADC priority function configuration
- * @param  [in] pstcDACx   Pointer to the DAC peripheral register
+ * @brief  DAC data register's data alignment pattern configuration
+ * @param  [in] DACx       Pointer to the DAC peripheral register.
  *         This parameter can be one of the following values:
  *         @arg M4_DAC1
  *         @arg M4_DAC2
- * @param  [in] u32ADCxConfig        The ADCx priority to be configured
- *         This parameter can be one or any combination of the following values:
- *         - DAC_DAADPCR_ADPSL1
- *         - DAC_DAADPCR_ADPSL2
- *         - DAC_DAADPCR_ADPSL3
+ * @param  [in] u16Align   Specify the data alignment.
+ *         This parameter can be a value of @ref DAC_DATAREG_ALIGN_PATTERN
+ *         - DAC_DATA_ALIGN_L:  left alignment
+ *         - DAC_DATA_ALIGN_R:  right alignment
  * @retval None
  */
-void DAC_ADCPrioConfig(M4_DAC_TypeDef* pstcDACx, uint16_t u16ADCxConfig)
+void DAC_DataRegAlignConfig(M4_DAC_TypeDef *DACx, uint16_t u16Align)
 {
-    DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
-    DDL_ASSERT(IS_VALID_ADCPRIO_CONFIG(u16ADCxConfig));
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+    DDL_ASSERT(IS_VALID_DATA_ALIGN(u16Align));
 
-    MODIFY_REG16(pstcDACx->DAADPCR, DAC_ADPCR_CONFIG_ALL, u16ADCxConfig);
-}
-
-/**
- * @brief  DAC channel 1 and channel 2 function command
- * @param  [in] pstcDACx   Pointer to the DAC peripheral register
- *         This parameter can be one of the following values:
- *         @arg M4_DAC1
- *         @arg M4_DAC2
- * @param  [in] enNewState    New state of DAC channel 1 and channel 2 function,
- *                            @ref en_functional_state_t
- * @retval None
- */
-void DAC_ChannelAllCmd(M4_DAC_TypeDef* pstcDACx, en_functional_state_t enNewState)
-{
-    DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
-    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-
-    MODIFY_REG16(pstcDACx->DACR, DAC_DACR_DAE, (uint32_t)enNewState << DAC_DACR_DAE_POS);
-}
-
-/**
- * @brief  DAC channel 1 or channel 2 function command
- * @param  [in] pstcDACx   Pointer to the DAC peripheral register
- *         This parameter can be one of the following values:
- *         @arg M4_DAC1
- *         @arg M4_DAC2
- * @param  [in] enCh          The selected DAC channel
- *                            @ref en_dac_ch_t 
- * @param  [in] enNewState    New state of DAC channel 1 or channel 2 function,
- *                            @ref en_functional_state_t
- * @retval An en_result_t enumeration value:
- *         - Ok: No errors occurred
- *         - ErrorInvalidMode: cannot enable or disable single channel when \n
- *                           these two channels have been enabled by \n
- *                           DAC_ChannelAllCmd @ref DAC_ChannelAllCmd
- */
-en_result_t DAC_ChannelCmd(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_functional_state_t enNewState)
-{
-    DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
-    DDL_ASSERT(IS_VALID_CHN(enCh));
-    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-
-    en_result_t ret = Ok;
-
-    if(pstcDACx->DACR & DAC_DACR_DAE)
-    {
-      ret = ErrorInvalidMode;
-    }
-    else
-    {
-      MODIFY_REG16(pstcDACx->DACR, (uint16_t)1U << (DAC_DACR_DA1E_POS + enCh)\
-                 , (uint32_t)enNewState << (DAC_DACR_DA1E_POS + enCh));
-    }
-
-    return ret;
+    SET_REG16_BIT(DACx->DACR, u16Align);
 }
 
 /**
  * @brief  DAC output function command
- * @param  [in] pstcDACx   Pointer to the DAC peripheral register
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
  *         This parameter can be one of the following values:
  *         @arg M4_DAC1
  *         @arg M4_DAC2
+ * @param  [in] u16Ch      Specify DAC channel @ref DAC_CH.
+ *         This parameter can be one of the following values:
+ *         @arg DAC_CH_1
+ *         @arg DAC_CH_2
  * @param  [in] enNewState           New state of the DAC output function,
  *                                   @ref en_functional_state_t
  * @retval None
  */
-void DAC_OutputCmd(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_functional_state_t enNewState)
+void DAC_OutputCmd(M4_DAC_TypeDef *DACx, uint16_t u16Ch, en_functional_state_t enNewState)
 {
-    DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
-    DDL_ASSERT(IS_VALID_CHN(enCh));
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+    DDL_ASSERT(IS_VALID_CH(u16Ch));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    uint16_t u16State = enNewState;
-    MODIFY_REG16(pstcDACx->DAOCR, (uint16_t)1U << (DAC_DAOCR_DAODIS1_POS + enCh)\
-                 , (uint16_t)(~u16State) << (DAC_DAOCR_DAODIS1_POS + enCh));
+    const uint16_t u16Cmd = (uint16_t)1U << (DAC_DAOCR_DAODIS1_POS + u16Ch);
+
+    if(Enable == enNewState)
+    {
+        CLEAR_REG16_BIT(DACx->DAOCR, u16Cmd);
+    }
+    else
+    {
+        SET_REG16_BIT(DACx->DAOCR, u16Cmd);
+    }
 }
 
 /**
  * @brief  DAC AMP function command
- * @param  [in] pstcDACx   Pointer to the DAC peripheral register
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
  *         This parameter can be one of the following values:
  *         @arg M4_DAC1
  *         @arg M4_DAC2
- * @param  [in] enCh                The selected DAC channel
- *                                   @ref en_dac_ch_t 
+ * @param  [in] u16Ch      Specify DAC channel @ref DAC_CH.
+ *         This parameter can be one of the following values:
+ *         @arg DAC_CH_1
+ *         @arg DAC_CH_2
  * @param  [in] enNewState           New state of the AMP function,
  *                                   @ref en_functional_state_t
  * @retval An en_result_t enumeration value:
  *         - Ok: No errors occurred
  *         - ErrorInvalidMode: cannot enable AMP when data source is from DCU
  */
-en_result_t DAC_AMPCmd(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_functional_state_t enNewState)
+en_result_t DAC_AMPCmd(M4_DAC_TypeDef *DACx, uint16_t u16Ch, en_functional_state_t enNewState)
 {
-    DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
-    DDL_ASSERT(IS_VALID_CHN(enCh));
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+    DDL_ASSERT(IS_VALID_CH(u16Ch));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     en_result_t ret = Ok;
-    uint16_t u16CmdPos = (uint16_t)DAC_DACR_EXTDSL1_POS + enCh;
+    uint16_t u16Cmd = (uint16_t)1U << (DAC_DACR_EXTDSL1_POS + u16Ch);
 
-    if(1U & (pstcDACx->DACR >> u16CmdPos))
+    if(0U != (READ_REG16_BIT(DACx->DACR, u16Cmd)))
     {
-      ret = ErrorInvalidMode;
+        ret = ErrorInvalidMode;
     }
     else
     {
-      u16CmdPos = (uint16_t)DAC_DACR_DAAMP1_POS + enCh;
-      MODIFY_REG16(pstcDACx->DACR, (uint16_t)1U << u16CmdPos, (uint32_t)enNewState << u16CmdPos);
+        u16Cmd = (uint16_t)1U << (DAC_DACR_DAAMP1_POS + u16Ch);
+
+        if(Enable == enNewState)
+        {
+            SET_REG16_BIT(DACx->DACR, u16Cmd);
+        }
+        else
+        {
+            CLEAR_REG16_BIT(DACx->DACR, u16Cmd);
+        }
     }
 
     return ret;
 }
 
 /**
- * @brief  DAC data pattern configuration
- * @param  [in] pstcDACx   Pointer to the DAC peripheral register
+ * @brief  DAC ADC priority function command
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
  *         This parameter can be one of the following values:
  *         @arg M4_DAC1
  *         @arg M4_DAC2
- * @param  [in] enAlign            Specify the data alignment
- *                                 @ref en_dac_align_t
+ * @param  [in] enNewState           New state of the ADC priority function,
+ *                                   @ref en_functional_state_t
  * @retval None
+ * @note   please make sure ADC is in stoped status before calling DAC_ADCPrioCmd
  */
-void DAC_DataPatternConfig(M4_DAC_TypeDef* pstcDACx, en_dac_align_t enAlign)
+void DAC_ADCPrioCmd(M4_DAC_TypeDef *DACx, en_functional_state_t enNewState)
 {
-    DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
-    DDL_ASSERT(IS_VALID_DATA_ALIGN(enAlign));
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    MODIFY_REG16(pstcDACx->DACR, DAC_DACR_DPSEL , (uint32_t)enAlign << DAC_DACR_DPSEL_POS);
+    if(Enable == enNewState)
+    {
+        SET_REG16_BIT(DACx->DAADPCR, DAC_DAADPCR_ADPEN);
+    }
+    else
+    {
+        CLEAR_REG16_BIT(DACx->DAADPCR, DAC_DAADPCR_ADPEN);
+    }
 }
 
 /**
- * @brief  Set DAC data source 
- * @param  [in] pstcDACx   Pointer to the DAC peripheral register
+ * @brief  Enable or Disable the ADP priority for the selected ADCx
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
  *         This parameter can be one of the following values:
  *         @arg M4_DAC1
  *         @arg M4_DAC2
- * @param  [in] enCh               The selected DAC channel
- *                                 @ref en_dac_ch_t 
- * @param  [in] src                Data source of DAC
- *                                 @arg DAC_Data_From_DataReg
- *                                 @arg DAC_Data_From_DCU
+ * @param  [in] u16ADCxPrio  ADCx priority to be enabled or disabled.
+ *         This parameter can be one or any combination of the following values:
+ *         @arg DAC_ADP_SELECT_ADC1
+ *         @arg DAC_ADP_SELECT_ADC2
+ *         @arg DAC_ADP_SELECT_ADC3
+ * @param  [in] enNewState    New state of ADCx priority
+ *                            @ref en_functional_state_t
  * @retval None
+ * @note   please make sure ADC is in stoped status before calling DAC_ADCPrioConfig
  */
-void DAC_SetDataSource(M4_DAC_TypeDef* pstcDACx, en_dac_ch_t enCh, en_dac_src_t src)
+void DAC_ADCPrioConfig(M4_DAC_TypeDef *DACx, uint16_t u16ADCxPrio, en_functional_state_t enNewState)
 {
-    DDL_ASSERT(IS_VALID_UNIT(pstcDACx));
-    DDL_ASSERT(IS_VALID_CHN(enCh));
-    DDL_ASSERT(IS_VALID_DATA_SRC(src));
-    
-    uint16_t u16CmdPos = (uint16_t)DAC_DACR_EXTDSL1_POS + enCh;
-    MODIFY_REG16(pstcDACx->DACR, (uint16_t)1U << u16CmdPos, (uint32_t)src << u16CmdPos);
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+    DDL_ASSERT(IS_VALID_ADCPRIO_CONFIG(u16ADCxPrio));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    if(Enable == enNewState)
+    {
+        SET_REG16_BIT(DACx->DAADPCR, u16ADCxPrio);
+    }
+    else
+    {
+        CLEAR_REG16_BIT(DACx->DAADPCR, u16ADCxPrio);
+    }
 }
 
 /**
- * @}
+ * @brief  Start the specified DAC channel
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @param  [in] u16Ch  Specify DAC channel @ref DAC_CH.
+ *         This parameter can be one of the following values:
+ *         @arg DAC_CH_1
+ *         @arg DAC_CH_2
+ * @retval An en_result_t enumeration value:
+ *         - Ok: No errors occurred
+ *         - ErrorInvalidMode: cannot start single channel when \n
+ *                           this channel have already been started by \n
+ *                           @ref DAC_DualChannelStart
  */
+en_result_t DAC_Start(M4_DAC_TypeDef *DACx, uint16_t u16Ch)
+{
+    en_result_t enRet = Ok;
+
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+    DDL_ASSERT(IS_VALID_CH(u16Ch));
+
+    if((DACx->DACR & DAC_DACR_DAE) != 0U)
+    {
+        enRet = ErrorInvalidMode;
+    }
+    else
+    {
+        const uint16_t u16Cmd = (uint16_t)1U << (DAC_DACR_DA1E_POS + u16Ch);
+        SET_REG16_BIT(DACx->DACR, u16Cmd);
+    }
+
+    return enRet;
+}
+
+/**
+ * @brief  Stop the specified DAC channel
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @param  [in] u16Ch  Specify DAC channel @ref DAC_CH.
+ *         This parameter can be one of the following values:
+ *         @arg DAC_CH_1
+ *         @arg DAC_CH_2
+ * @retval An en_result_t enumeration value:
+ *         - Ok: No errors occurred
+ *         - ErrorInvalidMode: cannot stop single channel when \n
+ *                           this channel is started by \n
+ *                           @ref DAC_DualChannelStart
+ */
+en_result_t DAC_Stop(M4_DAC_TypeDef *DACx, uint16_t u16Ch)
+{
+    en_result_t enRet = Ok;
+
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+    DDL_ASSERT(IS_VALID_CH(u16Ch));
+
+    if((DACx->DACR & DAC_DACR_DAE) != 0U)
+    {
+        enRet = ErrorInvalidMode;
+    }
+    else
+    {
+        const uint16_t u16Cmd = (uint16_t)1U << (DAC_DACR_DA1E_POS + u16Ch);
+        CLEAR_REG16_BIT(DACx->DACR, u16Cmd);
+    }
+
+    return enRet;
+}
+
+/**
+ * @brief  Start DAC channel 1 and channel 2
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @retval None
+ */
+void DAC_DualChannelStart(M4_DAC_TypeDef *DACx)
+{
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+
+    SET_REG16_BIT(DACx->DACR, DAC_DACR_DAE);
+}
+
+/**
+ * @brief  Stop DAC channel 1 and channel 2
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @retval None
+ */
+void DAC_DualChannelStop(M4_DAC_TypeDef *DACx)
+{
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+
+    CLEAR_REG16_BIT(DACx->DACR, DAC_DACR_DAE);
+}
+
+/**
+ * @brief  Set the specified data holding register value for DAC channel 1
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @param  [in] data   Data to be loaded into data holding register of channel 1
+ * @retval None
+ */
+void DAC_SetChannel1Data(M4_DAC_TypeDef *DACx, uint16_t data)
+{
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+
+    if(READ_REG16_BIT(DACx->DACR, DAC_DACR_DPSEL) == DAC_DATA_ALIGN_L)
+    {
+        DDL_ASSERT(0U == (data & 0xFU));
+    }
+    else
+    {
+        DDL_ASSERT(0U == (data & 0xF000U));
+    }
+
+    WRITE_REG16(DACx->DADR1,data);
+}
+
+/**
+ * @brief  Set the specified data holding register value for DAC channel 2
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @param  [in] data   Data to be loaded into data holding register of channel 2
+ * @retval None
+ */
+void DAC_SetChannel2Data(M4_DAC_TypeDef *DACx, uint16_t data)
+{
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+
+    if(READ_REG16_BIT(DACx->DACR, DAC_DACR_DPSEL) == DAC_DATA_ALIGN_L)
+    {
+        DDL_ASSERT(0U == (data & 0xFU));
+    }
+    else
+    {
+        DDL_ASSERT(0U == (data & 0xF000U));
+    }
+
+    WRITE_REG16(DACx->DADR2,data);
+}
+
+/**
+ * @brief  Set the specified data holding register value for channel 1 and channel 2
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @param  data2:    Data to be loaded into data holding register of channel 2
+ * @param  data1:    Data to be loaded into data holding register of channel 1
+ * @retval None
+ */
+void DAC_SetDualChannelData(M4_DAC_TypeDef *DACx, uint16_t data2, uint16_t data1)
+{
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+
+    if(READ_REG16_BIT(DACx->DACR, DAC_DACR_DPSEL) == DAC_DATA_ALIGN_L)
+    {
+        DDL_ASSERT(0U == (data1 & 0xFU));
+        DDL_ASSERT(0U == (data2 & 0xFU));
+    }
+    else
+    {
+        DDL_ASSERT(0U == (data1 & 0xF000U));
+        DDL_ASSERT(0U == (data2 & 0xF000U));
+    }
+
+    WRITE_REG16(DACx->DADR1,data1);
+    WRITE_REG16(DACx->DADR2,data2);
+}
+
+/**
+ * @brief  Get convert status of channel 1 in ADC priority mode
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @retval An en_dac_conv_sate_t enumeration value:
+ *         - ErrorInvalidMode: Could not get convert status when adc priority is not enabled
+ *         - Ok: Data convert completed
+ *         - OperationInProgress: Data convert is ongoing
+ */
+en_result_t  DAC_GetChannel1ConvState(const M4_DAC_TypeDef *DACx)
+{
+    en_result_t enStat = ErrorInvalidMode;
+
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+
+    if(0U != READ_REG16_BIT(DACx->DAADPCR, DAC_DAADPCR_ADPEN))
+    {
+        enStat = OperationInProgress;
+
+        if(READ_REG16_BIT(DACx->DAADPCR, DAC_DAADPCR_DA1SF) == 0U)
+        {
+            enStat = Ok;
+        }
+    }
+
+    return enStat;
+}
+
+/**
+ * @brief  Get convert status of channel 2 in ADC priority mode
+ * @param  [in] DACx   Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @retval An en_dac_conv_sate_t enumeration value:
+ *         - ErrorInvalidMode: Could not get convert status when adc priority is not enabled
+ *         - Ok: Data convert completed
+ *         - OperationInProgress: Data convert is ongoing
+ */
+en_result_t DAC_GetChannel2ConvState(const M4_DAC_TypeDef *DACx)
+{
+    en_result_t enStat = ErrorInvalidMode;
+
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+
+    if(0U != READ_REG16_BIT(DACx->DAADPCR, DAC_DAADPCR_ADPEN))
+    {
+        enStat = OperationInProgress;
+
+        if(READ_REG16_BIT(DACx->DAADPCR, DAC_DAADPCR_DA2SF) == 0U)
+        {
+            enStat = Ok;
+        }
+    }
+
+    return enStat;
+}
+
+/**
+ * @brief  Fills each pstcInit member with its default value
+ * @param  [in] pstcInit   pointer to a stc_dac_init_t structure which will
+ *         be initialized.
+ * @retval An en_result_t enumeration value.
+ *         - Ok: No errors occurred.
+ *         - ErrorInvalidParameter: pstcInit = NULL
+ */
+en_result_t DAC_StructInit(stc_dac_init_t *pstcInit)
+{
+    en_result_t enRet = ErrorInvalidParameter;
+
+    if(pstcInit != NULL)
+    {
+        pstcInit->u16Src = DAC_DATA_SRC_DATAREG;
+        pstcInit->enOutput = Enable;
+        enRet = Ok;
+    }
+
+    return enRet;
+}
+
+/**
+ * @brief  Initialize the DAC peripheral according to the specified parameters
+ *         in the stc_dac_init_t
+ * @param  [in] DACx       Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @param  [in] u16Ch      Specify the DAC channel @ref DAC_CH.
+ *         This parameter can be one of the following values:
+ *         @arg DAC_CH_1
+ *         @arg DAC_CH_2
+ * @param  [in] pstcInit   pointer to a stc_dac_init_t structure that contains
+ *         the configuration information for the  specified DAC channel.
+ * @retval An en_result_t enumeration value:
+ *         - Ok: Initialize successfully
+ *         - ErrorInvalidParameter: pstcInit = NULL
+ */
+en_result_t DAC_Init(M4_DAC_TypeDef *DACx, uint16_t u16Ch, const stc_dac_init_t *pstcInit)
+{
+    DDL_ASSERT(IS_VALID_UNIT(DACx));
+    DDL_ASSERT(IS_VALID_CH(u16Ch));
+
+    en_result_t enRet = ErrorInvalidParameter;
+
+    if(pstcInit != NULL)
+    {
+        DDL_ASSERT(IS_VALID_DATA_SRC(pstcInit->u16Src));
+        DDL_ASSERT(IS_FUNCTIONAL_STATE(pstcInit->enOutput));
+
+        DAC_SetDataSource(DACx, u16Ch, pstcInit->u16Src);
+        DAC_OutputCmd(DACx, u16Ch, pstcInit->enOutput);
+        enRet = Ok;
+    }
+
+    return enRet;
+}
+
+/**
+ * @brief  Deinitialize the DAC peripheral registers to their default reset values.
+ * @param  [in] DACx       Pointer to the DAC peripheral register.
+ *         This parameter can be one of the following values:
+ *         @arg M4_DAC1
+ *         @arg M4_DAC2
+ * @retval None
+ */
+void DAC_DeInit(M4_DAC_TypeDef *DACx)
+{
+    DAC_DualChannelStop(DACx);
+
+    DAC_SetDataSource(DACx, DAC_CH_1, DAC_DATA_SRC_DATAREG);
+    DAC_SetDataSource(DACx, DAC_CH_2, DAC_DATA_SRC_DATAREG);
+
+    DAC_DataRegAlignConfig(DACx, DAC_DATA_ALIGN_R);
+
+    DAC_AMPCmd(DACx, DAC_CH_1,Disable);
+    DAC_AMPCmd(DACx, DAC_CH_2,Disable);
+
+    DAC_OutputCmd(DACx, DAC_CH_1, Enable);
+    DAC_OutputCmd(DACx, DAC_CH_2, Enable);
+
+    DAC_ADCPrioConfig(DACx, DAC_ADP_SELECT_ALL, Disable);
+    DAC_ADCPrioCmd(DACx, Disable);
+}
 
 /**
  * @}

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-01       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -100,7 +100,7 @@ typedef enum
 typedef struct
 {
     uint16_t u16PinState;     /*!< Set pin state to High or Low, @ref GPIO_PinState_Sel for details       */
-    uint16_t u16PinDir;       /*!< Pin mode setting, @ref GPIO_PinDir_Sel for details                     */
+    uint16_t u16PinDir;       /*!< Pin mode setting, @ref GPIO_PinDirection_Sel for details               */
     uint16_t u16PinOType;     /*!< Output type setting, @ref GPIO_PinOutType_Sel for details              */
     uint16_t u16PinDrv;       /*!< Pin drive capacity setting, @ref GPIO_PinDrv_Sel for details           */
     uint16_t u16Latch;        /*!< Pin latch setting, @ref GPIO_PinLatch_Sel for details                  */
@@ -1230,6 +1230,8 @@ typedef struct
 #define GPIO_READ_WAIT_3            ((uint16_t)(0x03UL << GPIO_PCCR_RDWT_POS))
 #define GPIO_READ_WAIT_4            ((uint16_t)(0x04UL << GPIO_PCCR_RDWT_POS))
 #define GPIO_READ_WAIT_5            ((uint16_t)(0x05UL << GPIO_PCCR_RDWT_POS))
+#define GPIO_READ_WAIT_6            ((uint16_t)(0x06UL << GPIO_PCCR_RDWT_POS))
+#define GPIO_READ_WAIT_7            ((uint16_t)(0x07UL << GPIO_PCCR_RDWT_POS))
 /**
  * @}
  */
@@ -1371,7 +1373,7 @@ typedef struct
  * @{
  */
 /**
- * @brief  GPIO lock. PSPCR, PCCR, PINAER, PCRxy write disable
+ * @brief  GPIO lock. PSPCR, PCCR, PINAER, PCRxy, PFSRxy write disable
  * @param  None
  * @retval None
  */
@@ -1381,7 +1383,7 @@ __STATIC_INLINE void GPIO_Lock(void)
 }
 
 /**
- * @brief  GPIO unlock. PSPCR, PCCR, PINAER, PCRxy write enable
+ * @brief  GPIO unlock. PSPCR, PCCR, PINAER, PCRxy, PFSRxy write enable
  * @param  None
  * @retval None
  */

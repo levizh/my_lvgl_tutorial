@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-17       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -73,28 +73,28 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /* SPI unit and clock definition */
-#define SPI_UNIT              (M4_SPI1)
-#define SPI_UNIT_CLOCK        (PWC_FCG1_SPI1)
+#define SPI_UNIT                        (M4_SPI1)
+#define SPI_UNIT_CLOCK                  (PWC_FCG1_SPI1)
 
 /* SPI port definition for master */
-#define SPI_NSS_PORT          (GPIO_PORT_C)
-#define SPI_NSS_PIN           (GPIO_PIN_07)
+#define SPI_NSS_PORT                    (GPIO_PORT_C)
+#define SPI_NSS_PIN                     (GPIO_PIN_07)
 
-#define SPI_SCK_PORT          (GPIO_PORT_C)
-#define SPI_SCK_PIN           (GPIO_PIN_06)
-#define SPI_SCK_FUNC          (GPIO_FUNC_40_SPI1_SCK)
+#define SPI_SCK_PORT                    (GPIO_PORT_C)
+#define SPI_SCK_PIN                     (GPIO_PIN_06)
+#define SPI_SCK_FUNC                    (GPIO_FUNC_40_SPI1_SCK)
 
-#define SPI_MOSI_PORT         (GPIO_PORT_B)
-#define SPI_MOSI_PIN          (GPIO_PIN_13)
-#define SPI_MOSI_FUNC         (GPIO_FUNC_41_SPI1_MOSI)
+#define SPI_MOSI_PORT                   (GPIO_PORT_B)
+#define SPI_MOSI_PIN                    (GPIO_PIN_13)
+#define SPI_MOSI_FUNC                   (GPIO_FUNC_41_SPI1_MOSI)
 
-#define SPI_MISO_PORT         (GPIO_PORT_B)
-#define SPI_MISO_PIN          (GPIO_PIN_12)
-#define SPI_MISO_FUNC         (GPIO_FUNC_42_SPI1_MISO)
+#define SPI_MISO_PORT                   (GPIO_PORT_B)
+#define SPI_MISO_PIN                    (GPIO_PIN_12)
+#define SPI_MISO_FUNC                   (GPIO_FUNC_42_SPI1_MISO)
 
 /* NSS pin control */
-#define SPI_NSS_HIGH()        (GPIO_SetPins(SPI_NSS_PORT, SPI_NSS_PIN))
-#define SPI_NSS_LOW()         (GPIO_ResetPins(SPI_NSS_PORT, SPI_NSS_PIN))
+#define SPI_NSS_HIGH()                  (GPIO_SetPins(SPI_NSS_PORT, SPI_NSS_PIN))
+#define SPI_NSS_LOW()                   (GPIO_ResetPins(SPI_NSS_PORT, SPI_NSS_PIN))
 
 /* FLASH parameters */
 #define FLASH_PAGE_SIZE                 (0x100U)
@@ -122,11 +122,62 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static uint8_t u8ExIntFlag = 0U;
+
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief Configure SPI peripheral function
@@ -157,14 +208,14 @@ static void Spi_Config(void)
     stcSpiInit.u32SuspMode          = SPI_COM_SUSP_FUNC_OFF;
     stcSpiInit.u32Modfe             = SPI_MODFE_DISABLE;
     stcSpiInit.u32Parity            = SPI_PARITY_INVALID;
-    stcSpiInit.u32SpiMode           = SPI_MODE_3;
-    stcSpiInit.u32BaudRatePrescaler = SPI_BR_DIV_256;
+    stcSpiInit.u32SpiMode           = SPI_MODE_0;
+    stcSpiInit.u32BaudRatePrescaler = SPI_BR_PCLK1_DIV256;
     stcSpiInit.u32DataBits          = SPI_DATA_SIZE_8BIT;
     stcSpiInit.u32FirstBit          = SPI_FIRST_MSB;
     SPI_Init(SPI_UNIT, &stcSpiInit);
 
-    stcSpiDelayCfg.u32IntervalDelay = SPI_INTERVAL_TIME_1SCK_2PCLK1;
-    stcSpiDelayCfg.u32ReleaseDelay = SPI_RELEASE_TIME_1SCK;
+    stcSpiDelayCfg.u32IntervalDelay = SPI_INTERVAL_TIME_8SCK_2PCLK1;
+    stcSpiDelayCfg.u32ReleaseDelay = SPI_RELEASE_TIME_8SCK;
     stcSpiDelayCfg.u32SetupDelay = SPI_SETUP_TIME_1SCK;
     SPI_DelayTimeCfg(SPI_UNIT, &stcSpiDelayCfg);
 
@@ -187,14 +238,14 @@ static uint8_t SpiFlash_WriteReadByte(uint8_t u8Data)
     {
     }
     /* Send data */
-    SPI_WriteDataReg(SPI_UNIT, u8Data);
+    SPI_WriteDataReg(SPI_UNIT, (uint32_t)u8Data);
 
     /* Wait rx buffer full */
     while (Reset == SPI_GetStatus(SPI_UNIT, SPI_FLAG_RX_BUFFER_FULL))
     {
     }
     /* Receive data */
-    u8Byte = SPI_ReadDataReg(SPI_UNIT);
+    u8Byte = (uint8_t)SPI_ReadDataReg(SPI_UNIT);
 
     return u8Byte;
 }
@@ -374,6 +425,7 @@ en_result_t SpiFlash_Erase4KbSector(uint32_t u32Addr)
         SpiFlash_WriteReadByte((uint8_t)((u32Addr & 0xFF0000UL) >> 16U));
         SpiFlash_WriteReadByte((uint8_t)((u32Addr & 0xFF00U) >> 8U));
         SpiFlash_WriteReadByte((uint8_t)(u32Addr & 0xFFU));
+        //SPI_GetStatus(const M4_SPI_TypeDef *SPIx, uint32_t u32Flag) //todo
         SPI_NSS_HIGH();
         /* Wait for flash idle */
         enRet = SpiFlash_WaitForWriteEnd();
@@ -396,9 +448,11 @@ int32_t main(void)
     char rxBuffer[128];
     stc_gpio_init_t stcGpioCfg;
 
-    /* System clock and LED initialize */
+    Peripheral_WE();
+
     BSP_CLK_Init();
     BSP_IO_Init();
+    BSP_KEY_Init();
     BSP_LED_Init();
 
     /* Port configurate */
@@ -425,48 +479,51 @@ int32_t main(void)
     GPIO_SetFunc(SPI_MOSI_PORT, SPI_MOSI_PIN, SPI_MOSI_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(SPI_MISO_PORT, SPI_MISO_PIN, SPI_MISO_FUNC, PIN_SUBFUNC_DISABLE);
 
-    /* Key0 Port/Pin initialization */
-    //todo Sw2_Init();
     /* Configure SPI for SPI flash */
     Spi_Config();
 
     /* Get tx buffer length */
     bufferLen = (uint16_t)sizeof(txBuffer);
 
-    //uint8_t u8Read = SpiFlash_ReadID();
-
     while (1)
     {
-        if (1u == u8ExIntFlag)
+        while(Pin_Set == GPIO_ReadInputPins(GPIO_PORT_A, GPIO_PIN_00))
         {
-            u8ExIntFlag = 0u;
-            BSP_LED_Off(LED_RED);
-            BSP_LED_Off(LED_BLUE);
-            memset(rxBuffer, 0L, sizeof(rxBuffer));
-            /* Erase sector */
-            SpiFlash_Erase4KbSector(flashAddr);
-            /* Write data to flash */
-            SpiFlash_WritePage(flashAddr, (uint8_t*)&txBuffer[0], bufferLen);
-            /* Read data from flash */
-            SpiFlash_ReadData(flashAddr, (uint8_t*)&rxBuffer[0], bufferLen);
-
-            /* Compare txBuffer and rxBuffer */
-            if (memcmp(txBuffer, rxBuffer, (uint32_t)bufferLen) != 0)
-            {
-                BSP_LED_On(LED_RED);
-            }
-            else
-            {
-                BSP_LED_On(LED_BLUE);
-            }
-
-            /* Flash address offset */
-            flashAddr += FLASH_SRCTOR_SIZE;
-            if (flashAddr >= FALSH_MAX_ADDR)
-            {
-                flashAddr = 0U;
-            }
+            /* Wait */
         }
+        DDL_DelayMS(10UL);
+        while(Pin_Reset == GPIO_ReadInputPins(GPIO_PORT_A, GPIO_PIN_00))
+        {
+            /* Wait */
+        }
+
+        BSP_LED_Off(LED_RED);
+        BSP_LED_Off(LED_BLUE);
+        memset(rxBuffer, 0L, sizeof(rxBuffer));
+        /* Erase sector */
+        SpiFlash_Erase4KbSector(flashAddr);
+        /* Write data to flash */
+        SpiFlash_WritePage(flashAddr, (uint8_t*)&txBuffer[0], bufferLen);
+        /* Read data from flash */
+        SpiFlash_ReadData(flashAddr, (uint8_t*)&rxBuffer[0], bufferLen);
+
+        /* Compare txBuffer and rxBuffer */
+        if (memcmp(txBuffer, rxBuffer, (uint32_t)bufferLen) != 0)
+        {
+            BSP_LED_On(LED_RED);
+        }
+        else
+        {
+            BSP_LED_On(LED_BLUE);
+        }
+
+        /* Flash address offset */
+        flashAddr += FLASH_SRCTOR_SIZE;
+        if (flashAddr >= FALSH_MAX_ADDR)
+        {
+            flashAddr = 0U;
+        }
+
     }
 }
 

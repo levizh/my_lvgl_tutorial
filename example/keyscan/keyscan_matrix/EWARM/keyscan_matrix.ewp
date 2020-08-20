@@ -316,7 +316,9 @@
           <state>$PROJ_DIR$\..\source</state>
           <state>$PROJ_DIR$\..\..\..\..\driver\inc</state>
           <custom>{PROJ_MIDWARE_INC}</custom>
-          <custom>{PROJ_BSP_INC}</custom>
+          <state>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176</state>
+<state>$PROJ_DIR$\..\..\..\..\bsp\components\tca9539</state>
+
           
         </option>
         <option>
@@ -1281,7 +1283,9 @@
           <state>$PROJ_DIR$\..\source</state>
           <state>$PROJ_DIR$\..\..\..\..\driver\inc</state>
           <custom>{PROJ_MIDWARE_INC}</custom>
-          <custom>{PROJ_BSP_INC}</custom>
+          <state>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176</state>
+<state>$PROJ_DIR$\..\..\..\..\bsp\components\tca9539</state>
+
           <state>$PROJ_DIR$\..\..\..\..\utility</state>
         </option>
         <option>
@@ -1950,34 +1954,61 @@
     </file>
     -->
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_icg.c</name>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_clk.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_gpio.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_keyscan.c</name>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_sram.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_utility.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_clk.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_pwc.c</name>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_keyscan.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_interrupts.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_icg.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_i2c.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_gpio.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_efm.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\driver\src\hc32f4a0_pwc.c</name>
     </file>
 
   </group>
   <custom>{PROJ_MIDWARE_GRP_H}</custom>
 <custom>{PROJ_MIDWARE_SRC}</custom>
   <custom>{PROJ_MIDWARE_GRP_T}</custom>
-  <custom>{PROJ_BSP_GRP_H}</custom>
-    <custom>{PROJ_BSP_SRC}</custom>
-      <custom>{PROJ_BSP_GRP_T}</custom>
+  <group>
+<name>bsp</name>
+
+      <group>
+    <name>ev_hc32f4a0_lqfp176</name>
+<file>
+<name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176.c</name>
+</file>
+<file>
+<name>$PROJ_DIR$\..\..\..\..\bsp\ev_hc32f4a0_lqfp176\ev_hc32f4a0_lqfp176_tca9539.c</name>
+</file>
+</group>
+  <group>
+    <name>tca9539</name>
+<file>
+<name>$PROJ_DIR$\..\..\..\..\bsp\components\tca9539\tca9539.c</name>
+</file>
+</group>
+
+      </group>
+
   <group>
     <name>source</name>
     <file>

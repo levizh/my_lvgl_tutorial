@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -217,7 +217,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
     volatile USBH_Status status = USBH_FAIL;
     static  int tet = (int)0;
     /* check for Host port events */
-    if ((HCD_IsDeviceConnected(pdev) == 0ul)&& (phost->gState != HOST_IDLE))
+    if ((HCD_IsDeviceConnected(pdev) == 0UL)&& (phost->gState != HOST_IDLE))
     {
         if(phost->gState != HOST_DEV_DISCONNECTED)
         {
@@ -322,7 +322,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
         case HOST_SUSPENDED:
             break;
         case HOST_ERROR_STATE:
-            /* Re-Initilaize Host for new Enumeration */
+            /* Re-Initialize Host for new Enumeration */
             USBH_DeInit(pdev, phost);
             phost->usr_cb->DeInit();
             phost->class_cb->DeInit(pdev, &phost->device_prop);
@@ -331,7 +331,7 @@ void USBH_Process(USB_OTG_CORE_HANDLE *pdev , USBH_HOST *phost)
             /* Manage User disconnect operations*/
             phost->usr_cb->DeviceDisconnected();
 
-            /* Re-Initilaize Host for new Enumeration */
+            /* Re-Initialize Host for new Enumeration */
             USBH_DeInit(pdev, phost);
             phost->usr_cb->DeInit();
             phost->class_cb->DeInit(pdev, &phost->device_prop);
@@ -663,7 +663,9 @@ static USBH_Status USBH_HandleControl (USB_OTG_CORE_HANDLE *pdev, USBH_HOST *pho
             }
             else if ((HCD_GetCurrentFrame(pdev)- phost->Control.timer) > timeout)
             {
+#if (DDL_PRINT_ENABLE == DDL_ON)
                 printf("Device not responding\n");
+#endif
             }
             else
             {

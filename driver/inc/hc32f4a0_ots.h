@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-21       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -84,14 +84,34 @@ extern "C"
  * @defgroup OTS_Global_Types OTS Global Types
  * @{
  */
+
+/**
+ * @brief Conditions for default parameters(slope K and offset M).
+ * @note 'u8T1' CANNOT equal 'u8T2'.
+ */
 typedef struct
 {
-    uint16_t u16ClkSel;
-    uint16_t u16AutOffEn;
-    float32_t f32ParaK;
-    float32_t f32ParaM;
-    uint32_t u32ClkMHz;
-    en_functional_state_t enUseDefaultPara;
+    uint16_t u16ClkFreq;                    /*!< Frequency(MHz) of clock sources that OTS is going to use. */
+    uint8_t u8T1;                           /*!< Temperature value T1 for the default parameter.
+                                                 This parameter can be a value of @ref OTS_Temp_Condition */
+    uint8_t u8T2;                           /*!< Temperature value T2 for the default parameter.
+                                                 This parameter can be a value of @ref OTS_Temp_Condition */
+} stc_para_cond_t;
+
+/**
+ * @brief OTS initialization structure.
+ */
+typedef struct
+{
+    uint16_t u16ClkSrc;                     /*!< Specifies clock source for OTS.
+                                                 This parameter can be a value of @ref OTS_Clock_Source */
+    float32_t f32SlopeK;                    /*!< K: Temperature slope (calculated by calibration experiment). \
+                                                 When you want to use the default parameters(slope K and offset M), specify it as ZERO. */
+    float32_t f32OffsetM;                   /*!< M: Temperature offset (calculated by calibration experiment). \
+                                                 When you want to use the default parameters(slope K and offset M), specify it as ZERO. */
+    uint16_t u16AutoOffEn;                  /*!< OTS automatic-off function control.
+                                                 This parameter can be a value of @ref OTS_Automatic_Off_Ctrl */
+    stc_para_cond_t stcParaCond;            /*!< Specify the conditions when you want to use the default parameters(slope K and offset M). */
 } stc_ots_init_t;
 
 /**
@@ -107,33 +127,42 @@ typedef struct
  */
 
 /**
- * @defgroup OTS_Clock_Selection OTS Clock Selection
+ * @defgroup OTS_Clock_Source OTS Clock Source
  * @{
  */
-#define OTS_CLK_XTAL                (0x0U)              /*!< Select XTAL as OTS clock. */
-#define OTS_CLK_HRC                 (OTS_CTL_OTSCK)     /*!< Select HRC as OTS clock */
+#define OTS_CLK_XTAL                    (0x0U)              /*!< Select XTAL as OTS clock. */
+#define OTS_CLK_HRC                     (OTS_CTL_OTSCK)     /*!< Select HRC as OTS clock */
 /**
  * @}
  */
 
 /**
- * @defgroup OTS_Automatic_Off_Command OTS Automatic Off Command
+ * @defgroup OTS_Automatic_Off_Ctrl OTS Automatic Off Control
  * @{
  */
-#define OTS_AUTO_OFF_DISABLE        (0x0U)
-#define OTS_AUTO_OFF_ENABLE         (OTS_CTL_TSSTP)
+#define OTS_AUTO_OFF_DISABLE            (0x0U)
+#define OTS_AUTO_OFF_ENABLE             (OTS_CTL_TSSTP)
 /**
  * @}
  */
 
 /**
- * @defgroup OTS_Common_Trigger_Event_Command OTS Common Trigger Event Command
+ * @defgroup OTS_Temp_Condition OTS Temperature Condition For Default Parameters(slope K and offset M)
  * @{
  */
-#define OTS_COM1_TRIG_DISABLE       (0x00UL)
-#define OTS_COM2_TRIG_DISABLE       (0x00UL)
-#define OTS_COM1_TRIG_ENABLE        (0x01UL << 30U)
-#define OTS_COM2_TRIG_ENABLE        (0x01UL << 31U)
+#define OTS_COND_TN40                   (0U)                /*!< -40 degrees Celsius. */
+#define OTS_COND_T25                    (1U)                /*!< 25 degrees Celsius. */
+#define OTS_COND_T125                   (2U)                /*!< 125 degrees Celsius. */
+/**
+ * @}
+ */
+
+/**
+ * @defgroup OTS_Common_Trigger_Sel OTS Common Trigger Source Select
+ * @{
+ */
+#define OTS_COM_TRIG1                   (AOS_OTS_TRG_COMTRG_EN_0)
+#define OTS_COM_TRIG2                   (AOS_OTS_TRG_COMTRG_EN_1)
 /**
  * @}
  */
@@ -181,8 +210,12 @@ void OTS_DeInit(void);
 en_result_t OTS_Polling(float32_t *pf32Temp, uint32_t u32Timeout);
 
 void OTS_IntCmd(en_functional_state_t enNewState);
-void OTS_SetTrigEvent(en_event_src_t enEvent);
-void OTS_ComTrigCmd(uint32_t u32ComTrigEn);
+void OTS_SetTriggerSrc(en_event_src_t enEvent);
+void OTS_ComTriggerCmd(uint32_t u32ComTrig, en_functional_state_t enNewState);
+
+en_result_t OTS_ScalingExperiment(uint16_t *pu16Dr1, uint16_t *pu16Dr2, \
+                                  uint16_t *pu16Ecr, float32_t *pf32A,  \
+                                  uint32_t u32Timeout);
 
 float OTS_CalculateTemp(void);
 

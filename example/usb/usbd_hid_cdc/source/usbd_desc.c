@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_hid_cdc\source\usbd_desc.c
+ * @file  usb/usbd_hid_cdc/source/usbd_desc.c
  * @brief This file provides the USBD descriptors and string formating method.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -209,7 +209,7 @@ uint8_t *  USBD_USR_LangIDStrDescriptor( uint8_t speed , uint16_t *length)
 */
 uint8_t *  USBD_USR_ProductStrDescriptor( uint8_t speed , uint16_t *length)
 {
-    if(speed == 0u)
+    if(speed == 0U)
     {
         USBD_GetString ((uint8_t *)USBD_PRODUCT_HS_STRING, USBD_StrDesc, length);
     }
@@ -282,7 +282,7 @@ uint8_t *  USBD_USR_ConfigStrDescriptor( uint8_t speed , uint16_t *length)
 */
 uint8_t *  USBD_USR_InterfaceStrDescriptor( uint8_t speed , uint16_t *length)
 {
-    if(speed == 0u)
+    if(speed == 0U)
     {
         USBD_GetString ((uint8_t *)USBD_INTERFACE_HS_STRING, USBD_StrDesc, length);
     }

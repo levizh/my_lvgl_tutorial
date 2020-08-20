@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-04       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -71,7 +71,7 @@ extern "C"
  */
 
 /**
- * @addtogroup HRPWM
+ * @addtogroup DDL_HRPWM
  * @{
  */
 

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-09        Heqb         First version
+   2020-06-12        Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -82,7 +82,6 @@
  * @{
  */
 
-
 /**
  * @defgroup CMP_Check_Parameters_Validity CMP Check Parameters Validity
  * @{
@@ -150,9 +149,6 @@
 (   ((x) == CMP_TIMERWIN_OFF)                   ||                             \
     ((x) == CMP_TIMERWIN_ON))
 
-#define IS_CMP_TIMWIN_SELECT(x)                                                \
-(   (x) <= CMP_TWSR_MASK))
-
 #define IS_CMP_TIMWIN_INVALIDLEVEL(x)                                          \
 (   ((x) == CMP_TIMERWIN_INVALID_LEVEL_LOW)     ||                             \
     ((x) == CMP_TIMERWIN_INVALID_LEVEL_HIGH))
@@ -160,7 +156,6 @@
 #define IS_CMP_TIMWIN_OUT_LEVEL(x)                                             \
 (   ((x) == CMP_TIMERWIN_OUT_LEVEL_LOW)         ||                             \
     ((x) == CMP_TIMERWIN_OUT_LEVEL_HIGH))
-
 /**
  * @}
  */
@@ -203,12 +198,12 @@ en_result_t CMP_StructInit(stc_cmp_init_t *pstcCMP_InitStruct)
     en_result_t enRet = ErrorInvalidParameter;
     if (pstcCMP_InitStruct != NULL)
     {
-        enRet = Ok;
         pstcCMP_InitStruct->u8CmpCh = CMP_CVSL_NONE;
         pstcCMP_InitStruct->u8RefVol = CMP_RVSL_NONE;
         pstcCMP_InitStruct->u8OutDetectEdges = CMP_DETECT_EDGS_NONE;
         pstcCMP_InitStruct->u8OutFilter = CMP_OUT_FILTER_NONE;
         pstcCMP_InitStruct->u8OutPolarity = CMP_OUT_REVERSE_OFF;
+        enRet = Ok;
     }
     return enRet;
 }
@@ -221,12 +216,10 @@ en_result_t CMP_StructInit(stc_cmp_init_t *pstcCMP_InitStruct)
  *   @arg  M0P_CMP2:   CMP unit 2 instance register base
  *   @arg  M0P_CMP3:   CMP unit 3 instance register base
  *   @arg  M0P_CMP4:   CMP unit 4 instance register base
- * @retval Ok: Success
- *         ErrorInvalidParameter: Parameter error
+ * @retval None
  */
-en_result_t CMP_DeInit(M4_CMP_TypeDef *CMPx)
+void CMP_DeInit(M4_CMP_TypeDef *CMPx)
 {
-    en_result_t enRet = ErrorInvalidParameter;
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     CLEAR_REG8(CMPx->MDR);
     CLEAR_REG8(CMPx->FIR);
@@ -235,8 +228,6 @@ en_result_t CMP_DeInit(M4_CMP_TypeDef *CMPx)
     CLEAR_REG16(CMPx->VISR);
     CLEAR_REG16(CMPx->TWSR);
     CLEAR_REG16(CMPx->TWPR);
-    enRet = Ok;
-    return enRet;
 }
 
 /**
@@ -259,7 +250,6 @@ en_result_t CMP_NormalModeInit(M4_CMP_TypeDef *CMPx,
     /* Check CMPx instance and configuration structure*/
     if  (NULL != pstcCmpInit)
     {
-        enRet = Ok;
         /* Check parameters */
         DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
         DDL_ASSERT(IS_CMP_CVSL_CH(pstcCmpInit->u8CmpCh));
@@ -292,10 +282,10 @@ en_result_t CMP_NormalModeInit(M4_CMP_TypeDef *CMPx,
         SET_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
         /* Delay 300ns*/
         CMP_Delay300ns();
-
         /* Set output filter and output detect edge and output polarity */
         WRITE_REG8(CMPx->FIR, (pstcCmpInit->u8OutFilter | pstcCmpInit->u8OutDetectEdges));
         WRITE_REG8(CMPx->OCR, pstcCmpInit->u8OutPolarity);
+        enRet = Ok;
     }
     return enRet;
 }
@@ -304,10 +294,10 @@ en_result_t CMP_NormalModeInit(M4_CMP_TypeDef *CMPx,
  * @brief  CMP window mode initialize
  * @param  [in] CMPx   Pointer to CMP instance register base
  *   This parameter can be one of the following values:
- *   @arg  M4_CMP1:   Select CMP1 CMP2 for window comparison
- *   @arg  M4_CMP2:   Select CMP1 CMP2 for window comparison
- *   @arg  M4_CMP3:   Select CMP3 CMP4 for window comparison
- *   @arg  M4_CMP4:   Select CMP3 CMP4 for window comparison
+ *   @arg  M4_CMP1:   Select CMP1 and CMP2 for window comparison
+ *   @arg  M4_CMP2:   Select CMP1 and CMP2 for window comparison
+ *   @arg  M4_CMP3:   Select CMP3 and CMP4 for window comparison
+ *   @arg  M4_CMP4:   Select CMP3 and CMP4 for window comparison
  * @param  [in] pstcCmpInit    Configuration structure for window mode initialize
  *   @arg  See the structure definition for @ref stc_cmp_init_t
  * @param  [in] pstcCmpWinRef  Configuration structure for window mode reference voltage
@@ -323,7 +313,6 @@ en_result_t CMP_WindowModeInit(const M4_CMP_TypeDef *CMPx,
     /* Check configuration structure */
     if (NULL != pstcCmpInit)
     {
-        enRet = Ok;
         /* Check parameters */
         DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
         DDL_ASSERT(IS_CMP_CVSL_CH(pstcCmpWinRef->u8CmpCh1));
@@ -379,6 +368,7 @@ en_result_t CMP_WindowModeInit(const M4_CMP_TypeDef *CMPx,
             WRITE_REG8(M4_CMP4->FIR, pstcCmpInit->u8OutFilter | pstcCmpInit->u8OutDetectEdges);
             WRITE_REG8(M4_CMP4->OCR, pstcCmpInit->u8OutPolarity);
         }
+        enRet = Ok;
     }
     return enRet;
 }
@@ -411,7 +401,6 @@ void CMP_FuncCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
     {
         CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     }
-
 }
 
 /**
@@ -439,7 +428,6 @@ void CMP_IntCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
     {
         CLEAR_REG8_BIT(CMPx->FIR, CMP_FIR_CIEN);
     }
-
 }
 
 /**
@@ -467,7 +455,6 @@ void CMP_OutputCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
     {
         CLEAR_REG8_BIT(CMPx->OCR, CMP_OCR_COEN);
     }
-
 }
 
 /**
@@ -495,7 +482,6 @@ void CMP_VCOUTCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
     {
         CLEAR_REG8_BIT(CMPx->OCR, CMP_OCR_CPOE);
     }
-
 }
 
 /**
@@ -512,16 +498,14 @@ void CMP_VCOUTCmd(M4_CMP_TypeDef *CMPx, en_functional_state_t enNewStatus)
  *         In Window mode:
  *         Reset:     compare voltage < reference low voltage or
  *                    compare voltage > reference high voltage
- *         Set:       compare voltage > reference low voltage and
- *                    compare voltage < reference high voltage
+ *         Set:       reference low voltage < compare voltage < reference high voltage
  */
 en_flag_status_t CMP_GetResult(const M4_CMP_TypeDef *CMPx)
 {
-    en_flag_status_t enRet = Reset;
+    en_flag_status_t enRet;
     /* Check CMPx instance */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     enRet = READ_REG8_BIT(CMPx->MDR, CMP_MDR_CMON) ? Set : Reset;
-
     return enRet;
 }
 
@@ -533,6 +517,7 @@ en_flag_status_t CMP_GetResult(const M4_CMP_TypeDef *CMPx)
  *   @arg  M4_CMP2:   CMP unit 2 instance register base
  *   @arg  M4_CMP3:   CMP unit 3 instance register base
  *   @arg  M4_CMP4:   CMP unit 4 instance register base
+ * @param  [in] pstcCMP_TimerWinStruct  Configuration structure for Timer window mode.
  * @retval Ok: Successfully
  *         ErrorInvalidParameter: Parameter error
  */
@@ -548,15 +533,14 @@ en_result_t CMP_TimerWindowConfig(M4_CMP_TypeDef *CMPx,
         DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
         DDL_ASSERT(IS_CMP_TIMWIN_INVALIDLEVEL(pstcCMP_TimerWinStruct->u8TWInvalidLevel));
         DDL_ASSERT(IS_CMP_TIMWIN_OUT_LEVEL(pstcCMP_TimerWinStruct->u8TWOutLevel));
-        //DDL_ASSERT(IS_CMP_TIMWIN_SELECT(pstcCMP_TimerWinStruct->u16TWSelect));
         /* Select timer window mode */
         SET_REG8_BIT(CMPx->OCR, CMP_OCR_TWOE);
         /* Select output level when timer window invalid */
         MODIFY_REG8(CMPx->OCR, CMP_OCR_TWOL, pstcCMP_TimerWinStruct->u8TWInvalidLevel);
-        /* Selecet Timer window source  */
+        /* Select Timer window source  */
         WRITE_REG16(CMPx->TWSR, pstcCMP_TimerWinStruct->u16TWSelect);
         /* Select timer window mode output level */
-        if(pstcCMP_TimerWinStruct->u8TWOutLevel)
+        if(CMP_TIMERWIN_OUT_LEVEL_HIGH == pstcCMP_TimerWinStruct->u8TWOutLevel)
         {
             SET_REG16_BIT(CMPx->TWPR, pstcCMP_TimerWinStruct->u16TWSelect);
         }
@@ -569,7 +553,7 @@ en_result_t CMP_TimerWindowConfig(M4_CMP_TypeDef *CMPx,
 }
 
 /**
- * @brief  Set output detecte edge
+ * @brief  Set output detect edge
  * @param  [in] CMPx    Pointer to CMP instance register base
  *   This parameter can be one of the following values:
  *   @arg  M4_CMP1:   CMP unit 1 instance register base
@@ -586,7 +570,7 @@ en_result_t CMP_TimerWindowConfig(M4_CMP_TypeDef *CMPx,
  */
 void CMP_SetOutDetectEdges(M4_CMP_TypeDef *CMPx, uint8_t u8CmpEdges)
 {
-    uint8_t u8temp = 0U;
+    uint8_t u8temp;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_OUT_DETECT_EDGE(u8CmpEdges));
@@ -596,15 +580,13 @@ void CMP_SetOutDetectEdges(M4_CMP_TypeDef *CMPx, uint8_t u8CmpEdges)
     CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* CMP output detect edge selection */
     MODIFY_REG8(CMPx->FIR, CMP_FIR_EDGS, u8CmpEdges);
-
-    if(u8temp)
+    if(u8temp != 0U)
     {
         /* Recover CMP status */
         MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-
 }
 
 /**
@@ -625,7 +607,7 @@ void CMP_SetOutDetectEdges(M4_CMP_TypeDef *CMPx, uint8_t u8CmpEdges)
  */
 void CMP_SetOutputFilter(M4_CMP_TypeDef *CMPx, uint8_t u8CmpFilter)
 {
-    uint8_t u8temp = 0U;
+    uint8_t u8temp;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_OUT_FILTER(u8CmpFilter));
@@ -635,15 +617,13 @@ void CMP_SetOutputFilter(M4_CMP_TypeDef *CMPx, uint8_t u8CmpFilter)
     CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* CMP output filter selection */
     MODIFY_REG8(CMPx->FIR, CMP_FIR_FCKS, u8CmpFilter);
-
-    if(u8temp)
+    if(u8temp != 0U)
     {
         /* Recover CMP status */
         MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-
 }
 
 /**
@@ -662,7 +642,7 @@ void CMP_SetOutputFilter(M4_CMP_TypeDef *CMPx, uint8_t u8CmpFilter)
  */
 void CMP_SetOutputPolarity(M4_CMP_TypeDef *CMPx, uint8_t u8CmpPolarity)
 {
-    uint8_t u8temp = 0U;
+    uint8_t u8temp;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_OUT_POLARITY(u8CmpPolarity));
@@ -672,15 +652,13 @@ void CMP_SetOutputPolarity(M4_CMP_TypeDef *CMPx, uint8_t u8CmpPolarity)
     CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* CMP output polarity selection */
     MODIFY_REG8(CMPx->OCR, CMP_OCR_COPS, u8CmpPolarity);
-
-    if(u8temp)
+    if(u8temp != 0U)
     {
         /* Recover CMP status */
         MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-
 }
 
 /**
@@ -701,27 +679,27 @@ void CMP_SetOutputPolarity(M4_CMP_TypeDef *CMPx, uint8_t u8CmpPolarity)
  * @param  [in] u8CmpVol   Select the compare voltage source (Config the parameter when use CMP1 or CMP3)
  *   This parameter can be one of the following values:
  *   When use CMP1:
- *   @arg  CMP1_INP3_NONE       Don't input voltage to CMP1 INP3
- *   @arg  CMP1_INP3_CMP1_INP3  Select CMP1_INP3 as CMP1 INP3 input
- *   @arg  CMP1_INP3_CMP2_INP3  Select CMP2_INP3 as CMP1 INP3 input
- *   @arg  CMP1_INP2_NONE       Don't input voltage to CMP1 INP2
- *   @arg  CMP1_INP2_PGA1       Select PGA1 as CMP1 INP2 input
- *   @arg  CMP1_INP2_PGA2       Select PGA2 as CMP1 INP2 input
- *   @arg  CMP1_INP2_CMP1_INP2  Select CMP1_INP2 as CMP1 INP2 input
+ *   @arg  CMP1_INP3_NONE:      Don't input voltage to CMP1 INP3
+ *   @arg  CMP1_INP3_CMP1_INP3: Select CMP1_INP3 as CMP1 INP3 input
+ *   @arg  CMP1_INP3_CMP2_INP3: Select CMP2_INP3 as CMP1 INP3 input
+ *   @arg  CMP1_INP2_NONE:      Don't input voltage to CMP1 INP2
+ *   @arg  CMP1_INP2_PGA1:      Select PGA1 as CMP1 INP2 input
+ *   @arg  CMP1_INP2_PGA2:      Select PGA2 as CMP1 INP2 input
+ *   @arg  CMP1_INP2_CMP1_INP2: Select CMP1_INP2 as CMP1 INP2 input
  *   When use CMP3:
- *   @arg  CMP3_INP3_NONE       Don't input voltage to CMP3 INP3
- *   @arg  CMP3_INP3_CMP3_INP3  Select CMP3_INP3 as CMP3 INP3 input
- *   @arg  CMP3_INP3_CMP4_INP3  Select CMP4_INP3 as CMP3 INP3 input
- *   @arg  CMP3_INP2_NONE       Don't input voltage to CMP3 INP2
- *   @arg  CMP3_INP2_PGA3       Select PGA3 as CMP3 INP2 input
- *   @arg  CMP3_INP2_PGA4       Select PGA4 as CMP3 INP2 input
- *   @arg  CMP3_INP2_CMP3_INP2  Select CMP3_INP2 as CMp3 INP2 input
+ *   @arg  CMP3_INP3_NONE:      Don't input voltage to CMP3 INP3
+ *   @arg  CMP3_INP3_CMP3_INP3: Select CMP3_INP3 as CMP3 INP3 input
+ *   @arg  CMP3_INP3_CMP4_INP3: Select CMP4_INP3 as CMP3 INP3 input
+ *   @arg  CMP3_INP2_NONE:      Don't input voltage to CMP3 INP2
+ *   @arg  CMP3_INP2_PGA3:      Select PGA3 as CMP3 INP2 input
+ *   @arg  CMP3_INP2_PGA4:      Select PGA4 as CMP3 INP2 input
+ *   @arg  CMP3_INP2_CMP3_INP2: Select CMP3_INP2 as CMp3 INP2 input
  * @retval None
  * @note   When use INP1 or INP4, please set u8CmpVol to 0
  */
 void CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8CmpVol)
 {
-    uint8_t u8temp = 0U;
+    uint8_t u8temp;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_CVSL_CH(u8CmpCh));
@@ -741,15 +719,13 @@ void CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8CmpVol)
         DDL_ASSERT(IS_CMP3_CVSL_SOURCE(u8CmpVol));
         WRITE_REG8(CMPx->VISR, u8CmpVol);
     }
-
-    if(u8temp)
+    if(u8temp != 0U)
     {
         /* Recover CMP status */
         MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-
 }
 
 /**
@@ -771,7 +747,7 @@ void CMP_SetCompareVol(M4_CMP_TypeDef *CMPx, uint8_t u8CmpCh, uint8_t u8CmpVol)
  */
 void CMP_SetRefVol(M4_CMP_TypeDef *CMPx, uint8_t u8RefVol)
 {
-    uint8_t u8temp = 0U;
+    uint8_t u8temp;
     /* Check parameters */
     DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
     DDL_ASSERT(IS_CMP_RVSL(u8RefVol));
@@ -781,20 +757,43 @@ void CMP_SetRefVol(M4_CMP_TypeDef *CMPx, uint8_t u8RefVol)
     CLEAR_REG8_BIT(CMPx->MDR, CMP_MDR_CENB);
     /* Set reference voltage */
     MODIFY_REG8(CMPx->PMSR, CMP_PMSR_RVSL, u8RefVol);
-
-    if(u8temp)
+    if(u8temp != 0U)
     {
         /* Recover CMP status */
         MODIFY_REG8(CMPx->MDR, CMP_MDR_CENB, u8temp);
         /* Delay 300ns */
         CMP_Delay300ns();
     }
-
 }
 
 /**
- * @}
+ * @brief  Ste CMP Timer window signal.
+ * @param  [in] CMPx    Pointer to CMP instance register base
+ *   This parameter can be one of the following values:
+ *   @arg  M4_CMP1:   CMP unit 1 instance register base
+ *   @arg  M4_CMP2:   CMP unit 2 instance register base
+ *   @arg  M4_CMP3:   CMP unit 3 instance register base
+ *   @arg  M4_CMP4:   CMP unit 4 instance register base
+ * @param  [in] u16TWSignal             Selection timer window signal
+ *  This parameter can be value of @ref CMP_TimerWin_Select
+ * @param  [in] enNewStatus    The function new status.
+ *   This parameter can be: Enable or Disable.
+ * @retval None
  */
+void CMP_SetTimerWinSignal(M4_CMP_TypeDef *CMPx,          \
+                            uint16_t u16TWSignal, en_functional_state_t enNewStatus)
+{
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewStatus));
+    DDL_ASSERT(IS_CMP_INSTANCE(CMPx));
+    if (enNewStatus == Enable)
+    {
+        MODIFY_REG16(CMPx->TWSR, u16TWSignal, u16TWSignal);
+    }
+    else
+    {
+        CLEAR_REG16_BIT(CMPx->TWSR, u16TWSignal);
+    }
+}
 
 /**
  * @brief  Software delay 300ns.
@@ -803,13 +802,17 @@ void CMP_SetRefVol(M4_CMP_TypeDef *CMPx, uint8_t u8RefVol)
  */
 static void CMP_Delay300ns(void)
 {
-    for(uint32_t i=0UL; i<(SystemCoreClock/3333333UL + 1UL); i++)
+    for(uint32_t i=0UL; i<(HCLK_VALUE/3333333UL + 1UL); i++)
     {
         __NOP();
     }
 }
 
-#endif /* DDL_CMP_ENABLE */
+/**
+ * @}
+ */
+
+#endif  /* DDL_CMP_ENABLE */
 
 /**
  * @}

@@ -5,7 +5,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-26       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
+   2020-07-03       Zhangxl         Delay ms before HCLK switches to XTAL32
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -73,6 +74,9 @@
  ******************************************************************************/
 #define MCO_PORT        (GPIO_PORT_A)
 #define MCO_PIN         (GPIO_PIN_08)
+
+#define DLY_MS          (100UL)
+
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -80,13 +84,70 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static en_result_t XtalInit(void);
+static en_result_t Xtal32Init(void);
+static en_result_t PLLHInit(void);
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static en_result_t XtalInit(void);
-static en_result_t Xtal32Init(void);
-static en_result_t PLLHInit(void);
+
+/*******************************************************************************
+ * Function implementation - global ('extern') and local ('static')
+ ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+//    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+//    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  Xtal initialize
@@ -142,14 +203,12 @@ static en_result_t PLLHInit(void)
                 CLK_HCLK_DIV1));
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
 
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
-    EFM_Lock();
 
     /* PLLH config */
     CLK_PLLHStrucInit(&stcPLLHInit);
@@ -167,9 +226,6 @@ static en_result_t PLLHInit(void)
     return CLK_PLLHInit(&stcPLLHInit);
 }
 
-/*******************************************************************************
- * Function implementation - global ('extern') and local ('static')
- ******************************************************************************/
 /**
  * @brief  Main function of CLK project
  * @param  None
@@ -177,14 +233,19 @@ static en_result_t PLLHInit(void)
  */
 int32_t main(void)
 {
+    /* Register write unprotected for some required peripherals. */
+    Peripheral_WE();
+    /* Expand IO init */
     BSP_IO_Init();
+    /* Matrix key init */
     BSP_KEY_Init();
+    /* LED init */
     BSP_LED_Init();
 
     /* Configure clock output system clock */
-    CLK_MCO1Config(CLK_MCOSOURCCE_SYSCLK, CLK_MCODIV_128);
+    CLK_MCO1Config(CLK_MCOSOURCCE_SYSCLK, CLK_MCO_DIV128);
     /* Configure clock output pin */
-    GPIO_SetFunc(MCO_PORT, MCO_PIN, GPIO_FUNC_1_MCO, Disable);
+    GPIO_SetFunc(MCO_PORT, MCO_PIN, GPIO_FUNC_1_MCO, PIN_SUBFUNC_DISABLE);
     /* MCO1 output enable */
     CLK_MCO1Cmd(Enable);
 
@@ -193,6 +254,8 @@ int32_t main(void)
     Xtal32Init();
 
     PLLHInit();
+    /* Register write protected for some required peripherals. */
+    Peripheral_WP();
 
     while(1)
     {
@@ -224,6 +287,7 @@ int32_t main(void)
         if (Set == BSP_KEY_GetStatus(BSP_KEY_5))
         {
             CLK_Xtal32Cmd(Enable);
+            DDL_DelayMS(DLY_MS);
             CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_XTAL32);
         }
         /* PLLH output */

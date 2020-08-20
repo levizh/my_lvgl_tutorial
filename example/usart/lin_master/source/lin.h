@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  lin.h
+ * @file  usart/lin_master/source/lin.h
  * @brief This file contains all the functions prototypes of the LIN midware
  *        library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-28       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -70,7 +70,7 @@ extern "C"
  */
 
 /**
- * @addtogroup LIN_Master
+ * @addtogroup USART_LIN_Master
  * @{
  */
 
@@ -94,7 +94,7 @@ extern "C"
  * Global type definitions ('typedef')
  ******************************************************************************/
 /**
- * @defgroup LIN_Global_Types LIN Global Types
+ * @defgroup USART_LIN_Master_Global_Types USART LIN Master Global Types
  * @{
  */
 
@@ -173,13 +173,13 @@ typedef struct
 {
     uint8_t  u8RxPort;              /*!< GPIO_PORT_x, x can be (A~I) to select the GPIO peripheral */
 
-    uint16_t u16RxPin;              /*!< GPIO_PIN_x, x can be (0~15) to select the PIN index */
+    uint16_t u16RxPin;              /*!< GPIO_PIN_x, x can be (00~15) to select the PIN index */
 
     uint8_t  u8RxPinFunc;           /*!< GPIO_FUNC_x, x can be selected from GPIO function definitions */
 
     uint8_t  u8TxPort;              /*!< GPIO_PORT_x, x can be (A~I) to select the GPIO peripheral */
 
-    uint16_t u16TxPin;              /*!< GPIO_PIN_x, x can be (0~15) to select the PIN index */
+    uint16_t u16TxPin;              /*!< GPIO_PIN_x, x can be (00~15) to select the PIN index */
 
     uint8_t  u8TxPinFunc;           /*!< GPIO_FUNC_x, x can be selected from GPIO function definitions */
 } stc_lin_pin_cfg_t;
@@ -196,13 +196,13 @@ typedef struct
                                              This parameter can be a value of @ref LIN_Mode */
 
     stc_usart_lin_init_t stcLinInit;    /*!< LIN function initialization structure
-                                             This structure details refer @ref stc_lin_init_t */
+                                             This structure details refer @ref stc_usart_lin_init_t */
 
     stc_lin_pin_cfg_t    stcPinCfg;     /*!< LIN pin configure structure
-                                             This structure details refer @ref stc_lin_pin_config_t */
+                                             This structure details refer @ref stc_lin_pin_cfg_t */
 
     stc_lin_int_cfg_t    stcIrqnCfg;    /*!< LIN function IRQ number configure structure
-                                             This structure details refer @ref stc_lin_irqn_t */
+                                             This structure details refer @ref stc_lin_int_cfg_t */
 
     en_lin_state_t       enLinState;    /*!< LIN state
                                              This parameter can be a value of @ref en_lin_state_t */
@@ -219,7 +219,7 @@ typedef struct
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup LIN_Global_Macros LIN Global Macros
+ * @defgroup USART_LIN_Master_Global_Macros USART LIN Master Global Macros
  * @{
  */
 
@@ -227,8 +227,8 @@ typedef struct
  * @defgroup LIN_Mode LIN Mode
  * @{
  */
-#define LIN_MASTER                      ((uint32_t)0UL)   /*!< LIN master */
-#define LIN_SLAVE                       ((uint32_t)1UL)   /*!< LIN slave */
+#define LIN_MASTER                      (0UL)       /*!< LIN master */
+#define LIN_SLAVE                       (1UL)       /*!< LIN slave */
 /**
  * @}
  */
@@ -265,7 +265,7 @@ typedef struct
   Global function prototypes (definition in C source)
  ******************************************************************************/
 /**
- * @addtogroup LIN_Global_Functions
+ * @addtogroup USART_LIN_Master_Global_Functions
  * @{
  */
 

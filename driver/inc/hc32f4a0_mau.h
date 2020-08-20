@@ -6,7 +6,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-09       Hexiao          First version
+   2020-06-12       Hexiao          First version
+   2020-07-15       Hexiao          Modify MAU_SqrtStartCmd to MAU_SqrtStart
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -91,10 +92,11 @@ extern "C"
  * @defgroup MAU_Global_Macros MAU Global Macros
  * @{
  */
-#define MAU_SQRT_TIMEOUT            (0x1000UL)
-#define MAU_SQRT_OUTPUT_LSHIFT_MAX  (16U)
-#define MAU_SIN_Q15_SCALAR          (0x8000UL)
-#define MAU_SIN_ANG_TOTAL           (0x1000UL)
+
+#define MAU_SQRT_TIMEOUT               (HCLK_VALUE / 10000UL)/* About 1mS timeout */
+#define MAU_SQRT_OUTPUT_LSHIFT_MAX     (16U)
+#define MAU_SIN_Q15_SCALAR             (0x8000UL)
+#define MAU_SIN_ANGIDX_TOTAL           (0x1000UL)
 
 /**
  * @}
@@ -107,86 +109,25 @@ extern "C"
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+
 /**
  * @addtogroup MAU_Global_Functions
  * @{
  */
 
-/**
- * @brief   Square root
- * @param  [in]  pstMAUx       Pointer to MAU instance register base
- *         This parameter can only be: @arg M4_MAU
- * @param  [in]  u32Radicand   data to be square rooted
- * @param  [out] pu32Result    Result of square root,range is [0,0x10000]
- * @retval None
- */
-__STATIC_INLINE en_result_t MAU_Sqrt(M4_MAU_TypeDef * pstMAUx, uint32_t u32Radicand, uint32_t *pu32Result)
-{
-    DDL_ASSERT(M4_MAU == pstMAUx);
-    DDL_ASSERT(NULL != pu32Result);
+void MAU_SqrtInit(M4_MAU_TypeDef *MAUx, uint8_t u8LShBitsNumber, en_functional_state_t enIntNewState);
+void MAU_SqrtDeInit(M4_MAU_TypeDef *MAUx);
 
-    uint32_t u32TimeCount = 0UL;
-    en_result_t enRet = Ok;
-    uint32_t const u32WaitBusyHCount = 3UL;
+void MAU_SqrtResultLShiftCfg(M4_MAU_TypeDef *MAUx, uint8_t u8LShBitsNumber);
+void MAU_SqrtIntCmd(M4_MAU_TypeDef *MAUx, en_functional_state_t enNewState);
+void MAU_SqrtWriteDataReg(M4_MAU_TypeDef *MAUx, uint32_t u32Radicand);
+en_flag_status_t MAU_SqrtGetStatus(const M4_MAU_TypeDef *MAUx);
+uint32_t MAU_SqrtReadDataReg(const M4_MAU_TypeDef *MAUx);
+void MAU_SqrtStart(M4_MAU_TypeDef* MAUx);
 
-    WRITE_REG32(pstMAUx->DTR0, u32Radicand);
-    SET_REG32_BIT(pstMAUx->CSR, MAU_CSR_START);
-    for(uint32_t i = 0UL; i < u32WaitBusyHCount; i++)
-    {
-        __ASM("NOP");
-    }
+en_result_t MAU_Sqrt(M4_MAU_TypeDef *MAUx, uint32_t u32Radicand, uint32_t *pu32Result);
 
-    while((pstMAUx->CSR & MAU_CSR_BUSY) != 0UL)
-    {
-        if(u32TimeCount++ > MAU_SQRT_TIMEOUT)
-        {
-            enRet = Error;
-            break;
-        }
-    }
-
-    if(Ok == enRet)
-    {
-        *pu32Result = READ_REG32(pstMAUx->RTR0);
-    }
-
-    return enRet;
-}
-
-/**
- * @brief  Read result of sqrt
- * @param  [in] pstMAUx   Pointer to MAU instance register base
- *         This parameter can only be: @arg M4_MAU
- * @retval Result of square root,range is [0,0x10000]
- */
-__STATIC_INLINE uint32_t MAU_SqrtRead(M4_MAU_TypeDef *const pstMAUx)
-{
-    DDL_ASSERT(M4_MAU == pstMAUx);
-
-    return READ_REG32(pstMAUx->RTR0);
-}
-
-/**
- * @brief  Sine
- * @param  [in] pstMAUx   Pointer to MAU instance register base
- *         This parameter can only be: @arg M4_MAU
- * @param  AngleIdx: Angle index,range is [0,0xFFF], calculation method for reference:
-           AngleIdx=(uint32_t)(Angle * 4096.0F / 360.0F + 0.5F) % 4096U
- * @retval Result of Sine in Q15 format
- */
-__STATIC_INLINE int16_t MAU_Sin(M4_MAU_TypeDef * pstMAUx, uint16_t u16AngleIdx)
-{
-    WRITE_REG16(pstMAUx->DTR1, u16AngleIdx);
-
-    __ASM("NOP");
-    return (int16_t)READ_REG16(pstMAUx->RTR1);
-}
-
-void MAU_SqrtResultLShiftCfg(M4_MAU_TypeDef * pstMAUx, uint8_t u8LShBitsNumber);
-void MAU_SqrtIntCmd(M4_MAU_TypeDef * pstMAUx, en_functional_state_t enNewState);
-__STATIC_INLINE en_result_t MAU_Sqrt(M4_MAU_TypeDef * pstMAUx, uint32_t u32Radicand, uint32_t *pu32Result);
-__STATIC_INLINE uint32_t MAU_SqrtRead(M4_MAU_TypeDef * pstMAUx);
-__STATIC_INLINE int16_t MAU_Sin(M4_MAU_TypeDef * pstMAUx, uint16_t u16AngleIdx);
+int16_t MAU_Sin(M4_MAU_TypeDef *MAUx, uint16_t u16AngleIdx);
 
 /**
  * @}

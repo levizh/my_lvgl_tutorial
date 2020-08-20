@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-03       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -76,10 +76,8 @@ extern "C"
 /**
  * @brief This is the list of modules to be used in the Device Driver Library.
  * Select the modules you need to use to DDL_ON.
- *
  * @note DDL_ICG_ENABLE must be turned on(DDL_ON) to ensure that the chip works
  * properly.
- *
  * @note DDL_UTILITY_ENABLE must be turned on(DDL_ON) if using Device Driver
  * Library.
  * @note DDL_PRINT_ENABLE must be turned on(DDL_ON) if using printf function.
@@ -138,20 +136,9 @@ extern "C"
 #define DDL_VBAT_ENABLE                             (DDL_OFF)
 #define DDL_WDT_ENABLE                              (DDL_OFF)
 
-/* Midware module on-off define */
-#define MW_ON                                       (1U)
-#define MW_OFF                                      (0U)
-
-/**
- * @brief This is the list of midware modules to be used.
- * Select the modules you need to use to MW_ON.
- */
-#define MW_FS_ENABLE                                (MW_OFF)
-#define MW_LWIP_ENABLE                              (MW_OFF)
-
 /* BSP on-off define */
-#define BSP_ON                                       (1U)
-#define BSP_OFF                                      (0U)
+#define BSP_ON                                      (1U)
+#define BSP_OFF                                     (0U)
 
 /**
  * @brief The following is a list of currently supported BSP boards.
@@ -203,11 +190,11 @@ extern "C"
 #define PHY_ADDRESS                     (0x00U)               /* RTL8201F                             */
 
 /* PHY Configuration delay */
-#define PHY_HW_RESET_DELAY              (0x00000020UL)
-#define PHY_RESET_DELAY                 (0x00000040UL)
-#define PHY_CONFIG_DELAY                (0x0000007FUL)
-#define PHY_READ_TIMEOUT                (0x000000FFUL)
-#define PHY_WRITE_TIMEOUT               (0x000000FFUL)
+#define PHY_HW_RESET_DELAY              (0x0000003FUL)
+#define PHY_RESET_DELAY                 (0x0000007FUL)
+#define PHY_CONFIG_DELAY                (0x0000003FUL)
+#define PHY_READ_TIMEOUT                (0x00000005UL)
+#define PHY_WRITE_TIMEOUT               (0x00000005UL)
 
 /* Common PHY Registers */
 #define PHY_BCR                         (0x00U)     /*!< Basic Control Register               */

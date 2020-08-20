@@ -83,14 +83,10 @@
  */
 
 /**
- * @}
- */
-
-/**
  * @defgroup FCM_Check_Parameters_Validity FCM Check Parameters Validity
  * @{
  */
-/* Parameter validity check for FCM target clock source. */
+/*! Parameter validity check for FCM target clock source. */
 #define IS_FCM_TAR_SOURCE(src)                                                  \
 (   ((src) == FCM_TAR_CLK_XTAL)             ||                                  \
     ((src) == FCM_TAR_CLK_XTAL32)           ||                                  \
@@ -103,32 +99,32 @@
     ((src) == FCM_TAR_CLK_PLLHP)            ||                                  \
     ((src) == FCM_TAR_CLK_RTCLRC))
 
-/* Parameter validity check for FCM target clock division. */
+/*! Parameter validity check for FCM target clock division. */
 #define IS_FCM_TAR_DIV(div)                                                     \
 (   ((div) == FCM_TAR_CLK_DIV1)             ||                                  \
     ((div) == FCM_TAR_CLK_DIV4)             ||                                  \
     ((div) == FCM_TAR_CLK_DIV8)             ||                                  \
     ((div) == FCM_TAR_CLK_DIV32))
 
-/* Parameter validity check for FCM external reference input function. */
+/*! Parameter validity check for FCM external reference input function. */
 #define IS_FCM_EX_REF_FUNC(func)                                                \
 (   ((func) == FCM_EX_REF_OFF)              ||                                  \
     ((func) == FCM_EX_REF_ON))
 
-/* Parameter validity check for FCM reference clock edge. */
+/*! Parameter validity check for FCM reference clock edge. */
 #define IS_FCM_REF_EDGE(edge)                                                   \
 (   ((edge) == FCM_REF_CLK_RISING)          ||                                  \
     ((edge) == FCM_REF_CLK_FALLING)         ||                                  \
     ((edge) == FCM_REF_CLK_BOTH))
 
-/* Parameter validity check for FCM digital filter function. */
+/*! Parameter validity check for FCM digital filter function. */
 #define IS_FCM_DF(df)                                                           \
 (   ((df) == FCM_DF_OFF)                    ||                                  \
     ((df) == FCM_DF_MCKS_DIV1)              ||                                  \
     ((df) == FCM_DF_MCKS_DIV4)              ||                                  \
     ((df) == FCM_DF_MCKS_DIV16))
 
-/* Parameter validity check for FCM reference clock source. */
+/*! Parameter validity check for FCM reference clock source. */
 #define IS_FCM_REF_SOURCE(src)                                                  \
 (   ((src) == FCM_REF_CLK_EXINPUT)          ||                                  \
     ((src) == FCM_REF_CLK_XTAL)             ||                                  \
@@ -142,27 +138,27 @@
     ((src) == FCM_REF_CLK_PLLHP)            ||                                  \
     ((src) == FCM_REF_CLK_RTCLRC))
 
-/* Parameter validity check for FCM reference clock division. */
+/*! Parameter validity check for FCM reference clock division. */
 #define IS_FCM_REF_DIV(div)                                                     \
 (   ((div) == FCM_REF_CLK_DIV32)            ||                                  \
     ((div) == FCM_REF_CLK_DIV128)           ||                                  \
     ((div) == FCM_REF_CLK_DIV1024)          ||                                  \
     ((div) == FCM_REF_CLK_DIV8192))
 
-/* Parameter validity check for FCM abnormal reset function. */
+/*! Parameter validity check for FCM abnormal reset function. */
 #define IS_FCM_RESET_FUNC(func)                                                 \
 (   ((func) == FCM_RST_OFF)                 ||                                  \
     ((func) == FCM_RST_ON))
 
-/* Parameter validity check for FCM abnormal behavior function. */
+/*! Parameter validity check for FCM abnormal behavior function. */
 #define IS_FCM_ERR_HANDLE(hd)                                                   \
 (   ((hd) == FCM_ERR_INT)                   ||                                  \
     ((hd) == FCM_ERR_RESET))
 
-/* Parameter validity check for FCM interrupt. */
+/*! Parameter validity check for FCM interrupt. */
 #define IS_FCM_INT(it)      (((it) | FCM_INT_MSK) == FCM_INT_MSK)
 
-/* Parameter validity check for FCM flag state. */
+/*! Parameter validity check for FCM flag state. */
 #define IS_FCM_FLAG(flag)                                                       \
 (   ((flag) != 0x00UL)                      &&                                  \
     (((flag) | FCM_FLAG_MSK) == FCM_FLAG_MSK))
@@ -197,7 +193,7 @@
 
 /**
  * @brief  Initialize FCM.
- * @param  [in] pstcFcmInit: Pointer to a stc_fcm_init_t structure
+ * @param  [in] pstcFcmInit Pointer to a stc_fcm_init_t structure
  *                                 that contains configuration information.
  * @retval Ok: FCM initialize successful
  *         ErrorInvalidParameter: NULL pointer
@@ -240,7 +236,7 @@ en_result_t FCM_Init(const stc_fcm_init_t *pstcFcmInit)
 /**
  * @brief  Initialize FCM structure. Fill each pstcFcmInit with
  *         default value
- * @param  [in] pstcFcmInit: Pointer to a stc_fcm_init_t structure
+ * @param  [in] pstcFcmInit Pointer to a stc_fcm_init_t structure
  *                                 that contains configuration information.
  * @retval Ok: FCM structure initialize successful
  *         ErrorInvalidParameter: NULL pointer
@@ -291,7 +287,7 @@ void FCM_DeInit(void)
 
 /**
  * @brief  Get FCM state, get FCM overflow, complete, error flag.
- * @param  [in] u32Flag: FCM flags.
+ * @param  [in] u32Flag FCM flags.
  *   @arg  FCM_FLAG_ERR: FCM error.
  *   @arg  FCM_FLAG_END: FCM measure end.
  *   @arg  FCM_FLAG_OVF: FCM overflow.
@@ -306,7 +302,7 @@ en_flag_status_t FCM_GetStatus(uint32_t u32Flag)
 
 /**
  * @brief  Clear FCM state, Clear FCM overflow, complete, error flag.
- * @param  [in] u32Flag: FCM flags.
+ * @param  [in] u32Flag FCM flags.
  *   @arg  FCM_FLAG_ERR: FCM error.
  *   @arg  FCM_FLAG_END: FCM measure end.
  *   @arg  FCM_FLAG_OVF: FCM overflow.
@@ -331,28 +327,8 @@ uint16_t FCM_GetCounter(void)
 }
 
 /**
- * @brief  Set FCM upper limit value.
- * @param  u16Lmt//todo
- * @retval None.
- */
-void FCM_SetUpLimit(uint16_t u16Lmt)
-{
-    WRITE_REG32(M4_FCM->UVR, u16Lmt);
-}
-
-/**
- * @brief  Set FCM lower limit value.
- * @param  u16Lmt//todo
- * @retval None
- */
-void FCM_SetLowLimit(uint16_t u16Lmt)
-{
-    WRITE_REG32(M4_FCM->LVR, u16Lmt);
-}
-
-/**
  * @brief  FCM target clock type and division config.
- * @param  [in] u32Tar, Target clock type.
+ * @param  [in] u32Tar Target clock type.
  *   @arg  FCM_TAR_CLK_XTAL
  *   @arg  FCM_TAR_CLK_XTAL32
  *   @arg  FCM_TAR_CLK_HRC
@@ -363,7 +339,7 @@ void FCM_SetLowLimit(uint16_t u16Lmt)
  *   @arg  FCM_TAR_CLK_MRC
  *   @arg  FCM_TAR_CLK_PLLHP
  *   @arg  FCM_TAR_CLK_RTCLRC
- * @param  [in] u32Div, Target clock division.
+ * @param  [in] u32Div Target clock division.
  *   @arg  FCM_TAR_CLK_DIV1
  *   @arg  FCM_TAR_CLK_DIV4
  *   @arg  FCM_TAR_CLK_DIV8
@@ -379,7 +355,7 @@ void FCM_SetTarClk(uint32_t u32Tar, uint32_t u32Div)
 
 /**
  * @brief  FCM reference clock type and division config.
- * @param  [in] u32Ref, Reference clock type.
+ * @param  [in] u32Ref Reference clock type.
  *   @arg  FCM_REF_CLK_EXINPUT
  *   @arg  FCM_REF_CLK_XTAL
  *   @arg  FCM_REF_CLK_XTAL32
@@ -391,7 +367,7 @@ void FCM_SetTarClk(uint32_t u32Tar, uint32_t u32Div)
  *   @arg  FCM_REF_CLK_MRC
  *   @arg  FCM_REF_CLK_PLLHP
  *   @arg  FCM_REF_CLK_RTCLRC
- * @param  [in] u32Div, Reference clock division.
+ * @param  [in] u32Div Reference clock division.
  *   @arg  FCM_REF_CLK_DIV32
  *   @arg  FCM_REF_CLK_DIV128
  *   @arg  FCM_REF_CLK_DIV1024
@@ -409,7 +385,7 @@ void FCM_SetRefClk(uint32_t u32Ref, uint32_t u32Div)
 
 /**
  * @brief  FCM function config.
- * @param  [in] enNewState.
+ * @param  [in] enNewState
  *   @arg  Enable
  *   @arg  Disable
  * @retval None.

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-05-15       zhangxl         First version
+   2020-06-12      zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -370,7 +370,7 @@ static int8_t SCSI_ReadFormatCapacity(uint8_t lun, uint8_t *params)
         i8Ret = (int8_t)-1;
     }else
     {
-        MSC_BOT_Data[3U]  = 0x08u;
+        MSC_BOT_Data[3U]  = 0x08U;
         MSC_BOT_Data[4U]  = (uint8_t)((blk_nbr - 1U) >> 24U);
         MSC_BOT_Data[5U]  = (uint8_t)((blk_nbr - 1U) >> 16U);
         MSC_BOT_Data[6U]  = (uint8_t)((blk_nbr - 1U) >> 8U);
@@ -684,7 +684,7 @@ static int8_t SCSI_ProcessRead(uint8_t lun)
 
     len = __MIN(SCSI_blk_len, MSC_MEDIA_PACKET);
 
-    if(0u == SCSI_blk_size)    /* C-STAT */
+    if(0U == SCSI_blk_size)    /* C-STAT */
     {
         i8Ret = (int8_t)-1;
     }

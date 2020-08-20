@@ -6,7 +6,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-12       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-15       Hongjh          Replace DAC_ChannelCmd by DAC_Start
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -86,6 +87,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 static uint32_t Tmr4PclkFreq(void);
 static void Tmr4PwmConfig(void);
 static void CmpConfig(void);
@@ -99,6 +102,58 @@ static void EMB_IrqCallback(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  Get TIMER4 PCLK frequency.
@@ -131,8 +186,8 @@ static void Tmr4PwmConfig(void)
 
     /* Initialize TIMER4 Counter */
     TMR4_CNT_StructInit(&stcTmr4CntInit);
-    stcTmr4CntInit.u16ClkDiv = TMR4_CNT_CLK_DIV512;
-    stcTmr4CntInit.u16CycleVal = (uint16_t)(Tmr4PclkFreq() / (2UL * (1UL << (uint32_t)(stcTmr4CntInit.u16ClkDiv)))); /* Period_Value(500ms) */
+    stcTmr4CntInit.u16PclkDiv = TMR4_CNT_PCLK_DIV1024;
+    stcTmr4CntInit.u16CycleVal = (uint16_t)(Tmr4PclkFreq() / (4UL * (1UL << (uint32_t)(stcTmr4CntInit.u16PclkDiv)))); /* Period_Value(250ms) */
     TMR4_CNT_Init(M4_TMR4_1, &stcTmr4CntInit);
 
     /* Initialize TIMER4 OCO high&&low channel */
@@ -178,10 +233,8 @@ static void Tmr4PwmConfig(void)
     TMR4_OCO_SetLowChCompareMode(M4_TMR4_1, TMR4_OCO_UL, &stcLowChCmpMode);  /* Set OCO low channel compare mode */
 
     /* Initialize PWM I/O */
-    GPIO_Unlock();
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_09, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_08, GPIO_FUNC_2, PIN_SUBFUNC_DISABLE);
-    GPIO_Lock();
 
     /* Initialize Timer4 PWM */
     TMR4_PWM_StructInit(&stcTmr4PwmInit);
@@ -211,11 +264,9 @@ static void CmpConfig(void)
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_CMP1, Enable);
 
     /* Port function configuration for CMP*/
-    GPIO_Unlock();
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
     GPIO_Init(GPIO_PORT_E, GPIO_PIN_10, &stcGpioInit); /* CMP1_INP3 compare voltage */
-    GPIO_Lock();
 
     /* Configuration for normal compare function */
     CMP_StructInit(&stcCmpInit);
@@ -241,20 +292,24 @@ static void CmpConfig(void)
  */
 static void DacConfig(void)
 {
+    stc_dac_init_t stcInit;
+
     /* Enable peripheral Clock */
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_DAC1, Enable);
 
-    /* Right alignment of data */
-    DAC_DataPatternConfig(M4_DAC1, DAC_Align_12b_R);
+    /* Initialize DAC */
+    stcInit.enOutput = Enable;
+    stcInit.u16Src = DAC_DATA_SRC_DATAREG;
+    DAC_Init(M4_DAC1, DAC_CH_1, &stcInit);
+
+    /* Set DAC data alignment */
+    DAC_DataRegAlignConfig(M4_DAC1, DAC_DATA_ALIGN_R);
 
     /* Write Data :V = (Conversion Data / 4096) * VREFH */
     DAC_SetChannel1Data(M4_DAC1, 4096U/2U);
 
-    /* Output Enable */
-    DAC_ChannelAllCmd(M4_DAC1, Enable);
-
     /* Start Convert */
-    DAC_ChannelCmd(M4_DAC1, DAC_Channel_1, Enable);
+    DAC_Start(M4_DAC1, DAC_CH_1);
 }
 
 /**
@@ -280,6 +335,9 @@ int32_t main(void)
     stc_emb_tmr4_init_t stcEmbInit;
     stc_irq_signin_config_t stcIrqSigninCfg;
 
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
+
     /* Initialize system clock. */
     BSP_CLK_Init();
 
@@ -291,6 +349,9 @@ int32_t main(void)
 
     /* Configure Timer4 PWM. */
     Tmr4PwmConfig();
+
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
 
     /* Configure EMB. */
     PWC_Fcg2PeriphClockCmd(EMB_FUNCTION_CLK_GATE, Enable);

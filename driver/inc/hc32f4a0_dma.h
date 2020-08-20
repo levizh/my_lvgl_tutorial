@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -98,7 +98,7 @@ typedef struct
     uint32_t u32DestAddr;       /*!< Specifies the DMA destination address.                             */
 
     uint32_t u32DataWidth;      /*!< Specifies the DMA transfer data width.
-                                    This parameter can be a value of @ref DMA_DataWidth                 */
+                                    This parameter can be a value of @ref DMA_DataWidth_Sel             */
 
     uint32_t u32BlockSize;      /*!< Specifies the DMA block size.                                      */
 
@@ -472,6 +472,16 @@ typedef struct
  * @}
  */
 
+/**
+ * @defgroup DMA_Common_Trigger_Source_Config DMA common Trigger Source Config
+ * @{
+ */
+#define DMA_COM_TRIG1               (AOS_DMA_1_TRGSEL_COMTRG_EN_0)
+#define DMA_COM_TRIG2               (AOS_DMA_1_TRGSEL_COMTRG_EN_1)
+#define DMA_COM_TRIG_MASK           (AOS_DMA_1_TRGSEL_COMTRG_EN)
+/**
+ * @}
+ */
 
 /**
  * @}
@@ -502,7 +512,9 @@ void DMA_MxChannelCmd(M4_DMA_TypeDef *DMAx, uint8_t u8MxCh, en_functional_state_
 void DMA_ChannelCmd(M4_DMA_TypeDef *DMAx, uint8_t u8Ch, en_functional_state_t enNewState);
 
 void DMA_SetReConfigTriggerSrc(en_event_src_t enSrc);
+void DMA_RCComTriggerCmd(uint32_t u32ComTrig, en_functional_state_t enNewState);
 void DMA_SetTriggerSrc(const M4_DMA_TypeDef *DMAx, uint8_t u8Ch, en_event_src_t enSrc);
+void DMA_ComTriggerCmd(const M4_DMA_TypeDef *DMAx, uint8_t u8Ch, uint32_t u32ComTrig, en_functional_state_t enNewState);
 
 en_flag_status_t DMA_GetReqStatus(const M4_DMA_TypeDef *DMAx, uint32_t u32Status);
 en_flag_status_t DMA_GetTransStatus(const M4_DMA_TypeDef *DMAx, uint32_t u32Status);
@@ -519,7 +531,7 @@ void DMA_SetNonSeqDestCnt(M4_DMA_TypeDef *DMAx, uint8_t u8Ch, uint32_t u32Cnt);
 void DMA_SetNonSeqSrcOffset(M4_DMA_TypeDef *DMAx, uint8_t u8Ch, uint32_t u32Ofs);
 void DMA_SetNonSeqDestOffset(M4_DMA_TypeDef *DMAx, uint8_t u8Ch, uint32_t u32Ofs);
 
-void DMA_SetLlpAddr(M4_DMA_TypeDef *DMAx, uint8_t u8Ch, uint32_t u32Llp);
+void DMA_SetLlpAddr(M4_DMA_TypeDef *DMAx, uint8_t u8Ch, uint32_t u32LlpAddr);
 
 en_result_t DMA_Init(M4_DMA_TypeDef *DMAx, uint8_t u8Ch, const stc_dma_init_t *pstcDmaInit);
 en_result_t DMA_RepeatInit(M4_DMA_TypeDef *DMAx, uint8_t u8Ch, const stc_dma_rpt_init_t *pstcDmaRptInit);

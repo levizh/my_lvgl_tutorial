@@ -53,7 +53,7 @@
 /*******************************************************************************
  * Include files
  ******************************************************************************/
-#include "hc32_ddl.h"
+#include "hc32_ddl_lcd.h"
 #include "lvgl.h"
 #include "RGB565_480x272.h"
 #include "RGB565_480x208.h"
@@ -165,7 +165,7 @@ void key_serve(void)
 
         if (Set == BSP_KEY_GetStatus(BSP_KEY_6))
         {
-            BSP_CAM_StandbyCmd(EIO_PIN_SET);
+            BSP_CAM_STBCmd(EIO_PIN_SET);
         }
         if (Set == BSP_KEY_GetStatus(BSP_KEY_7))
         {
@@ -318,14 +318,14 @@ void DVP_TMRA_Init(void)
     TMRA_StructInit(&stcTmrAInit);
 
     stcTmrAInit.u32ClkSrc   = TMRA_CLK_HW_UP_EVENT;
-    stcTmrAInit.u32PCLKDiv  = TMRA_PCLK_DIV_1;
+    stcTmrAInit.u32PCLKDiv  = TMRA_PCLK_DIV1;
     stcTmrAInit.u32CntDir   = TMRA_DIR_UP;
     stcTmrAInit.u32CntMode  = TMRA_MODE_SAWTOOTH;
     stcTmrAInit.u32PeriodVal= 8UL - 1UL;
 
     TMRA_Init(M4_TMRA_1, &stcTmrAInit);
 
-    TMRA_SetCntEvent(M4_TMRA_1, EVT_DVP_DMAREQ);
+    TMRA_SetTriggerSrc(M4_TMRA_1, TMRA_EVENT_USAGE_CNT, EVT_DVP_DMAREQ);
 
     TMRA_Start(M4_TMRA_1);
 
@@ -334,7 +334,7 @@ void DVP_TMRA_Init(void)
 void DVP_CaptureOn(void)
 {
     bM4_DVP->CTR_b.DVPEN = 1UL;
-    DDL_Delay1ms(1UL);
+    DDL_DelayMS(1UL);
     /* Clear all int flag */
     M4_DVP->STR = 0UL;
     M4_DVP->IER = 0x00000028UL | (1<<0);
@@ -346,7 +346,7 @@ void DVP_CaptureOff(void)
     bM4_DVP->CTR_b.CAPEN = 0UL;
     while(1UL == bM4_DVP->CTR_b.CAPEN);
     bM4_DVP->CTR_b.DVPEN = 0UL;
-    DDL_Delay1ms(1UL);
+    DDL_DelayMS(1UL);
 }
 
 void DVP_FrameStart_IrqCallback(void)
@@ -640,15 +640,15 @@ int32_t main(void)
     SysTick_Init(1000);
 
     /* HW Reset LCD */
-    BSP_LCD_ResetCmd(EIO_PIN_RESET);
-    BSP_CAM_ResetCmd(EIO_PIN_SET);  // RST# to low
+    BSP_LCD_RSTCmd(EIO_PIN_RESET);
+    BSP_CAM_RSTCmd(EIO_PIN_SET);  // RST# to low
 //    BSP_CT_ResetCmd(EIO_PIN_RESET);
-    DDL_Delay1ms(100UL);
-    BSP_LCD_ResetCmd(EIO_PIN_SET);
-    BSP_CAM_ResetCmd(EIO_PIN_RESET);// RST# to high
-    BSP_CAM_StandbyCmd(EIO_PIN_SET);// STB# to low
+    DDL_DelayMS(100UL);
+    BSP_LCD_RSTCmd(EIO_PIN_SET);
+    BSP_CAM_RSTCmd(EIO_PIN_RESET);// RST# to high
+    BSP_CAM_STBCmd(EIO_PIN_SET);// STB# to low
 
-    DDL_Delay1ms(100UL);
+    DDL_DelayMS(100UL);
 
     DVP_TMRA_Init();
 

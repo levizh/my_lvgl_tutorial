@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-17       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -65,7 +65,7 @@
  */
 
 /**
- * @addtogroup EXMC_NFC_Nandflash
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB
  * @{
  */
 
@@ -84,6 +84,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 static en_result_t MT29F2G08AB_MetaWithoutSpareTest(uint32_t u32Page);
 static en_result_t MT29F2G08AB_MetaWithSpareTest(uint32_t u32Page);
 static en_result_t MT29F2G08AB_HwEcc1BitTest(uint32_t u32Page);
@@ -96,6 +98,58 @@ static en_result_t MT29F2G08AB_HwEcc4BitsTest(uint32_t u32Page);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  nandflash program test without ECC and spare
@@ -181,8 +235,8 @@ static en_result_t MT29F2G08AB_MetaWithSpareTest(uint32_t u32Page)
 static en_result_t MT29F2G08AB_HwEcc1BitTest(uint32_t u32Page)
 {
     en_result_t enRet = Error;
-    uint32_t u32EccTestResult = 0UL;
-    uint32_t u32EccExpectedResult = 0UL;
+    uint32_t u32EccTestResult;
+    uint32_t u32EccExpectedResult;
 
     __ALIGN_BEGIN static uint8_t m_au8ReadDataHwEcc[MT29F2G08AB_PAGE_SIZE_WITH_SPARE];
     __ALIGN_BEGIN static uint8_t m_au8WriteDataHwEcc[MT29F2G08AB_PAGE_SIZE_WITH_SPARE];
@@ -279,7 +333,7 @@ static en_result_t MT29F2G08AB_HwEcc4BitsTest(uint32_t u32Page)
                                         MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE);
 
         /* Check whether ECC errors occur */
-        if (EXMC_NFC_GetFlag(EXMC_NFC_FLAG_ECC_ERROR) == Reset)
+        if (EXMC_NFC_GetStatus(EXMC_NFC_FLAG_ECC_ERROR) == Reset)
         {
             /* Disable ECC 4bit: read 2048 + 64Bytes */
             MT29F2G08AB_ReadPageMeta(u32Page, m_au8ReadDataHwEcc, MT29F2G08AB_PAGE_SIZE_WITH_SPARE);
@@ -346,6 +400,9 @@ int32_t main(void)
     uint8_t au8DevId[4];
     uint8_t u8TestErrCnt = 0U;
 
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
+
     /* Initialize system clock: */
     BSP_CLK_Init();
 
@@ -364,8 +421,11 @@ int32_t main(void)
     /* Configure nandflash */
     MT29F2G08AB_Init();
 
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
+
     /* Read ID */
-    MT29F2G08AB_ReadId(0UL, au8DevId, (uint8_t)sizeof(au8DevId));
+    MT29F2G08AB_ReadId(0UL, au8DevId, sizeof(au8DevId));
     if ((au8DevId[0] == MT29F2G08ABAEA_MANUFACTURER_ID) || \
         (au8DevId[1] == MT29F2G08ABAEA_DEVICE_ID1) || \
         (au8DevId[2] == MT29F2G08ABAEA_DEVICE_ID2) || \
@@ -404,7 +464,7 @@ int32_t main(void)
         u8TestErrCnt++;
     }
 
-    if (u8TestErrCnt)
+    if (u8TestErrCnt > 0U)
     {
         BSP_LED_On(LED_RED);
     }

@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_msc\source\main.c
+ * @file  usb/usbd_msc/source/hc32f4a0_usbfs.h
  * @brief Headfile for USB example.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.

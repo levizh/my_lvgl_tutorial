@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  timera/timera_cascade_count/source/main.c
- * @brief Main program TIMERA cascade count for the Device Driver Library.
+ * @brief Main program TimerA cascade count for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-28       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup TimerA_Cascade_Count
+ * @addtogroup TMRA_Cascade_Count
  * @{
  */
 
@@ -74,11 +74,11 @@
  ******************************************************************************/
 /*
  * Function of this example.
- * This example is going to use TIMERA to count 10 milliseconds.
+ * This example is going to use TimerA to count 10 milliseconds.
  */
 
 /*
- * Function control of TIMERA.
+ * Function control of TimerA.
  * Defines the following macro as non-zero to enable the corresponding function.
  *
  * 'APP_TMRA_USE_SYNC_START': Only even units can be set sync-start. When the symmetric odd unit is started,
@@ -87,7 +87,7 @@
 #define APP_TMRA_USE_SYNC_START             (0U)
 
 /*
- * TIMERA unit and channel definitions for this example.
+ * TimerA unit and channel definitions for this example.
  * 'APP_TMRA_CH' can be defined as TMRA_CH_x(x=1 ~ 4).
  *
  * Symmetric units: uint 1 and 2; uint 3 and 4; ... ; uint 11 and 12.
@@ -101,19 +101,19 @@
 #define APP_EVEN_TMRA_UNIT                  (M4_TMRA_2)
 #define APP_ODD_TMRA_UNIT                   (M4_TMRA_1)
 
-/* The counting mode of TIMERA. @ref TMRA_Count_Mode */
+/* The counting mode of TimerA. @ref TMRA_Count_Mode */
 #define APP_TMRA_MODE                       (TMRA_MODE_TRIANGLE)
 #define APP_L_TMRA_MODE                     (APP_TMRA_MODE)
 #define APP_H_TMRA_MODE                     (APP_TMRA_MODE)
 
-/* The counting direction of TIMERA. @ref TMRA_Count_Direction */
+/* The counting direction of TimerA. @ref TMRA_Count_Direction */
 #define APP_TMRA_DIR                        (TMRA_DIR_UP)
 #define APP_L_TMRA_DIR                      (APP_TMRA_DIR)
 #define APP_H_TMRA_DIR                      (APP_TMRA_DIR)
 
 /*
- * Clock source of TIMERA in this example.
- * The only valid clock source of TIMERA in this example is PCLK(PCLK0 for unit1 ~ uint4. PCLK1 for unit5 ~ uint12).
+ * Clock source of TimerA in this example.
+ * The only valid clock source of TimerA in this example is PCLK(PCLK0 for unit1 ~ uint4. PCLK1 for unit5 ~ uint12).
  */
 #define APP_L_TMRA_CLK                      (TMRA_CLK_PCLK)
 #if (APP_TMRA_DIR == TMRA_DIR_UP)
@@ -123,12 +123,12 @@
 #endif
 
 /* The divider of the clock source. @ref TMRA_PCLK_Divider */
-#define APP_L_TMRA_PCLK_DIV                 (TMRA_PCLK_DIV_8)
+#define APP_L_TMRA_PCLK_DIV                 (TMRA_PCLK_DIV8)
 
 /*
  * Specify the timing period value of low unit. Set the compare value of high unit according to the timing period value of low unit.
  * In this example:
- *   TIMERA low unit timing period: 1 millisecond.
+ *   TimerA low unit timing period: 1 millisecond.
  *   The clock of low unit: PCLK0(200MHz) / 8 = 25MHz
  *   Number of counting cycles of low unit: (25000UL)
  */
@@ -142,21 +142,20 @@
 #define APP_H_TMRA_CMP_VAL                  (10UL - 1UL)
 #define APP_H_TMRA_PERIOD_VAL               (APP_H_TMRA_CMP_VAL)
 
-/* Definitions of interrupt of TIMERA high unit. */
+/* Definitions of interrupt of TimerA high unit. */
 #define APP_H_TMRA_INT_TYPE                 (TMRA_INT_CMP_CH1)
 #define APP_H_TMRA_INT_FLAG                 (TMRA_FLAG_CMP_CH1)
 #define APP_H_TMRA_INT_PRIO                 (DDL_IRQ_PRIORITY_03)
 #define APP_H_TMRA_INT_SRC                  (INT_TMRA_2_CMP)
-#define APP_H_TMRA_IRQ_CB                   TMRA_2_Cmp1_IrqHandler
 #define APP_H_TMRA_IRQn                     (Int074_IRQn)
 
 /*
- * Definitions about TIMERA interrupt for the example.
- * IRQn of TIMERA:
- *      M4_TMRA_x(x=1, 2): [Int000_IRQn, Int031_IRQn], [Int074_IRQn, Int079_IRQn]; [Int135_IRQn]
- *      M4_TMRA_x(x=3, 4): [Int000_IRQn, Int031_IRQn], [Int080_IRQn, Int085_IRQn]; [Int136_IRQn]
- *      M4_TMRA_x(x=5 ~ 8): [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn]; [Int138_IRQn]
- *      M4_TMRA_x(x=9 ~ 12): [Int000_IRQn, Int031_IRQn], [Int098_IRQn, Int103_IRQn]; [Int139_IRQn]
+ * Definitions about TimerA interrupt for the example.
+ * IRQn of TimerA:
+ *      M4_TMRA_x(x=1, 2): [Int000_IRQn, Int031_IRQn], [Int074_IRQn, Int079_IRQn];
+ *      M4_TMRA_x(x=3, 4): [Int000_IRQn, Int031_IRQn], [Int080_IRQn, Int085_IRQn];
+ *      M4_TMRA_x(x=5 ~ 8): [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn];
+ *      M4_TMRA_x(x=9 ~ 12): [Int000_IRQn, Int031_IRQn], [Int098_IRQn, Int103_IRQn];
  *
  * NOTE!!! 'APP_TMRA_INT_TYPE' can only be defined as 'TMRA_INT_CMP_CHx'(x=1 ~ 4, depends on 'APP_TMRA_CH') for this example.
  */
@@ -165,10 +164,9 @@
 #define APP_TMRA_INT_TYPE                   (APP_H_TMRA_INT_TYPE)
 #define APP_TMRA_INT_PRIO                   (APP_H_TMRA_INT_PRIO)
 #define APP_TMRA_INT_SRC                    (APP_H_TMRA_INT_SRC)
-#define APP_TMRA_IRQ_CB                     APP_H_TMRA_IRQ_CB
 #define APP_TMRA_IRQn                       (APP_H_TMRA_IRQn)
 
-/* The status flag of TIMERA in this example. */
+/* The status flag of TimerA in this example. */
 #define APP_TMRA_FLAG                       (APP_H_TMRA_INT_FLAG)
 
 /* Indicate pin definition in this example. */
@@ -185,11 +183,15 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
 static void IndicateConfig(void);
 
 static void TmrAConfig(void);
 static void TmrAIrqConfig(void);
+static void TMRA_Cmp_IrqCallback(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -206,16 +208,18 @@ static void TmrAIrqConfig(void);
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the system clock. */
     SystemClockConfig();
-
     /* Configures indicator. */
     IndicateConfig();
-
-    /* Configures TIMERA. */
+    /* Configures TimerA. */
     TmrAConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
-    /* Starts TIMERA. High unit first. */
+    /* Starts TimerA. High unit first. */
 #if (APP_TMRA_USE_SYNC_START > 0U)
     TMRA_Start(APP_ODD_TMRA_UNIT);
 #else
@@ -226,8 +230,60 @@ int32_t main(void)
     /***************** Configuration end, application start **************/
     while (1U)
     {
-        /* See APP_TMRA_IRQ_CB in this file. */
+        /* See TMRA_Cmp_IrqCallback in this file. */
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -274,21 +330,18 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set SRAM wait cycles. */
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     /* Set EFM wait cycle. 4 wait cycles needed when system clock is 200MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
-    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
 
 /**
- * @brief  TIMERA configuration.
+ * @brief  TimerA configuration.
  * @param  None
  * @retval None
  */
@@ -296,10 +349,10 @@ static void TmrAConfig(void)
 {
     stc_tmra_init_t stcInit;
 
-    /* 1. Enable TIMERA peripheral clock. */
+    /* 1. Enable TimerA peripheral clock. */
     PWC_Fcg2PeriphClockCmd(APP_TMRA_PERIP_CLK, Enable);
 
-    /* 2. Initialize TIMERA low unit . */
+    /* 2. Initialize TimerA low unit . */
     TMRA_StructInit(&stcInit);
     stcInit.u32ClkSrc    = APP_L_TMRA_CLK;
     stcInit.u32PCLKDiv   = APP_L_TMRA_PCLK_DIV;
@@ -308,7 +361,7 @@ static void TmrAConfig(void)
     stcInit.u32PeriodVal = APP_L_TMRA_PERIOD_VAL;
     TMRA_Init(APP_L_TMRA_UNIT, &stcInit);
 
-    /* 3. Initialize TIMERA low unit . */
+    /* 3. Initialize TimerA low unit . */
     TMRA_StructInit(&stcInit);
     stcInit.u32ClkSrc    = APP_H_TMRA_CLK;
     stcInit.u32CntDir    = APP_H_TMRA_DIR;
@@ -327,7 +380,7 @@ static void TmrAConfig(void)
 }
 
 /**
- * @brief  TIMERA interrupt configuration.
+ * @brief  TimerA interrupt configuration.
  * @param  None
  * @retval None
  */
@@ -337,31 +390,23 @@ static void TmrAIrqConfig(void)
 
     stcCfg.enIntSrc    = APP_TMRA_INT_SRC;
     stcCfg.enIRQn      = APP_TMRA_IRQn;
-    stcCfg.pfnCallback = &APP_TMRA_IRQ_CB;
-    if (stcCfg.enIRQn >= TMRA_SHARE_IRQn_BASE)
-    {
-        /* Sharing interrupt. */
-        INTC_ShareIrqCmd(stcCfg.enIntSrc, Enable);
-    }
-    else
-    {
-        /* Independent interrupt. */
-        INTC_IrqSignIn(&stcCfg);
-    }
+    stcCfg.pfnCallback = &TMRA_Cmp_IrqCallback;
+    INTC_IrqSignIn(&stcCfg);
+
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
     NVIC_SetPriority(stcCfg.enIRQn, APP_TMRA_INT_PRIO);
     NVIC_EnableIRQ(stcCfg.enIRQn);
 
-    /* Enable the specified interrupts of TIMERA. */
+    /* Enable the specified interrupts of TimerA. */
     TMRA_IntCmd(APP_TMRA_INT_UNIT, APP_TMRA_INT_TYPE, Enable);
 }
 
 /**
- * @brief  TIMERA counter compare match interrupt callback function.
+ * @brief  TimerA counter compare match interrupt callback function.
  * @param  None
  * @retval None
  */
-void APP_TMRA_IRQ_CB(void)
+static void TMRA_Cmp_IrqCallback(void)
 {
     if (TMRA_GetStatus(APP_TMRA_INT_UNIT, APP_TMRA_FLAG) == Set)
     {

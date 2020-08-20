@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-04       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -69,7 +69,8 @@
   * @{
   */
 
-#if (BSP_W25QXX_ENABLE == BSP_ON)
+#if ((BSP_W25QXX_ENABLE == BSP_ON) && \
+     (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0))
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -78,17 +79,6 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/**
- * @defgroup W25QXX_Local_Macros W25QXX Local Macros
- * @{
- */
-
-/* */
-#define W25Q_DELAY_MS(x)            DDL_Delay1ms((x))
-
-/**
- * @}
- */
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -97,7 +87,6 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -164,7 +153,7 @@ void BSP_W25Q_SPI_Init(void)
     stcSpiInit.u32Modfe             = SPI_MODFE_DISABLE;
     stcSpiInit.u32Parity            = SPI_PARITY_INVALID;
     stcSpiInit.u32SpiMode           = SPI_MODE_3;
-    stcSpiInit.u32BaudRatePrescaler = SPI_BR_DIV_256;
+    stcSpiInit.u32BaudRatePrescaler = SPI_BR_PCLK1_DIV2;
     stcSpiInit.u32DataBits          = SPI_DATA_SIZE_8BIT;
     stcSpiInit.u32FirstBit          = SPI_FIRST_MSB;
     SPI_Init(W25Q_SPI_UNIT, &stcSpiInit);
@@ -182,13 +171,11 @@ void BSP_W25Q_SPI_Init(void)
  * @param  [in]  pvTxBuf            The pointer to the buffer which contains the data to be sent.
  *                                  If this pointer is NULL and the pvRxBuf is NOT NULL, the MOSI output high
  *                                  and the the received data will be stored in the buffer pointed by pvRxBuf.
- * @param  [out] pvRxBuf            The pointer to the buffer which the received data will be stored.
- *                                  This for full duplex transfer.
- * @param  [in]  u32Length          The length of the data(in byte or half word) to be sent and received.
+ * @param  [in]  u32TxLength        The length of the data(in byte or half word) to be sent and received.
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                      No errors occurred
  *   @arg  ErrorTimeout:            SPI transmit and receive timeout.
- *   @arg  ErrorInvalidParameter:   pvRxBuf == NULL or pvRxBuf == NULL or u32Length == 0u
+ *   @arg  ErrorInvalidParameter:   pvRxBuf == NULL or pvRxBuf == NULL or u32Length == 0U
  * @note   SPI receives data while sending data. Only works in full duplex master mode.
  */
 en_result_t BSP_W25Q_SPI_Transmit(const void *pvTxBuf, uint32_t u32TxLength)
@@ -203,7 +190,7 @@ en_result_t BSP_W25Q_SPI_Transmit(const void *pvTxBuf, uint32_t u32TxLength)
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                      No errors occurred
  *   @arg  ErrorTimeout:            SPI receive timeout.
- *   @arg  ErrorInvalidParameter:   pvRxBuf == NULL or u32RxLength == 0u
+ *   @arg  ErrorInvalidParameter:   pvRxBuf == NULL or u32RxLength == 0U
  * @note   -No NSS pin active and inactive operation in 3-wire mode. Add operations of NSS pin depending on your application.
  *         -This function only works in full duplex master mode.
  */
@@ -221,13 +208,11 @@ en_result_t BSP_W25Q_SPI_Receive(void *pvRxBuf, uint32_t u32RxLength)
  * @{
  */
 
-
 /**
  * @}
  */
 
-#endif /* #if (BSP_W25QXX_ENABLE == DDL_ON) */
-
+#endif /* BSP_W25QXX_ENABLE && (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0) */
 
 /**
  * @}

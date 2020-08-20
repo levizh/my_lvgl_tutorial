@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -80,8 +80,12 @@ extern "C"
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
+
+/*******************************************************************************
+ * Global pre-processor symbols/macros ('#define')
+ ******************************************************************************/
 /**
- * @defgroup SRAM_Global_Types SRAM Global Types
+ * @defgroup SRAM_Global_Macros SRAM Global Macros
  * @{
  */
 
@@ -89,13 +93,13 @@ extern "C"
  * @defgroup SRAM_Index_Bit_Mask SRAM Index Bit Mask
  * @{
  */
-#define SRAMH                   (1UL << 2U)                 /*!< 0x1FFE0000~0x1FFFFFFF, 128KB */
-#define SRAM123                 (1UL << 0U)                 /*!< SRAM1: 0x20000000~0x2001FFFF, 128KB \
+#define SRAM_SRAMH              (1UL << 2U)                 /*!< 0x1FFE0000~0x1FFFFFFF, 128KB */
+#define SRAM_SRAM123            (1UL << 0U)                 /*!< SRAM1: 0x20000000~0x2001FFFF, 128KB \
                                                                  SRAM2: 0x20020000~0x2003FFFF, 128KB \
                                                                  SRAM3: 0x20040000~0x20057FFF, 96KB */
-#define SRAM4                   (1UL << 1U)                 /*!< 0x20058000~0x2005FFFF, 32KB */
-#define SRAMB                   (1UL << 3U)                 /*!< 0x200F0000~0x200F0FFF, 4KB */
-#define SRAM_ALL                (SRAMH | SRAM123 | SRAM4 | SRAMB)
+#define SRAM_SRAM4              (1UL << 1U)                 /*!< 0x20058000~0x2005FFFF, 32KB */
+#define SRAM_SRAMB              (1UL << 3U)                 /*!< 0x200F0000~0x200F0FFF, 4KB */
+#define SRAM_SRAM_ALL           (SRAM_SRAMH | SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB)
 /**
  * @}
  */
@@ -104,6 +108,7 @@ extern "C"
  * @defgroup SRAM_Access_Wait_Cycle SRAM Access Wait Cycle
  * @{
  */
+#define SRAM_WAIT_CYCLE_0       (0U)                        /*!< Wait 1 CPU cycle. */
 #define SRAM_WAIT_CYCLE_1       (1U)                        /*!< Wait 1 CPU cycle. */
 #define SRAM_WAIT_CYCLE_2       (2U)                        /*!< Wait 2 CPU cycles. */
 #define SRAM_WAIT_CYCLE_3       (3U)                        /*!< Wait 3 CPU cycles. */
@@ -174,15 +179,13 @@ extern "C"
  */
 
 /**
- * @}
- */
-
-/*******************************************************************************
- * Global pre-processor symbols/macros ('#define')
- ******************************************************************************/
-/**
- * @defgroup SRAM_Global_Macros SRAM Global Macros
+ * @defgroup SRAM_Register_Protect_Command SRAM Register Protect Command
  * @{
+ */
+#define SRAM_LOCK_CMD           (0x76U)
+#define SRAM_UNLOCK_CMD         (0x77U)
+/**
+ * @}
  */
 
 /**
@@ -201,8 +204,53 @@ extern "C"
  * @{
  */
 
+/**
+ * @brief  Lock access wait cycle control register.
+ * @param  None
+ * @retval None
+ */
+__STATIC_INLINE void SRAM_WTCR_Lock(void)
+{
+    WRITE_REG32(M4_SRAMC->WTPR, SRAM_LOCK_CMD);
+}
+
+/**
+ * @brief  Unlock access wait cycle control register.
+ * @param  None
+ * @retval None
+ */
+__STATIC_INLINE void SRAM_WTCR_Unlock(void)
+{
+    WRITE_REG32(M4_SRAMC->WTPR, SRAM_UNLOCK_CMD);
+}
+
+/**
+ * @brief  Lock check control register.
+ * @param  None
+ * @retval None
+ */
+__STATIC_INLINE void SRAM_CKCR_Lock(void)
+{
+    WRITE_REG32(M4_SRAMC->CKPR, SRAM_LOCK_CMD);
+}
+
+/**
+ * @brief  Unlock check control register.
+ * @param  None
+ * @retval None
+ */
+__STATIC_INLINE void SRAM_CKCR_Unlock(void)
+{
+    WRITE_REG32(M4_SRAMC->CKPR, SRAM_UNLOCK_CMD);
+}
+
 void SRAM_Init(void);
 void SRAM_DeInit(void);
+
+void SRAM_WTCR_Lock(void);
+void SRAM_WTCR_Unlock(void);
+void SRAM_CKCR_Lock(void);
+void SRAM_CKCR_Unlock(void);
 
 void SRAM_SetWaitCycle(uint32_t u32SramIndex, uint32_t u32WriteCycle, uint32_t u32ReadCycle);
 void SRAM_SetEccMode(uint32_t u32SramIndex, uint32_t u32EccMode);

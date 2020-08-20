@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbh_mouse_kb\source\usbh_usr.c
+ * @file  usb/usbh_mouse_kb/source/usbh_usr.c
  * @brief This file includes the user application layer.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -150,7 +150,9 @@ void USBH_USR_Init(void)
     if(startup == 0 )
     {
         startup = 1;
+#if (DDL_PRINT_ENABLE == DDL_ON)
         printf("> USB Host library started.\n");
+#endif
     }
 }
 
@@ -162,7 +164,9 @@ void USBH_USR_Init(void)
 */
 void USBH_USR_DeviceAttached(void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf((void*)MSG_DEV_ATTACHED);
+#endif
 }
 
 /**
@@ -172,7 +176,9 @@ void USBH_USR_DeviceAttached(void)
 */
 void USBH_USR_UnrecoveredError (void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf((void*)MSG_UNREC_ERROR);
+#endif
 }
 
 /**
@@ -183,7 +189,9 @@ void USBH_USR_UnrecoveredError (void)
 */
 void USBH_USR_DeviceDisconnected (void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf((void *)MSG_DEV_DISCONNECTED);
+#endif
 }
 
 /**
@@ -201,33 +209,41 @@ void USBH_USR_ResetDevice(void)
 /**
 * @brief  USBH_USR_DeviceSpeedDetected
 *         Displays the message on LCD for device speed
-* @param  Devicespeed : Device Speed
+* @param  DeviceSpeed   Device Speed
 * @retval None
 */
 void USBH_USR_DeviceSpeedDetected(uint8_t DeviceSpeed)
 {
     if(DeviceSpeed == HPRT0_PRTSPD_HIGH_SPEED)
     {
+#if (DDL_PRINT_ENABLE == DDL_ON)
         printf((void *)MSG_DEV_HIGHSPEED);
+#endif
     }
     else if(DeviceSpeed == HPRT0_PRTSPD_FULL_SPEED)
     {
+#if (DDL_PRINT_ENABLE == DDL_ON)
         printf((void *)MSG_DEV_FULLSPEED);
+#endif
     }
     else if(DeviceSpeed == HPRT0_PRTSPD_LOW_SPEED)
     {
+#if (DDL_PRINT_ENABLE == DDL_ON)
         printf((void *)MSG_DEV_LOWSPEED);
+#endif
     }
     else
     {
+#if (DDL_PRINT_ENABLE == DDL_ON)
         printf((void *)MSG_DEV_ERROR);
+#endif
     }
 }
 
 /**
 * @brief  USBH_USR_Device_DescAvailable
 *         Displays the message on terminal for device descriptor
-* @param  DeviceDesc : device descriptor
+* @param  DeviceDesc    device descriptor
 * @retval None
 */
 void USBH_USR_Device_DescAvailable(void *DeviceDesc)
@@ -235,10 +251,12 @@ void USBH_USR_Device_DescAvailable(void *DeviceDesc)
     uint8_t temp[50];
     USBH_DevDesc_TypeDef *hs;
     hs = DeviceDesc;
+#if (DDL_PRINT_ENABLE == DDL_ON)
     sprintf((char *)temp , "VID : %04lXh\n" , (uint32_t)(*hs).idVendor);
     printf((void *)temp);
     sprintf((char *)temp , "PID : %04lXh\n" , (uint32_t)(*hs).idProduct);
     printf((void *)temp);
+#endif
 }
 
 /**
@@ -255,7 +273,9 @@ void USBH_USR_DeviceAddressAssigned(void)
 /**
 * @brief  USBH_USR_Conf_Desc
 *         Displays the message on LCD for configuration descriptor
-* @param  ConfDesc : Configuration descriptor
+* @param  cfgDesc   Configuration descriptor
+* @param  itfDesc   Interface descriptor
+* @param  epDesc    Endpoint descriptor
 * @retval None
 */
 void USBH_USR_Configuration_DescAvailable(USBH_CfgDesc_TypeDef * cfgDesc,
@@ -268,11 +288,15 @@ void USBH_USR_Configuration_DescAvailable(USBH_CfgDesc_TypeDef * cfgDesc,
 
     if((*id).bInterfaceClass  == 0x08)
     {
+#if (DDL_PRINT_ENABLE == DDL_ON)
         printf("%s", MSG_MSC_CLASS);
+#endif
     }
     else if((*id).bInterfaceClass  == 0x03)
     {
+#if (DDL_PRINT_ENABLE == DDL_ON)
         printf("%s", MSG_HID_CLASS);
+#endif
     }
 }
 
@@ -285,34 +309,40 @@ void USBH_USR_Configuration_DescAvailable(USBH_CfgDesc_TypeDef * cfgDesc,
 void USBH_USR_Manufacturer_String(void *ManufacturerString)
 {
     char temp[100];
+#if (DDL_PRINT_ENABLE == DDL_ON)
     sprintf(temp, "Manufacturer : %s\n", (char *)ManufacturerString);
     printf((void *)temp);
+#endif
 }
 
 /**
 * @brief  USBH_USR_Product_String
 *         Displays the message on LCD for Product String
-* @param  ProductString : Product String of Device
+* @param  ProductString     Product String of Device
 * @retval None
 */
 void USBH_USR_Product_String(void *ProductString)
 {
     char temp[100];
+#if (DDL_PRINT_ENABLE == DDL_ON)
     sprintf((char *)temp, "Product : %s\n", (char *)ProductString);
     printf((void *)temp);
+#endif
 }
 
 /**
 * @brief  USBH_USR_SerialNum_String
 *         Displays the message on LCD for SerialNum_String
-* @param  SerialNumString : SerialNum_String of device
+* @param  SerialNumString   SerialNum_String of device
 * @retval None
 */
 void USBH_USR_SerialNum_String(void *SerialNumString)
 {
     uint8_t temp[100];
+#if (DDL_PRINT_ENABLE == DDL_ON)
     sprintf((char *)temp, "Serial Number : %s\n", (char *)SerialNumString);
     printf((void *)temp);
+#endif
 }
 
 /**
@@ -324,8 +354,10 @@ void USBH_USR_SerialNum_String(void *SerialNumString)
 */
 void USBH_USR_EnumerationDone(void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     /* Enumeration complete */
     printf((void *)MSG_DEV_ENUMERATED);
+#endif
 }
 
 /**
@@ -336,7 +368,9 @@ void USBH_USR_EnumerationDone(void)
 */
 void USBH_USR_DeviceNotSupported(void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("> Device not supported.\n");
+#endif
 }
 
 
@@ -344,7 +378,7 @@ void USBH_USR_DeviceNotSupported(void)
 * @brief  USBH_USR_UserInput
 *         User Action for application state entry
 * @param  None
-* @retval USBH_USR_Status : User response for key button
+* @retval USBH_USR_Status   User response for key button
 */
 USBH_USR_Status USBH_USR_UserInput(void)
 {
@@ -370,7 +404,9 @@ USBH_USR_Status USBH_USR_UserInput(void)
 */
 void USBH_USR_OverCurrentDetected (void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("Overcurrent detected.\n");
+#endif
 }
 
 /**
@@ -389,37 +425,37 @@ void USR_MOUSE_Init	(void)
 /**
 * @brief  USR_MOUSE_ProcessData
 *         Process Mouse data
-* @param  data : Mouse data to be displayed
+* @param  data      Mouse data to be displayed
 * @retval None
 */
 void USR_MOUSE_ProcessData(HID_MOUSE_Data_TypeDef *data)
 {
 
-    uint8_t idx = 1u;
-    static uint8_t b_state[3u] = { 0u, 0u , 0u};
+    uint8_t idx = 1U;
+    static uint8_t b_state[3U] = { 0U, 0U , 0U};
 
-    if ((data->x != 0u) && (data->y != 0u))
+    if ((data->x != 0U) && (data->y != 0U))
     {
         HID_MOUSE_UpdatePosition(data->x , data->y);
     }
 
-    for ( idx = 0u ; idx < 3u ; idx ++)
+    for ( idx = 0U ; idx < 3U ; idx ++)
     {
 
-        if(data->button & (0x01u << idx))
+        if(data->button & (0x01U << idx))
         {
-            if(b_state[idx] == 0u)
+            if(b_state[idx] == 0U)
             {
                 HID_MOUSE_ButtonPressed (idx);
-                b_state[idx] = 1u;
+                b_state[idx] = 1U;
             }
         }
         else
         {
-            if(b_state[idx] == 1u)
+            if(b_state[idx] == 1U)
             {
                 HID_MOUSE_ButtonReleased (idx);
-                b_state[idx] = 0u;
+                b_state[idx] = 0U;
             }
         }
     }
@@ -433,9 +469,11 @@ void USR_MOUSE_ProcessData(HID_MOUSE_Data_TypeDef *data)
 */
 void  USR_KEYBRD_Init (void)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf((void*)USB_HID_KeybrdStatus);
     printf("> Use Keyboard to tape characters: \n\n");
     printf("\n\n\n\n\n\n");
+#endif
 //    KeybrdCharXpos = KYBRD_FIRST_LINE;
 //    KeybrdCharYpos = KYBRD_FIRST_COLUMN;
 }
@@ -444,12 +482,14 @@ void  USR_KEYBRD_Init (void)
 /**
 * @brief  USR_KEYBRD_ProcessData
 *         Process Keyboard data
-* @param  data : Keyboard data to be displayed
+* @param  data      Keyboard data to be displayed
 * @retval None
 */
 void  USR_KEYBRD_ProcessData (uint8_t data)
 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("%c", (char)data);
+#endif
 }
 
 /**

@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-10       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -79,7 +79,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -100,6 +101,57 @@ abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    //PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    //SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    //EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    //PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    //SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    //EFM_Lock();
+}
 
 /**
  * @brief  Main function of hash_base project
@@ -108,14 +160,17 @@ abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\
  */
 int32_t main(void)
 {
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* Enable HASH. */
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_HASH, Enable);
     /* Config UART for printing. Baud rate 115200. */
     DDL_PrintfInit();
+
     /* Disable HASH interrupt */
-    HASH_IntCmd(HASH_INT_BOTH, Disable);
+    HASH_IntCmd((HASH_INT_GROUP | HASH_INT_ALL), Disable);
     /* Use HASH. */
-    HASH_Calculate((uint8_t *)c8SrcData, strlen((char *)c8SrcData),u8HashMsgDigest);
+    HASH_Calculate((uint8_t *)c8SrcData, strlen((char *)c8SrcData), u8HashMsgDigest);
     if ((uint8_t)memcmp(u8HashMsgDigest, u8ExpectDigest, sizeof(u8HashMsgDigest)) == 0U)
     {
         printf("message digest:\n");
@@ -129,6 +184,8 @@ int32_t main(void)
     {
         printf("Computation Errors\n");
     }
+    /* Lock peripherals or registers */
+    Peripheral_WP();
     while (1)
     {
 

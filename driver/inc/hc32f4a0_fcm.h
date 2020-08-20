@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-09       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -282,6 +282,25 @@ typedef struct
  * @addtogroup FCM_Global_Functions
  * @{
  */
+/**
+ * @brief  Set FCM upper limit value.
+ * @param  [in] u16Lmt
+ * @retval None.
+ */
+__STATIC_INLINE void FCM_SetUpLimit(uint16_t u16Lmt)
+{
+    WRITE_REG32(M4_FCM->UVR, u16Lmt);
+}
+
+/**
+ * @brief  Set FCM lower limit value.
+ * @param  u16Lmt
+ * @retval None
+ */
+__STATIC_INLINE void FCM_SetLowLimit(uint16_t u16Lmt)
+{
+    WRITE_REG32(M4_FCM->LVR, u16Lmt);
+}
 
 en_result_t FCM_Init(const stc_fcm_init_t *pstcFcmInit);
 en_result_t FCM_StructInit(stc_fcm_init_t *pstcFcmInit);

@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  hc32f4a0_timer2.h
- * @brief This file contains all the functions prototypes of the TIMER2 driver
- *        library.
+ * @file  hc32f4a0_tmr2.h
+ * @brief This file contains all the functions prototypes of the TMR2(Timer2)
+ *        driver library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-06       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -71,7 +71,7 @@ extern "C"
  */
 
 /**
- * @addtogroup DDL_TIMER2
+ * @addtogroup DDL_TMR2
  * @{
  */
 #if (DDL_TMR2_ENABLE == DDL_ON)
@@ -80,41 +80,42 @@ extern "C"
  * Global type definitions ('typedef')
  ******************************************************************************/
 /**
- * @defgroup TMR2_Global_Types TIMER2 Global Types
+ * @defgroup TMR2_Global_Types TMR2 Global Types
  * @{
  */
 
 /**
- * @brief TIMER2 initialization structure.
+ * @brief TMR2 initialization structure.
  */
 typedef struct
 {
-    uint32_t u32FuncMode;                   /*!< Specify the function mode for TIMER2's channel.
+    uint32_t u32FuncMode;                   /*!< Specify the function mode for TMR2's channel.
                                                  This parameter can be a value of @ref TMR2_Function_Mode */
-    uint32_t u32ClkSrc;                     /*!< Specify the clock source for TIMER2's channel.
+    uint32_t u32ClkSrc;                     /*!< Specify the clock source for TMR2's channel.
                                                  This parameter can be a value of @ref TMR2_Clock_Source */
     uint32_t u32ClkDiv;                     /*!< Specify the division of the clock source.
-                                                 This parameter can be a value of @ref TMR2_Clock_Division */
-    uint32_t u32CmpVal;                     /*!< Specify the compare value depends on your application. */
-    uint32_t u32CntVal;                     /*!< Initial value of the count register. */
-    uint32_t u32AsyncClkFreq;               /*!< This parameter is the frequency(Hz) of the asynchronous clock input from pin TIM2_x_CLKA/B. */
+                                                 This parameter can be a value of @ref TMR2_Clock_Divider */
+    uint32_t u32CmpVal;                     /*!< Specify the compare value depends on your application.
+                                                 This parameter can be a number between 0U and 0xFFFFU, inclusive. */
+    uint32_t u32CntVal;                     /*!< Initial value of the count register.
+                                                 This parameter can be a number between 0U and 0xFFFFU, inclusive. */
 } stc_tmr2_init_t;
 
 /**
- * @brief TIMER2 PWM output polarity configuration structure.
+ * @brief TMR2 PWM output polarity configuration structure.
  */
 typedef struct
 {
-    uint32_t u32StartPolarity;              /*!< Specify the polarity of PWM output when TIMER2 counting start.
+    uint32_t u32StartPolarity;              /*!< Specify the polarity of PWM output when TMR2 counting start.
                                                  This parameter can be a value of @ref TMR2_PWM_Start_Polarity */
-    uint32_t u32StopPolarity;               /*!< Specify the polarity of PWM output when TIMER2 counting stop.
+    uint32_t u32StopPolarity;               /*!< Specify the polarity of PWM output when TMR2 counting stop.
                                                  This parameter can be a value of @ref TMR2_PWM_Stop_Polarity */
-    uint32_t u32CMPolarity;                 /*!< Specify the polarity of PWM output when TIMER2 counting match.
-                                                 This parameter can be a value of @ref TMR2_PWM_CM_Polarity */
+    uint32_t u32CmpPolarity;                /*!< Specify the polarity of PWM output when TMR2 counting matches the compare value.
+                                                 This parameter can be a value of @ref TMR2_PWM_Cmp_Polarity */
 } stc_tmr2_pwm_cfg_t;
 
 /**
- * @brief TIMER2 hardware trigger condition configuration structure.
+ * @brief TMR2 hardware trigger condition configuration structure.
  */
 typedef struct
 {
@@ -136,51 +137,51 @@ typedef struct
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup TMR2_Global_Macros TIMER2 Global Macros
+ * @defgroup TMR2_Global_Macros TMR2 Global Macros
  * @{
  */
 
 /**
- * @defgroup TMR2_Channel_Number TIMER2 Channel Number
+ * @defgroup TMR2_Channel_Number TMR2 Channel Number
  * @{
  */
-#define TMR2_CH_A                       (0U)                            /*!< Channel A of TIMER2. */
-#define TMR2_CH_B                       (1U)                            /*!< Channel B of TIMER2. */
+#define TMR2_CH_A                       (0U)                            /*!< Channel A of TMR2. */
+#define TMR2_CH_B                       (1U)                            /*!< Channel B of TMR2. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMR2_Function_Mode TIMER2 Function Mode
+ * @defgroup TMR2_Function_Mode TMR2 Function Mode
  * @{
  */
-#define TMR2_FUNC_COMPARE               (0x0U)                          /*!< The function mode of TIMER2 is comparison ouput. */
-#define TMR2_FUNC_CAPTURE               (TMR2_BCONR_CAPMDA)             /*!< The function mode of TIMER2 is capture the input. */
+#define TMR2_FUNC_COMPARE               (0x0U)                          /*!< The function mode of TMR2 is comparison ouput. */
+#define TMR2_FUNC_CAPTURE               (TMR2_BCONR_CAPMDA)             /*!< The function mode of TMR2 is capture the input. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMR2_Clock_Division TIMER2 Clock Division
+ * @defgroup TMR2_Clock_Divider TMR2 Clock Divider
  * @{
  */
-#define TMR2_CLK_DIV_1                  (0x0U)                          /*!< Clock source. */
-#define TMR2_CLK_DIV_2                  (TMR2_BCONR_CKDIVA_0)           /*!< Clock source / 2. */
-#define TMR2_CLK_DIV_4                  (TMR2_BCONR_CKDIVA_1)           /*!< Clock source / 4. */
-#define TMR2_CLK_DIV_8                  (TMR2_BCONR_CKDIVA_1 | \
+#define TMR2_CLK_DIV1                   (0x0U)                          /*!< Clock source. */
+#define TMR2_CLK_DIV2                   (TMR2_BCONR_CKDIVA_0)           /*!< Clock source / 2. */
+#define TMR2_CLK_DIV4                   (TMR2_BCONR_CKDIVA_1)           /*!< Clock source / 4. */
+#define TMR2_CLK_DIV8                   (TMR2_BCONR_CKDIVA_1 | \
                                          TMR2_BCONR_CKDIVA_0)           /*!< Clock source / 8. */
-#define TMR2_CLK_DIV_16                 (TMR2_BCONR_CKDIVA_2)           /*!< Clock source / 16. */
-#define TMR2_CLK_DIV_32                 (TMR2_BCONR_CKDIVA_2 | \
+#define TMR2_CLK_DIV16                  (TMR2_BCONR_CKDIVA_2)           /*!< Clock source / 16. */
+#define TMR2_CLK_DIV32                  (TMR2_BCONR_CKDIVA_2 | \
                                          TMR2_BCONR_CKDIVA_0)           /*!< Clock source / 32. */
-#define TMR2_CLK_DIV_64                 (TMR2_BCONR_CKDIVA_2 | \
+#define TMR2_CLK_DIV64                  (TMR2_BCONR_CKDIVA_2 | \
                                          TMR2_BCONR_CKDIVA_1)           /*!< Clock source / 64. */
-#define TMR2_CLK_DIV_128                (TMR2_BCONR_CKDIVA_2 | \
+#define TMR2_CLK_DIV128                 (TMR2_BCONR_CKDIVA_2 | \
                                          TMR2_BCONR_CKDIVA_1 | \
                                          TMR2_BCONR_CKDIVA_0)           /*!< Clock source / 128. */
-#define TMR2_CLK_DIV_256                (TMR2_BCONR_CKDIVA_3)           /*!< Clock source / 256. */
-#define TMR2_CLK_DIV_512                (TMR2_BCONR_CKDIVA_3 | \
+#define TMR2_CLK_DIV256                 (TMR2_BCONR_CKDIVA_3)           /*!< Clock source / 256. */
+#define TMR2_CLK_DIV512                 (TMR2_BCONR_CKDIVA_3 | \
                                          TMR2_BCONR_CKDIVA_0)           /*!< Clock source / 512. */
-#define TMR2_CLK_DIV_1024               (TMR2_BCONR_CKDIVA_3 | \
+#define TMR2_CLK_DIV1024                (TMR2_BCONR_CKDIVA_3 | \
                                          TMR2_BCONR_CKDIVA_1)           /*!< Clock source / 1024. */
 
 /**
@@ -188,7 +189,7 @@ typedef struct
  */
 
 /**
- * @defgroup TMR2_Clock_Source TIMER2 Clock Source
+ * @defgroup TMR2_Clock_Source TMR2 Clock Source
  * @{
  */
 #define TMR2_CLK_SYNC_PCLK1             (0x0U)                          /*!< Synchronous clock source, PCLK1. */
@@ -212,17 +213,17 @@ typedef struct
  */
 
 /**
- * @defgroup TMR2_Interrupt_Type TIMER2 Interrupt Type
+ * @defgroup TMR2_Interrupt_Type TMR2 Interrupt Type
  * @{
  */
-#define TMR2_INT_CMP                    (TMR2_ICONR_CMENA)              /*!< TIMER2 count match interrupt. */
-#define TMR2_INT_OVF                    (TMR2_ICONR_OVENA)              /*!< TIMER2 count overflow interrupt. */
+#define TMR2_INT_CMP                    (TMR2_ICONR_CMENA)              /*!< TMR2 count match interrupt. */
+#define TMR2_INT_OVF                    (TMR2_ICONR_OVENA)              /*!< TMR2 count overflow interrupt. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMR2_PWM_Start_Polarity TIMER2 PWM Start Polarity
+ * @defgroup TMR2_PWM_Start_Polarity TMR2 PWM Start Polarity
  * @{
  */
 #define TMR2_PWM_START_LOW              (0x0U)                          /*!< PWM output low when counting start. */
@@ -233,7 +234,7 @@ typedef struct
  */
 
 /**
- * @defgroup TMR2_PWM_Stop_Polarity TIMER2 PWM Stop Polarity
+ * @defgroup TMR2_PWM_Stop_Polarity TMR2 PWM Stop Polarity
  * @{
  */
 #define TMR2_PWM_STOP_LOW               (0x0U)                          /*!< PWM output low when counting stop. */
@@ -244,92 +245,80 @@ typedef struct
  */
 
 /**
- * @defgroup TMR2_PWM_Count_Match_Polarity TIMER2 PWM Count Match Polarity
+ * @defgroup TMR2_PWM_Cmp_Polarity TMR2 PWM Polarity When Counting Compare Matches The Compare Value
  * @{
  */
-#define TMR2_PWM_CM_LOW                 (0x0U)                          /*!< PWM output low when counting match. */
-#define TMR2_PWM_CM_HIGH                (TMR2_PCONR_CMPCA_0)            /*!< PWM output high when counting match. */
-#define TMR2_PWM_CM_KEEP                (TMR2_PCONR_CMPCA_1)            /*!< PWM output keeps the current polarity when counting match. */
-#define TMR2_PWM_CM_REVERSE             (TMR2_PCONR_CMPCA_1 | \
+#define TMR2_PWM_CMP_LOW                (0x0U)                          /*!< PWM output low when counting match. */
+#define TMR2_PWM_CMP_HIGH               (TMR2_PCONR_CMPCA_0)            /*!< PWM output high when counting match. */
+#define TMR2_PWM_CMP_KEEP               (TMR2_PCONR_CMPCA_1)            /*!< PWM output keeps the current polarity when counting match. */
+#define TMR2_PWM_CMP_REVERSE            (TMR2_PCONR_CMPCA_1 | \
                                          TMR2_PCONR_CMPCA_0)            /*!< PWM output reverses the current polarity when counting match. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMR2_PWM_Output_Polarity TIMER2 PWM Output Polarity
+ * @defgroup TMR2_Filter_Clock_Divider TMR2 Filter Clock Divider
  * @{
  */
-#define TMR2_PWM_OUT_LOW                (0U)                            /*!< The polarity of PWM output is low. */
-#define TMR2_PWM_OUT_HI                 (1U)                            /*!< The polarity of PWM output is high. */
-#define TMR2_PWM_OUT_KEEP               (2U)                            /*!< The polarity of PWM output keeps the current polarity. */
-#define TMR2_PWM_OUT_REVERSE            (3U)                            /*!< The polarity of PWM output reverses the current polarity. */
+#define TMR2_FILTER_CLK_DIV1            (0x0U)                          /*!< Clock source. */
+#define TMR2_FILTER_CLK_DIV4            (TMR2_PCONR_NOFICKA_0)          /*!< Clock source / 4. */
+#define TMR2_FILTER_CLK_DIV16           (TMR2_PCONR_NOFICKA_1)          /*!< Clock source / 16. */
+#define TMR2_FILTER_CLK_DIV64           (TMR2_PCONR_NOFICKA)            /*!< Clock source / 64. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMR2_Filter_Clock_Division TIMER2 Filter Clock Prescaler
+ * @defgroup TMR2_Hardware_Start_Condition TMR2 Hardware Start Condition
  * @{
  */
-#define TMR2_FILTER_CLK_DIV_1           (0x0U)                          /*!< Clock source. */
-#define TMR2_FILTER_CLK_DIV_4           (TMR2_PCONR_NOFICKA_0)          /*!< Clock source / 4. */
-#define TMR2_FILTER_CLK_DIV_16          (TMR2_PCONR_NOFICKA_1)          /*!< Clock source / 16. */
-#define TMR2_FILTER_CLK_DIV_64          (TMR2_PCONR_NOFICKA)            /*!< Clock source / 64. */
+#define TMR2_START_COND_INVALID         (0x0U)                          /*!< The start condition of TMR2 is INVALID. */
+#define TMR2_START_COND_TRIGR           (TMR2_HCONR_HSTAA0)  /*!< The start condition of TMR2 is the rising edge of TIM2_x_PWMA/B. */
+#define TMR2_START_COND_TRIGF           (TMR2_HCONR_HSTAA1)  /*!< The start condition of TMR2 is the falling edge of TIM2_x_PWMA/B. */
+#define TMR2_START_COND_EVENT           (TMR2_HCONR_HSTAA2)  /*!< The start condition of TMR2 is the specified event occurred. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMR2_Hardware_Start_Condition TIMER2 Hardware Start Condition
+ * @defgroup TMR2_Hardware_Stop_Condition TMR2 Hardware Stop Condition
  * @{
  */
-#define TMR2_START_COND_INVALID         (0x0U)                          /*!< The start condition of TIMER2 is INVALID. */
-#define TMR2_START_COND_TRIGR           (1UL << TMR2_HCONR_HSTAA0_POS)  /*!< The start condition of TIMER2 is the rising edge of TIM2_x_PWMA/B. */
-#define TMR2_START_COND_TRIGF           (1UL << TMR2_HCONR_HSTAA1_POS)  /*!< The start condition of TIMER2 is the falling edge of TIM2_x_PWMA/B. */
-#define TMR2_START_COND_EVENT           (1UL << TMR2_HCONR_HSTAA2_POS)  /*!< The start condition of TIMER2 is the specified event occurred. */
+#define TMR2_STOP_COND_INVALID          (0x0U)                          /*!< The stop condition of TMR2 is INVALID. */
+#define TMR2_STOP_COND_TRIGR            (TMR2_HCONR_HSTPA0)             /*!< The stop condition of TMR2 is the rising edge of TIM2_x_PWMA/B. */
+#define TMR2_STOP_COND_TRIGF            (TMR2_HCONR_HSTPA1)             /*!< The stop condition of TMR2 is the falling edge of TIM2_x_PWMA/B. */
+#define TMR2_STOP_COND_EVENT            (TMR2_HCONR_HSTPA2)             /*!< The stop condition of TMR2 is the specified event occurred. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMR2_Hardware_Stop_Condition TIMER2 Hardware Stop Condition
+ * @defgroup TMR2_Hardware_Clear_Condition TMR2 Hardware Clear Condition
  * @{
  */
-#define TMR2_STOP_COND_INVALID          (0x0U)                          /*!< The stop condition of TIMER2 is INVALID. */
-#define TMR2_STOP_COND_TRIGR            (TMR2_HCONR_HSTPA0)             /*!< The stop condition of TIMER2 is the rising edge of TIM2_x_PWMA/B. */
-#define TMR2_STOP_COND_TRIGF            (TMR2_HCONR_HSTPA1)             /*!< The stop condition of TIMER2 is the falling edge of TIM2_x_PWMA/B. */
-#define TMR2_STOP_COND_EVENT            (TMR2_HCONR_HSTPA2)             /*!< The stop condition of TIMER2 is the specified event occurred. */
+#define TMR2_CLR_COND_INVALID           (0x0U)                          /*!< The clear condition of TMR2 is INVALID. */
+#define TMR2_CLR_COND_TRIGR             (TMR2_HCONR_HCLEA0)             /*!< The clear(clear CNTAR/CNTBR) condition of TMR2 is the rising edge of TIM2_x_PWMA/B. */
+#define TMR2_CLR_COND_TRIGF             (TMR2_HCONR_HCLEA1)             /*!< The clear(clear CNTAR/CNTBR) condition of TMR2 is the falling edge of TIM2_x_PWMA/B. */
+#define TMR2_CLR_COND_EVENT             (TMR2_HCONR_HCLEA2)             /*!< The clear(clear CNTAR/CNTBR) condition of TMR2 is the specified event occurred. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMR2_Hardware_Clear_Condition TIMER2 Hardware Clear Condition
+ * @defgroup TMR2_Hardware_Capture_Condition TMR2 Hardware Capture Condition
  * @{
  */
-#define TMR2_CLR_COND_INVALID           (0x0U)                          /*!< The clear condition of TIMER2 is INVALID. */
-#define TMR2_CLR_COND_TRIGR             (TMR2_HCONR_HCLEA0)             /*!< The clear(clear CNTAR/CNTBR) condition of TIMER2 is the rising edge of TIM2_x_PWMA/B. */
-#define TMR2_CLR_COND_TRIGF             (TMR2_HCONR_HCLEA1)             /*!< The clear(clear CNTAR/CNTBR) condition of TIMER2 is the falling edge of TIM2_x_PWMA/B. */
-#define TMR2_CLR_COND_EVENT             (TMR2_HCONR_HCLEA2)             /*!< The clear(clear CNTAR/CNTBR) condition of TIMER2 is the specified event occurred. */
+#define TMR2_CAPT_COND_INVALID          (0x0U)                          /*!< The capture condition of TMR2 is INVALID. */
+#define TMR2_CAPT_COND_TRIGR            (TMR2_HCONR_HICPA0)             /*!< The capture condition of TMR2 is the rising edge of TIM2_x_PWMA/B. */
+#define TMR2_CAPT_COND_TRIGF            (TMR2_HCONR_HICPA1)             /*!< The capture condition of TMR2 is the falling edge of TIM2_x_PWMA/B. */
+#define TMR2_CAPT_COND_EVENT            (TMR2_HCONR_HICPA2)             /*!< The capture condition of TMR2 is the specified event occurred. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMR2_Hardware_Capture_Condition TIMER2 Hardware Capture Condition
- * @{
- */
-#define TMR2_CAPT_COND_INVALID          (0x0U)                          /*!< The capture condition of TIMER2 is INVALID. */
-#define TMR2_CAPT_COND_TRIGR            (TMR2_HCONR_HICPA0)             /*!< The capture condition of TIMER2 is the rising edge of TIM2_x_PWMA/B. */
-#define TMR2_CAPT_COND_TRIGF            (TMR2_HCONR_HICPA1)             /*!< The capture condition of TIMER2 is the falling edge of TIM2_x_PWMA/B. */
-#define TMR2_CAPT_COND_EVENT            (TMR2_HCONR_HICPA2)             /*!< The capture condition of TIMER2 is the specified event occurred. */
-/**
- * @}
- */
-
-/**
- * @defgroup TMR2_State_Flag TIMER2 State Flag
+ * @defgroup TMR2_State_Flag TMR2 State Flag
  * @{
  */
 #define TMR2_FLAG_CMP                   (TMR2_STFLR_CMFA)               /*!< Counter match flag. */
@@ -340,13 +329,11 @@ typedef struct
  */
 
 /**
- * @defgroup TMR2_Common_Trigger_Event_Command TIMER2 Common Trigger Event Command
+ * @defgroup TMR2_Common_Trigger_Sel TMR2 Common Trigger Source Select
  * @{
  */
-#define TMR2_COM1_TRIG_DISABLE          (0x00UL)
-#define TMR2_COM2_TRIG_DISABLE          (0x00UL)
-#define TMR2_COM1_TRIG_ENABLE           (0x01UL << 30U)
-#define TMR2_COM2_TRIG_ENABLE           (0x01UL << 31U)
+#define TMR2_COM_TRIG1                  (AOS_TMR2_HTSSR_COMTRG_EN_0)
+#define TMR2_COM_TRIG2                  (AOS_TMR2_HTSSR_COMTRG_EN_1)
 /**
  * @}
  */
@@ -376,8 +363,8 @@ typedef struct
 
      en_result_t TMR2_SetTrigCond(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, const stc_tmr2_trig_cond_t *pstcCond);
      en_result_t TMR2_TrigCondStructInit(stc_tmr2_trig_cond_t *pstcCond);
-            void TMR2_SetTrigEvent(en_event_src_t enEvent);
-            void TMR2_ComTrigCmd(uint32_t u32ComTrigEn);
+            void TMR2_SetTriggerSrc(en_event_src_t enEvent);
+            void TMR2_ComTriggerCmd(uint32_t u32ComTrig, en_functional_state_t enNewState);
 
             void TMR2_FilterConfig(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkDiv);
             void TMR2_FilterCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, en_functional_state_t enNewState);
@@ -385,29 +372,28 @@ typedef struct
             void TMR2_IntCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, \
                              uint32_t u32IntType, en_functional_state_t enNewState);
 
-     en_result_t TMR2_Start(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch);
-     en_result_t TMR2_Stop(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch);
+            void TMR2_Start(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch);
+            void TMR2_Stop(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch);
 
 en_flag_status_t TMR2_GetStatus(const M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Flag);
-     en_result_t TMR2_ClrStatus(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Flag);
+            void TMR2_ClrStatus(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Flag);
 
-     en_result_t TMR2_SetCmpVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Val);
+            void TMR2_SetCmpVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Val);
         uint32_t TMR2_GetCmpVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch);
 
-     en_result_t TMR2_SetCntVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Val);
+            void TMR2_SetCntVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Val);
         uint32_t TMR2_GetCntVal(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch);
 
-     en_result_t TMR2_SetFuncMode(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32FuncMode);
+            void TMR2_SetFuncMode(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32FuncMode);
 
-     en_result_t TMR2_SetClkSrc(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkSrc);
-     en_result_t TMR2_SetClkDiv(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkDiv);
-     en_result_t TMR2_SetAsyncDelay(uint32_t u32AsyncClkFreq, uint32_t u32ClkDiv);
+            void TMR2_SetClkSrc(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkSrc);
+            void TMR2_SetClkDiv(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32ClkDiv);
 
             void TMR2_TrigCondCmd(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Cond, en_functional_state_t enNewState);
 
             void TMR2_PWM_SetStartPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
             void TMR2_PWM_SetStopPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
-            void TMR2_PWM_SetCntMatchPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
+            void TMR2_PWM_SetCmpPolarity(M4_TMR2_TypeDef *TMR2x, uint8_t u8Tmr2Ch, uint32_t u32Polarity);
 
 /**
  * @}

@@ -2,11 +2,11 @@
  *******************************************************************************
  * @file  usbd_core.c
  * @brief USBD core functions.
- *       
+ *
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -195,7 +195,7 @@ void USBD_Init(USB_OTG_CORE_HANDLE *pdev,
     pdev->dev.usr_cb->Init();
     pdev->dev.device_state = USB_OTG_EP0_IDLE;
 
-    /* config NVIC for usb interruopt */
+    /* config NVIC for usb interrupt */
     USB_OTG_BSP_EnableInterrupt();
 }
 
@@ -276,7 +276,7 @@ static uint8_t USBD_SetupStage(USB_OTG_CORE_HANDLE *pdev)
             break;
 
         default:
-            DCD_EP_Stall(pdev , req.bmRequest & 0x80u);
+            DCD_EP_Stall(pdev , req.bmRequest & 0x80U);
             break;
     }
     return USBD_OK;
@@ -307,17 +307,23 @@ static uint8_t USBD_DataOutStage(USB_OTG_CORE_HANDLE *pdev , uint8_t epnum)
                     /* in slave mode this, is handled by the RxSTSQLvl ISR */
                     ep->xfer_buff += ep->maxpacket;
                 }
-                ///printf("ContinueRx\n");
+#if (DDL_PRINT_ENABLE == DDL_ON)
+                //printf("ContinueRx\n");
+#endif
                 USBD_CtlContinueRx (pdev,
                 ep->xfer_buff,
                 (uint16_t)__MIN(ep->rem_data_len ,ep->maxpacket));
             }
             else
             {
+#if (DDL_PRINT_ENABLE == DDL_ON)
                 //printf("out end\n");
+#endif
                 if (ep->xfer_count > ep->rem_data_len)
                 {
+#if (DDL_PRINT_ENABLE == DDL_ON)
                     printf("%ld %ld\n",ep->xfer_count, ep->rem_data_len);
+#endif
                 }
                 ep->rem_data_len = 0U;
                 if((pdev->dev.class_cb->EP0_RxReady != NULL)&&

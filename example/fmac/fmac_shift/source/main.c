@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-16       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -90,6 +90,8 @@ static void SystemClockConfig(void);
 static void FMACInitConfig(void);
 static void ADCInitConfig(void);
 static void IRQ_Config(void);
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -97,6 +99,57 @@ static void IRQ_Config(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    //PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    //SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    //EFM_Lock();
+}
 
 /**
  * @brief  FMAC complete IRQ callback
@@ -108,13 +161,10 @@ static void Fmac_IrqCallback(void)
     stc_fmac_result_t stcResult;
 
     /* Get result and output it*/
-    stcResult = FMAC_GetResult(FMACx);
+    FMAC_GetResult(FMACx, &stcResult);
     printf("\nThe result is %lu,%lu", stcResult.u32ResultHigh, stcResult.u32ResultLow);
     /* clear the interrupt flag */
     FMAC_GetStatus(FMACx);
-    /* Clear result  If you need to compute again, you must do this*/
-    FMAC_Cmd(FMACx, Disable);
-    FMAC_Cmd(FMACx, Enable);
 }
 
 /**
@@ -125,6 +175,8 @@ static void Fmac_IrqCallback(void)
 int32_t main(void)
 {
     uint16_t u16ADCVal = 0U;
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* Configures the PLLHP(240MHz) as the system clock. */
     SystemClockConfig();
     /* Initializes UART for debug printing. Baudrate is 115200. */
@@ -137,6 +189,8 @@ int32_t main(void)
     IRQ_Config();
     /* Start ADC */
     ADC_Start(ADC_UNIT);
+    /* Lock peripherals or registers */
+    Peripheral_WP();
     /* Wait end of conversion of sequence A */
     while(ADC_SeqGetStatus(ADC_UNIT, ADC_SEQ_FLAG_EOCA) == Reset)
     {
@@ -149,7 +203,7 @@ int32_t main(void)
         printf("\nThe input is %d", u16ADCVal);
         /* Input data to be filtered */
         FMAC_FIRInput(FMACx, (int16_t)u16ADCVal);
-        DDL_Delay1ms(1000U);
+        DDL_DelayMS(200U);
     }
 }
 
@@ -198,13 +252,13 @@ static void SystemClockConfig(void)
     CLK_PLLHInit(&stcPLLHInit);
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
 
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
-    EFM_Unlock();
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* EFM wait cycle */
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
-    EFM_Lock();
+
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
@@ -225,10 +279,11 @@ static void FMACInitConfig(void)
     FMAC_Cmd(FMACx, Enable);
     /* FMAC function initialize */
     FMAC_StructInit(&stcFmacInit);
-    stcFmacInit.FiltFactor = FiltFactor;
-    stcFmacInit.u8FiltStage = FMAC_FILTER_STAGE_12;
-    stcFmacInit.u8FiltShift = FMAC_FILTER_SHIFT_10BIT;
-    stcFmacInit.enFmacIntCmd = Enable;
+    FMAC_StructInit(&stcFmacInit);
+    stcFmacInit.i16FiltFactor = FiltFactor;
+    stcFmacInit.u32FiltStage  = FMAC_FILTER_STAGE_10;
+    stcFmacInit.u32FiltShift  = FMAC_FILTER_SHIFT_6BIT;
+    stcFmacInit.u32IntCmd     = FMAC_INT_ENABLE;
     FMAC_Init(FMACx, &stcFmacInit);
 }
 

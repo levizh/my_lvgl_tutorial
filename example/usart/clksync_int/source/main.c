@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-20       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,7 +62,7 @@
  */
 
 /**
- * @addtogroup CLKSYNC_Interrupt
+ * @addtogroup USART_Clocksync_Interrupt
  * @{
  */
 
@@ -91,8 +91,9 @@ typedef struct
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* Key definition */
-#define USER_KEY                        (BSP_KEY_1)
+/* Key port&pin definition */
+#define KEY_PORT                        (GPIO_PORT_A)
+#define KEY_PIN                         (GPIO_PIN_00)
 
 /* CLKSYNC CK/RX/TX Port/Pin definition */
 #define CLKSYNC_CK_PORT                 (GPIO_PORT_E)   /* PE3: USART6_CK */
@@ -141,6 +142,9 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+static en_flag_status_t KeyState(void);
 static void USART_TxEmpty_IrqCallback(void);
 static void USART_TxComplete_IrqCallback(void);
 static void USART_Rx_IrqCallback(void);
@@ -165,13 +169,92 @@ static stc_buffer_handle_t m_stcBufHandle;
  ******************************************************************************/
 
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
+ * @brief  Get key state
+ * @param  None
+ * @retval An en_result_t enumeration value:
+ *           - Set: Released after key is pressed
+ *           - Reset: Key isn't pressed
+ */
+static en_flag_status_t KeyState(void)
+{
+    en_flag_status_t enKeyState = Reset;
+
+    if (Pin_Reset == GPIO_ReadInputPins(KEY_PORT, KEY_PIN))
+    {
+        DDL_DelayMS(50UL);
+
+        if (Pin_Reset == GPIO_ReadInputPins(KEY_PORT, KEY_PIN))
+        {
+            while (Pin_Reset == GPIO_ReadInputPins(KEY_PORT, KEY_PIN))
+            {
+            }
+            enKeyState = Set;
+        }
+    }
+
+    return enKeyState;
+}
+
+/**
  * @brief  USART TX Empty IRQ callback.
  * @param  None.
  * @retval None
  */
 static void USART_TxEmpty_IrqCallback(void)
 {
-    en_flag_status_t enFlag = USART_GetFlag(CLKSYNC_UNIT, USART_FLAG_TXE);
+    en_flag_status_t enFlag = USART_GetStatus(CLKSYNC_UNIT, USART_FLAG_TXE);
     en_functional_state_t enState = USART_GetFuncState(CLKSYNC_UNIT, USART_INT_TXE);
 
     if ((Set == enFlag) && (Enable == enState))
@@ -187,7 +270,7 @@ static void USART_TxEmpty_IrqCallback(void)
  */
 static void USART_TxComplete_IrqCallback(void)
 {
-    en_flag_status_t enFlag = USART_GetFlag(CLKSYNC_UNIT, USART_FLAG_TC);
+    en_flag_status_t enFlag = USART_GetStatus(CLKSYNC_UNIT, USART_FLAG_TC);
     en_functional_state_t enState = USART_GetFuncState(CLKSYNC_UNIT, USART_INT_TC);
 
     if ((Set == enFlag) && (Enable == enState))
@@ -203,7 +286,7 @@ static void USART_TxComplete_IrqCallback(void)
  */
 static void USART_Rx_IrqCallback(void)
 {
-    en_flag_status_t enFlag = USART_GetFlag(CLKSYNC_UNIT, USART_FLAG_RXNE);
+    en_flag_status_t enFlag = USART_GetStatus(CLKSYNC_UNIT, USART_FLAG_RXNE);
     en_functional_state_t enState = USART_GetFuncState(CLKSYNC_UNIT, USART_INT_RX);
 
     if ((Set == enFlag) && (Enable == enState))
@@ -219,7 +302,7 @@ static void USART_Rx_IrqCallback(void)
  */
 static void USART_RxErr_IrqCallback(void)
 {
-    USART_ClearFlag(CLKSYNC_UNIT, (USART_CLEAR_FLAG_FE | USART_CLEAR_FLAG_PE | USART_CLEAR_FLAG_ORE));
+    USART_ClearStatus(CLKSYNC_UNIT, (USART_CLEAR_FLAG_FE | USART_CLEAR_FLAG_PE | USART_CLEAR_FLAG_ORE));
 }
 
 /**
@@ -233,7 +316,7 @@ static void TransmitReceive_IT(M4_USART_TypeDef *USARTx,
 {
     if (pstcBufHandle->u16RxXferCount != 0U)
     {
-        if (USART_GetFlag(USARTx, USART_FLAG_RXNE) != Reset)
+        if (USART_GetStatus(USARTx, USART_FLAG_RXNE) != Reset)
         {
             *pstcBufHandle->pu8RxBuffPtr++ = (uint8_t)USART_RecData(USARTx);
             pstcBufHandle->u16RxXferCount--;
@@ -250,7 +333,7 @@ static void TransmitReceive_IT(M4_USART_TypeDef *USARTx,
     {
         if (pstcBufHandle->u16TxXferCount != 0U)
         {
-            if (USART_GetFlag(USARTx, USART_FLAG_TXE) != Reset)
+            if (USART_GetStatus(USARTx, USART_FLAG_TXE) != Reset)
             {
                 USART_SendData(USARTx, (uint16_t)(*pstcBufHandle->pu8TxBuffPtr++));
                 pstcBufHandle->u16TxXferCount--;
@@ -314,7 +397,7 @@ static en_result_t CLKSYNC_TransmitReceive_IT(M4_USART_TypeDef *USARTx,
 /**
  * @brief  Instal IRQ handler.
  * @param  [in] pstcConfig      Pointer to struct @ref stc_irq_signin_config_t
- * @param  [in] Priority        Interrupt priority
+ * @param  [in] u32Priority     Interrupt priority
  * @retval None
  */
 static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
@@ -345,11 +428,11 @@ int32_t main(void)
     /* Buffer used for reception */
     uint8_t au8RxData[ARRAY_SZ(au8TxData)];
 
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
+
     /* Initialize system clock. */
     BSP_CLK_Init();
-    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
-                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
-                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Initialize IO. */
     BSP_IO_Init();
@@ -357,24 +440,23 @@ int32_t main(void)
     /* Initialize LED. */
     BSP_LED_Init();
 
-    /* Initialize key. */
-    BSP_KEY_Init();
-
     /* Configure USART CK/RX/TX pin. */
-    GPIO_Unlock();
     GPIO_SetFunc(CLKSYNC_CK_PORT, CLKSYNC_CK_PIN, CLKSYNC_CK_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(CLKSYNC_RX_PORT, CLKSYNC_RX_PIN, CLKSYNC_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(CLKSYNC_TX_PORT, CLKSYNC_TX_PIN, CLKSYNC_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
-    GPIO_Lock();
+
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
 
     /* Enable peripheral clock */
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);
 
     /* Initialize CLKSYNC function. */
     USART_ClkSyncStructInit(&stcClksyncInit);
-    stcClksyncInit.u32Baudrate = 38400UL;
 #if (CLKSYNC_DEVICE_MODE == CLKSYNC_MASTER_MODE)
-    stcClksyncInit.u32ClkMode = USART_INTCLK_OUTPUT;
+    stcClksyncInit.u32Baudrate = 38400UL;
+    stcClksyncInit.u32PclkDiv = USART_PCLK_DIV4,
+    stcClksyncInit.u32ClkMode = USART_INTERNCLK_OUTPUT;
 #else
     stcClksyncInit.u32ClkMode = USART_EXTCLK;
 #endif
@@ -408,7 +490,7 @@ int32_t main(void)
     USART_FuncCmd(CLKSYNC_UNIT, (USART_RX | USART_TX), Enable);
 
     /* User key */
-    while (Reset == BSP_KEY_GetStatus(USER_KEY))
+    while (Reset == KeyState())
     {
     }
 

@@ -5,7 +5,11 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
+   2020-07-03       Zhangxl         1. Tpyo
+                                    2. API CLK_SetSysClkSrc() refine
+   2020-08-19       Zhangxl         1. Modify formula of PLL clock get API
+                                    2. Zero structure for CLK_PLLxStrucInit()
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -78,55 +82,46 @@
  ******************************************************************************/
 /**
  * @defgroup CLK_Local_Macros CLK Local Macros
+ * @brief Be able to modify TIMEOUT according to board condition.
  * @{
  */
-#define CLK_XTAL_TIMEOUT                    (SystemCoreClock/0x1000U)
-#define CLK_XTAL32_TIMEOUT                  ((uint8_t)0x05U)
-#define CLK_HRC_TIMEOUT                     ((uint16_t)0x1000U)
-#define CLK_MRC_TIMEOUT                     ((uint8_t)0x05U)
-#define CLK_LRC_TIMEOUT                     ((uint8_t)0x05U)
-#define CLK_PLLH_TIMEOUT                    ((uint16_t)0x1000U)
-#define CLK_PLLA_TIMEOUT                    ((uint16_t)0x1000U)
+#define CLK_XTAL_TIMEOUT                    ((uint32_t)0x1000UL)
+#define CLK_XTAL32_TIMEOUT                  ((uint32_t)0x1000UL)
+#define CLK_HRC_TIMEOUT                     ((uint32_t)0x1000UL)
+#define CLK_MRC_TIMEOUT                     ((uint32_t)0x1000UL)
+#define CLK_LRC_TIMEOUT                     ((uint32_t)0x1000UL)
+#define CLK_PLLH_TIMEOUT                    ((uint32_t)0x1000UL)
+#define CLK_PLLA_TIMEOUT                    ((uint32_t)0x1000UL)
 
 /**
  * @defgroup CLK_Check_Parameters_Validity CLK Check Parameters Validity
  * @{
  */
 
-/*  Check CLK register lock status. */
+/* Check CLK register lock status. */
 #define IS_CLK_UNLOCKED()       ((M4_PWC->FPRC & PWC_FPRC_FPRCB0) == PWC_FPRC_FPRCB0)
 
-/*  Check CLK register lock status. */
+/* Check CLK register lock status. */
 #define IS_CLK_SEL_UNLOCKED()   ((M4_PWC->FPRC & PWC_FPRC_FPRCB1) == PWC_FPRC_FPRCB1)
 
-/* Parameter valid check for XTAL state */
+/*! Parameter valid check for XTAL state */
 #define IS_CLK_XTAL_STATE(sta)                                                  \
 (   ((sta) == CLK_XTAL_OFF)                         ||                          \
     ((sta) == CLK_XTAL_ON))
 
-/* Parameter valid check for PLLA state */
-#define IS_CLK_PLLA_STATE(sta)                                                  \
-(   ((sta) == CLK_PLLA_OFF)                         ||                          \
-    ((sta) == CLK_PLLA_ON))
-
-/* Parameter valid check for PLLH state */
-#define IS_CLK_PLLH_STATE(sta)                                                  \
-(   ((sta) == CLK_PLLH_OFF)                         ||                          \
-    ((sta) == CLK_PLLH_ON))
-
-/* Parameter valid check for XTAL mode */
+/*! Parameter valid check for XTAL mode */
 #define IS_CLK_XTAL_MODE(MODE)                                                  \
 (   ((MODE) == CLK_XTALMODE_OSC)                    ||                          \
     ((MODE) == CLK_XTALMODE_EXCLK))
 
-/* Parameter valid check for XTAL driver ability mode */
+/*! Parameter valid check for XTAL driver ability mode */
 #define IS_CLK_XTALDRV_MODE(drv)                                                \
 (   ((drv) == CLK_XTALDRV_HIGH)                     ||                          \
     ((drv) == CLK_XTALDRV_MID)                      ||                          \
     ((drv) == CLK_XTALDRV_LOW)                      ||                          \
     ((drv) == CLK_XTALDRV_ULOW))
 
-/* Parameter valid check for XTAL stable time selection */
+/*! Parameter valid check for XTAL stable time selection */
 #define IS_CLK_XTALSTB_SEL(stb)                                                 \
 (   ((stb) == CLK_XTALSTB_133US)                    ||                          \
     ((stb) == CLK_XTALSTB_255US)                    ||                          \
@@ -138,68 +133,53 @@
     ((stb) == CLK_XTALSTB_16MS)                     ||                          \
     ((stb) == CLK_XTALSTB_31MS))
 
-/* Parameter valid check for XTALSTD state */
+/*! Parameter valid check for XTALSTD state */
 #define IS_CLK_XTALSTD_STATE(sta)                                               \
 (   ((sta) == CLK_XTALSTD_OFF)                      ||                          \
     ((sta) == CLK_XTALSTD_ON))
 
-/* Parameter valid check for XTALSTD mode */
+/*! Parameter valid check for XTALSTD mode */
 #define IS_CLK_XTALSTD_MODE(mode)                                               \
 (   ((mode) == CLK_XTALSTD_MODE_RST)                ||                          \
     ((mode) == CLK_XTALSTD_MODE_INT))
 
-/* Parameter valid check for XTALSTD interrupt state */
+/*! Parameter valid check for XTALSTD interrupt state */
 #define IS_CLK_XTALSTD_INT_STATE(sta)                                           \
 (   ((sta) == CLK_XTALSTD_INT_OFF)                  ||                          \
     ((sta) == CLK_XTALSTD_INT_ON))
 
-/* Parameter valid check for XTALSTD reset state */
+/*! Parameter valid check for XTALSTD reset state */
 #define IS_CLK_XTALSTD_RST_STATE(sta)                                           \
 (   ((sta) == CLK_XTALSTD_RST_OFF)                  ||                          \
     ((sta) == CLK_XTALSTD_RST_ON))
 
-/* Parameter valid check for HRC state */
-#define IS_CLK_HRC_STATE(sta)                                                   \
-(   ((sta) == CLK_HRC_OFF)                          ||                          \
-    ((sta) == CLK_HRC_ON))
-
-/* Parameter valid check for MRC state */
-#define IS_CLK_MRC_STATE(sta)                                                   \
-(   ((sta) == CLK_MRC_OFF)                          ||                          \
-    ((sta) == CLK_MRC_ON))
-
-/* Parameter valid check for LRC state */
-#define IS_CLK_LRC_STATE(sta)                                                   \
-(   ((sta) == CLK_LRC_OFF)                          ||                          \
-    ((sta) == CLK_LRC_ON))
-
-/* Parameter valid check for PLLA state */
+/*! Parameter valid check for PLLA state */
 #define IS_CLK_PLLA_STATE(sta)                                                  \
 (   ((sta) == CLK_PLLA_OFF)                         ||                          \
     ((sta) == CLK_PLLA_ON))
 
-/* Parameter valid check for PLLH state */
+/*! Parameter valid check for PLLH state */
 #define IS_CLK_PLLH_STATE(sta)                                                  \
 (   ((sta) == CLK_PLLH_OFF)                         ||                          \
     ((sta) == CLK_PLLH_ON))
 
-/* Parameter valid check for XTAL32 state */
+/*! Parameter valid check for XTAL32 state */
 #define IS_CLK_XTAL32_STATE(sta)                                                \
-(   ((STA) == CLK_XTAL32_OFF)                       ||                          \
+(   ((sta) == CLK_XTAL32_OFF)                       ||                          \
     ((sta) == CLK_XTAL32_ON))
 
-/* Parameter valid check for XTAL32 driver ability mode */
+/*! Parameter valid check for XTAL32 driver ability mode */
 #define IS_CLK_XTAL32DRV_MODE(mode)                                             \
 (   ((mode) == CLK_XTAL32DRV_MID)                   ||                          \
     ((mode) == CLK_XTAL32DRV_HIGH))
 
-/* Parameter valid check for XTAL32 filtering selection */
+/*! Parameter valid check for XTAL32 filtering selection */
 #define IS_CLK_XTAL32_FILT_SEL(sel)                                             \
 (   ((sel) == CLK_XTAL32NF_FULL)                    ||                          \
     ((sel) == CLK_XTAL32NF_PART)                    ||                          \
     ((sel) == CLK_XTAL32NF_NONE))
 
-/* Parameter valid check for system clock source */
+/*! Parameter valid check for system clock source */
 #define IS_CLK_SYSCLK_SRC(src)                                                  \
 (   ((src) == CLK_SYSCLKSOURCE_HRC)                 ||                          \
     ((src) == CLK_SYSCLKSOURCE_MRC)                 ||                          \
@@ -293,78 +273,85 @@
 (   (CLK_PLLA_VCO_OUT_MIN <= (vco_out))             &&                          \
     (CLK_PLLA_VCO_OUT_MAX >= (vco_out)))
 
-/* Parameter valid check for CLK stable flag. */
+/*! Parameter valid check for CLK stable flag. */
 #define IS_CLK_STB_FLAG(flag)                                                   \
 (   ((flag) != 0x00U)                               &&                          \
     (((flag) | CLK_STB_FLAG_MASK) == CLK_STB_FLAG_MASK))
 
-/* Parameter valid check for clock category */
+/*! Parameter valid check for clock category */
 #define IS_CLK_CATE(cate)       (((cate) & CLK_CATE_ALL) != (uint8_t)(0x00U))
 
-/* Parameter valid check for HCLK divider */
+/*! Parameter valid check for HCLK divider */
 #define IS_CLK_HCLK_DIV(div)                                                    \
 (   ((div) == CLK_HCLK_DIV1)                        ||                          \
     ((div) == CLK_HCLK_DIV2)                        ||                          \
     ((div) == CLK_HCLK_DIV4)                        ||                          \
     ((div) == CLK_HCLK_DIV8)                        ||                          \
     ((div) == CLK_HCLK_DIV16)                       ||                          \
-    ((div) == CLK_HCLK_DIV32))
+    ((div) == CLK_HCLK_DIV32)                       ||                          \
+    ((div) == CLK_HCLK_DIV64))
 
-/* Parameter valid check for EXCLK divider */
+/*! Parameter valid check for EXCLK divider */
 #define IS_CLK_EXCLK_DIV(div)                                                   \
 (   ((div) == CLK_EXCLK_DIV1)                       ||                          \
     ((div) == CLK_EXCLK_DIV2)                       ||                          \
     ((div) == CLK_EXCLK_DIV4)                       ||                          \
     ((div) == CLK_EXCLK_DIV8)                       ||                          \
     ((div) == CLK_EXCLK_DIV16)                      ||                          \
-    ((div) == CLK_EXCLK_DIV32))
+    ((div) == CLK_EXCLK_DIV32)                      ||                          \
+    ((div) == CLK_EXCLK_DIV64))
 
-/* Parameter valid check for PCLK0 divider */
+/*! Parameter valid check for PCLK0 divider */
 #define IS_CLK_PCLK0_DIV(div)                                                   \
 (   ((div) == CLK_PCLK0_DIV1)                       ||                          \
     ((div) == CLK_PCLK0_DIV2)                       ||                          \
     ((div) == CLK_PCLK0_DIV4)                       ||                          \
     ((div) == CLK_PCLK0_DIV8)                       ||                          \
     ((div) == CLK_PCLK0_DIV16)                      ||                          \
-    ((div) == CLK_PCLK0_DIV32))
+    ((div) == CLK_PCLK0_DIV32)                      ||                          \
+    ((div) == CLK_PCLK0_DIV64))
 
-/* Parameter valid check for PCLK1 divider */
+/*! Parameter valid check for PCLK1 divider */
 #define IS_CLK_PCLK1_DIV(div)                                                   \
 (   ((div) == CLK_PCLK1_DIV1)                       ||                          \
     ((div) == CLK_PCLK1_DIV2)                       ||                          \
     ((div) == CLK_PCLK1_DIV4)                       ||                          \
     ((div) == CLK_PCLK1_DIV8)                       ||                          \
     ((div) == CLK_PCLK1_DIV16)                      ||                          \
-    ((div) == CLK_PCLK1_DIV32))
+    ((div) == CLK_PCLK1_DIV32)                      ||                          \
+    ((div) == CLK_PCLK1_DIV64))
 
-/* Parameter valid check for PCLK2 divider */
+/*! Parameter valid check for PCLK2 divider */
 #define IS_CLK_PCLK2_DIV(div)                                                   \
 (   ((div) == CLK_PCLK2_DIV1)                       ||                          \
     ((div) == CLK_PCLK2_DIV2)                       ||                          \
     ((div) == CLK_PCLK2_DIV4)                       ||                          \
     ((div) == CLK_PCLK2_DIV8)                       ||                          \
     ((div) == CLK_PCLK2_DIV16)                      ||                          \
-    ((div) == CLK_PCLK2_DIV32))
+    ((div) == CLK_PCLK2_DIV32)                      ||                          \
+    ((div) == CLK_PCLK2_DIV64))
 
-/* Parameter valid check for PCLK3 divider */
+/*! Parameter valid check for PCLK3 divider */
 #define IS_CLK_PCLK3_DIV(div)                                                   \
 (   ((div) == CLK_PCLK3_DIV1)                       ||                          \
     ((div) == CLK_PCLK3_DIV2)                       ||                          \
     ((div) == CLK_PCLK3_DIV4)                       ||                          \
     ((div) == CLK_PCLK3_DIV8)                       ||                          \
     ((div) == CLK_PCLK3_DIV16)                      ||                          \
-    ((div) == CLK_PCLK3_DIV32))
+    ((div) == CLK_PCLK3_DIV32)                      ||                          \
+    ((div) == CLK_PCLK3_DIV64))
 
-/* Parameter valid check for PCLK4 divider */
+/*! Parameter valid check for PCLK4 divider */
 #define IS_CLK_PCLK4_DIV(div)                                                   \
 (   ((div) == CLK_PCLK4_DIV1)                       ||                          \
     ((div) == CLK_PCLK4_DIV2)                       ||                          \
     ((div) == CLK_PCLK4_DIV4)                       ||                          \
     ((div) == CLK_PCLK4_DIV8)                       ||                          \
     ((div) == CLK_PCLK4_DIV16)                      ||                          \
-    ((div) == CLK_PCLK4_DIV32))
+    ((div) == CLK_PCLK4_DIV32)                      ||                          \
+    ((div) == CLK_PCLK4_DIV64))
 
-/* Parameter valid check for USB clock source */
+/*! Parameter valid check for USB clock source */
 #define IS_CLK_USB_CLK(src)                                                     \
 (   ((src) == CLK_USB_CLK_MCLK_DIV2)                ||                          \
     ((src) == CLK_USB_CLK_MCLK_DIV3)                ||                          \
@@ -379,7 +366,7 @@
     ((src) == CLK_USB_CLK_PLLAQ)                    ||                          \
     ((src) == CLK_USB_CLK_PLLAR))
 
-/* Parameter valid check for CAN clock source */
+/*! Parameter valid check for CAN clock source */
 #define IS_CLK_CAN_CLK(src)                                                     \
 (   ((src) == CLK_CAN1_CLK_MCLK_DIV2)               ||                          \
     ((src) == CLK_CAN1_CLK_MCLK_DIV3)               ||                          \
@@ -408,10 +395,10 @@
     ((src) == CLK_CAN2_CLK_PLLAR)                   ||                          \
     ((src) == CLK_CAN2_CLK_XTAL))
 
-/* Parameter valid check for CAN channel for clock source config */
+/*! Parameter valid check for CAN channel for clock source config */
 #define IS_CLK_CAN_CH(ch)       (((ch) & CLK_CAN_CH_ALL) != (uint8_t)(0x00U))
 
-/* Parameter valid check for I2S clock source */
+/*! Parameter valid check for I2S clock source */
 #define IS_CLK_I2S_CLK(src)                                                     \
 (   ((src) == CLK_I2S1_CLK_PCLK)                    ||                          \
     ((src) == CLK_I2S1_CLK_PLLHQ)                   ||                          \
@@ -438,10 +425,10 @@
     ((src) == CLK_I2S4_CLK_PLLAQ)                   ||                          \
     ((src) == CLK_I2S4_CLK_PLLAR))
 
-/* Parameter valid check for I2S channel for clock source config */
+/*! Parameter valid check for I2S channel for clock source config */
 #define IS_CLK_I2S_CH(ch)       (((ch) & CLK_I2S_CH_ALL) != (uint8_t)(0x00U))
 
-/* Parameter valid check for PCLK2/PCLK4 source */
+/*! Parameter valid check for PCLK2/PCLK4 source */
 #define IS_CLK_PERI_CLK(src)                                                    \
 (   ((src) == CLK_PERI_CLK_PCLK)                    ||                          \
     ((src) == CLK_PERI_CLK_PLLHQ)                   ||                          \
@@ -450,13 +437,13 @@
     ((src) == CLK_PERI_CLK_PLLAQ)                   ||                          \
     ((src) == CLK_PERI_CLK_PLLAR))
 
-/* Parameter valid check for TPIU clock divider */
+/*! Parameter valid check for TPIU clock divider */
 #define IS_CLK_TPIU_CLK_DIV(div)                                                \
 (   ((div) == CLK_TPIU_CLK_DIV1)                    ||                          \
     ((div) == CLK_TPIU_CLK_DIV2)                    ||                          \
     ((div) == CLK_TPIU_CLK_DIV4))
 
-/* Parameter valid check for CLK MCO clock source. */
+/*! Parameter valid check for CLK MCO clock source. */
 #define IS_CLK_MCOSOURCE(src)                                                   \
 (   ((src) == CLK_MCOSOURCCE_HRC)                   ||                          \
     ((src) == CLK_MCOSOURCCE_MRC)                   ||                          \
@@ -470,16 +457,16 @@
     ((src) == CLK_MCOSOURCCE_PLLAR)                 ||                          \
     ((src) == CLK_MCOSOURCCE_SYSCLK))
 
-/* Parameter valid check for CLK MCO clock divider. */
+/*! Parameter valid check for CLK MCO clock divider. */
 #define IS_CLK_MCODIV(div)                                                      \
-(   ((div) == CLK_MCODIV_1)                         ||                          \
-    ((div) == CLK_MCODIV_2)                         ||                          \
-    ((div) == CLK_MCODIV_4)                         ||                          \
-    ((div) == CLK_MCODIV_8)                         ||                          \
-    ((div) == CLK_MCODIV_16)                        ||                          \
-    ((div) == CLK_MCODIV_32)                        ||                          \
-    ((div) == CLK_MCODIV_64)                        ||                          \
-    ((div) == CLK_MCODIV_128))
+(   ((div) == CLK_MCO_DIV1)                         ||                          \
+    ((div) == CLK_MCO_DIV2)                         ||                          \
+    ((div) == CLK_MCO_DIV4)                         ||                          \
+    ((div) == CLK_MCO_DIV8)                         ||                          \
+    ((div) == CLK_MCO_DIV16)                        ||                          \
+    ((div) == CLK_MCO_DIV32)                        ||                          \
+    ((div) == CLK_MCO_DIV64)                        ||                          \
+    ((div) == CLK_MCO_DIV128))
 
 /**
  * @}
@@ -542,6 +529,7 @@ en_result_t CLK_PLLAStrucInit(stc_clk_plla_init_t* pstcPLLAInit)
     else
     {
         /* Configure to default value */
+        pstcPLLAInit->PLLCFGR        = 0UL;
         pstcPLLAInit->u8PLLState     = CLK_PLLA_OFF;
         pstcPLLAInit->PLLCFGR_f.PLLP = CLK_PLLAP_DFT;
         pstcPLLAInit->PLLCFGR_f.PLLQ = CLK_PLLAQ_DFT;
@@ -567,7 +555,7 @@ en_result_t CLK_PLLAStrucInit(stc_clk_plla_init_t* pstcPLLAInit)
  */
 en_result_t CLK_PLLAInit(const stc_clk_plla_init_t *pstcPLLAInit)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     uint8_t NewState;
 
 #ifdef __DEBUG
@@ -628,6 +616,7 @@ en_result_t CLK_PLLHStrucInit(stc_clk_pllh_init_t* pstcPLLHInit)
     else
     {
         /* Configure to default value */
+        pstcPLLHInit->PLLCFGR          = 0UL;
         pstcPLLHInit->u8PLLState       = CLK_PLLH_OFF;
         pstcPLLHInit->PLLCFGR_f.PLLP   = CLK_PLLHP_DFT;
         pstcPLLHInit->PLLCFGR_f.PLLQ   = CLK_PLLHQ_DFT;
@@ -655,7 +644,7 @@ en_result_t CLK_PLLHStrucInit(stc_clk_pllh_init_t* pstcPLLHInit)
  */
 en_result_t CLK_PLLHInit(const stc_clk_pllh_init_t *pstcPLLHInit)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     uint8_t NewState;
 
 #ifdef __DEBUG
@@ -738,13 +727,14 @@ en_result_t CLK_XtalStrucInit(stc_clk_xtal_init_t* pstcXtalInit)
  *   @arg  u8XtalStb    : The XTAL stable time selection.
  * @retval en_result_t
  *         OK, XTAL intial successfully.
+ *         ErrorTimeout, XTAL operate timeout.
  *         ErrorNotReady, XTAL is the system clock, CANNOT stop it.
  *         ErrorInvalidParameter, NULL pointer.
  * @note   DO NOT STOP XTAL while using it as system clock.
  */
 en_result_t CLK_XtalInit(const stc_clk_xtal_init_t *pstcXtalInit)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     uint8_t NewState;
 
     if (NULL == pstcXtalInit)
@@ -764,7 +754,6 @@ en_result_t CLK_XtalInit(const stc_clk_xtal_init_t *pstcXtalInit)
 
         NewState = !(pstcXtalInit->u8XtalState);
         enRet = CLK_XtalCmd((en_functional_state_t)(NewState));
-
     }
 
     return enRet;
@@ -772,7 +761,7 @@ en_result_t CLK_XtalInit(const stc_clk_xtal_init_t *pstcXtalInit)
 
 /**
  * @brief  Init Xtal32 initial structure with default value.
- * @param  [in] pstcXtal32 specifies the Parameter of XTAL32.
+ * @param  [in] pstcXtal32Init specifies the Parameter of XTAL32.
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize success
  *           - ErrorInvalidParameter: NULL pointer
@@ -811,7 +800,7 @@ en_result_t CLK_Xtal32StrucInit(stc_clk_xtal32_init_t* pstcXtal32Init)
  */
 en_result_t CLK_Xtal32Init(const stc_clk_xtal32_init_t *pstcXtal32Init)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     uint8_t NewState;
 
     if (NULL == pstcXtal32Init)
@@ -886,7 +875,7 @@ en_result_t CLK_XtalCmd(en_functional_state_t enNewState)
         enRet = ErrorTimeout;
         while (timeout <= CLK_XTAL_TIMEOUT)
         {
-            if (Set == CLK_GetStableFlag(CMU_OSCSTBSR_XTALSTBF))
+            if (Set == CLK_GetStableStatus(CMU_OSCSTBSR_XTALSTBF))
             {
                 enRet = Ok;
                 break;
@@ -980,7 +969,7 @@ en_result_t CLK_HrcCmd(en_functional_state_t enNewState)
         }
         else
         {
-            WRITE_REG32(bM4_CMU->HRCCR_b.HRCSTP, CLK_HRC_OFF);;
+            WRITE_REG32(bM4_CMU->HRCCR_b.HRCSTP, CLK_HRC_OFF);
         }
     }
     else
@@ -990,7 +979,7 @@ en_result_t CLK_HrcCmd(en_functional_state_t enNewState)
         enRet = ErrorTimeout;
         while (timeout <= CLK_HRC_TIMEOUT)
         {
-            if (Set == CLK_GetStableFlag(CMU_OSCSTBSR_HRCSTBF))
+            if (Set == CLK_GetStableStatus(CMU_OSCSTBSR_HRCSTBF))
             {
                 enRet = Ok;
                 break;
@@ -1115,7 +1104,7 @@ en_result_t CLK_PLLACmd(en_functional_state_t enNewState)
         enRet = ErrorTimeout;
         while (timeout <= CLK_PLLA_TIMEOUT)
         {
-            if (Set == CLK_GetStableFlag(CMU_OSCSTBSR_PLLASTBF))
+            if (Set == CLK_GetStableStatus(CMU_OSCSTBSR_PLLASTBF))
             {
                 enRet = Ok;
                 break;
@@ -1164,7 +1153,7 @@ en_result_t CLK_PLLHCmd(en_functional_state_t enNewState)
         enRet = ErrorTimeout;
         while (timeout <= CLK_PLLH_TIMEOUT)
         {
-            if (Set == CLK_GetStableFlag(CMU_OSCSTBSR_PLLHSTBF))
+            if (Set == CLK_GetStableStatus(CMU_OSCSTBSR_PLLHSTBF))
             {
                 enRet = Ok;
                 break;
@@ -1259,7 +1248,7 @@ en_result_t CLK_XtalStdInit(const stc_clk_xtalstd_init_t* pstcXtalStdInit)
  * @retval None
  * @note   The system clock should not be XTAL before call this function.
  */
-void CLK_ClearXtalStdFlag(void)
+void CLK_ClearXtalStdStatus(void)
 {
     DDL_ASSERT(IS_CLK_UNLOCKED());
 
@@ -1275,9 +1264,9 @@ void CLK_ClearXtalStdFlag(void)
  * @param  None
  * @retval en_flag_status_t
  */
-en_flag_status_t CLK_GetXtalStdFlag(void)
+en_flag_status_t CLK_GetXtalStdStatus(void)
 {
-    return (READ_REG32(bM4_CMU->XTALSTDSR_b.XTALSTDF) ? Set : Reset);
+    return ((0UL != READ_REG32(bM4_CMU->XTALSTDSR_b.XTALSTDF)) ? Set : Reset);
 }
 
 /**
@@ -1337,7 +1326,7 @@ void CLK_RtcLrcTrim(int8_t i8TrimVal)
  *   @arg  CLK_STB_FLAG_PLLHSTB
  * @retval en_flag_status_t
  */
-en_flag_status_t CLK_GetStableFlag(uint8_t u8StableFlag)
+en_flag_status_t CLK_GetStableStatus(uint8_t u8StableFlag)
 {
     DDL_ASSERT(IS_CLK_STB_FLAG(u8StableFlag));
 
@@ -1369,15 +1358,15 @@ void CLK_SetSysClkSrc(uint8_t u8Src)
     DDL_ASSERT(IS_CLK_SYSCLK_SRC(u8Src));
     DDL_ASSERT(IS_CLK_UNLOCKED());
 
-    /* Only current system clock source or target system clock source is MPLL
+    /* Only current system clock source or target system clock source is PLLH
     need to close fcg0~fcg3 and open fcg0~fcg3 during switch system clock source.
     We need to backup fcg0~fcg3 before close them. */
-    if (CLK_SYSCLKSOURCE_PLLH == READ_REG8_BIT(M4_CMU->CKSWR, CMU_CKSWR_CKSW))
+    if (CLK_SYSCLKSOURCE_PLLH == READ_REG8_BIT(M4_CMU->CKSWR, CMU_CKSWR_CKSW) ||    \
+        (CLK_SYSCLKSOURCE_PLLH == u8Src))
     {
         u8TmpFlag = 1U;
-
-        /* FCG0 write enable */
-        WRITE_REG32(M4_PWC->FCG0PC, 0xA5A50001UL);
+        /* FCG0 protect judgment */
+        DDL_ASSERT((M4_PWC->FCG0PC & PWC_FCG0PC_PRT0) == PWC_FCG0PC_PRT0);
         /* Close FCGx. */
         M4_PWC->FCG0 = CLK_FCG0_DEFAULT;
         M4_PWC->FCG1 = CLK_FCG1_DEFAULT;
@@ -1400,9 +1389,6 @@ void CLK_SetSysClkSrc(uint8_t u8Src)
         M4_PWC->FCG1 = fcg1;
         M4_PWC->FCG2 = fcg2;
         M4_PWC->FCG3 = fcg3;
-
-        /* FCG0 write protected */
-        WRITE_REG32(M4_PWC->FCG0PC, 0xA5A50000UL);
         /* Wait stable after open fcg. */
         timeout = 0UL;
         do
@@ -1425,7 +1411,9 @@ void CLK_SetSysClkSrc(uint8_t u8Src)
 en_result_t CLK_GetClockFreq(stc_clk_freq_t *pstcClkFreq)
 {
     en_result_t enRet = Ok;
-    uint32_t plln, pllp, pllm;
+    uint32_t plln;
+    uint32_t pllp;
+    uint32_t pllm;
 
     if (NULL == pstcClkFreq)
     {
@@ -1516,8 +1504,16 @@ en_result_t CLK_GetClockFreq(stc_clk_freq_t *pstcClkFreq)
 en_result_t CLK_GetPllClockFreq(stc_pll_clk_freq_t *pstcPllClkFreq)
 {
     en_result_t enRet = Ok;
-    uint32_t pllhn, pllhm, pllhp, pllhq, pllhr;
-    uint32_t pllan, pllam, pllap, pllaq, pllar;
+    uint32_t pllhn;
+    uint32_t pllhm;
+    uint32_t pllhp;
+    uint32_t pllhq;
+    uint32_t pllhr;
+    uint32_t pllan;
+    uint32_t pllam;
+    uint32_t pllap;
+    uint32_t pllaq;
+    uint32_t pllar;
     uint32_t pllin;
 
     if (NULL == pstcPllClkFreq)
@@ -1538,7 +1534,7 @@ en_result_t CLK_GetPllClockFreq(stc_pll_clk_freq_t *pstcPllClkFreq)
         pllan = (uint32_t)((M4_CMU->PLLACFGR >> CMU_PLLHCFGR_PLLHN_POS) & 0x1FFUL);
         pllam = (uint32_t)((M4_CMU->PLLACFGR >> CMU_PLLHCFGR_PLLHM_POS) & 0x1FUL);
 
-        /* MPLLP is used as system clock. */
+        /* PLLHP is used as system clock. */
         if (CLK_PLLSRC_XTAL == READ_REG32_BIT(M4_CMU->PLLHCFGR, CMU_PLLHCFGR_PLLSRC))
         {
             pllin = XTAL_VALUE;
@@ -1548,16 +1544,16 @@ en_result_t CLK_GetPllClockFreq(stc_pll_clk_freq_t *pstcPllClkFreq)
             pllin = HRC_VALUE;
         }
         pstcPllClkFreq->pllhvcin = (pllin/(pllhm + 1UL));
-        pstcPllClkFreq->pllhvco = ((pllin/(pllhm + 1UL))*pllhn);
-        pstcPllClkFreq->pllhp = ((pllin/(pllhm + 1UL))*pllhn)/(pllhp + 1UL);
-        pstcPllClkFreq->pllhq = ((pllin/(pllhm + 1UL))*pllhn)/(pllhq + 1UL);
-        pstcPllClkFreq->pllhr = ((pllin/(pllhm + 1UL))*pllhn)/(pllhr + 1UL);
+        pstcPllClkFreq->pllhvco = ((pllin/(pllhm + 1UL))*(pllhn + 1UL));
+        pstcPllClkFreq->pllhp = ((pllin/(pllhm + 1UL))*(pllhn + 1UL))/(pllhp + 1UL);
+        pstcPllClkFreq->pllhq = ((pllin/(pllhm + 1UL))*(pllhn + 1UL))/(pllhq + 1UL);
+        pstcPllClkFreq->pllhr = ((pllin/(pllhm + 1UL))*(pllhn + 1UL))/(pllhr + 1UL);
 
         pstcPllClkFreq->pllavcin = (pllin/(pllam + 1UL));
-        pstcPllClkFreq->pllavco = ((pllin/(pllam + 1UL))*pllan);
-        pstcPllClkFreq->pllap = ((pllin/(pllam + 1UL))*pllan)/(pllap + 1UL);
-        pstcPllClkFreq->pllaq = ((pllin/(pllam + 1UL))*pllan)/(pllaq + 1UL);
-        pstcPllClkFreq->pllar = ((pllin/(pllam + 1UL))*pllan)/(pllar + 1UL);
+        pstcPllClkFreq->pllavco = ((pllin/(pllam + 1UL))*(pllan + 1UL));
+        pstcPllClkFreq->pllap = ((pllin/(pllam + 1UL))*(pllan + 1UL))/(pllap + 1UL);
+        pstcPllClkFreq->pllaq = ((pllin/(pllam + 1UL))*(pllan + 1UL))/(pllaq + 1UL);
+        pstcPllClkFreq->pllar = ((pllin/(pllam + 1UL))*(pllan + 1UL))/(pllar + 1UL);
     }
     return enRet;
 }
@@ -1565,14 +1561,14 @@ en_result_t CLK_GetPllClockFreq(stc_pll_clk_freq_t *pstcPllClkFreq)
 /**
  * @brief  HCLK/PCLK divide setting.
  * @param  [in] u8ClkCate specifies the clock to be divided.
- *   @arg  CLK_CATE_PCLK0: Seletc PCLK0 to be divided
- *   @arg  CLK_CATE_PCLK1: Seletc PCLK1 to be divided
- *   @arg  CLK_CATE_PCLK2: Seletc PCLK2 to be divided
- *   @arg  CLK_CATE_PCLK3: Seletc PCLK3 to be divided
- *   @arg  CLK_CATE_PCLK4: Seletc PCLK4 to be divided
- *   @arg  CLK_CATE_EXCLK: Seletc EXCLK to be divided
- *   @arg  CLK_CATE_HCLK : Seletc HCLK  to be divided
- *   @arg  CLK_CATE_ALL : Seletc all to be divided
+ *   @arg  CLK_CATE_PCLK0: Select PCLK0 to be divided
+ *   @arg  CLK_CATE_PCLK1: Select PCLK1 to be divided
+ *   @arg  CLK_CATE_PCLK2: Select PCLK2 to be divided
+ *   @arg  CLK_CATE_PCLK3: Select PCLK3 to be divided
+ *   @arg  CLK_CATE_PCLK4: Select PCLK4 to be divided
+ *   @arg  CLK_CATE_EXCLK: Select EXCLK to be divided
+ *   @arg  CLK_CATE_HCLK : Select HCLK  to be divided
+ *   @arg  CLK_CATE_ALL : Select all to be divided
  * @param  [in] u32Div specifies the clock divide factor.
  *   @arg  CLK_HCLK_DIV1 : HCLK no divide
  *   @arg  CLK_HCLK_DIV2 : HCLK divided by 2
@@ -1580,18 +1576,21 @@ en_result_t CLK_GetPllClockFreq(stc_pll_clk_freq_t *pstcPllClkFreq)
  *   @arg  CLK_HCLK_DIV8 : HCLK divided by 8
  *   @arg  CLK_HCLK_DIV16: HCLK divided by 16
  *   @arg  CLK_HCLK_DIV32: HCLK divided by 32
+ *   @arg  CLK_HCLK_DIV64: HCLK divided by 64
  *   @arg  CLK_EXCLK_DIV1 : EXCLK no divide
  *   @arg  CLK_EXCLK_DIV2 : EXCLK divided by 2
  *   @arg  CLK_EXCLK_DIV4 : EXCLK divided by 4
  *   @arg  CLK_EXCLK_DIV8 : EXCLK divided by 8
  *   @arg  CLK_EXCLK_DIV16: EXCLK divided by 16
  *   @arg  CLK_EXCLK_DIV32: EXCLK divided by 32
+ *   @arg  CLK_EXCLK_DIV64: EXCLK divided by 64
  *   @arg  CLK_PCLKx_DIV1 : PCLKx no divide
  *   @arg  CLK_PCLKx_DIV2 : PCLKx divided by 2
  *   @arg  CLK_PCLKx_DIV4 : PCLKx divided by 4
  *   @arg  CLK_PCLKx_DIV8 : PCLKx divided by 8
  *   @arg  CLK_PCLKx_DIV16: PCLKx divided by 16
  *   @arg  CLK_PCLKx_DIV32: PCLKx divided by 32
+ *   @arg  CLK_PCLKx_DIV64: PCLKx divided by 64
  * @retval None
  * @note   'x' is 0~4 in CLK_PCLKx_DIVy
  */
@@ -1615,15 +1614,15 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
     DDL_ASSERT(IS_CLK_CATE(u8ClkCate));
     DDL_ASSERT(IS_CLK_UNLOCKED());
 
-    /* Only current system clock source or target system clock source is MPLL
+    /* Only current system clock source or target system clock source is PLLH
     need to close fcg0~fcg3 and open fcg0~fcg3 during switch system clock source.
     We need to backup fcg0~fcg3 before close them. */
     if (CLK_SYSCLKSOURCE_PLLH == READ_REG8_BIT(M4_CMU->CKSWR, CMU_CKSWR_CKSW))
     {
+        DDL_ASSERT((M4_PWC->FCG0PC & PWC_FCG0PC_PRT0) == PWC_FCG0PC_PRT0);
+
         u8TmpFlag = 1U;
 
-        /* FCG0 write enable */
-//        WRITE_REG32(M4_PWC->FCG0PC, 0xA5A50001UL); //todo
         /* Close FCGx. */
         M4_PWC->FCG0 = CLK_FCG0_DEFAULT;
         M4_PWC->FCG1 = CLK_FCG1_DEFAULT;
@@ -1638,37 +1637,37 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
     }
 
     /* PCLK0 div */
-    if(CLK_CATE_PCLK0 & u8ClkCate)
+    if (0U != (CLK_CATE_PCLK0 & u8ClkCate))
     {
         MODIFY_REG32(M4_CMU->SCFGR, CMU_SCFGR_PCLK0S, u32Div);
     }
     /* PCLK1 div */
-    if(CLK_CATE_PCLK1 & u8ClkCate)
+    if (0U != (CLK_CATE_PCLK1 & u8ClkCate))
     {
         MODIFY_REG32(M4_CMU->SCFGR, CMU_SCFGR_PCLK1S, u32Div);
     }
     /* PCLK2 div */
-    if(CLK_CATE_PCLK2 & u8ClkCate)
+    if (0U != (CLK_CATE_PCLK2 & u8ClkCate))
     {
         MODIFY_REG32(M4_CMU->SCFGR, CMU_SCFGR_PCLK2S, u32Div);
     }
     /* PCLK3 div */
-    if(CLK_CATE_PCLK3 & u8ClkCate)
+    if (0U != (CLK_CATE_PCLK3 & u8ClkCate))
     {
         MODIFY_REG32(M4_CMU->SCFGR, CMU_SCFGR_PCLK3S, u32Div);
     }
     /* PCLK4 div */
-    if(CLK_CATE_PCLK4 & u8ClkCate)
+    if (0U != (CLK_CATE_PCLK4 & u8ClkCate))
     {
         MODIFY_REG32(M4_CMU->SCFGR, CMU_SCFGR_PCLK4S, u32Div);
     }
     /* Ext. bus clock div */
-    if(CLK_CATE_EXCLK & u8ClkCate)
+    if (0U != (CLK_CATE_EXCLK & u8ClkCate))
     {
         MODIFY_REG32(M4_CMU->SCFGR, CMU_SCFGR_EXCKS, u32Div);
     }
     /* HCLK div */
-    if(CLK_CATE_HCLK & u8ClkCate)
+    if (0U != (CLK_CATE_HCLK & u8ClkCate))
     {
         MODIFY_REG32(M4_CMU->SCFGR, CMU_SCFGR_HCLKS, u32Div);
     }
@@ -1679,8 +1678,6 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
         M4_PWC->FCG2 = fcg2;
         M4_PWC->FCG3 = fcg3;
 
-        /* FCG0 write protected */
-//        WRITE_REG32(M4_PWC->FCG0PC, 0xA5A50000UL);    //todo
         /* Wait stable after open fcg. */
         timeout = 0UL;
         do
@@ -1693,13 +1690,13 @@ void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div)
 /**
  * @brief  USB clock source config.
  * @param  [in] u8UsbClk specifies the USB clock source.
- *   @arg  CLK_USB_CLK_MCLK_DIV2:  Seletc PCLK1 divide by 2 as USB clock
- *   @arg  CLK_USB_CLK_MCLK_DIV3:  Seletc PCLK1 divide by 3 as USB clock
- *   @arg  CLK_USB_CLK_MCLK_DIV4:  Seletc PCLK1 divide by 4 as USB clock
- *   @arg  CLK_USB_CLK_MCLK_DIV5:  Seletc PCLK1 divide by 5 as USB clock
- *   @arg  CLK_USB_CLK_MCLK_DIV6:  Seletc PCLK1 divide by 6 as USB clock
- *   @arg  CLK_USB_CLK_MCLK_DIV7:  Seletc PCLK1 divide by 7 as USB clock
- *   @arg  CLK_USB_CLK_MCLK_DIV8:  Seletc PCLK1 divide by 8 as USB clock
+ *   @arg  CLK_USB_CLK_MCLK_DIV2:  Select PCLK1 divide by 2 as USB clock
+ *   @arg  CLK_USB_CLK_MCLK_DIV3:  Select PCLK1 divide by 3 as USB clock
+ *   @arg  CLK_USB_CLK_MCLK_DIV4:  Select PCLK1 divide by 4 as USB clock
+ *   @arg  CLK_USB_CLK_MCLK_DIV5:  Select PCLK1 divide by 5 as USB clock
+ *   @arg  CLK_USB_CLK_MCLK_DIV6:  Select PCLK1 divide by 6 as USB clock
+ *   @arg  CLK_USB_CLK_MCLK_DIV7:  Select PCLK1 divide by 7 as USB clock
+ *   @arg  CLK_USB_CLK_MCLK_DIV8:  Select PCLK1 divide by 8 as USB clock
  *   @arg  CLK_USB_CLK_PLLHQ: Select PLLHQ as USB clock
  *   @arg  CLK_USB_CLK_PLLHR: Select PLLHR as USB clock
  *   @arg  CLK_USB_CLK_PLLAP: Select PLLAP as USB clock
@@ -1721,26 +1718,26 @@ void CLK_USB_ClkConfig(uint8_t u8UsbClk)
  *   @arg  CLK_CAN_CH1:  CAN Channel 1
  *   @arg  CLK_CAN_CH2:  CAN Channel 2
  * @param  [in] u8CanClk specifies the CAN clock source.
- *   @arg  CLK_CAN1_CLK_MCLK_DIV2:  Seletc system clock divide by 2 as CAN clock
- *   @arg  CLK_CAN1_CLK_MCLK_DIV3:  Seletc system clock divide by 3 as CAN clock
- *   @arg  CLK_CAN1_CLK_MCLK_DIV4:  Seletc system clock divide by 4 as CAN clock
- *   @arg  CLK_CAN1_CLK_MCLK_DIV5:  Seletc system clock divide by 5 as CAN clock
- *   @arg  CLK_CAN1_CLK_MCLK_DIV6:  Seletc system clock divide by 6 as CAN clock
- *   @arg  CLK_CAN1_CLK_MCLK_DIV7:  Seletc system clock divide by 7 as CAN clock
- *   @arg  CLK_CAN1_CLK_MCLK_DIV8:  Seletc system clock divide by 8 as CAN clock
+ *   @arg  CLK_CAN1_CLK_MCLK_DIV2:  Select system clock divide by 2 as CAN clock
+ *   @arg  CLK_CAN1_CLK_MCLK_DIV3:  Select system clock divide by 3 as CAN clock
+ *   @arg  CLK_CAN1_CLK_MCLK_DIV4:  Select system clock divide by 4 as CAN clock
+ *   @arg  CLK_CAN1_CLK_MCLK_DIV5:  Select system clock divide by 5 as CAN clock
+ *   @arg  CLK_CAN1_CLK_MCLK_DIV6:  Select system clock divide by 6 as CAN clock
+ *   @arg  CLK_CAN1_CLK_MCLK_DIV7:  Select system clock divide by 7 as CAN clock
+ *   @arg  CLK_CAN1_CLK_MCLK_DIV8:  Select system clock divide by 8 as CAN clock
  *   @arg  CLK_CAN1_CLK_PLLHQ: Select PLLHQ as CAN clock
  *   @arg  CLK_CAN1_CLK_PLLHR: Select PLLHR as CAN clock
  *   @arg  CLK_CAN1_CLK_PLLAP: Select PLLAP as CAN clock
  *   @arg  CLK_CAN1_CLK_PLLAQ: Select PLLAQ as CAN clock
  *   @arg  CLK_CAN1_CLK_PLLAR: Select PLLAR as CAN clock
  *   @arg  CLK_CAN_CLK_XTAL: Select PLLAR as CAN clock
- *   @arg  CLK_CAN2_CLK_MCLK_DIV2:  Seletc system clock divide by 2 as CAN clock
- *   @arg  CLK_CAN2_CLK_MCLK_DIV3:  Seletc system clock divide by 3 as CAN clock
- *   @arg  CLK_CAN2_CLK_MCLK_DIV4:  Seletc system clock divide by 4 as CAN clock
- *   @arg  CLK_CAN2_CLK_MCLK_DIV5:  Seletc system clock divide by 5 as CAN clock
- *   @arg  CLK_CAN2_CLK_MCLK_DIV6:  Seletc system clock divide by 6 as CAN clock
- *   @arg  CLK_CAN2_CLK_MCLK_DIV7:  Seletc system clock divide by 7 as CAN clock
- *   @arg  CLK_CAN2_CLK_MCLK_DIV8:  Seletc system clock divide by 8 as CAN clock
+ *   @arg  CLK_CAN2_CLK_MCLK_DIV2:  Select system clock divide by 2 as CAN clock
+ *   @arg  CLK_CAN2_CLK_MCLK_DIV3:  Select system clock divide by 3 as CAN clock
+ *   @arg  CLK_CAN2_CLK_MCLK_DIV4:  Select system clock divide by 4 as CAN clock
+ *   @arg  CLK_CAN2_CLK_MCLK_DIV5:  Select system clock divide by 5 as CAN clock
+ *   @arg  CLK_CAN2_CLK_MCLK_DIV6:  Select system clock divide by 6 as CAN clock
+ *   @arg  CLK_CAN2_CLK_MCLK_DIV7:  Select system clock divide by 7 as CAN clock
+ *   @arg  CLK_CAN2_CLK_MCLK_DIV8:  Select system clock divide by 8 as CAN clock
  *   @arg  CLK_CAN2_CLK_PLLHQ: Select PLLHQ as CAN clock
  *   @arg  CLK_CAN2_CLK_PLLHR: Select PLLHR as CAN clock
  *   @arg  CLK_CAN2_CLK_PLLAP: Select PLLAP as CAN clock
@@ -1755,11 +1752,11 @@ void CLK_CAN_ClkConfig(uint8_t u8CanCh, uint8_t u8CanClk)
     DDL_ASSERT(IS_CLK_CAN_CLK(u8CanClk));
     DDL_ASSERT(IS_CLK_UNLOCKED());
 
-    if (CLK_CAN_CH1 & u8CanCh)
+    if (0U != (CLK_CAN_CH1 & u8CanCh))
     {
         MODIFY_REG8(M4_CMU->CANCKCFGR, CMU_CANCKCFGR_CAN1CKS, u8CanClk);
     }
-    if (CLK_CAN_CH2 & u8CanCh)
+    if (0U != (CLK_CAN_CH2 & u8CanCh))
     {
         MODIFY_REG8(M4_CMU->CANCKCFGR, CMU_CANCKCFGR_CAN2CKS, u8CanClk);
     }
@@ -1773,25 +1770,25 @@ void CLK_CAN_ClkConfig(uint8_t u8CanCh, uint8_t u8CanClk)
  *   @arg  CLK_I2S_CH3:  I2S Channel 3
  *   @arg  CLK_I2S_CH4:  I2S Channel 4
  * @param  [in] u16I2sClk specifies the I2S clock source.
- *   @arg  CLK_I2S1_CLK_PCLK:  Seletc PCLK3 as I2S clock
+ *   @arg  CLK_I2S1_CLK_PCLK:  Select PCLK3 as I2S clock
  *   @arg  CLK_I2S1_CLK_PLLHQ: Select PLLHQ as I2S clock
  *   @arg  CLK_I2S1_CLK_PLLHR: Select PLLHR as I2S clock
  *   @arg  CLK_I2S1_CLK_PLLAP: Select PLLAP as I2S clock
  *   @arg  CLK_I2S1_CLK_PLLAQ: Select PLLAQ as I2S clock
  *   @arg  CLK_I2S1_CLK_PLLAR: Select PLLAR as I2S clock
- *   @arg  CLK_I2S2_CLK_PCLK:  Seletc PCLK3 as I2S clock
+ *   @arg  CLK_I2S2_CLK_PCLK:  Select PCLK3 as I2S clock
  *   @arg  CLK_I2S2_CLK_PLLHQ: Select PLLHQ as I2S clock
  *   @arg  CLK_I2S2_CLK_PLLHR: Select PLLHR as I2S clock
  *   @arg  CLK_I2S2_CLK_PLLAP: Select PLLAP as I2S clock
  *   @arg  CLK_I2S2_CLK_PLLAQ: Select PLLAQ as I2S clock
  *   @arg  CLK_I2S2_CLK_PLLAR: Select PLLAR as I2S clock
- *   @arg  CLK_I2S3_CLK_PCLK:  Seletc PCLK3 as I2S clock
+ *   @arg  CLK_I2S3_CLK_PCLK:  Select PCLK3 as I2S clock
  *   @arg  CLK_I2S3_CLK_PLLHQ: Select PLLHQ as I2S clock
  *   @arg  CLK_I2S3_CLK_PLLHR: Select PLLHR as I2S clock
  *   @arg  CLK_I2S3_CLK_PLLAP: Select PLLAP as I2S clock
  *   @arg  CLK_I2S3_CLK_PLLAQ: Select PLLAQ as I2S clock
  *   @arg  CLK_I2S3_CLK_PLLAR: Select PLLAR as I2S clock
- *   @arg  CLK_I2S4_CLK_PCLK:  Seletc PCLK3 as I2S clock
+ *   @arg  CLK_I2S4_CLK_PCLK:  Select PCLK3 as I2S clock
  *   @arg  CLK_I2S4_CLK_PLLHQ: Select PLLHQ as I2S clock
  *   @arg  CLK_I2S4_CLK_PLLHR: Select PLLHR as I2S clock
  *   @arg  CLK_I2S4_CLK_PLLAP: Select PLLAP as I2S clock
@@ -1805,19 +1802,19 @@ void CLK_I2S_ClkConfig(uint8_t u8I2sCh, uint16_t u16I2sClk)
     DDL_ASSERT(IS_CLK_I2S_CLK(u16I2sClk));
     DDL_ASSERT(IS_CLK_SEL_UNLOCKED());
 
-    if (CLK_I2S_CH1 & u8I2sCh)
+    if (0U != (CLK_I2S_CH1 & u8I2sCh))
     {
         MODIFY_REG16(M4_CMU->I2SCKSEL, CMU_I2SCKSEL_I2S1CKSEL, u16I2sClk);
     }
-    if (CLK_I2S_CH2 & u8I2sCh)
+    if (0U != (CLK_I2S_CH2 & u8I2sCh))
     {
         MODIFY_REG16(M4_CMU->I2SCKSEL, CMU_I2SCKSEL_I2S2CKSEL, u16I2sClk);
     }
-    if (CLK_I2S_CH3 & u8I2sCh)
+    if (0U != (CLK_I2S_CH3 & u8I2sCh))
     {
         MODIFY_REG16(M4_CMU->I2SCKSEL, CMU_I2SCKSEL_I2S3CKSEL, u16I2sClk);
     }
-    if (CLK_I2S_CH4 & u8I2sCh)
+    if (0U != (CLK_I2S_CH4 & u8I2sCh))
     {
         MODIFY_REG16(M4_CMU->I2SCKSEL, CMU_I2SCKSEL_I2S4CKSEL, u16I2sClk);
     }
@@ -1889,14 +1886,14 @@ void CLK_TpiuClkConfig(uint8_t u8TpiuDiv)
  *   @arg CLK_MCOSOURCCE_PLLAR     PLLAR clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_SYSCLK    System clock selected as MCOx source
  * @param  [in] CLK_MCODiv specifies the MCOx prescaler.
- *   @arg CLK_MCODIV_1:   no division applied to MCOx clock
- *   @arg CLK_MCODIV_2:   division by 2 applied to MCOx clock
- *   @arg CLK_MCODIV_4:   division by 4 applied to MCOx clock
- *   @arg CLK_MCODIV_8:   division by 8 applied to MCOx clock
- *   @arg CLK_MCODIV_16:  division by 16 applied to MCOx clock
- *   @arg CLK_MCODIV_32:  division by 32 applied to MCOx clock
- *   @arg CLK_MCODIV_64:  division by 64 applied to MCOx clock
- *   @arg CLK_MCODIV_128: division by 128 applied to MCOx clock
+ *   @arg CLK_MCO_DIV1:   no division applied to MCOx clock
+ *   @arg CLK_MCO_DIV2:   division by 2 applied to MCOx clock
+ *   @arg CLK_MCO_DIV4:   division by 4 applied to MCOx clock
+ *   @arg CLK_MCO_DIV8:   division by 8 applied to MCOx clock
+ *   @arg CLK_MCO_DIV16:  division by 16 applied to MCOx clock
+ *   @arg CLK_MCO_DIV32:  division by 32 applied to MCOx clock
+ *   @arg CLK_MCO_DIV64:  division by 64 applied to MCOx clock
+ *   @arg CLK_MCO_DIV128: division by 128 applied to MCOx clock
  * @retval None
  * @note   MCO pin should be configured in alternate function 1 mode.
  */
@@ -1944,14 +1941,14 @@ void CLK_MCO1Cmd(en_functional_state_t enNewState)
  *   @arg CLK_MCOSOURCCE_PLLAR     PLLAR clock selected as MCOx source
  *   @arg CLK_MCOSOURCCE_SYSCLK    System clock selected as MCOx source
  * @param  [in] CLK_MCODiv specifies the MCOx prescaler.
- *   @arg CLK_MCODIV_1:   no division applied to MCOx clock
- *   @arg CLK_MCODIV_2:   division by 2 applied to MCOx clock
- *   @arg CLK_MCODIV_4:   division by 4 applied to MCOx clock
- *   @arg CLK_MCODIV_8:   division by 8 applied to MCOx clock
- *   @arg CLK_MCODIV_16:  division by 16 applied to MCOx clock
- *   @arg CLK_MCODIV_32:  division by 32 applied to MCOx clock
- *   @arg CLK_MCODIV_64:  division by 64 applied to MCOx clock
- *   @arg CLK_MCODIV_128: division by 128 applied to MCOx clock
+ *   @arg CLK_MCO_DIV1:   no division applied to MCOx clock
+ *   @arg CLK_MCO_DIV2:   division by 2 applied to MCOx clock
+ *   @arg CLK_MCO_DIV4:   division by 4 applied to MCOx clock
+ *   @arg CLK_MCO_DIV8:   division by 8 applied to MCOx clock
+ *   @arg CLK_MCO_DIV16:  division by 16 applied to MCOx clock
+ *   @arg CLK_MCO_DIV32:  division by 32 applied to MCOx clock
+ *   @arg CLK_MCO_DIV64:  division by 64 applied to MCOx clock
+ *   @arg CLK_MCO_DIV128: division by 128 applied to MCOx clock
  * @retval None
  * @note   MCO2 pin should be configured in alternate function 1 mode.
  */

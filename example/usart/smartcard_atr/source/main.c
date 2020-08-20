@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-20       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup Smartcard_ATR
+ * @addtogroup USART_Smartcard_ATR
  * @{
  */
 
@@ -141,6 +141,8 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 static void USART_Rx_IrqCallback(void);
 static void USART_RxErr_IrqCallback(void);
 static en_result_t BufWrite(stc_buffer_t *pstcBuffer, uint8_t u8Data);
@@ -157,6 +159,58 @@ static stc_buffer_t m_stcRxBuf = {
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  USART RX IRQ callback
@@ -177,14 +231,12 @@ static void USART_Rx_IrqCallback(void)
  */
 static void USART_RxErr_IrqCallback(void)
 {
-    __IO uint8_t u8Data;
-
-    if (Set == USART_GetFlag(USART_UNIT, (USART_FLAG_PE | USART_FLAG_FE)))
+    if (Set == USART_GetStatus(USART_UNIT, (USART_FLAG_PE | USART_FLAG_FE)))
     {
-        u8Data = (uint8_t)USART_RecData(USART_UNIT);
+        (void)USART_RecData(USART_UNIT);
     }
 
-    USART_ClearFlag(USART_UNIT, (USART_CLEAR_FLAG_PE | \
+    USART_ClearStatus(USART_UNIT, (USART_CLEAR_FLAG_PE | \
                                  USART_CLEAR_FLAG_FE | \
                                  USART_CLEAR_FLAG_ORE));
 }
@@ -226,18 +278,17 @@ int32_t main(void)
     stc_irq_signin_config_t stcIrqSigninCfg;
     const stc_usart_smartcard_init_t stcSmartcardInit = {
         .u32Baudrate = 9600UL,
-        .u32ClkMode = USART_INTCLK_OUTPUT,
-        .u32ClkPrescaler = USART_CLK_PRESCALER_DIV1,
-        .u32StopBit = USART_STOP_BITS_2,
+        .u32ClkMode = USART_INTERNCLK_OUTPUT,
+        .u32PclkDiv = USART_PCLK_DIV1,
+        .u32StopBit = USART_STOPBIT_2BIT,
         .u32BitDirection = USART_LSB,
     };
 
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
+
     /* Initialize system clock. */
     BSP_CLK_Init();
-    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV16 | CLK_PCLK1_DIV16 | \
-                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV16 | \
-                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
-    SystemCoreClockUpdate();
 
     /* Initialize IO. */
     BSP_IO_Init();
@@ -246,7 +297,6 @@ int32_t main(void)
     BSP_LED_Init();
 
     /* Initialize smart card pin. */
-    GPIO_Unlock();
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinDir = PIN_DIR_OUT;
     GPIO_Init(SMARTCARD_RESET_PORT, SMARTCARD_RESET_PIN, &stcGpioInit);
@@ -254,11 +304,13 @@ int32_t main(void)
 
     GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(USART_CK_PORT, USART_CK_PIN, USART_CK_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
-    GPIO_Lock();
+
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
 
     while (IS_CARD_REMOVED())
     {
-        DDL_Delay1ms(200UL);
+        DDL_DelayMS(200UL);
         BSP_LED_Toggle(LED_RED);
     }
 
@@ -298,7 +350,7 @@ int32_t main(void)
 
         /* Smart card : cold reset*/
         SMARTCARD_RESET_HIGH();
-        DDL_Delay1ms(200UL);  /* Delay for receving Smart-card ATR */
+        DDL_DelayMS(200UL);  /* Delay for receving Smart-card ATR */
 
         /* Smart card : release */
         SMARTCARD_RESET_LOW();

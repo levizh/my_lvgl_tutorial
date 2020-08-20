@@ -5,7 +5,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-10       Wuze            First version
+   2020-06-12       Wuze            First version
+   2020-07-15       Wuze            Refined QSPI_WriteData().
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -105,7 +106,7 @@
  * @{
  */
 #define IS_QSPI_CLK_DIV(x)                                                     \
-(   ((x) != 0U) && (((x) | QSPI_CR_DIV) == QSPI_CR_DIV))
+(   ((x) >= 2U) && ((x) <= 64U))
 
 #define IS_QSPI_CS_SETUP_TIMING(x)                                             \
 (   ((x) == QSPI_CS_SETUP_BEFORE_0P5_CYCLE)             ||                     \
@@ -116,12 +117,12 @@
     ((x) == QSPI_CS_RELEASE_AFTER_1P5_CYCLE))
 
 #define IS_QSPI_CS_IDLE_TIME(x)                                                \
-(   (x) <= QSPI_CS_IDLE_16_CYCLE)
+(   ((x) >= 1U) && ((x) <= 16U))
 
 #define IS_QSPI_CS_EXTEND_TIME(x)                                              \
-(   ((x) == QSPI_CS_EXTEND_0_CYCLE)                     ||                     \
-    ((x) == QSPI_CS_EXTEND_32_CYCLE)                    ||                     \
-    ((x) == QSPI_CS_EXTEND_128_CYCLE)                   ||                     \
+(   ((x) == QSPI_CS_EXTEND_0CYCLE)                      ||                     \
+    ((x) == QSPI_CS_EXTEND_32CYCLE)                     ||                     \
+    ((x) == QSPI_CS_EXTEND_128CYCLE)                    ||                     \
     ((x) == QSPI_CS_EXTEND_INFINITE))
 
 #define IS_QSPI_SPI_MODE(x)                                                    \
@@ -147,28 +148,28 @@
     ((x) == QSPI_COMM_DIRECT_COMM))
 
 #define IS_QSPI_ADDR_WIDTH(x)                                                  \
-(   ((x) == QSPI_ADDR_WIDTH_1_BYTE)                     ||                     \
-    ((x) == QSPI_ADDR_WIDTH_2_BYTE)                     ||                     \
-    ((x) == QSPI_ADDR_WIDTH_3_BYTE)                     ||                     \
-    ((x) == QSPI_ADDR_WIDTH_4_BYTE))
+(   ((x) == QSPI_ADDR_WIDTH_1BYTE)                      ||                     \
+    ((x) == QSPI_ADDR_WIDTH_2BYTE)                      ||                     \
+    ((x) == QSPI_ADDR_WIDTH_3BYTE)                      ||                     \
+    ((x) == QSPI_ADDR_WIDTH_4BYTE))
 
 #define IS_QSPI_DUMMY_CYCLES(x)                                                \
-(   ((x) >> QSPI_FCR_DMCYCN_POS) <= 15U)
+(   ((x) >= 3U) && ((x) <= 18U))
 
 #define IS_QSPI_INSTR_MODE(x)                                                  \
-(   ((x) == QSPI_INSTR_1_LINE)                          ||                     \
-    ((x) == QSPI_INSTR_2_LINE)                          ||                     \
-    ((x) == QSPI_INSTR_4_LINE))
+(   ((x) == QSPI_INSTR_1LINE)                          ||                      \
+    ((x) == QSPI_INSTR_2LINE)                          ||                      \
+    ((x) == QSPI_INSTR_4LINE))
 
 #define IS_QSPI_ADDR_MODE(x)                                                   \
-(   ((x) == QSPI_ADDR_1_LINE)                           ||                     \
-    ((x) == QSPI_ADDR_2_LINE)                           ||                     \
-    ((x) == QSPI_ADDR_4_LINE))
+(   ((x) == QSPI_ADDR_1LINE)                           ||                      \
+    ((x) == QSPI_ADDR_2LINE)                           ||                      \
+    ((x) == QSPI_ADDR_4LINE))
 
 #define IS_QSPI_DATA_MODE(x)                                                   \
-(   ((x) == QSPI_DATA_1_LINE)                           ||                     \
-    ((x) == QSPI_DATA_2_LINE)                           ||                     \
-    ((x) == QSPI_DATA_4_LINE))
+(   ((x) == QSPI_DATA_1LINE)                           ||                      \
+    ((x) == QSPI_DATA_2LINE)                           ||                      \
+    ((x) == QSPI_DATA_4LINE))
 
 #define IS_QSPI_BLOCK_NUM(x)                                                   \
 (   (x) <= 62U)
@@ -177,7 +178,7 @@
 (   ((x) == QSPI_PREFETCH_ENABLE)                       ||                     \
     ((x) == QSPI_PREFETCH_DISABLE))
 
-#define IS_QSPI_WP_LEVLE(x)                                                    \
+#define IS_QSPI_WP_LEVEL(x)                                                    \
 (   ((x) == QSPI_WP_LOW)                                ||                     \
     ((x) == QSPI_WP_HIGH))
 
@@ -241,31 +242,31 @@ en_result_t QSPI_Init(const stc_qspi_init_t *pstcInit)
     uint32_t u32DutyCorrection = 0U;
     en_result_t enRet = ErrorInvalidParameter;
 
-    DDL_ASSERT(IS_QSPI_CLK_DIV(pstcInit->u32ClkDiv));
-    DDL_ASSERT(IS_QSPI_CS_SETUP_TIMING(pstcInit->u32CSSetupTiming));
-    DDL_ASSERT(IS_QSPI_CS_RELEASE_TIMING(pstcInit->u32CSReleaseTiming));
-    DDL_ASSERT(IS_QSPI_CS_IDLE_TIME(pstcInit->u32CSIdleTime));
-    DDL_ASSERT(IS_QSPI_CS_EXTEND_TIME(pstcInit->u32CSExtendTime));
-    DDL_ASSERT(IS_QSPI_SPI_MODE(pstcInit->u32SPIMode));
-    DDL_ASSERT(IS_QSPI_PREFETCH_STOP_POSITION(pstcInit->u32PrefetchStopPos));
-    DDL_ASSERT(IS_QSPI_PREFETCH_CMD(pstcInit->u32PrefetchCmd));
-    DDL_ASSERT(IS_QSPI_WP_LEVLE(pstcInit->u32WPLevel));
-    DDL_ASSERT(IS_QSPI_READ_MODE(pstcInit->u32ReadMode));
-    DDL_ASSERT(IS_QSPI_COMM_MODE(pstcInit->u32CommMode));
-    DDL_ASSERT(IS_QSPI_ADDR_WIDTH(pstcInit->u32AddrWidth));
-    DDL_ASSERT(IS_QSPI_DUMMY_CYCLES(pstcInit->u32DummyCycles));
-    DDL_ASSERT(IS_QSPI_INSTR_MODE(pstcInit->u32InstrMode));
-    DDL_ASSERT(IS_QSPI_ADDR_MODE(pstcInit->u32AddrMode));
-    DDL_ASSERT(IS_QSPI_DATA_MODE(pstcInit->u32DataMode));
-
     if (pstcInit != NULL)
     {
-        if ((pstcInit->u32ClkDiv != 0U) && (pstcInit->u32ClkDiv & QSPI_CR_DIV_0) == 0U)
+        DDL_ASSERT(IS_QSPI_CLK_DIV(pstcInit->u32ClkDiv));
+        DDL_ASSERT(IS_QSPI_CS_SETUP_TIMING(pstcInit->u32CSSetupTiming));
+        DDL_ASSERT(IS_QSPI_CS_RELEASE_TIMING(pstcInit->u32CSReleaseTiming));
+        DDL_ASSERT(IS_QSPI_CS_IDLE_TIME(pstcInit->u32CSIdleTime));
+        DDL_ASSERT(IS_QSPI_CS_EXTEND_TIME(pstcInit->u32CSExtendTime));
+        DDL_ASSERT(IS_QSPI_SPI_MODE(pstcInit->u32SPIMode));
+        DDL_ASSERT(IS_QSPI_PREFETCH_STOP_POSITION(pstcInit->u32PrefetchStopPos));
+        DDL_ASSERT(IS_QSPI_PREFETCH_CMD(pstcInit->u32PrefetchCmd));
+        DDL_ASSERT(IS_QSPI_WP_LEVEL(pstcInit->u32WPLevel));
+        DDL_ASSERT(IS_QSPI_READ_MODE(pstcInit->u32ReadMode));
+        DDL_ASSERT(IS_QSPI_COMM_MODE(pstcInit->u32CommMode));
+        DDL_ASSERT(IS_QSPI_ADDR_WIDTH(pstcInit->u32AddrWidth));
+        DDL_ASSERT(IS_QSPI_DUMMY_CYCLES(pstcInit->u32DummyCycles));
+        DDL_ASSERT(IS_QSPI_INSTR_MODE(pstcInit->u32InstrMode));
+        DDL_ASSERT(IS_QSPI_ADDR_MODE(pstcInit->u32AddrMode));
+        DDL_ASSERT(IS_QSPI_DATA_MODE(pstcInit->u32DataMode));
+
+        if ((pstcInit->u32ClkDiv & 1UL) != 0UL)
         {
             u32DutyCorrection = QSPI_FCR_DUTY;
         }
 
-        WRITE_REG32(M4_QSPI->CR, (pstcInit->u32ClkDiv          | \
+        WRITE_REG32(M4_QSPI->CR, (((pstcInit->u32ClkDiv-1UL) << QSPI_CR_DIV_POS) | \
                                   pstcInit->u32SPIMode         | \
                                   pstcInit->u32PrefetchStopPos | \
                                   pstcInit->u32PrefetchCmd     | \
@@ -276,16 +277,16 @@ en_result_t QSPI_Init(const stc_qspi_init_t *pstcInit)
                                   pstcInit->u32DataMode));
 
         WRITE_REG32(M4_QSPI->CSCR, (pstcInit->u32CSExtendTime  | \
-                                    pstcInit->u32CSIdleTime));
+                                   (pstcInit->u32CSIdleTime-1UL)));
 
-        WRITE_REG32(M4_QSPI->FCR, (pstcInit->u32CSSetupTiming   | \
-                                   pstcInit->u32CSReleaseTiming | \
-                                   pstcInit->u32AddrWidth       | \
-                                   pstcInit->u32DummyCycles     | \
-                                   pstcInit->u32WPLevel         | \
+        WRITE_REG32(M4_QSPI->FCR, (pstcInit->u32CSSetupTiming     | \
+                                   pstcInit->u32CSReleaseTiming   | \
+                                   pstcInit->u32AddrWidth         | \
+                                   ((pstcInit->u32DummyCycles-3UL) << QSPI_FCR_DMCYCN_POS) | \
+                                   pstcInit->u32WPLevel           | \
                                    u32DutyCorrection));
 
-        WRITE_REG32(M4_QSPI->CCMD, pstcInit->u32RomAccessInstr);
+        WRITE_REG32(M4_QSPI->CCMD, pstcInit->u8RomAccessInstr);
 
         enRet = Ok;
     }
@@ -324,24 +325,23 @@ en_result_t QSPI_StructInit(stc_qspi_init_t *pstcInit)
 
     if (pstcInit != NULL)
     {
-        pstcInit->u32ClkDiv          = QSPI_CLK_DIV_2;
+        pstcInit->u32ClkDiv          = 2UL;
         pstcInit->u32CSSetupTiming   = QSPI_CS_SETUP_BEFORE_0P5_CYCLE;
         pstcInit->u32CSReleaseTiming = QSPI_CS_RELEASE_AFTER_0P5_CYCLE;
-        pstcInit->u32CSIdleTime      = QSPI_CS_IDLE_4_CYCLE;
-        pstcInit->u32CSExtendTime    = QSPI_CS_EXTEND_0_CYCLE;
+        pstcInit->u32CSIdleTime      = 1UL;
+        pstcInit->u32CSExtendTime    = QSPI_CS_EXTEND_0CYCLE;
         pstcInit->u32SPIMode         = QSPI_SPI_MODE_0;
         pstcInit->u32PrefetchStopPos = QSPI_PREFETCH_STOP_BYTE_EDGE;
         pstcInit->u32PrefetchCmd     = QSPI_PREFETCH_ENABLE;
         pstcInit->u32WPLevel         = QSPI_WP_HIGH;
-
-        pstcInit->u32ReadMode        = QSPI_READ_STANDARD_READ;
         pstcInit->u32CommMode        = QSPI_COMM_ROM_ACCESS;
-        pstcInit->u32AddrWidth       = QSPI_ADDR_WIDTH_3_BYTE;
-        pstcInit->u32RomAccessInstr  = 0x0UL;
-        pstcInit->u32DummyCycles     = QSPI_DUMMY_CYCLE_3;
-        pstcInit->u32InstrMode       = QSPI_INSTR_1_LINE;
-        pstcInit->u32AddrMode        = QSPI_ADDR_1_LINE;
-        pstcInit->u32DataMode        = QSPI_DATA_1_LINE;
+        pstcInit->u32AddrWidth       = QSPI_ADDR_WIDTH_3BYTE;
+        pstcInit->u32InstrMode       = QSPI_INSTR_1LINE;
+        pstcInit->u32AddrMode        = QSPI_ADDR_1LINE;
+        pstcInit->u32DataMode        = QSPI_DATA_1LINE;
+        pstcInit->u32ReadMode        = QSPI_READ_STANDARD_READ;
+        pstcInit->u8RomAccessInstr   = 0x0U;
+        pstcInit->u32DummyCycles     = 3UL;
 
         enRet = Ok;
     }
@@ -387,7 +387,7 @@ en_result_t QSPI_WriteData(uint32_t u32Instr, uint32_t u32Address, \
             WRITE_REG32(M4_QSPI->DCOM, pu8Src[i]);
         }
         /* Exit direct communication mode. */
-        CLEAR_REG32_BIT(M4_QSPI->CR, QSPI_CR_DCOME);
+        QSPI_ExitDirectCommMode();
 
         enRet = Ok;
     }
@@ -397,7 +397,6 @@ en_result_t QSPI_WriteData(uint32_t u32Instr, uint32_t u32Address, \
 
 /**
  * @brief  QSPI write data.
- * @param  [in]  u32ReadMode            QSPI read mode.
  * @param  [in]  u32Address             Address.
  * @param  [in]  pu8Dest                Pointer to an array that used to store the read data.
  * @param  [in]  u32DestSize            Size of the data to be read.
@@ -405,16 +404,13 @@ en_result_t QSPI_WriteData(uint32_t u32Instr, uint32_t u32Address, \
  *   @arg  Ok:                          No error occurred.
  *   @arg  ErrorInvalidParameter:       pu8Dest == NULL or u32DestSize == 0U
  */
-en_result_t QSPI_ReadData(uint32_t u32ReadMode, uint32_t u32Address, \
-                          uint8_t pu8Dest[], uint32_t u32DestSize)
+en_result_t QSPI_ReadData(uint32_t u32Address, uint8_t pu8Dest[], uint32_t u32DestSize)
 {
-	uint32_t i = 0U;
+    uint32_t i = 0U;
     en_result_t enRet = ErrorInvalidParameter;
 
     if ((pu8Dest != NULL) && (u32DestSize > 0U))
     {
-        MODIFY_REG32(M4_QSPI->CR, QSPI_CR_MDSEL, u32ReadMode);
-        /* Send instruction. */
         u32Address += QSPI_ROM_MAP_BASE;
         while (u32DestSize-- != 0U)
         {
@@ -439,12 +435,20 @@ en_result_t QSPI_ReadData(uint32_t u32ReadMode, uint32_t u32Address, \
  *   @arg  QSPI_READ_FAST_READ_QUAD_IO:     Fast read quad I/O mode (address and data on 4 lines).
  *   @arg  QSPI_READ_CUSTOM_STANDARD_READ:  Custom standard read mode.
  *   @arg  QSPI_READ_CUSTOM_FAST_READ:      Custom fast read mode.
+ * @param  [in]  u8ReadInstr                Read instruction of QSPI flash. Tis instruction must correspond to the read mode that specified by parameter 'u32ReadMode'.
+ * @param  [in]  u32DummyCycles             The number of dummy cycles for fast read. It must correspond to the QSPI flash read instruction.
+ *                                          Ignore when u32ReadMode == QSPI_READ_STANDARD_READ.
+ *                                          This parameter can be a value between 3U and 18U, inclusive.
  * @retval None
  */
-void QSPI_SetReadMode(uint32_t u32ReadMode)
+void QSPI_SetReadMode(uint32_t u32ReadMode, uint8_t u8ReadInstr, uint32_t u32DummyCycles)
 {
     DDL_ASSERT(IS_QSPI_READ_MODE(u32ReadMode));
+    DDL_ASSERT(IS_QSPI_DUMMY_CYCLES(u32DummyCycles));
+
+    MODIFY_REG32(M4_QSPI->FCR, QSPI_FCR_DMCYCN, (u32DummyCycles-3UL) << QSPI_FCR_DMCYCN_POS);
     MODIFY_REG32(M4_QSPI->CR, QSPI_CR_MDSEL, u32ReadMode);
+    WRITE_REG32(M4_QSPI->CCMD, u8ReadInstr);
 }
 
 /**
@@ -517,7 +521,7 @@ void QSPI_XIPModeCmd(en_functional_state_t enNewState)
  */
 void QSPI_SetWPPinLevel(uint32_t u32Level)
 {
-    DDL_ASSERT(IS_QSPI_WP_LEVLE(u32Level));
+    DDL_ASSERT(IS_QSPI_WP_LEVEL(u32Level));
     MODIFY_REG32(M4_QSPI->FCR, QSPI_FCR_WPOL, u32Level);
 }
 
@@ -579,7 +583,7 @@ en_flag_status_t QSPI_GetStatus(uint32_t u32Flag)
 {
     en_flag_status_t enFlag = Reset;
 
-    if (READ_REG32_BIT(M4_QSPI->SR, (u32Flag & QSPI_FLAG_ALL)))
+    if (READ_REG32_BIT(M4_QSPI->SR, (u32Flag & QSPI_FLAG_ALL)) != 0UL)
     {
         enFlag = Set;
     }

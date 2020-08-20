@@ -6,7 +6,10 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-02       Heqb           First version
+   2020-06-12       Heqb           First version
+   2020-07-03       Heqb           Add flag judgment when operate SWAP
+   2020-07-07       Heqb           Modify the return value type of the function
+                                   EFM_SetOperateMode from void to en_result_t
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -105,17 +108,17 @@ typedef struct
     uint32_t            u32DataCache;   /*!< Specifies the data cache on or off.
                                             This parameter can be a value of @ref EFM_DCache_Func.          */
 
-    uint32_t            u32LowVolRead;  /*!< Specifies the read of low-voltage mode on or off.          
-                                            This parameter can be a value of @ref EFM_LowVolRead_Mode.        */                                          
+    uint32_t            u32LowVolRead;  /*!< Specifies the read of low-voltage mode on or off.
+                                            This parameter can be a value of @ref EFM_LowVolRead_Mode.        */
 
     uint32_t            u32BusStatus;   /*!< Specifies the bus status busy or release while program & erase.
                                             This parameter can be a value of @ref EFM_Bus_Status.           */
 
     uint32_t            u32OperateMode; /*!< Specifies the operate mode.
-                                            This parameter can be a value of @EFM_Mode_definition*/
+                                            This parameter can be a value of @ref EFM_OperateMode_Definition.   */
 
     uint32_t            u32FlashStatus; /*!< Specifies the Flash status.
-                                            This parameter can be a value of @EFM_Status */
+                                            This parameter can be a value of @ref EFM_Status.       */
 } stc_efm_cfg_t;
 
 /**
@@ -139,9 +142,8 @@ typedef struct
  * @defgroup EFM_Global_Macros EFM Global Macros
  * @{
  */
-#define EFM_TIMEOUT                  (0x2000UL)
-#define EFM_SWITCH_ADDR              (0x03002000UL)
-#define EFM_SWITCH_DATA              (0x005A5A5AUL)
+#define EFM_SWAP_ADDR                (0x03002000UL)
+#define EFM_SWAP_DATA                (0x005A5A5AUL)
 /**
  * @defgroup EFM_Address EFM address area
  * @{
@@ -156,262 +158,262 @@ typedef struct
  * @defgroup EFM_Sector_Address EFM Sector Address
  * @{
  */
-#define EFM_SECTOR0_ADDR            (0x00000000UL)   /*!< Sector 0 */
-#define EFM_SECTOR1_ADDR            (0x00002000UL)   /*!< Sector 1 */
-#define EFM_SECTOR2_ADDR            (0x00004000UL)   /*!< Sector 2 */
-#define EFM_SECTOR3_ADDR            (0x00006000UL)   /*!< Sector 3 */
-#define EFM_SECTOR4_ADDR            (0x00008000UL)   /*!< Sector 4 */
-#define EFM_SECTOR5_ADDR            (0x0000A000UL)   /*!< Sector 5 */
-#define EFM_SECTOR6_ADDR            (0x0000C000UL)   /*!< Sector 6 */
-#define EFM_SECTOR7_ADDR            (0x0000E000UL)   /*!< Sector 7 */
-#define EFM_SECTOR8_ADDR            (0x00010000UL)   /*!< Sector 8 */
-#define EFM_SECTOR9_ADDR            (0x00012000UL)   /*!< Sector 9 */
-#define EFM_SECTOR10_ADDR           (0x00014000UL)   /*!< Sector 10 */
-#define EFM_SECTOR11_ADDR           (0x00016000UL)   /*!< Sector 11 */
-#define EFM_SECTOR12_ADDR           (0x00018000UL)   /*!< Sector 12 */
-#define EFM_SECTOR13_ADDR           (0x0001A000UL)   /*!< Sector 13 */
-#define EFM_SECTOR14_ADDR           (0x0001C000UL)   /*!< Sector 14 */
-#define EFM_SECTOR15_ADDR           (0x0001E000UL)   /*!< Sector 15 */
-#define EFM_SECTOR16_ADDR           (0x00020000UL)   /*!< Sector 16 */
-#define EFM_SECTOR17_ADDR           (0x00022000UL)   /*!< Sector 17 */
-#define EFM_SECTOR18_ADDR           (0x00024000UL)   /*!< Sector 18 */
-#define EFM_SECTOR19_ADDR           (0x00026000UL)   /*!< Sector 19 */
-#define EFM_SECTOR20_ADDR           (0x00028000UL)   /*!< Sector 20 */
-#define EFM_SECTOR21_ADDR           (0x0002A000UL)   /*!< Sector 21 */
-#define EFM_SECTOR22_ADDR           (0x0002C000UL)   /*!< Sector 22 */
-#define EFM_SECTOR23_ADDR           (0x0002E000UL)   /*!< Sector 23 */
-#define EFM_SECTOR24_ADDR           (0x00030000UL)   /*!< Sector 24 */
-#define EFM_SECTOR25_ADDR           (0x00032000UL)   /*!< Sector 25 */
-#define EFM_SECTOR26_ADDR           (0x00034000UL)   /*!< Sector 26 */
-#define EFM_SECTOR27_ADDR           (0x00036000UL)   /*!< Sector 27 */
-#define EFM_SECTOR28_ADDR           (0x00038000UL)   /*!< Sector 28 */
-#define EFM_SECTOR29_ADDR           (0x0003A000UL)   /*!< Sector 29 */
-#define EFM_SECTOR30_ADDR           (0x0003C000UL)   /*!< Sector 30 */
-#define EFM_SECTOR31_ADDR           (0x0003E000UL)   /*!< Sector 31 */
-#define EFM_SECTOR32_ADDR           (0x00040000UL)   /*!< Sector 32 */
-#define EFM_SECTOR33_ADDR           (0x00042000UL)   /*!< Sector 33 */
-#define EFM_SECTOR34_ADDR           (0x00044000UL)   /*!< Sector 34 */
-#define EFM_SECTOR35_ADDR           (0x00046000UL)   /*!< Sector 35 */
-#define EFM_SECTOR36_ADDR           (0x00048000UL)   /*!< Sector 36 */
-#define EFM_SECTOR37_ADDR           (0x0004A000UL)   /*!< Sector 37 */
-#define EFM_SECTOR38_ADDR           (0x0004C000UL)   /*!< Sector 38 */
-#define EFM_SECTOR39_ADDR           (0x0004E000UL)   /*!< Sector 39 */
-#define EFM_SECTOR40_ADDR           (0x00050000UL)   /*!< Sector 40 */
-#define EFM_SECTOR41_ADDR           (0x00052000UL)   /*!< Sector 41 */
-#define EFM_SECTOR42_ADDR           (0x00054000UL)   /*!< Sector 42 */
-#define EFM_SECTOR43_ADDR           (0x00056000UL)   /*!< Sector 43 */
-#define EFM_SECTOR44_ADDR           (0x00058000UL)   /*!< Sector 44 */
-#define EFM_SECTOR45_ADDR           (0x0005A000UL)   /*!< Sector 45 */
-#define EFM_SECTOR46_ADDR           (0x0005C000UL)   /*!< Sector 46 */
-#define EFM_SECTOR47_ADDR           (0x0005E000UL)   /*!< Sector 47 */
-#define EFM_SECTOR48_ADDR           (0x00060000UL)   /*!< Sector 48 */
-#define EFM_SECTOR49_ADDR           (0x00062000UL)   /*!< Sector 49 */
-#define EFM_SECTOR50_ADDR           (0x00064000UL)   /*!< Sector 50 */
-#define EFM_SECTOR51_ADDR           (0x00066000UL)   /*!< Sector 51 */
-#define EFM_SECTOR52_ADDR           (0x00068000UL)   /*!< Sector 52 */
-#define EFM_SECTOR53_ADDR           (0x0006A000UL)   /*!< Sector 53 */
-#define EFM_SECTOR54_ADDR           (0x0006C000UL)   /*!< Sector 54 */
-#define EFM_SECTOR55_ADDR           (0x0006E000UL)   /*!< Sector 55 */
-#define EFM_SECTOR56_ADDR           (0x00070000UL)   /*!< Sector 56 */
-#define EFM_SECTOR57_ADDR           (0x00072000UL)   /*!< Sector 57 */
-#define EFM_SECTOR58_ADDR           (0x00074000UL)   /*!< Sector 58 */
-#define EFM_SECTOR59_ADDR           (0x00076000UL)   /*!< Sector 59 */
-#define EFM_SECTOR60_ADDR           (0x00078000UL)   /*!< Sector 60 */
-#define EFM_SECTOR61_ADDR           (0x0007A000UL)   /*!< Sector 61 */
-#define EFM_SECTOR62_ADDR           (0x0007C000UL)   /*!< Sector 62 */
-#define EFM_SECTOR63_ADDR           (0x0007E000UL)   /*!< Sector 63 */
-#define EFM_SECTOR64_ADDR           (0x00080000UL)   /*!< Sector 64 */
-#define EFM_SECTOR65_ADDR           (0x00082000UL)   /*!< Sector 65 */
-#define EFM_SECTOR66_ADDR           (0x00084000UL)   /*!< Sector 66 */
-#define EFM_SECTOR67_ADDR           (0x00086000UL)   /*!< Sector 67 */
-#define EFM_SECTOR68_ADDR           (0x00088000UL)   /*!< Sector 68 */
-#define EFM_SECTOR69_ADDR           (0x0008A000UL)   /*!< Sector 69 */
-#define EFM_SECTOR70_ADDR           (0x0008C000UL)   /*!< Sector 70 */
-#define EFM_SECTOR71_ADDR           (0x0008E000UL)   /*!< Sector 71 */
-#define EFM_SECTOR72_ADDR           (0x00090000UL)   /*!< Sector 72 */
-#define EFM_SECTOR73_ADDR           (0x00092000UL)   /*!< Sector 73 */
-#define EFM_SECTOR74_ADDR           (0x00094000UL)   /*!< Sector 74 */
-#define EFM_SECTOR75_ADDR           (0x00096000UL)   /*!< Sector 75 */
-#define EFM_SECTOR76_ADDR           (0x00098000UL)   /*!< Sector 76 */
-#define EFM_SECTOR77_ADDR           (0x0009A000UL)   /*!< Sector 77 */
-#define EFM_SECTOR78_ADDR           (0x0009C000UL)   /*!< Sector 78 */
-#define EFM_SECTOR79_ADDR           (0x0009E000UL)   /*!< Sector 79 */
-#define EFM_SECTOR80_ADDR           (0x000A0000UL)   /*!< Sector 80 */
-#define EFM_SECTOR81_ADDR           (0x000A2000UL)   /*!< Sector 81 */
-#define EFM_SECTOR82_ADDR           (0x000A4000UL)   /*!< Sector 82 */
-#define EFM_SECTOR83_ADDR           (0x000A6000UL)   /*!< Sector 83 */
-#define EFM_SECTOR84_ADDR           (0x000A8000UL)   /*!< Sector 84 */
-#define EFM_SECTOR85_ADDR           (0x000AA000UL)   /*!< Sector 85 */
-#define EFM_SECTOR86_ADDR           (0x000AC000UL)   /*!< Sector 86 */
-#define EFM_SECTOR87_ADDR           (0x000AE000UL)   /*!< Sector 87 */
-#define EFM_SECTOR88_ADDR           (0x000B0000UL)   /*!< Sector 88 */
-#define EFM_SECTOR89_ADDR           (0x000B2000UL)   /*!< Sector 89 */
-#define EFM_SECTOR90_ADDR           (0x000B4000UL)   /*!< Sector 90 */
-#define EFM_SECTOR91_ADDR           (0x000B6000UL)   /*!< Sector 91 */
-#define EFM_SECTOR92_ADDR           (0x000B8000UL)   /*!< Sector 92 */
-#define EFM_SECTOR93_ADDR           (0x000BA000UL)   /*!< Sector 93 */
-#define EFM_SECTOR94_ADDR           (0x000BC000UL)   /*!< Sector 94 */
-#define EFM_SECTOR95_ADDR           (0x000BE000UL)   /*!< Sector 95 */
-#define EFM_SECTOR96_ADDR           (0x000C0000UL)   /*!< Sector 96 */
-#define EFM_SECTOR97_ADDR           (0x000C2000UL)   /*!< Sector 97 */
-#define EFM_SECTOR98_ADDR           (0x000C4000UL)   /*!< Sector 98 */
-#define EFM_SECTOR99_ADDR           (0x000C6000UL)   /*!< Sector 99 */
-#define EFM_SECTOR100_ADDR          (0x000C8000UL)   /*!< Sector 100 */
-#define EFM_SECTOR101_ADDR          (0x000CA000UL)   /*!< Sector 101 */
-#define EFM_SECTOR102_ADDR          (0x000CC000UL)   /*!< Sector 102 */
-#define EFM_SECTOR103_ADDR          (0x000CE000UL)   /*!< Sector 103 */
-#define EFM_SECTOR104_ADDR          (0x000D0000UL)   /*!< Sector 104 */
-#define EFM_SECTOR105_ADDR          (0x000D2000UL)   /*!< Sector 105 */
-#define EFM_SECTOR106_ADDR          (0x000D4000UL)   /*!< Sector 106 */
-#define EFM_SECTOR107_ADDR          (0x000D6000UL)   /*!< Sector 107 */
-#define EFM_SECTOR108_ADDR          (0x000D8000UL)   /*!< Sector 108 */
-#define EFM_SECTOR109_ADDR          (0x000DA000UL)   /*!< Sector 109 */
-#define EFM_SECTOR110_ADDR          (0x000DC000UL)   /*!< Sector 110 */
-#define EFM_SECTOR111_ADDR          (0x000DE000UL)   /*!< Sector 111 */
-#define EFM_SECTOR112_ADDR          (0x000E0000UL)   /*!< Sector 112 */
-#define EFM_SECTOR113_ADDR          (0x000E2000UL)   /*!< Sector 113 */
-#define EFM_SECTOR114_ADDR          (0x000E4000UL)   /*!< Sector 114 */
-#define EFM_SECTOR115_ADDR          (0x000E6000UL)   /*!< Sector 115 */
-#define EFM_SECTOR116_ADDR          (0x000E8000UL)   /*!< Sector 116 */
-#define EFM_SECTOR117_ADDR          (0x000EA000UL)   /*!< Sector 117 */
-#define EFM_SECTOR118_ADDR          (0x000EC000UL)   /*!< Sector 118 */
-#define EFM_SECTOR119_ADDR          (0x000EE000UL)   /*!< Sector 119 */
-#define EFM_SECTOR120_ADDR          (0x000F0000UL)   /*!< Sector 120 */
-#define EFM_SECTOR121_ADDR          (0x000F2000UL)   /*!< Sector 121 */
-#define EFM_SECTOR122_ADDR          (0x000F4000UL)   /*!< Sector 122 */
-#define EFM_SECTOR123_ADDR          (0x000F6000UL)   /*!< Sector 123 */
-#define EFM_SECTOR124_ADDR          (0x000F8000UL)   /*!< Sector 124 */
-#define EFM_SECTOR125_ADDR          (0x000FA000UL)   /*!< Sector 125 */
-#define EFM_SECTOR126_ADDR          (0x000FC000UL)   /*!< Sector 126 */
-#define EFM_SECTOR127_ADDR          (0x000FE000UL)   /*!< Sector 127 */
-#define EFM_SECTOR128_ADDR          (0x00100000UL)   /*!< Sector 128 */
-#define EFM_SECTOR129_ADDR          (0x00102000UL)   /*!< Sector 129 */
-#define EFM_SECTOR130_ADDR          (0x00104000UL)   /*!< Sector 130 */
-#define EFM_SECTOR131_ADDR          (0x00106000UL)   /*!< Sector 131 */
-#define EFM_SECTOR132_ADDR          (0x00108000UL)   /*!< Sector 132 */
-#define EFM_SECTOR133_ADDR          (0x0010A000UL)   /*!< Sector 133 */
-#define EFM_SECTOR134_ADDR          (0x0010C000UL)   /*!< Sector 134 */
-#define EFM_SECTOR135_ADDR          (0x0010E000UL)   /*!< Sector 135 */
-#define EFM_SECTOR136_ADDR          (0x00110000UL)   /*!< Sector 136 */
-#define EFM_SECTOR137_ADDR          (0x00112000UL)   /*!< Sector 137 */
-#define EFM_SECTOR138_ADDR          (0x00114000UL)   /*!< Sector 138 */
-#define EFM_SECTOR139_ADDR          (0x00116000UL)   /*!< Sector 139 */
-#define EFM_SECTOR140_ADDR          (0x00118000UL)   /*!< Sector 140 */
-#define EFM_SECTOR141_ADDR          (0x0011A000UL)   /*!< Sector 141 */
-#define EFM_SECTOR142_ADDR          (0x0011C000UL)   /*!< Sector 142 */
-#define EFM_SECTOR143_ADDR          (0x0011E000UL)   /*!< Sector 143 */
-#define EFM_SECTOR144_ADDR          (0x00120000UL)   /*!< Sector 144 */
-#define EFM_SECTOR145_ADDR          (0x00122000UL)   /*!< Sector 145 */
-#define EFM_SECTOR146_ADDR          (0x00124000UL)   /*!< Sector 146 */
-#define EFM_SECTOR147_ADDR          (0x00126000UL)   /*!< Sector 147 */
-#define EFM_SECTOR148_ADDR          (0x00128000UL)   /*!< Sector 148 */
-#define EFM_SECTOR149_ADDR          (0x0012A000UL)   /*!< Sector 149 */
-#define EFM_SECTOR150_ADDR          (0x0012C000UL)   /*!< Sector 150 */
-#define EFM_SECTOR151_ADDR          (0x0012E000UL)   /*!< Sector 151 */
-#define EFM_SECTOR152_ADDR          (0x00130000UL)   /*!< Sector 152 */
-#define EFM_SECTOR153_ADDR          (0x00132000UL)   /*!< Sector 153 */
-#define EFM_SECTOR154_ADDR          (0x00134000UL)   /*!< Sector 154 */
-#define EFM_SECTOR155_ADDR          (0x00136000UL)   /*!< Sector 155 */
-#define EFM_SECTOR156_ADDR          (0x00138000UL)   /*!< Sector 156 */
-#define EFM_SECTOR157_ADDR          (0x0013A000UL)   /*!< Sector 157 */
-#define EFM_SECTOR158_ADDR          (0x0013C000UL)   /*!< Sector 158 */
-#define EFM_SECTOR159_ADDR          (0x0013E000UL)   /*!< Sector 159 */
-#define EFM_SECTOR160_ADDR          (0x00140000UL)   /*!< Sector 160 */
-#define EFM_SECTOR161_ADDR          (0x00142000UL)   /*!< Sector 161 */
-#define EFM_SECTOR162_ADDR          (0x00144000UL)   /*!< Sector 162 */
-#define EFM_SECTOR163_ADDR          (0x00146000UL)   /*!< Sector 163 */
-#define EFM_SECTOR164_ADDR          (0x00148000UL)   /*!< Sector 164 */
-#define EFM_SECTOR165_ADDR          (0x0014A000UL)   /*!< Sector 165 */
-#define EFM_SECTOR166_ADDR          (0x0014C000UL)   /*!< Sector 166 */
-#define EFM_SECTOR167_ADDR          (0x0014E000UL)   /*!< Sector 167 */
-#define EFM_SECTOR168_ADDR          (0x00150000UL)   /*!< Sector 168 */
-#define EFM_SECTOR169_ADDR          (0x00152000UL)   /*!< Sector 169 */
-#define EFM_SECTOR170_ADDR          (0x00154000UL)   /*!< Sector 170 */
-#define EFM_SECTOR171_ADDR          (0x00156000UL)   /*!< Sector 171 */
-#define EFM_SECTOR172_ADDR          (0x00158000UL)   /*!< Sector 172 */
-#define EFM_SECTOR173_ADDR          (0x0015A000UL)   /*!< Sector 173 */
-#define EFM_SECTOR174_ADDR          (0x0015C000UL)   /*!< Sector 174 */
-#define EFM_SECTOR175_ADDR          (0x0015E000UL)   /*!< Sector 175 */
-#define EFM_SECTOR176_ADDR          (0x00160000UL)   /*!< Sector 176 */
-#define EFM_SECTOR177_ADDR          (0x00162000UL)   /*!< Sector 177 */
-#define EFM_SECTOR178_ADDR          (0x00164000UL)   /*!< Sector 178 */
-#define EFM_SECTOR179_ADDR          (0x00166000UL)   /*!< Sector 179 */
-#define EFM_SECTOR180_ADDR          (0x00168000UL)   /*!< Sector 180 */
-#define EFM_SECTOR181_ADDR          (0x0016A000UL)   /*!< Sector 181 */
-#define EFM_SECTOR182_ADDR          (0x0016C000UL)   /*!< Sector 182 */
-#define EFM_SECTOR183_ADDR          (0x0016E000UL)   /*!< Sector 183 */
-#define EFM_SECTOR184_ADDR          (0x00170000UL)   /*!< Sector 184 */
-#define EFM_SECTOR185_ADDR          (0x00172000UL)   /*!< Sector 185 */
-#define EFM_SECTOR186_ADDR          (0x00174000UL)   /*!< Sector 186 */
-#define EFM_SECTOR187_ADDR          (0x00176000UL)   /*!< Sector 187 */
-#define EFM_SECTOR188_ADDR          (0x00178000UL)   /*!< Sector 188 */
-#define EFM_SECTOR189_ADDR          (0x0017A000UL)   /*!< Sector 189 */
-#define EFM_SECTOR190_ADDR          (0x0017C000UL)   /*!< Sector 190 */
-#define EFM_SECTOR191_ADDR          (0x0017E000UL)   /*!< Sector 191 */
-#define EFM_SECTOR192_ADDR          (0x00180000UL)   /*!< Sector 192 */
-#define EFM_SECTOR193_ADDR          (0x00182000UL)   /*!< Sector 193 */
-#define EFM_SECTOR194_ADDR          (0x00184000UL)   /*!< Sector 194 */
-#define EFM_SECTOR195_ADDR          (0x00186000UL)   /*!< Sector 195 */
-#define EFM_SECTOR196_ADDR          (0x00188000UL)   /*!< Sector 196 */
-#define EFM_SECTOR197_ADDR          (0x0018A000UL)   /*!< Sector 197 */
-#define EFM_SECTOR198_ADDR          (0x0018C000UL)   /*!< Sector 198 */
-#define EFM_SECTOR199_ADDR          (0x0018E000UL)   /*!< Sector 199 */
-#define EFM_SECTOR200_ADDR          (0x00190000UL)   /*!< Sector 200 */
-#define EFM_SECTOR201_ADDR          (0x00192000UL)   /*!< Sector 201 */
-#define EFM_SECTOR202_ADDR          (0x00194000UL)   /*!< Sector 202 */
-#define EFM_SECTOR203_ADDR          (0x00196000UL)   /*!< Sector 203 */
-#define EFM_SECTOR204_ADDR          (0x00198000UL)   /*!< Sector 204 */
-#define EFM_SECTOR205_ADDR          (0x0019A000UL)   /*!< Sector 205 */
-#define EFM_SECTOR206_ADDR          (0x0019C000UL)   /*!< Sector 206 */
-#define EFM_SECTOR207_ADDR          (0x0019E000UL)   /*!< Sector 207 */
-#define EFM_SECTOR208_ADDR          (0x001A0000UL)   /*!< Sector 208 */
-#define EFM_SECTOR209_ADDR          (0x001A2000UL)   /*!< Sector 209 */
-#define EFM_SECTOR210_ADDR          (0x001A4000UL)   /*!< Sector 210 */
-#define EFM_SECTOR211_ADDR          (0x001A6000UL)   /*!< Sector 211 */
-#define EFM_SECTOR212_ADDR          (0x001A8000UL)   /*!< Sector 212 */
-#define EFM_SECTOR213_ADDR          (0x001AA000UL)   /*!< Sector 213 */
-#define EFM_SECTOR214_ADDR          (0x001AC000UL)   /*!< Sector 214 */
-#define EFM_SECTOR215_ADDR          (0x001AE000UL)   /*!< Sector 215 */
-#define EFM_SECTOR216_ADDR          (0x001B0000UL)   /*!< Sector 216 */
-#define EFM_SECTOR217_ADDR          (0x001B2000UL)   /*!< Sector 217 */
-#define EFM_SECTOR218_ADDR          (0x001B4000UL)   /*!< Sector 218 */
-#define EFM_SECTOR219_ADDR          (0x001B6000UL)   /*!< Sector 219 */
-#define EFM_SECTOR220_ADDR          (0x001B8000UL)   /*!< Sector 220 */
-#define EFM_SECTOR221_ADDR          (0x001BA000UL)   /*!< Sector 221 */
-#define EFM_SECTOR222_ADDR          (0x001BC000UL)   /*!< Sector 222 */
-#define EFM_SECTOR223_ADDR          (0x001BE000UL)   /*!< Sector 223 */
-#define EFM_SECTOR224_ADDR          (0x001C0000UL)   /*!< Sector 224 */
-#define EFM_SECTOR225_ADDR          (0x001C2000UL)   /*!< Sector 225 */
-#define EFM_SECTOR226_ADDR          (0x001C4000UL)   /*!< Sector 226 */
-#define EFM_SECTOR227_ADDR          (0x001C6000UL)   /*!< Sector 227 */
-#define EFM_SECTOR228_ADDR          (0x001C8000UL)   /*!< Sector 228 */
-#define EFM_SECTOR229_ADDR          (0x001CA000UL)   /*!< Sector 229 */
-#define EFM_SECTOR230_ADDR          (0x001CC000UL)   /*!< Sector 230 */
-#define EFM_SECTOR231_ADDR          (0x001CE000UL)   /*!< Sector 231 */
-#define EFM_SECTOR232_ADDR          (0x001D0000UL)   /*!< Sector 232 */
-#define EFM_SECTOR233_ADDR          (0x001D2000UL)   /*!< Sector 233 */
-#define EFM_SECTOR234_ADDR          (0x001D4000UL)   /*!< Sector 234 */
-#define EFM_SECTOR235_ADDR          (0x001D6000UL)   /*!< Sector 235 */
-#define EFM_SECTOR236_ADDR          (0x001D8000UL)   /*!< Sector 236 */
-#define EFM_SECTOR237_ADDR          (0x001DA000UL)   /*!< Sector 237 */
-#define EFM_SECTOR238_ADDR          (0x001DC000UL)   /*!< Sector 238 */
-#define EFM_SECTOR239_ADDR          (0x001DE000UL)   /*!< Sector 239 */
-#define EFM_SECTOR240_ADDR          (0x001E0000UL)   /*!< Sector 240 */
-#define EFM_SECTOR241_ADDR          (0x001E2000UL)   /*!< Sector 241 */
-#define EFM_SECTOR242_ADDR          (0x001E4000UL)   /*!< Sector 242 */
-#define EFM_SECTOR243_ADDR          (0x001E6000UL)   /*!< Sector 243 */
-#define EFM_SECTOR244_ADDR          (0x001E8000UL)   /*!< Sector 244 */
-#define EFM_SECTOR245_ADDR          (0x001EA000UL)   /*!< Sector 245 */
-#define EFM_SECTOR246_ADDR          (0x001EC000UL)   /*!< Sector 246 */
-#define EFM_SECTOR247_ADDR          (0x001EE000UL)   /*!< Sector 247 */
-#define EFM_SECTOR248_ADDR          (0x001F0000UL)   /*!< Sector 248 */
-#define EFM_SECTOR249_ADDR          (0x001F2000UL)   /*!< Sector 249 */
-#define EFM_SECTOR250_ADDR          (0x001F4000UL)   /*!< Sector 250 */
-#define EFM_SECTOR251_ADDR          (0x001F6000UL)   /*!< Sector 251 */
-#define EFM_SECTOR252_ADDR          (0x001F8000UL)   /*!< Sector 252 */
-#define EFM_SECTOR253_ADDR          (0x001FA000UL)   /*!< Sector 253 */
-#define EFM_SECTOR254_ADDR          (0x001FC000UL)   /*!< Sector 254 */
-#define EFM_SECTOR255_ADDR          (0x001FE000UL)   /*!< Sector 255 */
+#define EFM_ADDR_SECTOR0            (0x00000000UL)   /*!< Sector 0 */
+#define EFM_ADDR_SECTOR1            (0x00002000UL)   /*!< Sector 1 */
+#define EFM_ADDR_SECTOR2            (0x00004000UL)   /*!< Sector 2 */
+#define EFM_ADDR_SECTOR3            (0x00006000UL)   /*!< Sector 3 */
+#define EFM_ADDR_SECTOR4            (0x00008000UL)   /*!< Sector 4 */
+#define EFM_ADDR_SECTOR5            (0x0000A000UL)   /*!< Sector 5 */
+#define EFM_ADDR_SECTOR6            (0x0000C000UL)   /*!< Sector 6 */
+#define EFM_ADDR_SECTOR7            (0x0000E000UL)   /*!< Sector 7 */
+#define EFM_ADDR_SECTOR8            (0x00010000UL)   /*!< Sector 8 */
+#define EFM_ADDR_SECTOR9            (0x00012000UL)   /*!< Sector 9 */
+#define EFM_ADDR_SECTOR10           (0x00014000UL)   /*!< Sector 10 */
+#define EFM_ADDR_SECTOR11           (0x00016000UL)   /*!< Sector 11 */
+#define EFM_ADDR_SECTOR12           (0x00018000UL)   /*!< Sector 12 */
+#define EFM_ADDR_SECTOR13           (0x0001A000UL)   /*!< Sector 13 */
+#define EFM_ADDR_SECTOR14           (0x0001C000UL)   /*!< Sector 14 */
+#define EFM_ADDR_SECTOR15           (0x0001E000UL)   /*!< Sector 15 */
+#define EFM_ADDR_SECTOR16           (0x00020000UL)   /*!< Sector 16 */
+#define EFM_ADDR_SECTOR17           (0x00022000UL)   /*!< Sector 17 */
+#define EFM_ADDR_SECTOR18           (0x00024000UL)   /*!< Sector 18 */
+#define EFM_ADDR_SECTOR19           (0x00026000UL)   /*!< Sector 19 */
+#define EFM_ADDR_SECTOR20           (0x00028000UL)   /*!< Sector 20 */
+#define EFM_ADDR_SECTOR21           (0x0002A000UL)   /*!< Sector 21 */
+#define EFM_ADDR_SECTOR22           (0x0002C000UL)   /*!< Sector 22 */
+#define EFM_ADDR_SECTOR23           (0x0002E000UL)   /*!< Sector 23 */
+#define EFM_ADDR_SECTOR24           (0x00030000UL)   /*!< Sector 24 */
+#define EFM_ADDR_SECTOR25           (0x00032000UL)   /*!< Sector 25 */
+#define EFM_ADDR_SECTOR26           (0x00034000UL)   /*!< Sector 26 */
+#define EFM_ADDR_SECTOR27           (0x00036000UL)   /*!< Sector 27 */
+#define EFM_ADDR_SECTOR28           (0x00038000UL)   /*!< Sector 28 */
+#define EFM_ADDR_SECTOR29           (0x0003A000UL)   /*!< Sector 29 */
+#define EFM_ADDR_SECTOR30           (0x0003C000UL)   /*!< Sector 30 */
+#define EFM_ADDR_SECTOR31           (0x0003E000UL)   /*!< Sector 31 */
+#define EFM_ADDR_SECTOR32           (0x00040000UL)   /*!< Sector 32 */
+#define EFM_ADDR_SECTOR33           (0x00042000UL)   /*!< Sector 33 */
+#define EFM_ADDR_SECTOR34           (0x00044000UL)   /*!< Sector 34 */
+#define EFM_ADDR_SECTOR35           (0x00046000UL)   /*!< Sector 35 */
+#define EFM_ADDR_SECTOR36           (0x00048000UL)   /*!< Sector 36 */
+#define EFM_ADDR_SECTOR37           (0x0004A000UL)   /*!< Sector 37 */
+#define EFM_ADDR_SECTOR38           (0x0004C000UL)   /*!< Sector 38 */
+#define EFM_ADDR_SECTOR39           (0x0004E000UL)   /*!< Sector 39 */
+#define EFM_ADDR_SECTOR40           (0x00050000UL)   /*!< Sector 40 */
+#define EFM_ADDR_SECTOR41           (0x00052000UL)   /*!< Sector 41 */
+#define EFM_ADDR_SECTOR42           (0x00054000UL)   /*!< Sector 42 */
+#define EFM_ADDR_SECTOR43           (0x00056000UL)   /*!< Sector 43 */
+#define EFM_ADDR_SECTOR44           (0x00058000UL)   /*!< Sector 44 */
+#define EFM_ADDR_SECTOR45           (0x0005A000UL)   /*!< Sector 45 */
+#define EFM_ADDR_SECTOR46           (0x0005C000UL)   /*!< Sector 46 */
+#define EFM_ADDR_SECTOR47           (0x0005E000UL)   /*!< Sector 47 */
+#define EFM_ADDR_SECTOR48           (0x00060000UL)   /*!< Sector 48 */
+#define EFM_ADDR_SECTOR49           (0x00062000UL)   /*!< Sector 49 */
+#define EFM_ADDR_SECTOR50           (0x00064000UL)   /*!< Sector 50 */
+#define EFM_ADDR_SECTOR51           (0x00066000UL)   /*!< Sector 51 */
+#define EFM_ADDR_SECTOR52           (0x00068000UL)   /*!< Sector 52 */
+#define EFM_ADDR_SECTOR53           (0x0006A000UL)   /*!< Sector 53 */
+#define EFM_ADDR_SECTOR54           (0x0006C000UL)   /*!< Sector 54 */
+#define EFM_ADDR_SECTOR55           (0x0006E000UL)   /*!< Sector 55 */
+#define EFM_ADDR_SECTOR56           (0x00070000UL)   /*!< Sector 56 */
+#define EFM_ADDR_SECTOR57           (0x00072000UL)   /*!< Sector 57 */
+#define EFM_ADDR_SECTOR58           (0x00074000UL)   /*!< Sector 58 */
+#define EFM_ADDR_SECTOR59           (0x00076000UL)   /*!< Sector 59 */
+#define EFM_ADDR_SECTOR60           (0x00078000UL)   /*!< Sector 60 */
+#define EFM_ADDR_SECTOR61           (0x0007A000UL)   /*!< Sector 61 */
+#define EFM_ADDR_SECTOR62           (0x0007C000UL)   /*!< Sector 62 */
+#define EFM_ADDR_SECTOR63           (0x0007E000UL)   /*!< Sector 63 */
+#define EFM_ADDR_SECTOR64           (0x00080000UL)   /*!< Sector 64 */
+#define EFM_ADDR_SECTOR65           (0x00082000UL)   /*!< Sector 65 */
+#define EFM_ADDR_SECTOR66           (0x00084000UL)   /*!< Sector 66 */
+#define EFM_ADDR_SECTOR67           (0x00086000UL)   /*!< Sector 67 */
+#define EFM_ADDR_SECTOR68           (0x00088000UL)   /*!< Sector 68 */
+#define EFM_ADDR_SECTOR69           (0x0008A000UL)   /*!< Sector 69 */
+#define EFM_ADDR_SECTOR70           (0x0008C000UL)   /*!< Sector 70 */
+#define EFM_ADDR_SECTOR71           (0x0008E000UL)   /*!< Sector 71 */
+#define EFM_ADDR_SECTOR72           (0x00090000UL)   /*!< Sector 72 */
+#define EFM_ADDR_SECTOR73           (0x00092000UL)   /*!< Sector 73 */
+#define EFM_ADDR_SECTOR74           (0x00094000UL)   /*!< Sector 74 */
+#define EFM_ADDR_SECTOR75           (0x00096000UL)   /*!< Sector 75 */
+#define EFM_ADDR_SECTOR76           (0x00098000UL)   /*!< Sector 76 */
+#define EFM_ADDR_SECTOR77           (0x0009A000UL)   /*!< Sector 77 */
+#define EFM_ADDR_SECTOR78           (0x0009C000UL)   /*!< Sector 78 */
+#define EFM_ADDR_SECTOR79           (0x0009E000UL)   /*!< Sector 79 */
+#define EFM_ADDR_SECTOR80           (0x000A0000UL)   /*!< Sector 80 */
+#define EFM_ADDR_SECTOR81           (0x000A2000UL)   /*!< Sector 81 */
+#define EFM_ADDR_SECTOR82           (0x000A4000UL)   /*!< Sector 82 */
+#define EFM_ADDR_SECTOR83           (0x000A6000UL)   /*!< Sector 83 */
+#define EFM_ADDR_SECTOR84           (0x000A8000UL)   /*!< Sector 84 */
+#define EFM_ADDR_SECTOR85           (0x000AA000UL)   /*!< Sector 85 */
+#define EFM_ADDR_SECTOR86           (0x000AC000UL)   /*!< Sector 86 */
+#define EFM_ADDR_SECTOR87           (0x000AE000UL)   /*!< Sector 87 */
+#define EFM_ADDR_SECTOR88           (0x000B0000UL)   /*!< Sector 88 */
+#define EFM_ADDR_SECTOR89           (0x000B2000UL)   /*!< Sector 89 */
+#define EFM_ADDR_SECTOR90           (0x000B4000UL)   /*!< Sector 90 */
+#define EFM_ADDR_SECTOR91           (0x000B6000UL)   /*!< Sector 91 */
+#define EFM_ADDR_SECTOR92           (0x000B8000UL)   /*!< Sector 92 */
+#define EFM_ADDR_SECTOR93           (0x000BA000UL)   /*!< Sector 93 */
+#define EFM_ADDR_SECTOR94           (0x000BC000UL)   /*!< Sector 94 */
+#define EFM_ADDR_SECTOR95           (0x000BE000UL)   /*!< Sector 95 */
+#define EFM_ADDR_SECTOR96           (0x000C0000UL)   /*!< Sector 96 */
+#define EFM_ADDR_SECTOR97           (0x000C2000UL)   /*!< Sector 97 */
+#define EFM_ADDR_SECTOR98           (0x000C4000UL)   /*!< Sector 98 */
+#define EFM_ADDR_SECTOR99           (0x000C6000UL)   /*!< Sector 99 */
+#define EFM_ADDR_SECTOR100          (0x000C8000UL)   /*!< Sector 100 */
+#define EFM_ADDR_SECTOR101          (0x000CA000UL)   /*!< Sector 101 */
+#define EFM_ADDR_SECTOR102          (0x000CC000UL)   /*!< Sector 102 */
+#define EFM_ADDR_SECTOR103          (0x000CE000UL)   /*!< Sector 103 */
+#define EFM_ADDR_SECTOR104          (0x000D0000UL)   /*!< Sector 104 */
+#define EFM_ADDR_SECTOR105          (0x000D2000UL)   /*!< Sector 105 */
+#define EFM_ADDR_SECTOR106          (0x000D4000UL)   /*!< Sector 106 */
+#define EFM_ADDR_SECTOR107          (0x000D6000UL)   /*!< Sector 107 */
+#define EFM_ADDR_SECTOR108          (0x000D8000UL)   /*!< Sector 108 */
+#define EFM_ADDR_SECTOR109          (0x000DA000UL)   /*!< Sector 109 */
+#define EFM_ADDR_SECTOR110          (0x000DC000UL)   /*!< Sector 110 */
+#define EFM_ADDR_SECTOR111          (0x000DE000UL)   /*!< Sector 111 */
+#define EFM_ADDR_SECTOR112          (0x000E0000UL)   /*!< Sector 112 */
+#define EFM_ADDR_SECTOR113          (0x000E2000UL)   /*!< Sector 113 */
+#define EFM_ADDR_SECTOR114          (0x000E4000UL)   /*!< Sector 114 */
+#define EFM_ADDR_SECTOR115          (0x000E6000UL)   /*!< Sector 115 */
+#define EFM_ADDR_SECTOR116          (0x000E8000UL)   /*!< Sector 116 */
+#define EFM_ADDR_SECTOR117          (0x000EA000UL)   /*!< Sector 117 */
+#define EFM_ADDR_SECTOR118          (0x000EC000UL)   /*!< Sector 118 */
+#define EFM_ADDR_SECTOR119          (0x000EE000UL)   /*!< Sector 119 */
+#define EFM_ADDR_SECTOR120          (0x000F0000UL)   /*!< Sector 120 */
+#define EFM_ADDR_SECTOR121          (0x000F2000UL)   /*!< Sector 121 */
+#define EFM_ADDR_SECTOR122          (0x000F4000UL)   /*!< Sector 122 */
+#define EFM_ADDR_SECTOR123          (0x000F6000UL)   /*!< Sector 123 */
+#define EFM_ADDR_SECTOR124          (0x000F8000UL)   /*!< Sector 124 */
+#define EFM_ADDR_SECTOR125          (0x000FA000UL)   /*!< Sector 125 */
+#define EFM_ADDR_SECTOR126          (0x000FC000UL)   /*!< Sector 126 */
+#define EFM_ADDR_SECTOR127          (0x000FE000UL)   /*!< Sector 127 */
+#define EFM_ADDR_SECTOR128          (0x00100000UL)   /*!< Sector 128 */
+#define EFM_ADDR_SECTOR129          (0x00102000UL)   /*!< Sector 129 */
+#define EFM_ADDR_SECTOR130          (0x00104000UL)   /*!< Sector 130 */
+#define EFM_ADDR_SECTOR131          (0x00106000UL)   /*!< Sector 131 */
+#define EFM_ADDR_SECTOR132          (0x00108000UL)   /*!< Sector 132 */
+#define EFM_ADDR_SECTOR133          (0x0010A000UL)   /*!< Sector 133 */
+#define EFM_ADDR_SECTOR134          (0x0010C000UL)   /*!< Sector 134 */
+#define EFM_ADDR_SECTOR135          (0x0010E000UL)   /*!< Sector 135 */
+#define EFM_ADDR_SECTOR136          (0x00110000UL)   /*!< Sector 136 */
+#define EFM_ADDR_SECTOR137          (0x00112000UL)   /*!< Sector 137 */
+#define EFM_ADDR_SECTOR138          (0x00114000UL)   /*!< Sector 138 */
+#define EFM_ADDR_SECTOR139          (0x00116000UL)   /*!< Sector 139 */
+#define EFM_ADDR_SECTOR140          (0x00118000UL)   /*!< Sector 140 */
+#define EFM_ADDR_SECTOR141          (0x0011A000UL)   /*!< Sector 141 */
+#define EFM_ADDR_SECTOR142          (0x0011C000UL)   /*!< Sector 142 */
+#define EFM_ADDR_SECTOR143          (0x0011E000UL)   /*!< Sector 143 */
+#define EFM_ADDR_SECTOR144          (0x00120000UL)   /*!< Sector 144 */
+#define EFM_ADDR_SECTOR145          (0x00122000UL)   /*!< Sector 145 */
+#define EFM_ADDR_SECTOR146          (0x00124000UL)   /*!< Sector 146 */
+#define EFM_ADDR_SECTOR147          (0x00126000UL)   /*!< Sector 147 */
+#define EFM_ADDR_SECTOR148          (0x00128000UL)   /*!< Sector 148 */
+#define EFM_ADDR_SECTOR149          (0x0012A000UL)   /*!< Sector 149 */
+#define EFM_ADDR_SECTOR150          (0x0012C000UL)   /*!< Sector 150 */
+#define EFM_ADDR_SECTOR151          (0x0012E000UL)   /*!< Sector 151 */
+#define EFM_ADDR_SECTOR152          (0x00130000UL)   /*!< Sector 152 */
+#define EFM_ADDR_SECTOR153          (0x00132000UL)   /*!< Sector 153 */
+#define EFM_ADDR_SECTOR154          (0x00134000UL)   /*!< Sector 154 */
+#define EFM_ADDR_SECTOR155          (0x00136000UL)   /*!< Sector 155 */
+#define EFM_ADDR_SECTOR156          (0x00138000UL)   /*!< Sector 156 */
+#define EFM_ADDR_SECTOR157          (0x0013A000UL)   /*!< Sector 157 */
+#define EFM_ADDR_SECTOR158          (0x0013C000UL)   /*!< Sector 158 */
+#define EFM_ADDR_SECTOR159          (0x0013E000UL)   /*!< Sector 159 */
+#define EFM_ADDR_SECTOR160          (0x00140000UL)   /*!< Sector 160 */
+#define EFM_ADDR_SECTOR161          (0x00142000UL)   /*!< Sector 161 */
+#define EFM_ADDR_SECTOR162          (0x00144000UL)   /*!< Sector 162 */
+#define EFM_ADDR_SECTOR163          (0x00146000UL)   /*!< Sector 163 */
+#define EFM_ADDR_SECTOR164          (0x00148000UL)   /*!< Sector 164 */
+#define EFM_ADDR_SECTOR165          (0x0014A000UL)   /*!< Sector 165 */
+#define EFM_ADDR_SECTOR166          (0x0014C000UL)   /*!< Sector 166 */
+#define EFM_ADDR_SECTOR167          (0x0014E000UL)   /*!< Sector 167 */
+#define EFM_ADDR_SECTOR168          (0x00150000UL)   /*!< Sector 168 */
+#define EFM_ADDR_SECTOR169          (0x00152000UL)   /*!< Sector 169 */
+#define EFM_ADDR_SECTOR170          (0x00154000UL)   /*!< Sector 170 */
+#define EFM_ADDR_SECTOR171          (0x00156000UL)   /*!< Sector 171 */
+#define EFM_ADDR_SECTOR172          (0x00158000UL)   /*!< Sector 172 */
+#define EFM_ADDR_SECTOR173          (0x0015A000UL)   /*!< Sector 173 */
+#define EFM_ADDR_SECTOR174          (0x0015C000UL)   /*!< Sector 174 */
+#define EFM_ADDR_SECTOR175          (0x0015E000UL)   /*!< Sector 175 */
+#define EFM_ADDR_SECTOR176          (0x00160000UL)   /*!< Sector 176 */
+#define EFM_ADDR_SECTOR177          (0x00162000UL)   /*!< Sector 177 */
+#define EFM_ADDR_SECTOR178          (0x00164000UL)   /*!< Sector 178 */
+#define EFM_ADDR_SECTOR179          (0x00166000UL)   /*!< Sector 179 */
+#define EFM_ADDR_SECTOR180          (0x00168000UL)   /*!< Sector 180 */
+#define EFM_ADDR_SECTOR181          (0x0016A000UL)   /*!< Sector 181 */
+#define EFM_ADDR_SECTOR182          (0x0016C000UL)   /*!< Sector 182 */
+#define EFM_ADDR_SECTOR183          (0x0016E000UL)   /*!< Sector 183 */
+#define EFM_ADDR_SECTOR184          (0x00170000UL)   /*!< Sector 184 */
+#define EFM_ADDR_SECTOR185          (0x00172000UL)   /*!< Sector 185 */
+#define EFM_ADDR_SECTOR186          (0x00174000UL)   /*!< Sector 186 */
+#define EFM_ADDR_SECTOR187          (0x00176000UL)   /*!< Sector 187 */
+#define EFM_ADDR_SECTOR188          (0x00178000UL)   /*!< Sector 188 */
+#define EFM_ADDR_SECTOR189          (0x0017A000UL)   /*!< Sector 189 */
+#define EFM_ADDR_SECTOR190          (0x0017C000UL)   /*!< Sector 190 */
+#define EFM_ADDR_SECTOR191          (0x0017E000UL)   /*!< Sector 191 */
+#define EFM_ADDR_SECTOR192          (0x00180000UL)   /*!< Sector 192 */
+#define EFM_ADDR_SECTOR193          (0x00182000UL)   /*!< Sector 193 */
+#define EFM_ADDR_SECTOR194          (0x00184000UL)   /*!< Sector 194 */
+#define EFM_ADDR_SECTOR195          (0x00186000UL)   /*!< Sector 195 */
+#define EFM_ADDR_SECTOR196          (0x00188000UL)   /*!< Sector 196 */
+#define EFM_ADDR_SECTOR197          (0x0018A000UL)   /*!< Sector 197 */
+#define EFM_ADDR_SECTOR198          (0x0018C000UL)   /*!< Sector 198 */
+#define EFM_ADDR_SECTOR199          (0x0018E000UL)   /*!< Sector 199 */
+#define EFM_ADDR_SECTOR200          (0x00190000UL)   /*!< Sector 200 */
+#define EFM_ADDR_SECTOR201          (0x00192000UL)   /*!< Sector 201 */
+#define EFM_ADDR_SECTOR202          (0x00194000UL)   /*!< Sector 202 */
+#define EFM_ADDR_SECTOR203          (0x00196000UL)   /*!< Sector 203 */
+#define EFM_ADDR_SECTOR204          (0x00198000UL)   /*!< Sector 204 */
+#define EFM_ADDR_SECTOR205          (0x0019A000UL)   /*!< Sector 205 */
+#define EFM_ADDR_SECTOR206          (0x0019C000UL)   /*!< Sector 206 */
+#define EFM_ADDR_SECTOR207          (0x0019E000UL)   /*!< Sector 207 */
+#define EFM_ADDR_SECTOR208          (0x001A0000UL)   /*!< Sector 208 */
+#define EFM_ADDR_SECTOR209          (0x001A2000UL)   /*!< Sector 209 */
+#define EFM_ADDR_SECTOR210          (0x001A4000UL)   /*!< Sector 210 */
+#define EFM_ADDR_SECTOR211          (0x001A6000UL)   /*!< Sector 211 */
+#define EFM_ADDR_SECTOR212          (0x001A8000UL)   /*!< Sector 212 */
+#define EFM_ADDR_SECTOR213          (0x001AA000UL)   /*!< Sector 213 */
+#define EFM_ADDR_SECTOR214          (0x001AC000UL)   /*!< Sector 214 */
+#define EFM_ADDR_SECTOR215          (0x001AE000UL)   /*!< Sector 215 */
+#define EFM_ADDR_SECTOR216          (0x001B0000UL)   /*!< Sector 216 */
+#define EFM_ADDR_SECTOR217          (0x001B2000UL)   /*!< Sector 217 */
+#define EFM_ADDR_SECTOR218          (0x001B4000UL)   /*!< Sector 218 */
+#define EFM_ADDR_SECTOR219          (0x001B6000UL)   /*!< Sector 219 */
+#define EFM_ADDR_SECTOR220          (0x001B8000UL)   /*!< Sector 220 */
+#define EFM_ADDR_SECTOR221          (0x001BA000UL)   /*!< Sector 221 */
+#define EFM_ADDR_SECTOR222          (0x001BC000UL)   /*!< Sector 222 */
+#define EFM_ADDR_SECTOR223          (0x001BE000UL)   /*!< Sector 223 */
+#define EFM_ADDR_SECTOR224          (0x001C0000UL)   /*!< Sector 224 */
+#define EFM_ADDR_SECTOR225          (0x001C2000UL)   /*!< Sector 225 */
+#define EFM_ADDR_SECTOR226          (0x001C4000UL)   /*!< Sector 226 */
+#define EFM_ADDR_SECTOR227          (0x001C6000UL)   /*!< Sector 227 */
+#define EFM_ADDR_SECTOR228          (0x001C8000UL)   /*!< Sector 228 */
+#define EFM_ADDR_SECTOR229          (0x001CA000UL)   /*!< Sector 229 */
+#define EFM_ADDR_SECTOR230          (0x001CC000UL)   /*!< Sector 230 */
+#define EFM_ADDR_SECTOR231          (0x001CE000UL)   /*!< Sector 231 */
+#define EFM_ADDR_SECTOR232          (0x001D0000UL)   /*!< Sector 232 */
+#define EFM_ADDR_SECTOR233          (0x001D2000UL)   /*!< Sector 233 */
+#define EFM_ADDR_SECTOR234          (0x001D4000UL)   /*!< Sector 234 */
+#define EFM_ADDR_SECTOR235          (0x001D6000UL)   /*!< Sector 235 */
+#define EFM_ADDR_SECTOR236          (0x001D8000UL)   /*!< Sector 236 */
+#define EFM_ADDR_SECTOR237          (0x001DA000UL)   /*!< Sector 237 */
+#define EFM_ADDR_SECTOR238          (0x001DC000UL)   /*!< Sector 238 */
+#define EFM_ADDR_SECTOR239          (0x001DE000UL)   /*!< Sector 239 */
+#define EFM_ADDR_SECTOR240          (0x001E0000UL)   /*!< Sector 240 */
+#define EFM_ADDR_SECTOR241          (0x001E2000UL)   /*!< Sector 241 */
+#define EFM_ADDR_SECTOR242          (0x001E4000UL)   /*!< Sector 242 */
+#define EFM_ADDR_SECTOR243          (0x001E6000UL)   /*!< Sector 243 */
+#define EFM_ADDR_SECTOR244          (0x001E8000UL)   /*!< Sector 244 */
+#define EFM_ADDR_SECTOR245          (0x001EA000UL)   /*!< Sector 245 */
+#define EFM_ADDR_SECTOR246          (0x001EC000UL)   /*!< Sector 246 */
+#define EFM_ADDR_SECTOR247          (0x001EE000UL)   /*!< Sector 247 */
+#define EFM_ADDR_SECTOR248          (0x001F0000UL)   /*!< Sector 248 */
+#define EFM_ADDR_SECTOR249          (0x001F2000UL)   /*!< Sector 249 */
+#define EFM_ADDR_SECTOR250          (0x001F4000UL)   /*!< Sector 250 */
+#define EFM_ADDR_SECTOR251          (0x001F6000UL)   /*!< Sector 251 */
+#define EFM_ADDR_SECTOR252          (0x001F8000UL)   /*!< Sector 252 */
+#define EFM_ADDR_SECTOR253          (0x001FA000UL)   /*!< Sector 253 */
+#define EFM_ADDR_SECTOR254          (0x001FC000UL)   /*!< Sector 254 */
+#define EFM_ADDR_SECTOR255          (0x001FE000UL)   /*!< Sector 255 */
 /**
  * @}
  */
@@ -606,7 +608,270 @@ typedef struct
 #define EFM_OTP_BLOCK179            (0x030017F4UL)   /*!< OTP block179 4 Bytes */
 #define EFM_OTP_BLOCK180            (0x030017F8UL)   /*!< OTP block180 4 Bytes */
 #define EFM_OTP_BLOCK181            (0x030017FCUL)   /*!< OTP block181 4 Bytes */
+/**
+ * @}
+ */
 
+/**
+ * @defgroup EFM_Sectot_Num Efm sector number
+ * @{
+ */
+#define EFM_SECTOR_0                (0U)
+#define EFM_SECTOR_1                (1U)
+#define EFM_SECTOR_2                (2U)
+#define EFM_SECTOR_3                (3U)
+#define EFM_SECTOR_4                (4U)
+#define EFM_SECTOR_5                (5U)
+#define EFM_SECTOR_6                (6U)
+#define EFM_SECTOR_7                (7U)
+#define EFM_SECTOR_8                (8U)
+#define EFM_SECTOR_9                (9U)
+#define EFM_SECTOR_10               (10U)
+#define EFM_SECTOR_11               (11U)
+#define EFM_SECTOR_12               (12U)
+#define EFM_SECTOR_13               (13U)
+#define EFM_SECTOR_14               (14U)
+#define EFM_SECTOR_15               (15U)
+#define EFM_SECTOR_16               (16U)
+#define EFM_SECTOR_17               (17U)
+#define EFM_SECTOR_18               (18U)
+#define EFM_SECTOR_19               (19U)
+#define EFM_SECTOR_20               (20U)
+#define EFM_SECTOR_21               (21U)
+#define EFM_SECTOR_22               (22U)
+#define EFM_SECTOR_23               (23U)
+#define EFM_SECTOR_24               (24U)
+#define EFM_SECTOR_25               (25U)
+#define EFM_SECTOR_26               (26U)
+#define EFM_SECTOR_27               (27U)
+#define EFM_SECTOR_28               (28U)
+#define EFM_SECTOR_29               (29U)
+#define EFM_SECTOR_30               (30U)
+#define EFM_SECTOR_31               (31U)
+#define EFM_SECTOR_32               (32U)
+#define EFM_SECTOR_33               (33U)
+#define EFM_SECTOR_34               (34U)
+#define EFM_SECTOR_35               (35U)
+#define EFM_SECTOR_36               (36U)
+#define EFM_SECTOR_37               (37U)
+#define EFM_SECTOR_38               (38U)
+#define EFM_SECTOR_39               (39U)
+#define EFM_SECTOR_40               (40U)
+#define EFM_SECTOR_41               (41U)
+#define EFM_SECTOR_42               (42U)
+#define EFM_SECTOR_43               (43U)
+#define EFM_SECTOR_44               (44U)
+#define EFM_SECTOR_45               (45U)
+#define EFM_SECTOR_46               (46U)
+#define EFM_SECTOR_47               (47U)
+#define EFM_SECTOR_48               (48U)
+#define EFM_SECTOR_49               (49U)
+#define EFM_SECTOR_50               (50U)
+#define EFM_SECTOR_51               (51U)
+#define EFM_SECTOR_52               (52U)
+#define EFM_SECTOR_53               (53U)
+#define EFM_SECTOR_54               (54U)
+#define EFM_SECTOR_55               (55U)
+#define EFM_SECTOR_56               (56U)
+#define EFM_SECTOR_57               (57U)
+#define EFM_SECTOR_58               (58U)
+#define EFM_SECTOR_59               (59U)
+#define EFM_SECTOR_60               (60U)
+#define EFM_SECTOR_61               (61U)
+#define EFM_SECTOR_62               (62U)
+#define EFM_SECTOR_63               (63U)
+#define EFM_SECTOR_64               (64U)
+#define EFM_SECTOR_65               (65U)
+#define EFM_SECTOR_66               (66U)
+#define EFM_SECTOR_67               (67U)
+#define EFM_SECTOR_68               (68U)
+#define EFM_SECTOR_69               (69U)
+#define EFM_SECTOR_70               (70U)
+#define EFM_SECTOR_71               (71U)
+#define EFM_SECTOR_72               (72U)
+#define EFM_SECTOR_73               (73U)
+#define EFM_SECTOR_74               (74U)
+#define EFM_SECTOR_75               (75U)
+#define EFM_SECTOR_76               (76U)
+#define EFM_SECTOR_77               (77U)
+#define EFM_SECTOR_78               (78U)
+#define EFM_SECTOR_79               (79U)
+#define EFM_SECTOR_80               (80U)
+#define EFM_SECTOR_81               (81U)
+#define EFM_SECTOR_82               (82U)
+#define EFM_SECTOR_83               (83U)
+#define EFM_SECTOR_84               (84U)
+#define EFM_SECTOR_85               (85U)
+#define EFM_SECTOR_86               (86U)
+#define EFM_SECTOR_87               (87U)
+#define EFM_SECTOR_88               (88U)
+#define EFM_SECTOR_89               (89U)
+#define EFM_SECTOR_90               (90U)
+#define EFM_SECTOR_91               (91U)
+#define EFM_SECTOR_92               (92U)
+#define EFM_SECTOR_93               (93U)
+#define EFM_SECTOR_94               (94U)
+#define EFM_SECTOR_95               (95U)
+#define EFM_SECTOR_96               (96U)
+#define EFM_SECTOR_97               (97U)
+#define EFM_SECTOR_98               (98U)
+#define EFM_SECTOR_99               (99U)
+#define EFM_SECTOR_100              (100U)
+#define EFM_SECTOR_101              (101U)
+#define EFM_SECTOR_102              (102U)
+#define EFM_SECTOR_103              (103U)
+#define EFM_SECTOR_104              (104U)
+#define EFM_SECTOR_105              (105U)
+#define EFM_SECTOR_106              (106U)
+#define EFM_SECTOR_107              (107U)
+#define EFM_SECTOR_108              (108U)
+#define EFM_SECTOR_109              (109U)
+#define EFM_SECTOR_110              (110U)
+#define EFM_SECTOR_111              (111U)
+#define EFM_SECTOR_112              (112U)
+#define EFM_SECTOR_113              (113U)
+#define EFM_SECTOR_114              (114U)
+#define EFM_SECTOR_115              (115U)
+#define EFM_SECTOR_116              (116U)
+#define EFM_SECTOR_117              (117U)
+#define EFM_SECTOR_118              (118U)
+#define EFM_SECTOR_119              (119U)
+#define EFM_SECTOR_120              (120U)
+#define EFM_SECTOR_121              (121U)
+#define EFM_SECTOR_122              (122U)
+#define EFM_SECTOR_123              (123U)
+#define EFM_SECTOR_124              (124U)
+#define EFM_SECTOR_125              (125U)
+#define EFM_SECTOR_126              (126U)
+#define EFM_SECTOR_127              (127U)
+#define EFM_SECTOR_128              (128U)
+#define EFM_SECTOR_129              (129U)
+#define EFM_SECTOR_130              (130U)
+#define EFM_SECTOR_131              (131U)
+#define EFM_SECTOR_132              (132U)
+#define EFM_SECTOR_133              (133U)
+#define EFM_SECTOR_134              (134U)
+#define EFM_SECTOR_135              (135U)
+#define EFM_SECTOR_136              (136U)
+#define EFM_SECTOR_137              (137U)
+#define EFM_SECTOR_138              (138U)
+#define EFM_SECTOR_139              (139U)
+#define EFM_SECTOR_140              (140U)
+#define EFM_SECTOR_141              (141U)
+#define EFM_SECTOR_142              (142U)
+#define EFM_SECTOR_143              (143U)
+#define EFM_SECTOR_144              (144U)
+#define EFM_SECTOR_145              (145U)
+#define EFM_SECTOR_146              (146U)
+#define EFM_SECTOR_147              (147U)
+#define EFM_SECTOR_148              (148U)
+#define EFM_SECTOR_149              (149U)
+#define EFM_SECTOR_150              (150U)
+#define EFM_SECTOR_151              (151U)
+#define EFM_SECTOR_152              (152U)
+#define EFM_SECTOR_153              (153U)
+#define EFM_SECTOR_154              (154U)
+#define EFM_SECTOR_155              (155U)
+#define EFM_SECTOR_156              (156U)
+#define EFM_SECTOR_157              (157U)
+#define EFM_SECTOR_158              (158U)
+#define EFM_SECTOR_159              (159U)
+#define EFM_SECTOR_160              (160U)
+#define EFM_SECTOR_161              (161U)
+#define EFM_SECTOR_162              (162U)
+#define EFM_SECTOR_163              (163U)
+#define EFM_SECTOR_164              (164U)
+#define EFM_SECTOR_165              (165U)
+#define EFM_SECTOR_166              (166U)
+#define EFM_SECTOR_167              (167U)
+#define EFM_SECTOR_168              (168U)
+#define EFM_SECTOR_169              (169U)
+#define EFM_SECTOR_170              (170U)
+#define EFM_SECTOR_171              (171U)
+#define EFM_SECTOR_172              (172U)
+#define EFM_SECTOR_173              (173U)
+#define EFM_SECTOR_174              (174U)
+#define EFM_SECTOR_175              (175U)
+#define EFM_SECTOR_176              (176U)
+#define EFM_SECTOR_177              (177U)
+#define EFM_SECTOR_178              (178U)
+#define EFM_SECTOR_179              (179U)
+#define EFM_SECTOR_180              (180U)
+#define EFM_SECTOR_181              (181U)
+#define EFM_SECTOR_182              (182U)
+#define EFM_SECTOR_183              (183U)
+#define EFM_SECTOR_184              (184U)
+#define EFM_SECTOR_185              (185U)
+#define EFM_SECTOR_186              (186U)
+#define EFM_SECTOR_187              (187U)
+#define EFM_SECTOR_188              (188U)
+#define EFM_SECTOR_189              (189U)
+#define EFM_SECTOR_190              (190U)
+#define EFM_SECTOR_191              (191U)
+#define EFM_SECTOR_192              (192U)
+#define EFM_SECTOR_193              (193U)
+#define EFM_SECTOR_194              (194U)
+#define EFM_SECTOR_195              (195U)
+#define EFM_SECTOR_196              (196U)
+#define EFM_SECTOR_197              (197U)
+#define EFM_SECTOR_198              (198U)
+#define EFM_SECTOR_199              (199U)
+#define EFM_SECTOR_200              (200U)
+#define EFM_SECTOR_201              (201U)
+#define EFM_SECTOR_202              (202U)
+#define EFM_SECTOR_203              (203U)
+#define EFM_SECTOR_204              (204U)
+#define EFM_SECTOR_205              (205U)
+#define EFM_SECTOR_206              (206U)
+#define EFM_SECTOR_207              (207U)
+#define EFM_SECTOR_208              (208U)
+#define EFM_SECTOR_209              (209U)
+#define EFM_SECTOR_210              (210U)
+#define EFM_SECTOR_211              (211U)
+#define EFM_SECTOR_212              (212U)
+#define EFM_SECTOR_213              (213U)
+#define EFM_SECTOR_214              (214U)
+#define EFM_SECTOR_215              (215U)
+#define EFM_SECTOR_216              (216U)
+#define EFM_SECTOR_217              (217U)
+#define EFM_SECTOR_218              (218U)
+#define EFM_SECTOR_219              (219U)
+#define EFM_SECTOR_220              (220U)
+#define EFM_SECTOR_221              (221U)
+#define EFM_SECTOR_222              (222U)
+#define EFM_SECTOR_223              (223U)
+#define EFM_SECTOR_224              (224U)
+#define EFM_SECTOR_225              (225U)
+#define EFM_SECTOR_226              (226U)
+#define EFM_SECTOR_227              (227U)
+#define EFM_SECTOR_228              (228U)
+#define EFM_SECTOR_229              (229U)
+#define EFM_SECTOR_230              (230U)
+#define EFM_SECTOR_231              (231U)
+#define EFM_SECTOR_232              (232U)
+#define EFM_SECTOR_233              (233U)
+#define EFM_SECTOR_234              (234U)
+#define EFM_SECTOR_235              (235U)
+#define EFM_SECTOR_236              (236U)
+#define EFM_SECTOR_237              (237U)
+#define EFM_SECTOR_238              (238U)
+#define EFM_SECTOR_239              (239U)
+#define EFM_SECTOR_240              (240U)
+#define EFM_SECTOR_241              (241U)
+#define EFM_SECTOR_242              (242U)
+#define EFM_SECTOR_243              (243U)
+#define EFM_SECTOR_244              (244U)
+#define EFM_SECTOR_245              (245U)
+#define EFM_SECTOR_246              (246U)
+#define EFM_SECTOR_247              (247U)
+#define EFM_SECTOR_248              (248U)
+#define EFM_SECTOR_249              (249U)
+#define EFM_SECTOR_250              (250U)
+#define EFM_SECTOR_251              (251U)
+#define EFM_SECTOR_252              (252U)
+#define EFM_SECTOR_253              (253U)
+#define EFM_SECTOR_254              (254U)
+#define EFM_SECTOR_255              (255U)
 /**
  * @}
  */
@@ -716,7 +981,7 @@ typedef struct
  */
 
 /**
- * @defgroup EFM_Mode_definition EFM program or erase mode definition
+ * @defgroup EFM_OperateMode_Definition EFM program or erase mode definition
  * @{
  */
 #define EFM_MODE_PROGRAMSINGLE      (0x1UL)                  /*!< Program single mode          */
@@ -724,9 +989,8 @@ typedef struct
 #define EFM_MODE_PROGRAMSEQUENCE    (0x3UL)                  /*!< Program sequence mode        */
 #define EFM_MODE_ERASESECTOR        (0x4UL)                  /*!< Sector erase mode            */
 #define EFM_MODE_ERASECHIP1         (0x5UL)                  /*!< A flash Chip erase mode      */
-#define EFM_MODE_ERASECHIP2         (0x6UL)                  /*!< Two flash Chip erase mode    */
+#define EFM_MODE_ERASEFULL          (0x6UL)                  /*!< Full erase mode    */
 #define EFM_MODE_READONLY           (0x0UL)                  /*!< Read only mode               */
-#define EFM_MODE_READONLY1          (0x7UL)                  /*!< Read only mode               */
 /**
  * @}
  */
@@ -771,13 +1035,8 @@ typedef struct
 #define EFM_INT_PEERR               (EFM_FITE_PEERRITE)      /*!< Program/erase error Interrupt source    */
 #define EFM_INT_OPTEND              (EFM_FITE_OPTENDITE)     /*!< End of EFM operation Interrupt source   */
 #define EFM_INT_RDCOLERR            (EFM_FITE_COLERRITE)     /*!< Read collide error Interrupt source     */
-#define EFM_INT_PEERR_OPTEND        (EFM_FITE_PEERRITE  |  \
-                                    EFM_FITE_OPTENDITE)      /*!< Program/erase error and End of EFM operation */
-#define EFM_INT_PEERR_RDCOLERR      (EFM_FITE_PEERRITE  |  \
-                                    EFM_FITE_COLERRITE)      /*!< Program/erase error and Read collide error*/
-#define EFM_INT_OPTEND_RDCOLERR     (EFM_FITE_OPTENDITE |  \
-                                    EFM_FITE_COLERRITE)      /*!< End of EFM operation and Read collide error*/
-#define EFM_INT_ALL                 (EFM_FITE_PEERRITE  |  \
+
+#define EFM_INT_MASK                (EFM_FITE_PEERRITE  |  \
                                     EFM_FITE_OPTENDITE  |  \
                                     EFM_FITE_COLERRITE)      /*!< Program/erase error and End of EFM operation \
                                                                   and Read collide error Interrupt source */
@@ -816,10 +1075,10 @@ typedef struct
  * @defgroup EFM_Status EFM Status
  * @{
  */
-#define EFM_F0ACT_F1ACT             (0x00000000UL)            /*!< Flash 0 and 1 Enable */
-#define EFM_F0STP_F1ACT             (0x00000001UL)            /*!< Flash 0 Disable, Flash 1 Enable*/
-#define EFM_F0ACT_F1STP             (0x00000002UL)            /*!< Flash 0 Enable ,Flash 1 Disable */
-#define EFM_F0STP_F1STP             (0x00000003UL)            /*!< Flash 0 and 1 Disable */
+#define EFM_FLASH0_ACT_FLASH1_ACT      (0x00000000UL)  /*!< Flash 0 and 1 activity */
+#define EFM_FLASH0_STP_FLASH1_ACT      (0x00000001UL)  /*!< Flash 0 stop,Flash 1 activity */
+#define EFM_FLASH0_ACT_FLASH1_STP      (0x00000002UL)  /*!< Flash 0 activity,Flash 1 stop */
+#define EFM_FLASH0_STP_FLASH1_STP      (0x00000003UL)  /*!< Flash 0 and 1 stop */
 /**
  * @}
  */
@@ -830,10 +1089,10 @@ typedef struct
  */
 #define EFM_PROTECT_FWMC            (0U)
 #define EFM_PROTECT_OTP             (1U)
-
 /**
  * @}
  */
+
 
 /**
  * @}
@@ -851,38 +1110,61 @@ typedef struct
  * @{
  */
 
-void EFM_Unlock(void);
-void EFM_Lock(void);
-void EFM_KEYRegWriteUnlock(uint8_t u8ProtectReg);
-void EFM_KEYRegWriteLock(uint8_t u8ProtectReg);
+/**
+ * @brief  EFM Protect Unlock.
+ * @param  None
+ * @retval None
+ */
 
-void EFM_Cmd(uint32_t efmstatus);
+__STATIC_INLINE void EFM_Unlock(void)
+{
+    WRITE_REG16(M4_EFM->FAPRT, EFM_SECRET_KEY1);
+    WRITE_REG16(M4_EFM->FAPRT, EFM_SECRET_KEY2);
+}
+
+/**
+ * @brief  EFM Protect Lock.
+ * @param  None
+ * @retval None
+ */
+__STATIC_INLINE void EFM_Lock(void)
+{
+    WRITE_REG16(M4_EFM->FAPRT, 0x1111U);
+}
+
+void EFM_FWMC_Unlock(void);
+void EFM_FWMC_Lock(void);
+void EFM_OTP_WP_Unlock(void);
+void EFM_OTP_WP_Lock(void);
+
+void EFM_Cmd(uint32_t u32EfmStatus);
 void EFM_SetWaitCycle(uint32_t u32WaitCycle);
 void EFM_SetBusStatus(uint32_t u32Status);
 void EFM_DataCacheCmd(en_functional_state_t enNewState);
 void EFM_InsCacheCmd(en_functional_state_t enNewState);
 void EFM_DataCacheRstCmd(en_functional_state_t enNewState);
 void EFM_PrefetchCmd(en_functional_state_t enNewState);
-void EFM_SwitchCmd(en_functional_state_t enNewState);
 void EFM_InterruptCmd(uint32_t u32EfmInt, en_functional_state_t enNewState);
-void EFM_SetLowVolRead(uint32_t u32EfmLowVolRead);
+void EFM_LowVolReadCmd(en_functional_state_t enNewState);
 void EFM_SectorRegLock(uint32_t u32EfmRegLock);
-void EFM_SetOperateMode(uint32_t u32PeMode);
 void EFM_ClearFlag(uint32_t u32Flag);
-en_result_t EFM_StrucInit(stc_efm_cfg_t *pstcEfmCfg);
+void EFM_SectorCmd_Single(uint8_t u8SectorNum, en_functional_state_t enNewState);
+en_result_t EFM_StructInit(stc_efm_cfg_t *pstcEfmCfg);
 en_result_t EFM_Init(const stc_efm_cfg_t *pstcEfmCfg);
-en_result_t EFM_SectorUnlock(uint32_t u32StartAddr, uint32_t u32DataSize,
+en_result_t EFM_SectorCmd_Sequential(uint32_t u32StartAddr, uint16_t u16SectorCnt,
                                       en_functional_state_t enNewState);
 en_result_t EFM_SingleProgram(uint32_t u32Addr, uint32_t u32Data);
 en_result_t EFM_ProgramReadBack(uint32_t u32Addr, uint32_t u32Data);
-en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint8_t *u8pBuf);
+en_result_t EFM_SequenceProgram(uint32_t u32Addr, uint32_t u32Len, const uint32_t *pu32Buf);
 en_result_t EFM_SectorErase(uint32_t u32Addr);
-en_result_t EFM_OTPLock(uint32_t Addr);
-en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t Addr);
+en_result_t EFM_OTPLock(uint32_t u32Addr);
+en_result_t EFM_ChipErase(uint32_t EraseMode, uint32_t u32Addr);
+en_result_t EFM_SwapCmd(en_functional_state_t enNewState);
+en_result_t EFM_SetOperateMode(uint32_t u32PgmMode);
 
 en_flag_status_t EFM_GetFlagStatus(uint32_t u32Flag);
-stc_efm_unique_id_t EFM_GetUID(void);
-uint32_t GetUniqueLogo(void);
+void EFM_GetUID(stc_efm_unique_id_t *stcUID);
+uint32_t EFM_GetCID(void);
 /**
  * @}
  */

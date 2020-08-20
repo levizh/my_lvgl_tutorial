@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -104,7 +104,7 @@ extern "C"
  * @{
  */
 USBD_Status  USBD_CtlSendData (USB_OTG_CORE_HANDLE  *pdev,
-                               uint8_t *buf,
+                               uint8_t *pbuf,
                                uint16_t len);
 USBD_Status  USBD_CtlContinueSendData (USB_OTG_CORE_HANDLE  *pdev,
                                uint8_t *pbuf,

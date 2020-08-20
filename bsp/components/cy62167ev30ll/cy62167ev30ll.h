@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-16       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -76,7 +76,7 @@ extern "C"
  */
 
 /**
- * @defgroup CY62167EV30LL
+ * @addtogroup CY62167EV30LL
  * @{
  */
 
@@ -137,6 +137,10 @@ void BSP_SMC_CY62167EV30LL_GetMemInfo(uint32_t *pu32MemStartAddr,
  */
 
 #endif /* BSP_CY62167EV30LL_ENABLE */
+
+/**
+ * @}
+ */
 
 /**
  * @}

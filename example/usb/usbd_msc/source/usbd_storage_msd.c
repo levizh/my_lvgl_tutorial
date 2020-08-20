@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_msc\source\usbd_storage_msd.c
+ * @file  usb/usbd_msc/source/usbd_storage_msd.c
  * @brief This file includes the user MSC application layer.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -91,26 +91,26 @@ USBD_STORAGE_cb_TypeDef USBD_MEM_SPI_fops =
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /* Max. supported device number */
-#define STORAGE_LUN_NBR         2u
+#define STORAGE_LUN_NBR         2U
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
 /* Variable for Storage operation status */
-volatile uint8_t USB_STATUS_REG = 0u;
+volatile uint8_t USB_STATUS_REG = 0U;
 
 /* USB Mass storage querty data (36 bytes for each lun) */
 const int8_t STORAGE_Inquirydata[] =
 {
     /* LUN 0 */
-    0x00,
-    0x80,
-    0x02,
-    0x02,
-    (USBD_STD_INQUIRY_LENGTH - 4u),
-    0x00,
-    0x00,
-    0x00,
+    0x00U,
+    0x80U,
+    0x02U,
+    0x02U,
+    (USBD_STD_INQUIRY_LENGTH - 4U),
+    0x00U,
+    0x00U,
+    0x00U,
     /* Vendor Identification */
     'H', 'D', 'S', 'C', ' ', 'M', 'C', 'U', ' ',    //9 bytes
     /* Product Identification */
@@ -120,14 +120,14 @@ const int8_t STORAGE_Inquirydata[] =
     '1', '.', '0', ' ',                             //4 bytes
 
     /* LUN 1 */
-    0x00,
-    0x80,
-    0x02,
-    0x02,
-    (USBD_STD_INQUIRY_LENGTH - 4u),
-    0x00,
-    0x00,
-    0x00,
+    0x00U,
+    0x80U,
+    0x02U,
+    0x02U,
+    (USBD_STD_INQUIRY_LENGTH - 4U),
+    0x00U,
+    0x00U,
+    0x00U,
     /* Vendor Identification */
     'H', 'D', 'S', 'C', ' ', 'M', 'C', 'U', ' ',    //9 bytes
     /* Product Identification */
@@ -174,14 +174,14 @@ int8_t STORAGE_Init(uint8_t lun)
  */
 int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint32_t *block_size)
 {
-    if (lun == 1u)
+    if (lun == 1U)
     {
-        *block_size = 512u;
+        *block_size = 512U;
 //        *block_num  = SDCardInfo.CardCapacity / 512;
     }else
     {
-        *block_size = 512u;
-        *block_num  = stcW25qxx.u32CapacityInBytes / 512u;
+        *block_size = 512U;
+        *block_num  = stcW25qxx.u32CapacityInBytes / 512U;
     }
     return Ok;
 }
@@ -195,7 +195,7 @@ int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint32_t *block_siz
  */
 int8_t  STORAGE_IsReady(uint8_t lun)
 {
-    USB_STATUS_REG |= (uint8_t)0X10;
+    USB_STATUS_REG |= 0x10U;
     return Ok;
 }
 
@@ -209,7 +209,6 @@ int8_t  STORAGE_IsReady(uint8_t lun)
  */
 int8_t  STORAGE_IsWriteProtected(uint8_t lun)
 {
-    // todo
     return Ok;
 }
 
@@ -229,17 +228,17 @@ int8_t  STORAGE_IsWriteProtected(uint8_t lun)
 int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
     int8_t res = (int8_t)0;
-    USB_STATUS_REG |= (uint8_t)0X02;
-    if (lun == 1u)
+    USB_STATUS_REG |= 0x02U;
+    if (lun == 1U)
     {
 //        res = SD_ReadDisk(buf, blk_addr, blk_len);
         if (res)
         {
-            USB_STATUS_REG |= (uint8_t)0X08;
+            USB_STATUS_REG |= 0x08U;
         }
     }else
     {
-        W25QXX_ReadData(blk_addr * 512u, buf, blk_len * 512u);
+        W25QXX_ReadData(blk_addr * 512U, buf, blk_len * 512U);
     }
     return res;
 }
@@ -259,17 +258,17 @@ int8_t STORAGE_Read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_l
 int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
     int8_t res = (int8_t)0;
-    USB_STATUS_REG |= (uint8_t)0X01;
-    if (lun == 1u)
+    USB_STATUS_REG |= 0X01U;
+    if (lun == 1U)
     {
 //        res = SD_WriteDisk(buf, blk_addr, blk_len);
         if (res)
         {
-            USB_STATUS_REG |= (uint8_t)0X04;
+            USB_STATUS_REG |= 0X04U;
         }
     }else
     {
-        W25QXX_WriteData(blk_addr * 512u, buf, blk_len * 512u);
+        W25QXX_WriteData(blk_addr * 512U, buf, blk_len * 512U);
     }
     return res;
 }
@@ -281,7 +280,7 @@ int8_t STORAGE_Write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_
  */
 int8_t STORAGE_GetMaxLun(void)
 {
-    return (int8_t)(STORAGE_LUN_NBR - 1u);
+    return (int8_t)(STORAGE_LUN_NBR - 1U);
 }
 
 /**

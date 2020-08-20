@@ -1,12 +1,13 @@
 /**
  *******************************************************************************
- * @file  ev_hc32f4a0_lqfp176_ma29f2g08ab.c
- * @brief This file provides configure functions for ma29f2g08ab of the board 
- *        EV-HC32F4A0-LQF176-050.
+ * @file  ev_hc32f4a0_lqfp176_mt29f2g08ab.c
+ * @brief This file provides configure functions for mt29f2g08ab of the board 
+ *        EV_F4A0_LQ176_V10.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-30       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-03       Hongjh          Adjust EXMC pin drive capacity to high drive
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -67,8 +68,8 @@
  */
 
 /** @defgroup EV_HC32F4A0_LQFP176_MT29F2G08AB HC32F4A0 EVB LQFP176 MT29F2G08AB
-  * @{
-  */
+ * @{
+ */
 
 #if ((BSP_ON == BSP_MT29F2G08AB_ENABLE) && \
      (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0))
@@ -81,7 +82,7 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup EV_HC32F4A0_LQFP176_MT29F2G08AB_Local_Macros MT29F2G08AB Local Macros
+ * @defgroup EV_HC32F4A0_LQFP176_MT29F2G08AB_Local_Macros HC32F4A0 EVB LQFP176 MT29F2G08AB Local Macros
  * @{
  */
 
@@ -162,7 +163,15 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @addtogroup EV_HC32F4A0_LQFP176_IS62WV51216_Local_Functions
+ * @{
+ */
+
 static void EV_EXMC_NFC_PortInit(void);
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -173,30 +182,30 @@ static void EV_EXMC_NFC_PortInit(void);
  */
 
 /**
- * @brief  NAND Flash initilize.
+ * @brief  Initialize Flash.
  * @param  None
  * @retval An en_result_t enumeration value.
- *   @arg  Ok:                          Initilize successfully.
- *   @arg  Error:                       Initilize unsuccessfully.
+ *   @arg  Ok:                          Initialize successfully.
+ *   @arg  Error:                       Initialize unsuccessfully.
  */
 en_result_t BSP_NFC_MT29F2G08AB_Init(void)
 {
     en_result_t enRet = Error;
     stc_exmc_nfc_init_t stcInit;
 
-    /* Initialization NFC port.*/
+    /* Initialize NFC port.*/
     EV_EXMC_NFC_PortInit();
 
     /* Enable NFC module clk */
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_NFC, Enable);
 
     /* Enable NFC. */
-    EXMC_NFC_Enable();
+    EXMC_NFC_Cmd(Enable);
 
     /* Configure NFC width && refresh period & chip & timing. */
     stcInit.u32OpenPage = EXMC_NFC_OPEN_PAGE_DISABLE;
     stcInit.stcBaseCfg.u32CapacitySize = EXMC_NFC_BANK_CAPACITY_2GBIT;
-    stcInit.stcBaseCfg.u32MemWidth = EXMC_NFC_MEM_WIDTH_8;
+    stcInit.stcBaseCfg.u32MemWidth = EXMC_NFC_MEMORY_WIDTH_8BIT;
     stcInit.stcBaseCfg.u32BankNum = EXMC_NFC_1_BANK;
     stcInit.stcBaseCfg.u32PageSize = EXMC_NFC_PAGE_SIZE_2KBYTES;
     stcInit.stcBaseCfg.u32WrProtect = EXMC_NFC_WR_PROTECT_DISABLE;
@@ -231,7 +240,7 @@ en_result_t BSP_NFC_MT29F2G08AB_Init(void)
 }
 
 /**
- * @brief  NAND Flash initilize.
+ * @brief  Read status.
  * @param  None
  * @retval NAND Flash status
  */
@@ -244,23 +253,23 @@ uint32_t BSP_NFC_MT29F2G08AB_ReadStatus(void)
  * @brief  Read ID.
  * @param  [in] u32IdAddr               The address
  * @param  [in] au8DevId                The id buffer
- * @param  [in] u8NumBytes              The number of bytes to read
+ * @param  [in] u32NumBytes             The number of bytes to read
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorInvalidParameter:       au8DevId == NULL or u8NumWords == 0
  */
 en_result_t BSP_NFC_MT29F2G08AB_ReadId(uint32_t u32IdAddr,
                                         uint8_t au8DevId[],
-                                        uint8_t u8NumBytes)
+                                        uint32_t u32NumBytes)
 {
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((NULL != au8DevId) && u8NumBytes)
+    if ((NULL != au8DevId) && (u32NumBytes > 0UL))
     {
         enRet = EXMC_NFC_ReadId(BSP_EV_HC32F4A0_MT29F2G08AB_BANK, \
                                 u32IdAddr, \
                                 au8DevId, \
-                                u8NumBytes);
+                                u32NumBytes);
     }
 
     return enRet;
@@ -268,7 +277,7 @@ en_result_t BSP_NFC_MT29F2G08AB_ReadId(uint32_t u32IdAddr,
 
 /**
  * @brief  Erase block.
- * @param  [in] u32Block                The specified block row address
+ * @param  [in] u32BlockRowAddress      The specified block row address
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       Errors occurred.
@@ -403,11 +412,9 @@ static void EV_EXMC_NFC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
-    GPIO_Unlock();
-
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDrv = PIN_DRV_MID;
+    stcGpioInit.u16PinDrv = PIN_DRV_HIGH;
 
     /* NFC_CE */
     GPIO_Init(NFC_CE_PORT, NFC_CE_PIN, &stcGpioInit);
@@ -472,15 +479,13 @@ static void EV_EXMC_NFC_PortInit(void)
     GPIO_SetFunc(NFC_DATA5_PORT, NFC_DATA5_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(NFC_DATA6_PORT, NFC_DATA6_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(NFC_DATA7_PORT, NFC_DATA7_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
-
-    GPIO_Lock();
 }
-
-#endif /* BSP_EV_HC32F4A0_LQFP176/BSP_MT29F2G08AB_ENABLE */
 
 /**
  * @}
  */
+
+#endif /* BSP_EV_HC32F4A0_LQFP176/BSP_MT29F2G08AB_ENABLE */
 
 /**
  * @}

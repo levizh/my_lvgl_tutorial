@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-02       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -105,6 +105,58 @@ static void RTC_Period_IrqCallback(void)
 }
 
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    // GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    // PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
  * @brief  RTC configuration.
  * @param  None
  * @retval None
@@ -182,7 +234,7 @@ static void XTAL32_ClkInit(void)
     stcXtal32Init.u8Xtal32NF    = CLK_XTAL32NF_PART;
     CLK_Xtal32Init(&stcXtal32Init);
     /* Waiting for XTAL32 stabilization */
-    DDL_Delay1ms(1000U);
+    DDL_DelayMS(1000U);
 }
 
 /**
@@ -192,6 +244,8 @@ static void XTAL32_ClkInit(void)
  */
 int32_t main(void)
 {
+    /* Peripheral registers write unprotected */
+    Peripheral_WE();
     /* Configure clock */
     BSP_CLK_Init();
     /* Reset the VBAT area */
@@ -205,6 +259,8 @@ int32_t main(void)
     DDL_PrintfInit();
     /* Configure RTC */
     RTC_Config();
+    /* Peripheral registers write protected */
+    Peripheral_WP();
 
     while (1)
     {

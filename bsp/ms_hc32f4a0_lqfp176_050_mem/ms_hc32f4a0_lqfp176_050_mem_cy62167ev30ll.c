@@ -2,11 +2,12 @@
  *******************************************************************************
  * @file  ms_hc32f4a0_lqfp176_050_mem_cy62167ev30ll.c
  * @brief This file provides configure functions for cy62167ev30ll of the board 
- *        MS-HC32F4A0-LQF176-050-MEM.
+ *        MS_HC32F4A0_LQF176_050_MEM.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-16       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-03       Hongjh          Adjust EXMC pin drive capacity to high drive
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -66,7 +67,7 @@
  * @{
  */
 
-/** @defgroup MS_HC32F4A0_LQFP176_050_MEM_CY62167EV30LL MS_HC32F4A0_LQFP176_050_MEM CY62167EV30LL
+/** @defgroup MS_HC32F4A0_LQFP176_050_MEM_CY62167EV30LL HC32F4A0 MS LQFP176 CY62167EV30LL
  * @{
  */
 
@@ -81,7 +82,7 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup MS_HC32F4A0_LQFP176_050_MEM_CY62167EV30LL_Local_Macros CY62167EV30LL Local Macros
+ * @defgroup MS_HC32F4A0_LQFP176_050_MEM_CY62167EV30LL_Local_Macros HC32F4A0 MS LQFP176 CY62167EV30LL Local Macros
  * @{
  */
 
@@ -105,13 +106,13 @@
  */
 
 /**
- * @defgroup SRAM_Address_Space SRAM Address Space
+ * @defgroup CY62167EV30LL_SRAM_Address_Space CY62167EV30LL SRAM Address Space
  * @note SRAM address:[0x60000000, 0x607FFFFF] / size: 8M bytes
  * @{
  */
-#define SRAM_IS42S16400J7TLI_START_ADDR                   (EXMC_SMC_ChipStartAddress(CY62167EV30LL_MAP_SMC_CHIP))
-#define SRAM_IS42S16400J7TLI_SIZE                         (2UL * 1024UL * 1024UL)     /* 2MBytes*/
-#define SRAM_IS42S16400J7TLI_END_ADDR                     (SRAM_IS42S16400J7TLI_START_ADDR + SRAM_IS42S16400J7TLI_SIZE - 1UL)
+#define SRAM_CY62167EV30LL_START_ADDR           (EXMC_SMC_ChipStartAddress(CY62167EV30LL_MAP_SMC_CHIP))
+#define SRAM_CY62167EV30LL_SIZE                 (2UL * 1024UL * 1024UL)     /* 2MBytes*/
+#define SRAM_CY62167EV30LL_END_ADDR             (SRAM_CY62167EV30LL_START_ADDR + SRAM_CY62167EV30LL_SIZE - 1UL)
 /**
  * @}
  */
@@ -235,13 +236,22 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @addtogroup MS_HC32F4A0_LQFP176_050_MEM_CY62167EV30LL_Local_Functions
+ * @{
+ */
+
 static void EV_EXMC_SMC_PortInit(void);
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @defgroup MS_HC32F4A0_LQFP176_050_MEM_MT29G08AB_Global_Functions HC32F4A0 LQFP176 EVB MT29G08AB Global Functions
+ * @defgroup MS_HC32F4A0_LQFP176_050_MEM_CY62167EV30LL_Global_Functions HC32F4A0 MS LQFP176 CY62167EV30LL Global Functions
  * @{
  */
 
@@ -263,7 +273,7 @@ en_result_t BSP_SMC_CY62167EV30LL_Init(void)
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_SMC, Enable);
 
     /* Enable SMC. */
-    EXMC_SMC_Enable();
+    EXMC_SMC_Cmd(Enable);
 
     EXMC_SMC_ExitLowPower();
     while (EXMC_SMC_READY != EXMC_SMC_GetStatus())
@@ -274,7 +284,7 @@ en_result_t BSP_SMC_CY62167EV30LL_Init(void)
     stcSmcInit.stcChipCfg.u32ReadBurstLen = EXMC_SMC_MEM_READ_BURST_1;
     stcSmcInit.stcChipCfg.u32WriteMode = EXMC_SMC_MEM_WRITE_ASYNC;
     stcSmcInit.stcChipCfg.u32WriteBurstLen = EXMC_SMC_MEM_WRITE_BURST_1;
-    stcSmcInit.stcChipCfg.u32SmcMemWidth = EXMC_SMC_MEM_WIDTH_16;
+    stcSmcInit.stcChipCfg.u32SmcMemWidth = EXMC_SMC_MEMORY_WIDTH_16BIT;
     stcSmcInit.stcChipCfg.u32BAA = EXMC_SMC_BAA_PORT_DISABLE;
     stcSmcInit.stcChipCfg.u32ADV = EXMC_SMC_ADV_PORT_DISABLE;
     stcSmcInit.stcChipCfg.u32BLS = EXMC_SMC_BLS_SYNC_CS;
@@ -318,12 +328,12 @@ void BSP_SMC_CY62167EV30LL_GetMemInfo(uint32_t *pu32MemStartAddr,
 {
     if (NULL != pu32MemStartAddr)
     {
-        *pu32MemStartAddr = SRAM_IS42S16400J7TLI_START_ADDR;
+        *pu32MemStartAddr = SRAM_CY62167EV30LL_START_ADDR;
     }
 
     if (NULL != pu32MemByteSize)
     {
-        *pu32MemByteSize = SRAM_IS42S16400J7TLI_SIZE;
+        *pu32MemByteSize = SRAM_CY62167EV30LL_SIZE;
     }
 }
 
@@ -332,7 +342,7 @@ void BSP_SMC_CY62167EV30LL_GetMemInfo(uint32_t *pu32MemStartAddr,
  */
 
 /**
- * @defgroup MS_HC32F4A0_LQFP176_050_MEM_CY62167EV30LL_Local_Functions HC32F4A0 LQFP176 EVB CY62167EV30LL Local Functions
+ * @defgroup MS_HC32F4A0_LQFP176_050_MEM_CY62167EV30LL_Local_Functions HC32F4A0 MS LQFP176 CY62167EV30LL Local Functions
  * @{
  */
 
@@ -345,11 +355,9 @@ static void EV_EXMC_SMC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
-    GPIO_Unlock();
-
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDrv = PIN_DRV_MID;
+    stcGpioInit.u16PinDrv = PIN_DRV_HIGH;
     stcGpioInit.u16PinDir = PIN_DIR_OUT;
     GPIO_Init(SMC_IO1_PORT, SMC_IO1_PIN, &stcGpioInit);
     GPIO_Init(SMC_IO2_PORT, SMC_IO2_PIN, &stcGpioInit);
@@ -464,8 +472,6 @@ static void EV_EXMC_SMC_PortInit(void)
     GPIO_SetFunc(SMC_ADD18_PORT, SMC_ADD18_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(SMC_ADD19_PORT, SMC_ADD19_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(SMC_ADD20_PORT, SMC_ADD20_PIN, GPIO_FUNC_12_EXMC, PIN_SUBFUNC_DISABLE);
-
-    GPIO_Lock();
 }
 
 /**
@@ -481,10 +487,6 @@ static void EV_EXMC_SMC_PortInit(void)
 /**
  * @}
  */
-
-/**
-* @}
-*/
 
 /**
 * @}

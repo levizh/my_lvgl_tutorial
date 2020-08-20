@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -111,8 +111,6 @@ extern "C"
 
 #define USBD_CFG_MAX_NUM                (1U) /* configuration numbers */
 //#define USBD_ITF_MAX_NUM                1U /* interface numbers */
-
-#define USB_MAX_STR_DESC_SIZ            (64U)
 
 #define USBD_SELF_POWERED
 

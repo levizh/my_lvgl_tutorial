@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-16       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -68,7 +68,7 @@
  */
 
 /**
- * @defgroup CY62167EV30LL
+ * @defgroup CY62167EV30LL SRAM CY62167EV30LL
  * @{
  */
 
@@ -111,8 +111,17 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @defgroup CY62167EV30LL_Local_Variables CY62167EV30LL Local Variables
+ * @{
+ */
+
 static uint32_t m_u32MemStartAddr = 0UL;
 static uint32_t m_u32MemByteSize = 0UL;
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -151,7 +160,7 @@ void CY62167EV30LL_GetMemInfo(uint32_t *pu32MemStartAddr,
 
 /**
  * @brief  Write memory for byte.
- * @param  [in] u32Address              IS62WV51216 memory address to write
+ * @param  [in] u32Address              CY62167EV30LL memory address to write
  * @param  [in] au8SrcBuffer            Pointer to source buffer
  * @param  [in] u32BufferSize           Size of the buffer to write to memory
  * @retval An en_result_t enumeration value:
@@ -162,6 +171,7 @@ en_result_t CY62167EV30LL_WriteMem8(uint32_t u32Address,
                                     const uint8_t au8SrcBuffer[],
                                     uint32_t u32BufferSize)
 {
+    uint32_t i;
     en_result_t enRet = ErrorInvalidParameter;
 
     if (0UL != u32BufferSize)
@@ -169,7 +179,7 @@ en_result_t CY62167EV30LL_WriteMem8(uint32_t u32Address,
         DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
         DDL_ASSERT((u32Address + u32BufferSize) <= CY62167EV30LL_END_ADDRESS);
 
-        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        for (i = 0UL; i < u32BufferSize; i++)
         {
             *(uint8_t *)(u32Address + i) = au8SrcBuffer[i];
         }
@@ -181,7 +191,7 @@ en_result_t CY62167EV30LL_WriteMem8(uint32_t u32Address,
 
 /**
  * @brief  Read memory for byte.
- * @param  [in] u32Address              IS62WV51216 memory address to read
+ * @param  [in] u32Address              CY62167EV30LL memory address to read
  * @param  [out] au8DstBuffer           Pointer to destination buffer to write
  * @param  [in] u32BufferSize           Size of the buffer to read from memory
  * @retval An en_result_t enumeration value:
@@ -193,6 +203,7 @@ en_result_t CY62167EV30LL_ReadMem8(uint32_t u32Address,
                                     uint8_t au8DstBuffer[],
                                     uint32_t u32BufferSize)
 {
+    uint32_t i;
     en_result_t enRet = ErrorInvalidParameter;
 
     if ((NULL != au8DstBuffer) && (0UL != u32BufferSize))
@@ -200,7 +211,7 @@ en_result_t CY62167EV30LL_ReadMem8(uint32_t u32Address,
         DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
         DDL_ASSERT((u32Address + u32BufferSize) <= CY62167EV30LL_END_ADDRESS);
 
-        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        for (i = 0UL; i < u32BufferSize; i++)
         {
             au8DstBuffer[i] = *(uint8_t *)(u32Address + i);
         }
@@ -212,7 +223,7 @@ en_result_t CY62167EV30LL_ReadMem8(uint32_t u32Address,
 
 /**
  * @brief  Write memory for half-word.
- * @param  [in] u32Address              IS62WV51216 memory address to write
+ * @param  [in] u32Address              CY62167EV30LL memory address to write
  * @param  [in] au16SrcBuffer           Pointer to source buffer
  * @param  [in] u32BufferSize           Size of the buffer to write to memory
  * @retval An en_result_t enumeration value:
@@ -223,6 +234,7 @@ en_result_t CY62167EV30LL_WriteMem16(uint32_t u32Address,
                                     const uint16_t au16SrcBuffer[],
                                     uint32_t u32BufferSize)
 {
+    uint32_t i;
     en_result_t enRet = ErrorInvalidParameter;
 
     if (0UL != u32BufferSize)
@@ -231,7 +243,7 @@ en_result_t CY62167EV30LL_WriteMem16(uint32_t u32Address,
         DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
         DDL_ASSERT((u32Address + (u32BufferSize << 1UL)) <= CY62167EV30LL_END_ADDRESS);
 
-        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        for (i = 0UL; i < u32BufferSize; i++)
         {
             *((uint16_t *)u32Address) = au16SrcBuffer[i];
             u32Address += 2UL;
@@ -244,7 +256,7 @@ en_result_t CY62167EV30LL_WriteMem16(uint32_t u32Address,
 
 /**
  * @brief  Read memory for half-word.
- * @param  [in] u32Address              IS62WV51216 memory address to read
+ * @param  [in] u32Address              CY62167EV30LL memory address to read
  * @param  [out] au16DstBuffer          Pointer to destination buffer to write
  * @param  [in] u32BufferSize           Size of the buffer to read from memory
  * @retval An en_result_t enumeration value:
@@ -256,6 +268,7 @@ en_result_t CY62167EV30LL_ReadMem16(uint32_t u32Address,
                                     uint16_t au16DstBuffer[],
                                     uint32_t u32BufferSize)
 {
+    uint32_t i;
     en_result_t enRet = ErrorInvalidParameter;
 
     if ((NULL != au16DstBuffer) && (0UL != u32BufferSize))
@@ -264,7 +277,7 @@ en_result_t CY62167EV30LL_ReadMem16(uint32_t u32Address,
         DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
         DDL_ASSERT((u32Address + (u32BufferSize << 1UL)) <= CY62167EV30LL_END_ADDRESS);
 
-        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        for (i = 0UL; i < u32BufferSize; i++)
         {
             au16DstBuffer[i] = *((uint16_t *)u32Address);
             u32Address += 2UL;
@@ -277,7 +290,7 @@ en_result_t CY62167EV30LL_ReadMem16(uint32_t u32Address,
 
 /**
  * @brief  Write memory for word.
- * @param  [in] u32Address              IS62WV51216 memory address to write
+ * @param  [in] u32Address              CY62167EV30LL memory address to write
  * @param  [in] au32SrcBuffer           Pointer to source buffer
  * @param  [in] u32BufferSize           Size of the buffer to write to memory
  * @retval An en_result_t enumeration value:
@@ -288,6 +301,7 @@ en_result_t CY62167EV30LL_WriteMem32(uint32_t u32Address,
                                     const uint32_t au32SrcBuffer[],
                                     uint32_t u32BufferSize)
 {
+    uint32_t i;
     en_result_t enRet = ErrorInvalidParameter;
 
     if (0UL != u32BufferSize)
@@ -296,7 +310,7 @@ en_result_t CY62167EV30LL_WriteMem32(uint32_t u32Address,
         DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
         DDL_ASSERT((u32Address + (u32BufferSize << 2UL)) <= CY62167EV30LL_END_ADDRESS);
 
-        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        for (i = 0UL; i < u32BufferSize; i++)
         {
             *((uint32_t *)u32Address) = au32SrcBuffer[i];
             u32Address += 4UL;
@@ -309,7 +323,7 @@ en_result_t CY62167EV30LL_WriteMem32(uint32_t u32Address,
 
 /**
  * @brief  Read memory for word.
- * @param  [in] u32Address              IS62WV51216 memory address to read
+ * @param  [in] u32Address              CY62167EV30LL memory address to read
  * @param  [out] au32DstBufferBuf       Pointer to destination buffer to write
  * @param  [in] u32BufferSize           Size of the buffer to read from memory
  * @retval An en_result_t enumeration value:
@@ -321,6 +335,7 @@ en_result_t CY62167EV30LL_ReadMem32(uint32_t u32Address,
                                     uint32_t au32DstBufferBuf[],
                                     uint32_t u32BufferSize)
 {
+    uint32_t i;
     en_result_t enRet = ErrorInvalidParameter;
 
     if (NULL != au32DstBufferBuf)
@@ -329,7 +344,7 @@ en_result_t CY62167EV30LL_ReadMem32(uint32_t u32Address,
         DDL_ASSERT(u32Address >= CY62167EV30LL_START_ADDRESS);
         DDL_ASSERT((u32Address + (u32BufferSize << 2UL)) <= CY62167EV30LL_END_ADDRESS);
 
-        for (uint32_t i = 0UL; i < u32BufferSize; i++)
+        for (i = 0UL; i < u32BufferSize; i++)
         {
             au32DstBufferBuf[i] = *((uint32_t *)u32Address);
             u32Address += 4UL;
@@ -349,6 +364,10 @@ en_result_t CY62167EV30LL_ReadMem32(uint32_t u32Address,
 /**
  * @}
  */
+
+/**
+* @}
+*/
 
 /**
 * @}

@@ -1,12 +1,13 @@
 /**
  *******************************************************************************
- * @file  hc32f4a0_exmc.c
+ * @file  hc32f4a0_smc.c
  * @brief This file provides firmware functions to manage the EXMC SMC
  *        (External Memory Controller: Static Memory Controller).
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-09       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-14       Hongjh          Merge API from EXMC_SMC_Enable/Disable to EXMC_SMC_Cmd
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -63,7 +64,7 @@
  */
 
 /**
- * @defgroup DDL_EXMC_SMC External Memory Controller: Static Memory Controller
+ * @defgroup DDL_EXMC_SMC EXMC_SMC
  * @brief Static Memory Controller Driver Library
  * @{
  */
@@ -88,8 +89,8 @@
  */
 
 #define IS_EXMC_SMC_MEM_WIDTH(x)                                               \
-(   (EXMC_SMC_MEM_WIDTH_16 == (x))              ||                             \
-    (EXMC_SMC_MEM_WIDTH_32 == (x)))
+(   (EXMC_SMC_MEMORY_WIDTH_16BIT == (x))              ||                             \
+    (EXMC_SMC_MEMORY_WIDTH_32BIT == (x)))
 
 #define IS_EXMC_SMC_MEM_READ_MODE(x)                                           \
 (   (EXMC_SMC_MEM_READ_SYNC == (x))             ||                             \
@@ -121,7 +122,7 @@
     (EXMC_SMC_MEM_WRITE_BURST_32 == (x))        ||                             \
     (EXMC_SMC_MEM_WRITE_BURST_CONTINUOUS == (x)))
 
-#define IS_EXMC_SMC_BLS_SYCN(x)                                                \
+#define IS_EXMC_SMC_BLS_SYNC(x)                                                \
 (   (EXMC_SMC_BLS_SYNC_CS == (x))               ||                             \
     (EXMC_SMC_BLS_SYNC_WE == (x)))
 
@@ -192,7 +193,7 @@
  */
 
 /**
- * @defgroup EXMC_SMC_MUX_Selcetion EXMC SMC MUX Selcetion
+ * @defgroup EXMC_SMC_MUX_Selection EXMC SMC MUX Selection
  * @{
  */
 #define EXMC_SMC_MUX_DISABLE                (0x00000300UL)
@@ -220,7 +221,7 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/** 
+/**
  * @defgroup EXMC_SMC_Global_Functions Static Memory Controller Global Functions
  * @{
  */
@@ -256,7 +257,7 @@ en_result_t EXMC_SMC_Init(uint32_t u32Chip, const stc_exmc_smc_init_t *pstcInit)
         DDL_ASSERT(IS_EXMC_SMC_MEM_WIDTH(pstcInit->stcChipCfg.u32SmcMemWidth));
         DDL_ASSERT(IS_EXMC_SMC_BAA_PORT(pstcInit->stcChipCfg.u32BAA));
         DDL_ASSERT(IS_EXMC_SMC_ADV_PORT(pstcInit->stcChipCfg.u32ADV));
-        DDL_ASSERT(IS_EXMC_SMC_BLS_SYCN(pstcInit->stcChipCfg.u32BLS));
+        DDL_ASSERT(IS_EXMC_SMC_BLS_SYNC(pstcInit->stcChipCfg.u32BLS));
         DDL_ASSERT(IS_EXMC_SMC_CS_ADDRESS_MATCH(pstcInit->stcChipCfg.u32AddressMatch));
         DDL_ASSERT(IS_EXMC_SMC_CS_ADDRESS_MASK(pstcInit->stcChipCfg.u32AddressMask));
         DDL_ASSERT(IS_EXMC_SMC_ADDRESS(pstcInit->stcChipCfg.u32AddressMatch, pstcInit->stcChipCfg.u32AddressMask));
@@ -321,7 +322,7 @@ void EXMC_SMC_DeInit(void)
 }
 
 /**
- * @brief  Set the fields of structure stc_exmc_smc_init_t to default values
+ * @brief  Set the fields of structure @ref stc_exmc_smc_init_t to default values
  * @param  [out] pstcInit               Pointer to a @ref stc_exmc_smc_init_t structure (EXMC SMC function configuration structure)
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize successfully
@@ -334,10 +335,10 @@ en_result_t EXMC_SMC_StructInit(stc_exmc_smc_init_t *pstcInit)
     if (NULL != pstcInit)
     {
         pstcInit->stcChipCfg.u32ReadMode = EXMC_SMC_MEM_READ_ASYNC;
-        pstcInit->stcChipCfg.u32ReadBurstLen = EXMC_SMC_MEM_READ_BURST_8;
+        pstcInit->stcChipCfg.u32ReadBurstLen = EXMC_SMC_MEM_READ_BURST_1;
         pstcInit->stcChipCfg.u32WriteMode = EXMC_SMC_MEM_WRITE_ASYNC;
-        pstcInit->stcChipCfg.u32WriteBurstLen = EXMC_SMC_MEM_WRITE_BURST_8;
-        pstcInit->stcChipCfg.u32SmcMemWidth = EXMC_SMC_MEM_WIDTH_16;
+        pstcInit->stcChipCfg.u32WriteBurstLen = EXMC_SMC_MEM_WRITE_BURST_1;
+        pstcInit->stcChipCfg.u32SmcMemWidth = EXMC_SMC_MEMORY_WIDTH_16BIT;
         pstcInit->stcChipCfg.u32BAA = EXMC_SMC_BAA_PORT_DISABLE;
         pstcInit->stcChipCfg.u32ADV = EXMC_SMC_ADV_PORT_DISABLE;
         pstcInit->stcChipCfg.u32BLS = EXMC_SMC_BLS_SYNC_CS;
@@ -358,6 +359,22 @@ en_result_t EXMC_SMC_StructInit(stc_exmc_smc_init_t *pstcInit)
 }
 
 /**
+ * @brief  Enable/Disable SMC.
+ * @param  [in]  enNewState                 An en_functional_state_t enumeration value.
+ *         This parameter can be one of the following values:
+ *           @arg Enable:                   Enable function.
+ *           @arg Disable:                  Disable function.
+ * @retval None
+ */
+void EXMC_SMC_Cmd(en_functional_state_t enNewState)
+{
+    /* Check parameters */
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    WRITE_REG32(bM4_PERIC->EXMC_ENAR_b.SMCEN, enNewState);
+}
+
+/**
  * @brief  Set EXMC SMC command.
  * @param  [in] u32Chip                     The chip number.
  *         This parameter can be one of the following values:
@@ -367,14 +384,14 @@ en_result_t EXMC_SMC_StructInit(stc_exmc_smc_init_t *pstcInit)
  *           @arg EXMC_SMC_CHIP_3:          Chip 3
  * @param  [in] u32Cmd                      The command.
  *         This parameter can be one of the following values:
- *           @arg EXMC_SMC_CMD_MDREGCONFIG: MdRetConfig
- *           @arg EXMC_SMC_CMD_UPDATEREGS:  UpdateRegs
- *           @arg EXMC_SMC_CMD_MDREGCONFIG_AND_UPDATEREGS: MdRetConfig and UpdateRegs
+ *           @arg EXMC_SMC_CMD_MDREGCONFIG: Configure mode register
+ *           @arg EXMC_SMC_CMD_UPDATEREGS:  Update mode register
+ *           @arg EXMC_SMC_CMD_MDREGCONFIG_AND_UPDATEREGS: Configure mode register and update
  * @param  [in] u32CrePolarity              The command.
  *         This parameter can be one of the following values:
  *           @arg EXMC_SMC_CRE_POLARITY_LOW:  CRE is LOW
  *           @arg EXMC_SMC_CRE_POLARITY_HIGH: CRE is HIGH when ModeReg write occurs
- * @param  [in] u32Address                  The address parameter is valid when CMD type is 
+ * @param  [in] u32Address                  The address parameter is valid when CMD type is
  *                                          MdRegConfig or MdRegConfig and UpdateRegs only.
  * @retval None
  */
@@ -408,7 +425,7 @@ void EXMC_SMC_SetCommand(uint32_t u32Chip,
  */
 uint32_t EXMC_SMC_ChipStartAddress(uint32_t u32Chip)
 {
-    uint32_t u32StartAddress = 0UL;
+    uint32_t u32StartAddress;
 
     /* Check parameters */
     DDL_ASSERT(IS_EXMC_SMC_CHIP(u32Chip));
@@ -442,14 +459,14 @@ uint32_t EXMC_SMC_ChipEndAddress(uint32_t u32Chip)
 }
 
 /**
- * @brief  Check SMC chip staus register value
+ * @brief  Check SMC chip status register value
  * @param  [in] u32Chip                     The chip number.
  *         This parameter can be one of the following values:
  *           @arg EXMC_SMC_CHIP_0:          Chip 0
  *           @arg EXMC_SMC_CHIP_1:          Chip 1
  *           @arg EXMC_SMC_CHIP_2:          Chip 2
  *           @arg EXMC_SMC_CHIP_3:          Chip 3
- * @param  [in] pstcTimingCfg               Pointer to a @ref stc_exmc_smc_chip_cfg_t structure
+ * @param  [in] pstcChipCfg                 Pointer to a @ref stc_exmc_smc_chip_cfg_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Status is right
  *           - Error: Status is error
@@ -469,7 +486,7 @@ en_result_t EXMC_SMC_CheckChipStatus(uint32_t u32Chip,
     DDL_ASSERT(IS_EXMC_SMC_MEM_WIDTH(pstcChipCfg->u32SmcMemWidth));
     DDL_ASSERT(IS_EXMC_SMC_BAA_PORT(pstcChipCfg->u32BAA));
     DDL_ASSERT(IS_EXMC_SMC_ADV_PORT(pstcChipCfg->u32ADV));
-    DDL_ASSERT(IS_EXMC_SMC_BLS_SYCN(pstcChipCfg->u32BLS));
+    DDL_ASSERT(IS_EXMC_SMC_BLS_SYNC(pstcChipCfg->u32BLS));
     DDL_ASSERT(IS_EXMC_SMC_CS_ADDRESS_MATCH(pstcChipCfg->u32AddressMatch));
     DDL_ASSERT(IS_EXMC_SMC_CS_ADDRESS_MASK(pstcChipCfg->u32AddressMask));
 
@@ -488,7 +505,7 @@ en_result_t EXMC_SMC_CheckChipStatus(uint32_t u32Chip,
 }
 
 /**
- * @brief  Check SMC timing staus register value
+ * @brief  Check SMC timing status register value
  * @param  [in] u32Chip                     The chip number.
  *         This parameter can be one of the following values:
  *           @arg EXMC_SMC_CHIP_0:          Chip 0

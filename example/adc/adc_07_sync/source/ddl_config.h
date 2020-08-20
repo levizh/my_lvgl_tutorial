@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-03       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -95,7 +95,7 @@ extern "C"
 #define DDL_CTC_ENABLE                              (DDL_OFF)
 #define DDL_DAC_ENABLE                              (DDL_OFF)
 #define DDL_DCU_ENABLE                              (DDL_OFF)
-#define DDL_DMA_ENABLE                              (DDL_OFF)
+#define DDL_DMA_ENABLE                              (DDL_ON)
 #define DDL_DMC_ENABLE                              (DDL_OFF)
 #define DDL_DVP_ENABLE                              (DDL_OFF)
 #define DDL_EFM_ENABLE                              (DDL_ON)
@@ -109,7 +109,7 @@ extern "C"
 #define DDL_HRPWM_ENABLE                            (DDL_OFF)
 #define DDL_I2C_ENABLE                              (DDL_OFF)
 #define DDL_I2S_ENABLE                              (DDL_OFF)
-#define DDL_INTERRUPTS_ENABLE                       (DDL_OFF)
+#define DDL_INTERRUPTS_ENABLE                       (DDL_ON)
 #define DDL_KEYSCAN_ENABLE                          (DDL_OFF)
 #define DDL_MAU_ENABLE                              (DDL_OFF)
 #define DDL_MPU_ENABLE                              (DDL_OFF)
@@ -135,15 +135,6 @@ extern "C"
 #define DDL_USBHS_ENABLE                            (DDL_OFF)
 #define DDL_VBAT_ENABLE                             (DDL_OFF)
 #define DDL_WDT_ENABLE                              (DDL_OFF)
-
-/* Midware module on-off define */
-#define MW_ON                                       (1U)
-#define MW_OFF                                      (0U)
-
-/**
- * @brief This is the list of midware modules to be used.
- * Select the modules you need to use to MW_ON.
- */
 
 /* BSP on-off define */
 #define BSP_ON                                      (1U)
@@ -199,11 +190,11 @@ extern "C"
 #define PHY_ADDRESS                     (0x00U)               /* RTL8201F                             */
 
 /* PHY Configuration delay */
-#define PHY_HW_RESET_DELAY              (0x00000020UL)
-#define PHY_RESET_DELAY                 (0x00000040UL)
-#define PHY_CONFIG_DELAY                (0x0000007FUL)
-#define PHY_READ_TIMEOUT                (0x000000FFUL)
-#define PHY_WRITE_TIMEOUT               (0x000000FFUL)
+#define PHY_HW_RESET_DELAY              (0x0000003FUL)
+#define PHY_RESET_DELAY                 (0x0000007FUL)
+#define PHY_CONFIG_DELAY                (0x0000003FUL)
+#define PHY_READ_TIMEOUT                (0x00000005UL)
+#define PHY_WRITE_TIMEOUT               (0x00000005UL)
 
 /* Common PHY Registers */
 #define PHY_BCR                         (0x00U)     /*!< Basic Control Register               */

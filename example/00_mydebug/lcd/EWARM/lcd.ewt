@@ -2358,9 +2358,6 @@
         <name>$PROJ_DIR$\..\..\..\..\bsp\components\tca9539\tca9539.c</name>
       </file>
     </group>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\bsp\i2c_drv.c</name>
-    </file>
   </group>
   <group>
     <name>common</name>

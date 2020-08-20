@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-24       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,12 @@
 #include "i_to_a.h"
 
 /**
- * @addtogroup EXMC_NFC_Nandflash
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB
  * @{
  */
 
@@ -88,6 +93,10 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB_Global_Functions
+ * @{
+ */
 
 /**
  * @brief  Software decode ECC 4bit error location for 512-bytes
@@ -375,6 +384,14 @@ int16_t NFC_SwDecodeEcc4BitsErrLocation(const int16_t ecc_syndrome[],
 
     return err_count;
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /**
  * @}

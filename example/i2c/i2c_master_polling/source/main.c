@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  i2c/i2c_master_polling/source/main.c
- * @brief Main program of I2C for the Device Driver Library.
+ * @brief Main program of I2C master polling for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Hexiao         First version
+   2020-06-12       Hexiao         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -94,6 +94,8 @@
 /* Define i2c baudrate */
 #define I2C_BAUDRATE                    (400000UL)
 
+#define LED_GREEN_PORT                  (GPIO_PORT_C)
+#define LED_GREEN_PIN                   (GPIO_PIN_09)
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -110,6 +112,79 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+static void Master_LedInit(void)
+{
+    stc_gpio_init_t stcGpioInit;
+
+    /* RGB LED initialize */
+    GPIO_StructInit(&stcGpioInit);
+    GPIO_Init(LED_GREEN_PORT, LED_GREEN_PIN, &stcGpioInit);
+
+    /* "Turn off" LED before set to output */
+    GPIO_ResetPins(LED_GREEN_PORT, LED_GREEN_PIN);
+
+    /* Output enable */
+    GPIO_OE(LED_GREEN_PORT, LED_GREEN_PIN, Enable);
+}
+
+static void Master_LedOn(void)
+{
+    GPIO_SetPins(LED_GREEN_PORT, LED_GREEN_PIN);
+}
+
 /**
  * @brief   Send start or restart condition
  * @param   [in]  u8Start  Indicate the start mode, start or restart
@@ -130,7 +205,6 @@ static en_result_t Master_StartOrRestart(uint8_t u8Start)
     {
         /* Clear start status flag */
         enRet = I2C_Restart(M4_I2C1,TIMEOUT);
-
     }
 
     return enRet;
@@ -213,7 +287,7 @@ uint8_t Master_Initialize(void)
 
 /**
  * @brief   Judge the result. LED0 toggle when result is error status.
- * @param   [in]  u8Result    Result to be judged
+ * @param   [in]  enRet    Result to be judged
  * @retval  None
  */
 static void JudgeResult(en_result_t enRet)
@@ -222,7 +296,7 @@ static void JudgeResult(en_result_t enRet)
     {
         while(1)
         {
-            DDL_Delay1ms(500U);
+            DDL_DelayMS(500U);
         }
     }
 }
@@ -277,12 +351,16 @@ uint32_t TimeCntForWaitAStatus(uint32_t u32MS)
  */
 int32_t main(void)
 {
+    Peripheral_WE();
+
+    BSP_CLK_Init();
+    Master_LedInit();
+
     uint32_t i;
     en_result_t enRet = Ok;
     uint8_t u8TxBuf[TEST_DATA_LEN];
     uint8_t u8RxBuf[TEST_DATA_LEN] = {0U};
 
-    BSP_CLK_Init();
     /* Test buffer initialize */
     for(i=0U; i<TEST_DATA_LEN; i++)
     {
@@ -309,7 +387,7 @@ int32_t main(void)
     /* I2C master data write*/
     enRet = Master_StartOrRestart(GENERATE_START);
     JudgeResult(enRet);
-    enRet = Master_SendAdr(((uint8_t)DEVICE_ADDRESS<<1u)|ADDRESS_W);
+    enRet = Master_SendAdr(((uint8_t)DEVICE_ADDRESS<<1U)|ADDRESS_W);
     JudgeResult(enRet);
     enRet = Master_WriteData(u8TxBuf, TEST_DATA_LEN);
     JudgeResult(enRet);
@@ -317,12 +395,12 @@ int32_t main(void)
     JudgeResult(enRet);
 
     /* 5mS delay for device*/
-    DDL_Delay1ms(5U);
+    DDL_DelayMS(5U);
 
     /* I2C master data read*/
     enRet = Master_StartOrRestart(GENERATE_START);
     JudgeResult(enRet);
-    enRet = Master_SendAdr(((uint8_t)DEVICE_ADDRESS<<1u)|ADDRESS_R);
+    enRet = Master_SendAdr(((uint8_t)DEVICE_ADDRESS<<1U)|ADDRESS_R);
     JudgeResult(enRet);
     enRet = Master_RevData(u8RxBuf, TEST_DATA_LEN);
     JudgeResult(enRet);
@@ -330,22 +408,23 @@ int32_t main(void)
     JudgeResult(enRet);
 
     /* Compare the data */
-    for(i=0u; i<TEST_DATA_LEN; i++)
+    for(i=0U; i<TEST_DATA_LEN; i++)
     {
         if(u8TxBuf[i] != u8RxBuf[i])
         {
             /* Data write error*/
             while(1)
             {
-                DDL_Delay1ms(500U);
+                DDL_DelayMS(500U);
             }
         }
     }
 
     /* I2C master polling communication success */
+    Master_LedOn();
     while(1)
     {
-        DDL_Delay1ms(500U);
+        DDL_DelayMS(500U);
     }
 
 }

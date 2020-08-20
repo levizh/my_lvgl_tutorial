@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-02       Heqb         First version
+   2020-06-12       Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup AES base
+ * @addtogroup AES_base
  * @{
  */
 
@@ -81,7 +81,8 @@
  * Local function prototypes ('static')
  ******************************************************************************/
 static void AesFillData(void);
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -91,12 +92,62 @@ const static uint8_t u8AesKey[24U] =
     0xEE, 0xEF, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6,
     0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE
 };
-/* Word alignment. */
 static uint8_t u8Plaintext[64U] = {0U};
 static uint8_t u8Ciphertext[64U];
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    //SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    //EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    //GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    //PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    //PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    //SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    //EFM_Lock();
+}
 
 /**
  * @brief  Main function of example project
@@ -106,12 +157,13 @@ static uint8_t u8Ciphertext[64U];
 int32_t main(void)
 {
     uint32_t length;
+
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* Enable AES peripheral clock. */
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_AES, Enable);
-
     /* Config UART for printing. Baud rate 115200. */
     DDL_PrintfInit();
-
     /* AES filling data */
     AesFillData();
 
@@ -146,7 +198,9 @@ int32_t main(void)
         }
 
         /* Main loop cycle 500ms. */
-        DDL_Delay1ms(500U);
+        DDL_DelayMS(500U);
+        /* Lock peripherals or registers */
+        Peripheral_WP();
     };
 }
 

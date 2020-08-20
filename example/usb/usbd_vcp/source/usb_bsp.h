@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_vcp\source\usb_bsp.h
- * @brief Headfile for usb_bsp_template.c.
+ * @file  usb/usbd_vcp/source/usb_bsp.h
+ * @brief Headfile for usb_bsp.c.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -72,7 +72,7 @@ extern "C"
  */
 
 /**
- * @addtogroup USBD_HID_VCP
+ * @addtogroup USBD_VCP
  * @{
  */
 
@@ -92,8 +92,6 @@ extern "C"
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
-void BSP_Init(void);
-
 void USB_OTG_BSP_Init (USB_OTG_CORE_HANDLE *pdev);
 void USB_OTG_BSP_uDelay (const uint32_t usec);
 void USB_OTG_BSP_mDelay (const uint32_t msec);

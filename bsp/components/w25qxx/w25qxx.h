@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-14       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -73,7 +73,7 @@ extern "C"
  * @{
  */
 
-/** @defgroup W25QXX
+/** @addtogroup W25QXX
   * @{
   */
 

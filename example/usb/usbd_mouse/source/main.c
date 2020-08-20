@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_mouse\source\main.c
+ * @file  usb/usbd_mouse/source/main.c
  * @brief Main program of USBD mouse example.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -79,7 +79,7 @@
  ******************************************************************************/
 typedef enum
 {
-    BUTTON_NULL = 1u,
+    BUTTON_NULL = 1U,
     BUTTON_RIGHT,
     BUTTON_LEFT,
     BUTTON_UP,
@@ -89,7 +89,7 @@ typedef enum
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define CURSOR_STEP     10u
+#define CURSOR_STEP     10U
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -103,36 +103,36 @@ typedef enum
  * Local variable definitions ('static')
  ******************************************************************************/
 USB_OTG_CORE_HANDLE  USB_OTG_dev;
-__IO uint32_t test = 0ul;
+__IO uint32_t test = 0UL;
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 
 /**
  * @brief Key status read function
- * @param   [in]  none
- * @retval button id
+ * @param  None
+ * @retval Button id
  */
 Button_TypeDef Key_ReadIOPin_continuous(void)
 {
 
     Button_TypeDef enKey = BUTTON_NULL;
 
-    if (Set == BSP_KEY_GetStatus(BSP_KEY_5))
-    {
-        enKey = BUTTON_UP;
-    }
-    if (Set == BSP_KEY_GetStatus(BSP_KEY_6))
-    {
-        enKey = BUTTON_DOWN;
-    }
-    if (Set == BSP_KEY_GetStatus(BSP_KEY_7))
+    if (Set == BSP_KEY_GetStatus(BSP_KEY_4))
     {
         enKey = BUTTON_LEFT;
     }
-    if (Set == BSP_KEY_GetStatus(BSP_KEY_8))
+    else if (Set == BSP_KEY_GetStatus(BSP_KEY_6))
     {
         enKey = BUTTON_RIGHT;
+    }
+    else if (Set == BSP_KEY_GetStatus(BSP_KEY_8))
+    {
+        enKey = BUTTON_DOWN;
+    }
+    else if (Set == BSP_KEY_GetStatus(BSP_KEY_2))
+    {
+        enKey = BUTTON_UP;
     }
     else
     {
@@ -150,29 +150,29 @@ Button_TypeDef Key_ReadIOPin_continuous(void)
 static uint8_t* USBD_HID_GetPos (void)
 {
     int8_t  x = (int8_t)0, y = (int8_t)0;
-    static uint8_t HID_Buffer [4];
+    static uint8_t HID_Buffer [4U];
 
     switch (Key_ReadIOPin_continuous())
     {
-        case BUTTON_UP:
+        case BUTTON_LEFT:
             x -= (int8_t)CURSOR_STEP;
             break;
-        case BUTTON_DOWN:
+        case BUTTON_RIGHT:
             x += (int8_t)CURSOR_STEP;
             break;
-        case BUTTON_LEFT:
+        case BUTTON_DOWN:
             y += (int8_t)CURSOR_STEP;
             break;
-        case BUTTON_RIGHT:
+        case BUTTON_UP:
             y -= (int8_t)CURSOR_STEP;
             break;
         default:
             break;
     }
-    HID_Buffer[0] = (uint8_t)0;
-    HID_Buffer[1] = (uint8_t)x;
-    HID_Buffer[2] = (uint8_t)y;
-    HID_Buffer[3] = (uint8_t)0;
+    HID_Buffer[0U] = (uint8_t)0;
+    HID_Buffer[1U] = (uint8_t)x;
+    HID_Buffer[2U] = (uint8_t)y;
+    HID_Buffer[3U] = (uint8_t)0;
 
     return HID_Buffer;
 }
@@ -186,9 +186,9 @@ void SysTick_IrqHandler(void)
     uint8_t *buf;
 
     buf = USBD_HID_GetPos();
-    if((buf[1] != 0u) ||(buf[2] != 0u))
+    if((buf[1U] != 0U) ||(buf[2U] != 0U))
     {
-        USBD_HID_SendReport (&USB_OTG_dev, buf, 4u);
+        USBD_HID_SendReport (&USB_OTG_dev, buf, 4U);
     }
 }
 /**
@@ -211,10 +211,10 @@ int32_t main (void)
     while (1)
     {
         /* remote wakeup test */
-        if(test == 0x1ul)
+        if(test == 0x1UL)
         {
             USB_OTG_ActiveRemoteWakeup(&USB_OTG_dev);
-            test  = 0ul;
+            test  = 0UL;
         }
     }
 }

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -74,7 +74,11 @@ extern "C"
   * @{
   */
 
-#if (BSP_TCA9539_ENABLE == BSP_ON)
+/** @addtogroup EV_HC32F4A0_LQFP176_TCA9539
+  * @{
+  */
+
+#if ((BSP_TCA9539_ENABLE == BSP_ON) && (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0))
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -118,8 +122,8 @@ extern "C"
 #define EIO_SCI_CD              (EIO_PIN3)      /* Smart card detect, input */
 #define EIO_TOUCH_INT           (EIO_PIN4)      /* Touch screen interrupt, input */
 #define EIO_LIN_SLEEP           (EIO_PIN5)      /* LIN PHY sleep, output */
-#define EIO_RTCS_CTRST          (EIO_PIN6)      /* 'CS' for Resistor touch pannel or 'Reset' for Cap touch pannel, output */
-#define EIO_LCD_RST             (EIO_PIN7)      /* LCD pannel reset, output */
+#define EIO_RTCS_CTRST          (EIO_PIN6)      /* 'CS' for Resistor touch panel or 'Reset' for Cap touch panel, output */
+#define EIO_LCD_RST             (EIO_PIN7)      /* LCD panel reset, output */
 
 #define EIO_CAM_RST             (EIO_PIN0)      /* Camera module reset, output */
 #define EIO_CAM_STB             (EIO_PIN1)      /* Camera module standby, output */
@@ -128,12 +132,10 @@ extern "C"
 #define EIO_CAN_STB             (EIO_PIN4)      /* CAN PHY standby, output */
 #define EIO_LED_RED             (EIO_PIN5)      /* Red LED, output */
 #define EIO_LED_YELLOW          (EIO_PIN6)      /* Yellow LED, output */
-#define EIO_LED_BULE            (EIO_PIN7)      /* Blue LED, output */
+#define EIO_LED_BLUE            (EIO_PIN7)      /* Blue LED, output */
 /**
  * @}
  */
-
-
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -143,10 +145,11 @@ extern "C"
   Global function prototypes (definition in C source)
  ******************************************************************************/
 /**
- * @defgroup EV_HC32F4A0_LQFP176_TCA9539_Global_Functions HC32F4A0 EV Expand IO Global Functions
+ * @defgroup EV_HC32F4A0_LQFP176_TCA9539_Exported_Functions HC32F4A0 LQFP176 EVB TCA9539 Exported Functions
  * @{
  */
 void BSP_IO_Init(void);
+void BSP_IO_IntInit(void);
 void BSP_IO_WritePortPin(uint8_t u8Port, uint8_t u8Pin, uint8_t u8PinState);
 void BSP_IO_ConfigPortPin(uint8_t u8Port, uint8_t u8Pin, uint8_t u8Dir);
 uint8_t BSP_IO_ReadPortPin(uint8_t u8Port, uint8_t u8Pin);
@@ -155,7 +158,11 @@ void BSP_IO_TogglePortPin(uint8_t u8Port, uint8_t u8Pin);
  * @}
  */
 
-#endif /* BSP_TCA9539_ENABLE */
+#endif /* BSP_EV_HC32F4A0_LQFP176_TCA9539_ENABLE */
+
+/**
+ * @}
+ */
 
 /**
  * @}

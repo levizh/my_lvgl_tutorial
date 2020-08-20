@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbh_mouse_kb\source\usbd_usr.h
+ * @file  usb/usbh_mouse_kb/source/usbh_usr.h
  * @brief Header for usbd_usr.c file.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -86,10 +86,10 @@ extern "C"
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /* State Machine for the USBH_USR_ApplicationState */
-//#define USH_USR_FS_INIT       0u
-//#define USH_USR_FS_READLIST   1u
-//#define USH_USR_FS_WRITEFILE  2u
-//#define USH_USR_FS_DRAW       3u
+//#define USH_USR_FS_INIT       0U
+//#define USH_USR_FS_READLIST   1U
+//#define USH_USR_FS_WRITEFILE  2U
+//#define USH_USR_FS_DRAW       3U
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/

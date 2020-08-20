@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -64,7 +64,12 @@ extern "C"
 #include "hc32_common.h"
 
 /**
- * @addtogroup EXMC_NFC_Nandflash
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB
  * @{
  */
 
@@ -83,10 +88,22 @@ extern "C"
 /*******************************************************************************
   Global function prototypes (definition in C source)
  ******************************************************************************/
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB_Global_Functions
+ * @{
+ */
 int16_t NFC_SwDecodeEcc4BitsErrLocation(const int16_t ecc_syndrome[],
                                         int16_t ecc_err_byte_number[],
                                         int16_t ecc_err_byte_bit[],
                                         int16_t size);
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /**
  * @}

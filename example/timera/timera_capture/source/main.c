@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  timera/timera_capture/source/main.c
- * @brief Main program TIMERA capture for the Device Driver Library.
+ * @brief Main program TimerA capture for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-28       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup TimerA_Capture
+ * @addtogroup TMRA_Capture
  * @{
  */
 
@@ -73,7 +73,7 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /*
- * TIMERA unit and channel definitions for this example.
+ * TimerA unit and channel definitions for this example.
  * 'APP_TMRA_UNIT' can be defined as M4_TMRA_<t>(t=1 ~ 12).
  * 'APP_TMRA_CH' can be defined as TMRA_CH_x(x=1 ~ 4).
  */
@@ -82,7 +82,7 @@
 #define APP_TMRA_PERIP_CLK                  (PWC_FCG2_TMRA_1)
 
 /*
- * Specify conditions for TIMERA capturing in this example.
+ * Specify conditions for TimerA capturing in this example.
  * The conditions are included in @ref TMRA_Channel_Capture_Condition except 'TMRA_CAPT_COND_INVALID'
  */
 #define APP_CAPTURE_CONDITION               (TMRA_CAPT_COND_EVENT)
@@ -90,7 +90,7 @@
 /* Feasibility check. */
 #if (APP_CAPTURE_CONDITION & (TMRA_CAPT_COND_TRIGR | TMRA_CAPT_COND_TRIGF))
     #if (APP_TMRA_CH != TMRA_CH_4)
-        #error "Only channel 4 of TIMERA supports capturing the edge of TRIG pin."
+        #error "Only channel 4 of TimerA supports capturing the edge of TRIG pin."
     #endif
 #endif
 
@@ -103,6 +103,14 @@
 
 #if (APP_CAPTURE_CONDITION & TMRA_CAPT_COND_EVENT)
     #define APP_TMRA_CAPT_EVENT             (EVT_PORT_EIRQ0)
+
+    /* Key definitions. SW10 on the board. */
+    #define KEY_PORT                        (GPIO_PORT_A)
+    #define KEY_PIN                         (GPIO_PIN_00)
+    #define KEY_EXINT_CH                    (EXINT_CH00)
+    #define KEY_INT_SRC                     (INT_PORT_EIRQ0)
+    #define KEY_IRQn                        (Int025_IRQn)
+    #define KEY_INT_PRIO                    (DDL_IRQ_PRIORITY_04)
 #endif
 
 #if (APP_CAPTURE_CONDITION & (TMRA_CAPT_COND_TRIGR | TMRA_CAPT_COND_TRIGF))
@@ -112,31 +120,28 @@
 #endif
 
 /*
- * Clock source of TIMERA in this example.
- * The only valid clock source of TIMERA in this example is PCLK(PCLK0 for unit1 ~ uint4. PCLK1 for unit5 ~ uint12).
+ * Clock source of TimerA in this example.
+ * The only valid clock source of TimerA in this example is PCLK(PCLK0 for unit1 ~ uint4. PCLK1 for unit5 ~ uint12).
  */
 #define APP_TMRA_CLK                        (TMRA_CLK_PCLK)
 
 /* The divider of the clock source. @ref TMRA_PCLK_Divider */
-#define APP_TMRA_PCLK_DIV                   (TMRA_PCLK_DIV_1)
+#define APP_TMRA_PCLK_DIV                   (TMRA_PCLK_DIV1)
 
 /*
  * Definitions of interrupt.
- * IRQn of TIMERA:
- *      M4_TMRA_x(x=1, 2): [Int000_IRQn, Int031_IRQn], [Int074_IRQn, Int079_IRQn]; [Int135_IRQn]
- *      M4_TMRA_x(x=3, 4): [Int000_IRQn, Int031_IRQn], [Int080_IRQn, Int085_IRQn]; [Int136_IRQn]
- *      M4_TMRA_x(x=5 ~ 8): [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn]; [Int138_IRQn]
- *      M4_TMRA_x(x=9 ~ 12): [Int000_IRQn, Int031_IRQn], [Int098_IRQn, Int103_IRQn]; [Int139_IRQn]
+ * IRQn of TimerA:
+ *      M4_TMRA_x(x=1, 2): [Int000_IRQn, Int031_IRQn], [Int074_IRQn, Int079_IRQn];
+ *      M4_TMRA_x(x=3, 4): [Int000_IRQn, Int031_IRQn], [Int080_IRQn, Int085_IRQn];
+ *      M4_TMRA_x(x=5 ~ 8): [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn];
+ *      M4_TMRA_x(x=9 ~ 12): [Int000_IRQn, Int031_IRQn], [Int098_IRQn, Int103_IRQn];
  *
  * NOTE!!! 'APP_TMRA_INT_TYPE' can only be defined as 'TMRA_INT_CMP_CHx'(x=1 ~ 4, depends on 'APP_TMRA_CH') for this example.
  */
-#define TMRA_SHARE_IRQn_BASE                (Int135_IRQn)
-
 #define APP_TMRA_IRQn                       (Int025_IRQn)
 #define APP_TMRA_INT_SRC                    (INT_TMRA_1_CMP)
 #define APP_TMRA_INT_PRIO                   (DDL_IRQ_PRIORITY_03)
 #define APP_TMRA_INT_TYPE                   (TMRA_INT_CMP_CH4)
-#define APP_TMRA_IRQ_CB                     TMRA_1_Cmp4_IrqHandler
 #define APP_TMRA_FLAG                       (TMRA_FLAG_CMP_CH4)
 
 /*******************************************************************************
@@ -146,11 +151,15 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
 
 static void TmrAConfig(void);
 static void TmrACaptCondConfig(void);
 static void TmrAIrqConfig(void);
+static void TMRA_Cmp_IrqCallback(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -167,19 +176,76 @@ static void TmrAIrqConfig(void);
  */
 int32_t main(void)
 {
+
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the system clock. */
     SystemClockConfig();
-
-    /* Configures TIMERA. */
+    /* Configures TimerA. */
     TmrAConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
-    /* Starts TIMERA. */
+    /* Starts TimerA. */
     TMRA_Start(APP_TMRA_UNIT);
 
     /***************** Configuration end, application start **************/
     while (1U)
     {
+    	/* See TMRA_Cmp_IrqCallback */
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -226,21 +292,19 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set SRAM wait cycles. */
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     /* Set EFM wait cycle. 4 wait cycles needed when system clock is 200MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
-    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
+    PWC_Lock(PWC_UNLOCK_CODE_0);
 }
 
 /**
- * @brief  TIMERA configuration.
+ * @brief  TimerA configuration.
  * @param  None
  * @retval None
  */
@@ -248,7 +312,7 @@ static void TmrAConfig(void)
 {
     stc_tmra_init_t stcInit;
 
-    /* 1. Enable TIMERA peripheral clock. */
+    /* 1. Enable TimerA peripheral clock. */
     PWC_Fcg2PeriphClockCmd(APP_TMRA_PERIP_CLK, Enable);
 
     /* 2. Set a default initialization value for stcInit. */
@@ -281,43 +345,23 @@ static void TmrACaptCondConfig(void)
 #endif
 
 #if (APP_CAPTURE_CONDITION & TMRA_CAPT_COND_EVENT)
-    /* Configure the peripheral. */
     stc_exint_init_t stcExintInit;
     stc_gpio_init_t stcGpioInit;
-    stc_keyscan_init_t stcKeyscanInit;
 
-    /* GPIO config */
+    /* Configure the peripheral. */
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16ExInt  = PIN_EXINT_ON;
+    stcGpioInit.u16ExInt = PIN_EXINT_ON;
     stcGpioInit.u16PullUp = PIN_PU_ON;
-    GPIO_Init(GPIO_PORT_A, GPIO_PIN_00, &stcGpioInit);
-
-    /* Exint config */
+    GPIO_Init(KEY_PORT, KEY_PIN, &stcGpioInit);
     EXINT_StructInit(&stcExintInit);
-    stcExintInit.u32ExIntCh  = EXINT_CH00;
-    stcExintInit.u32ExIntLvl = EXINT_TRIGGER_FALLING;
+    stcExintInit.u32ExIntCh = KEY_EXINT_CH;
+    stcExintInit.u32ExIntLvl= EXINT_TRIGGER_FALLING;
     EXINT_Init(&stcExintInit);
-
-    GPIO_StructInit(&stcGpioInit);
-    KEYSCAN_StructInit(&stcKeyscanInit);
-    stcGpioInit.u16PullUp = PIN_PU_ON;
-    GPIO_Init(GPIO_PORT_A, GPIO_PIN_06, &stcGpioInit);
-    GPIO_SetFunc(GPIO_PORT_A, GPIO_PIN_06, GPIO_FUNC_8_KEYSCAN, Disable);
-
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_KEY, Enable);
-
-    stcKeyscanInit.u32HizCycle = KEYSCAN_HIZ_CLC_512;
-    stcKeyscanInit.u32LowCycle = KEYSCAN_LOW_CLC_512;
-    stcKeyscanInit.u32KeyClk   = KEYSCAN_CLK_HCLK;
-    stcKeyscanInit.u32Keyout   = KEYSCAN_OUT_0T2;
-    stcKeyscanInit.u32Keyin    = KEYSCAN_IN_0;
-    KEYSCAN_Init(&stcKeyscanInit);
-    KEYSCAN_Cmd(Enable);
 
     /* Enable AOS function. */
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
-    /* Set the event for TIMERA capturing. */
-    TMRA_SetCaptEvent(APP_TMRA_UNIT, APP_TMRA_CAPT_EVENT);
+    /* Set the event for TimerA capturing. */
+    TMRA_SetTriggerSrc(APP_TMRA_UNIT, TMRA_EVENT_USAGE_CAPT, APP_TMRA_CAPT_EVENT);
 #endif
 
 #if (APP_CAPTURE_CONDITION & (TMRA_CAPT_COND_TRIGR | TMRA_CAPT_COND_TRIGF))
@@ -330,7 +374,7 @@ static void TmrACaptCondConfig(void)
 }
 
 /**
- * @brief  TIMERA interrupt configuration.
+ * @brief  TimerA interrupt configuration.
  * @param  None
  * @retval None
  */
@@ -340,31 +384,23 @@ static void TmrAIrqConfig(void)
 
     stcCfg.enIntSrc    = APP_TMRA_INT_SRC;
     stcCfg.enIRQn      = APP_TMRA_IRQn;
-    stcCfg.pfnCallback = &APP_TMRA_IRQ_CB;
-    if (stcCfg.enIRQn >= TMRA_SHARE_IRQn_BASE)
-    {
-        /* Sharing interrupt. */
-        INTC_ShareIrqCmd(stcCfg.enIntSrc, Enable);
-    }
-    else
-    {
-        /* Independent interrupt. */
-        INTC_IrqSignIn(&stcCfg);
-    }
+    stcCfg.pfnCallback = &TMRA_Cmp_IrqCallback;
+    INTC_IrqSignIn(&stcCfg);
+
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
     NVIC_SetPriority(stcCfg.enIRQn, APP_TMRA_INT_PRIO);
     NVIC_EnableIRQ(stcCfg.enIRQn);
 
-    /* Enable the specified interrupts of TIMERA. */
+    /* Enable the specified interrupts of TimerA. */
     TMRA_IntCmd(APP_TMRA_UNIT, APP_TMRA_INT_TYPE, Enable);
 }
 
 /**
- * @brief  TIMERA counter compare match interrupt callback function.
+ * @brief  TimerA counter compare match interrupt callback function.
  * @param  None
  * @retval None
  */
-void APP_TMRA_IRQ_CB(void)
+static void TMRA_Cmp_IrqCallback(void)
 {
     if (TMRA_GetStatus(APP_TMRA_UNIT, APP_TMRA_FLAG) == Set)
     {

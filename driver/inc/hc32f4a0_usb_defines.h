@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  hc32f4a0_usb_define.h
+ * @file  hc32f4a0_usb_defines.h
  * @brief A detailed description is available at  Header of the Core Layer
  *        
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -118,7 +118,7 @@ enum USB_OTG_SPEED {
  */
 
 /**
- * @defgroup _CORE_DEFINES_
+ * @defgroup __CORE_DEFINES_ Defines for USB CORE
  * @{
  */
 #define USB_OTG_SPEED_PARAM_HIGH            (0U)
@@ -130,13 +130,14 @@ enum USB_OTG_SPEED {
 
 #define USB_OTG_ULPI_PHY                    (1U)
 #define USB_OTG_EMBEDDED_PHY                (2U)
+/**
+ * @}
+ */
 
 /**
- * @defgroup _GLOBAL_DEFINES_
+ * @defgroup __GLOBAL_DEFINES_ Defines for USB Global Register Function
  * @{
  */
-#define GAHBCFG_TXFEMPTYLVL_EMPTY              (1U)
-#define GAHBCFG_TXFEMPTYLVL_HALFEMPTY          (0U)
 #define GAHBCFG_GLBINT_ENABLE                  (1U)
 #define GAHBCFG_INT_DMA_BURST_SINGLE           (0U)
 #define GAHBCFG_INT_DMA_BURST_INCR             (1U)
@@ -153,9 +154,12 @@ enum USB_OTG_SPEED {
 
 #define SELF_POWERED                      (1UL << 6U)
 #define REMOTE_WAKEUP                     (1UL << 5U)
+/**
+ * @}
+ */
 
 /**
- * @defgroup _OnTheGo_DEFINES_
+ * @defgroup __OnTheGo_DEFINES_ Defines for USB OTG Register Function
  * @{
  */
 #define MODE_HNP_SRP_CAPABLE                   (0U)
@@ -173,9 +177,12 @@ enum USB_OTG_SPEED {
 #define DEVICE_MODE                            (0U)
 #define HOST_MODE                              (1U)
 #define OTG_MODE                               (2U)
+/**
+ * @}
+ */
 
 /**
- * @defgroup __DEVICE_DEFINES_
+ * @defgroup __DEVICE_DEFINES_ Defines for USB Device Register Function
  * @{
  */
 #define DSTS_ENUMSPD_HS_PHY_30MHZ_OR_60MHZ     (0U)
@@ -208,9 +215,12 @@ enum USB_OTG_SPEED {
 #define STS_XFER_COMP                          (3U)
 #define STS_SETUP_COMP                         (4U)
 #define STS_SETUP_UPDT                         (6U)
+/**
+ * @}
+ */
 
 /**
- * @defgroup __HOST_DEFINES_
+ * @defgroup __HOST_DEFINES_ Defines for USB Host Register Function
  * @{
  */
 #define HC_PID_DATA0                           (0U)
@@ -230,13 +240,19 @@ enum USB_OTG_SPEED {
 #define HCCHAR_ISOC                            (1U)
 #define HCCHAR_BULK                            (2U)
 #define HCCHAR_INTR                            (3U)
+/**
+ * @}
+ */
 
 #ifndef __MIN
 #define  __MIN(a, b)      (((a) < (b)) ? (a) : (b))
 #endif
+/**
+ * @}
+ */
 
 /**
- * @defgroup Internal_Macro
+ * @defgroup Internal_Macro USB internal Macro
  * @{
  */
 #define USB_OTG_READ_REG32(reg)  (*(__IO uint32_t *)(reg))
@@ -275,5 +291,3 @@ enum USB_OTG_SPEED {
 /*******************************************************************************
  * EOF (not truncated)
  ******************************************************************************/
-
-

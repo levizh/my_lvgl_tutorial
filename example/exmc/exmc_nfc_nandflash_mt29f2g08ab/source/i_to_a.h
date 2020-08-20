@@ -4,7 +4,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -63,10 +63,36 @@ extern "C"
  ******************************************************************************/
 #include "hc32_common.h"
 
+/**
+ * @addtogroup HC32F4A0_DDL_Examples
+ * @{
+ */
+
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB
+ * @{
+ */
+
 /*******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
+/**
+ * @addtogroup EXMC_NFC_Nandflash_MT29F2G08AB_Global_Variable
+ * @{
+ */
 extern const int16_t i_to_a[8192];
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

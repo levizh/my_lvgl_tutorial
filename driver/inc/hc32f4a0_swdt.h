@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-26       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -173,8 +173,8 @@ typedef struct
  * @brief SWDT count control in the sleep/stop mode
  * @{
  */
-#define SWDT_LPW_MODE_COUNT_CONTINUE            (0UL)             /*!< SWDT count continue in the sleep/stop mode */
-#define SWDT_LPW_MODE_COUNT_STOP                (SWDT_CR_SLPOFF)  /*!< SWDT count stop in the sleep/stop mode     */
+#define SWDT_LPM_COUNT_CONTINUE                 (0UL)             /*!< SWDT count continue in the sleep/stop mode */
+#define SWDT_LPM_COUNT_STOP                     (SWDT_CR_SLPOFF)  /*!< SWDT count stop in the sleep/stop mode     */
 /**
  * @}
  */
@@ -226,13 +226,13 @@ __STATIC_INLINE uint16_t SWDT_GetCountValue(void)
 }
 
 /* Initialization and configuration functions */
-en_result_t      SWDT_Init(const stc_swdt_init_t *pstcSwdtInit);
-void             SWDT_ReloadCounter(void);
-uint16_t         SWDT_GetCountValue(void);
+en_result_t SWDT_Init(const stc_swdt_init_t *pstcSwdtInit);
+void SWDT_Feed(void);
+uint16_t SWDT_GetCountValue(void);
 
 /* Flags management functions */
 en_flag_status_t SWDT_GetStatus(uint32_t u32Flag);
-en_result_t      SWDT_ClearStatus(uint32_t u32Flag);
+en_result_t SWDT_ClearStatus(uint32_t u32Flag);
 
 /**
  * @}

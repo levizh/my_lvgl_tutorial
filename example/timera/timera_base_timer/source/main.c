@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  timera/timera_base_timer/source/main.c
- * @brief Main program TIMERA timer for the Device Driver Library.
+ * @brief Main program TimerA base timer for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-31       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup TimerA_Base_Timer
+ * @addtogroup TMRA_Base_Timer
  * @{
  */
 
@@ -74,51 +74,49 @@
  ******************************************************************************/
 /*
  * Function of this example.
- * This example is going to use TIMERA to count 1 milliseconds.
+ * This example is going to use TimerA to count 1 milliseconds.
  */
 
 /*
- * TIMERA unit and channel definitions for this example.
+ * TimerA unit and channel definitions for this example.
  * 'APP_TMRA_UNIT' can be defined as M4_TMRA_<t>(t=1 ~ 12).
  * 'APP_TMRA_CH' can be defined as TMRA_CH_x(x=1 ~ 4).
  *
  * NOTE!!! The following definitions are depend on the definitions of 'APP_TMRA_UNIT' and 'APP_TMRA_CH'.
- *
- *         APP_TMRA_TRIG_PORT
- *         APP_TMRA_TRIG_PIN
- *         APP_TMRA_TRIG_PIN_FUNC
- *         APP_TMRA_INT_SRC
- *         APP_TMRA_IRQ_CB
- *         APP_TMRA_IRQn
+ *   APP_TMRA_TRIG_PORT
+ *   APP_TMRA_TRIG_PIN
+ *   APP_TMRA_TRIG_PIN_FUNC
+ *   APP_TMRA_INT_SRC
+ *   APP_TMRA_IRQn
  */
 #define APP_TMRA_UNIT                       (M4_TMRA_1)
 #define APP_TMRA_CH                         (TMRA_CH_1)
 #define APP_TMRA_PERIP_CLK                  (PWC_FCG2_TMRA_1)
 
 /*
- * Function control of TIMERA.
+ * Function control of TimerA.
  * Defines the following macro as non-zero to enable the corresponding function.
  *
  * 'APP_TMRA_USE_INTERRUPT': Interrupt function control.
- * 'APP_TMRA_USE_HW_TRIG': Hardware trigger conditions control. The conditions that can start TIMERA, \
- *                         stop TIMERA or clear counting register of TIMERA
+ * 'APP_TMRA_USE_HW_TRIG': Hardware trigger conditions control. The conditions that can start TimerA, \
+ *                         stop TimerA or clear counting register of TimerA
  */
 #define APP_TMRA_USE_INTERRUPT              (1U)
 #define APP_TMRA_USE_HW_TRIG                (0U)
 
 /*
- * Clock source of TIMERA in this example.
- * The only valid clock source of TIMERA in this example is PCLK(PCLK0 for unit1 ~ uint4. PCLK1 for unit5 ~ uint12).
+ * Clock source of TimerA in this example.
+ * The only valid clock source of TimerA in this example is PCLK(PCLK0 for unit1 ~ uint4. PCLK1 for unit5 ~ uint12).
  */
 #define APP_TMRA_CLK                        (TMRA_CLK_PCLK)
 
 /* The divider of the clock source. @ref TMRA_PCLK_Divider */
-#define APP_TMRA_PCLK_DIV                   (TMRA_PCLK_DIV_8)
+#define APP_TMRA_PCLK_DIV                   (TMRA_PCLK_DIV8)
 
-/* The counting mode of TIMERA. @ref TMRA_Count_Mode */
+/* The counting mode of TimerA. @ref TMRA_Count_Mode */
 #define APP_TMRA_MODE                       (TMRA_MODE_SAWTOOTH)
 
-/* The counting direction of TIMERA. @ref TMRA_Count_Direction */
+/* The counting direction of TimerA. @ref TMRA_Count_Direction */
 #define APP_TMRA_DIR                        (TMRA_DIR_UP)
 
 /*
@@ -139,39 +137,37 @@
 #endif /* #if (APP_TMRA_DIR == TMRA_MODE_SAWTOOTH) */
 
 /*
- * Definitions about TIMERA interrupt for the example.
- * IRQn of TIMERA:
- *   M4_TMRA_x(x=1, 2): [Int000_IRQn, Int031_IRQn], [Int074_IRQn, Int079_IRQn]; [Int135_IRQn]
- *   M4_TMRA_x(x=3, 4): [Int000_IRQn, Int031_IRQn], [Int080_IRQn, Int085_IRQn]; [Int136_IRQn]
- *   M4_TMRA_x(x=5 ~ 8): [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn]; [Int138_IRQn]
- *   M4_TMRA_x(x=9 ~ 12): [Int000_IRQn, Int031_IRQn], [Int098_IRQn, Int103_IRQn]; [Int139_IRQn]
+ * Definitions about TimerA interrupt for the example.
+ * IRQn of TimerA:
+ *   M4_TMRA_x(x=1, 2): [Int000_IRQn, Int031_IRQn], [Int074_IRQn, Int079_IRQn];
+ *   M4_TMRA_x(x=3, 4): [Int000_IRQn, Int031_IRQn], [Int080_IRQn, Int085_IRQn];
+ *   M4_TMRA_x(x=5 ~ 8): [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn];
+ *   M4_TMRA_x(x=9 ~ 12): [Int000_IRQn, Int031_IRQn], [Int098_IRQn, Int103_IRQn];
  *
  * 'APP_TMRA_INT_TYPE' can be defined as 'TMRA_INT_CMP_CHx'(x=1 ~ 4, depends on 'APP_TMRA_CH') \
  *   or 'TMRA_INT_OVF' in this example.
  */
 #if (APP_TMRA_USE_INTERRUPT > 0U)
-    #define TMRA_SHARE_IRQn_BASE            (Int135_IRQn)
     #define APP_TMRA_INT_TYPE               (TMRA_INT_CMP_CH1)
     #define APP_TMRA_INT_PRIO               (DDL_IRQ_PRIORITY_03)
     #define APP_TMRA_INT_SRC                (INT_TMRA_1_CMP)
-    #define APP_TMRA_IRQ_CB                 TMRA_1_Cmp1_IrqHandler
     #define APP_TMRA_IRQn                   (Int074_IRQn)
 #endif /* #if (APP_TMRA_USE_INTERRUPT > 0U) */
 
-/* The status flag of TIMERA in this example, depends on 'APP_TMRA_CH'. */
+/* The status flag of TimerA in this example, depends on 'APP_TMRA_CH'. */
 #define APP_TMRA_FLAG                       (TMRA_FLAG_CMP_CH1)
 
 /*
  * Specify the hardware trigger conditions if enabled(APP_TMRA_USE_HW_TRIG > 0U).
- * 'APP_TMRA_START_COND' specifies the condition of starting TIMERA.
- * 'APP_TMRA_STOP_COND' specifies the condition of stoping TIMERA.
+ * 'APP_TMRA_START_COND' specifies the condition of starting TimerA.
+ * 'APP_TMRA_STOP_COND' specifies the condition of stoping TimerA.
  * 'APP_TMRA_USE_FILTER': Filter function control. Enable or disable the filter of pin TIMA_<t>_TRIG. \
  *                        If there is a pin TIMA_<t>_TRIG is used, the filter can be used if needed.
  *                        In this example, the only pin with filter function used is TIMA_<t>_TRIG.
  * 'APP_TMRA_FILTER_CLK_DIV': The clock divider of filter of each channel depends on the signal that \
  *                            input from pin TIMA_<t>_TRIG.
  * NOTE:
- *   CANNOT specify a condition as both the start condition and the stop condition.
+ *   CANNOT specify a condition as both start condition and stop condition.
  */
 #if (APP_TMRA_USE_HW_TRIG > 0U)
     #define APP_TMRA_START_COND             (TMRA_START_COND_TRIGR)
@@ -180,7 +176,8 @@
     #define APP_TMRA_TRIG_PIN               (GPIO_PIN_00)
     #define APP_TMRA_TRIG_PIN_FUNC          (GPIO_FUNC_6_TIMA1_TRIG)
     #define APP_TMRA_FILTER_ENABLE          (1U)
-    #define APP_TMRA_FILTER_CLK_DIV         (TMRA_FILTER_CLK_DIV_16)
+    #define APP_TMRA_FILTER_CLK_DIV         (TMRA_FILTER_CLK_DIV16)
+    #define APP_TMRA_FILTER_PIN             (TMRA_PIN_TRIG)
 #endif /* #if (APP_TMRA_USE_HW_TRIG > 0U) */
 
 /* Indicate pin definition in this example. */
@@ -197,12 +194,16 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
 static void IndicateConfig(void);
 
 static void TmrAConfig(void);
 #if (APP_TMRA_USE_INTERRUPT > 0U)
     static void TmrAIrqConfig(void);
+    static void TMRA_Cmp_IrqCallback(void);
 #endif
 #if (APP_TMRA_USE_HW_TRIG > 0U)
     static void TmrATrigCondConfig(void);
@@ -224,23 +225,25 @@ static void TmrAStart(void);
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the system clock. */
     SystemClockConfig();
-
     /* Configures indicator. */
     IndicateConfig();
-
-    /* Configures TIMERA. */
+    /* Configures TimerA. */
     TmrAConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
-    /* Starts TIMERA. */
+    /* Starts TimerA. */
     TmrAStart();
 
     /***************** Configuration end, application start **************/
     while (1U)
     {
 #if (APP_TMRA_USE_INTERRUPT > 0U)
-        /* See APP_TMRA_IRQ_CB in this file. */
+        /* See TMRA_Cmp_IrqCallback in this file. */
 #else
         /* Call TMRA_GetStatus to check the flag state. */
         if (TMRA_GetStatus(APP_TMRA_UNIT, APP_TMRA_FLAG) == Set)
@@ -253,7 +256,59 @@ int32_t main(void)
 }
 
 /**
- * @brief  Configures a new system clock.
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
+}
+
+/**
+ * @brief  Configures a new system clock(200MHz).
  * @param  None
  * @retval None
  */
@@ -296,21 +351,19 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set SRAM wait cycles. */
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     /* Set EFM wait cycle. 4 wait cycles needed when system clock is 200MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_4);
-    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
+    PWC_Lock(PWC_UNLOCK_CODE_0);
 }
 
 /**
- * @brief  TIMERA configuration.
+ * @brief  TimerA configuration.
  * @param  None
  * @retval None
  */
@@ -318,7 +371,7 @@ static void TmrAConfig(void)
 {
     stc_tmra_init_t stcInit;
 
-    /* 1. Enable TIMERA peripheral clock. */
+    /* 1. Enable TimerA peripheral clock. */
     PWC_Fcg2PeriphClockCmd(APP_TMRA_PERIP_CLK, Enable);
 
     /* 2. Set a default initialization value for stcInit. */
@@ -348,7 +401,7 @@ static void TmrAConfig(void)
 
 #if (APP_TMRA_USE_INTERRUPT > 0U)
 /**
- * @brief  TIMERA interrupt configuration.
+ * @brief  TimerA interrupt configuration.
  * @param  None
  * @retval None
  */
@@ -358,31 +411,23 @@ static void TmrAIrqConfig(void)
 
     stcCfg.enIntSrc    = APP_TMRA_INT_SRC;
     stcCfg.enIRQn      = APP_TMRA_IRQn;
-    stcCfg.pfnCallback = &APP_TMRA_IRQ_CB;
-    if (stcCfg.enIRQn >= TMRA_SHARE_IRQn_BASE)
-    {
-        /* Sharing interrupt. */
-        INTC_ShareIrqCmd(stcCfg.enIntSrc, Enable);
-    }
-    else
-    {
-        /* Independent interrupt. */
-        INTC_IrqSignIn(&stcCfg);
-    }
+    stcCfg.pfnCallback = &TMRA_Cmp_IrqCallback;
+    INTC_IrqSignIn(&stcCfg);
+
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
     NVIC_SetPriority(stcCfg.enIRQn, APP_TMRA_INT_PRIO);
     NVIC_EnableIRQ(stcCfg.enIRQn);
 
-    /* Enable the specified interrupts of TIMERA. */
+    /* Enable the specified interrupts of TimerA. */
     TMRA_IntCmd(APP_TMRA_UNIT, APP_TMRA_INT_TYPE, Enable);
 }
 
 /**
- * @brief  TIMERA counter compare match interrupt callback function.
+ * @brief  TimerA counter compare match interrupt callback function.
  * @param  None
  * @retval None
  */
-void APP_TMRA_IRQ_CB(void)
+static void TMRA_Cmp_IrqCallback(void)
 {
     if (TMRA_GetStatus(APP_TMRA_UNIT, APP_TMRA_FLAG) == Set)
     {
@@ -403,14 +448,14 @@ static void TmrATrigCondConfig(void)
     stc_tmra_trig_cond_t stcTrigCond;
 
     /*
-     * If a peripheral is used to generate the event which is used as a hardware trigger condition of TIMERA, \
-     *     call the API of the peripheral to configure the peripheral.
+     * If a peripheral is used to generate the event which is used as a hardware trigger condition of TimerA, \
+     *   call the API of the peripheral to configure it.
      * The following operations are only used in this example.
      */
 
 #if (defined APP_TMRA_FILTER_ENABLE &&  APP_TMRA_FILTER_ENABLE > 0U)
-    TMRA_FilterConfig(APP_TMRA_UNIT, TMRA_PIN_TRIG, APP_TMRA_FILTER_CLK_DIV);
-    TMRA_FilterCmd(APP_TMRA_UNIT, TMRA_PIN_TRIG, Enable);
+    TMRA_FilterConfig(APP_TMRA_UNIT, APP_TMRA_FILTER_PIN, APP_TMRA_FILTER_CLK_DIV);
+    TMRA_FilterCmd(APP_TMRA_UNIT, APP_TMRA_FILTER_PIN, Enable);
 #endif
     GPIO_SetFunc(APP_TMRA_TRIG_PORT, APP_TMRA_TRIG_PIN, APP_TMRA_TRIG_PIN_FUNC, PIN_SUBFUNC_DISABLE);
 
@@ -422,14 +467,14 @@ static void TmrATrigCondConfig(void)
 #endif
 
 /**
- * @brief  Start TIMERA.
+ * @brief  Start TimerA.
  * @param  None
  * @retval None
  */
 static void TmrAStart(void)
 {
     /*
-     * If a peripheral is used to generate the event which is used as a hardware trigger condition of TIMERA, \
+     * If a peripheral is used to generate the event which is used as a hardware trigger condition of TimerA, \
      *   call the API of the peripheral to start the peripheral here or anywhere else you need.
      * The following operations are only used in this example.
      */
@@ -438,7 +483,7 @@ static void TmrAStart(void)
      ((APP_TMRA_USE_HW_TRIG > 0U) && (APP_TMRA_START_COND == TMRA_START_COND_INVALID)))
     TMRA_Start(APP_TMRA_UNIT);
 #else
-    /* Make an rising edge on pin TIMA_<t>_TRIG to start TIMERA. */
+    /* Make an rising edge on pin TIMA_<t>_TRIG to start TimerA. */
 #endif
 }
 

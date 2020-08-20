@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-2       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -96,66 +96,66 @@
  * @defgroup GPIO_Check_Parameters_Validity GPIO Check Parameters Validity
  * @{
  */
-/*  Parameter validity check for pin state. */
+/*! Parameter validity check for pin state. */
 #define IS_GPIO_PIN_STATE(state)                                                \
 (   ((state) == PIN_STATE_RESET)                ||                              \
     ((state) == PIN_STATE_SET))
 
-/*  Parameter validity check for pin direction. */
+/*! Parameter validity check for pin direction. */
 #define IS_GPIO_DIR(dir)                                                        \
 (   ((dir) == PIN_DIR_IN)                       ||                              \
     ((dir) == PIN_DIR_OUT))
 
-/*  Parameter validity check for pin output type. */
+/*! Parameter validity check for pin output type. */
 #define IS_GPIO_OTYPE(otype)                                                    \
 (   ((otype) == PIN_OTYPE_CMOS)                 ||                              \
     ((otype) == PIN_OTYPE_NMOS))
 
-/*  Parameter validity check for pin driver capacity. */
+/*! Parameter validity check for pin driver capacity. */
 #define IS_GPIO_PIN_DRV(drv)                                                    \
 (   ((drv) == PIN_DRV_LOW)                      ||                              \
     ((drv) == PIN_DRV_MID)                      ||                              \
     ((drv) == PIN_DRV_HIGH))
 
-/*  Parameter validity check for pin latch function. */
+/*! Parameter validity check for pin latch function. */
 #define IS_GPIO_LATCH(latch)                                                    \
 (   ((latch) == PIN_LATCH_OFF)                  ||                              \
     ((latch) == PIN_LATCH_ON))
 
-/*  Parameter validity check for internal pull-up resistor. */
+/*! Parameter validity check for internal pull-up resistor. */
 #define IS_GPIO_PIN_PU(pu)                                                      \
 (   ((pu) == PIN_PU_OFF)                        ||                              \
     ((pu) == PIN_PU_ON))
 
-/*  Parameter validity check for pin state invert. */
+/*! Parameter validity check for pin state invert. */
 #define IS_GPIO_PIN_INVERT(invert)                                              \
 (   ((invert) == PIN_INVERT_OFF)                ||                              \
     ((invert) == PIN_INVERT_ON))
 
-/*  Parameter validity check for pin input type. */
+/*! Parameter validity check for pin input type. */
 #define IS_GPIO_ITYPE(itype)                                                    \
 (   ((itype) == PIN_ITYPE_SMT)                  ||                              \
     ((itype) == PIN_ITYPE_CMOS))
 
-/*  Parameter validity check for external interrupt function. */
+/*! Parameter validity check for external interrupt function. */
 #define IS_GPIO_EXINT(exint)                                                    \
 (   ((exint) == PIN_EXINT_OFF)                  ||                              \
     ((exint) == PIN_EXINT_ON))
 
-/*  Parameter validity check for pin attribute. */
+/*! Parameter validity check for pin attribute. */
 #define IS_GPIO_ATTR(attr)                                                      \
 (   ((attr) == PIN_ATTR_DIGITAL)                ||                              \
     ((attr) == PIN_ATTR_ANALOG))
 
-/*  Parameter validity check for pin number. */
+/*! Parameter validity check for pin number. */
 #define IS_GPIO_PIN(pin)    (((pin) & GPIO_PIN_MASK ) != 0x0000U)
 
-/*  Parameter validity check for port source. */
+/*! Parameter validity check for port source. */
 #define IS_GPIO_PORT(port)                                                      \
 (   ((port) != 0x00U)                           &&                              \
     (((port) | GPIO_PORT_MASK) == GPIO_PORT_MASK))
 
-/*  Parameter validity check for port source. */
+/*! Parameter validity check for port source. */
 #define IS_GPIO_PORT_SOURCE(port)                                               \
 (   ((port) == GPIO_PORT_A)                     ||                              \
     ((port) == GPIO_PORT_B)                     ||                              \
@@ -167,22 +167,22 @@
     ((port) == GPIO_PORT_H)                     ||                              \
     ((port) == GPIO_PORT_I))
 
-/*  Parameter validity check for pin function. */
+/*! Parameter validity check for pin function. */
 #define IS_GPIO_FUNC(func)                                                      \
 (   ((func) <= GPIO_FUNC_20)                    ||                              \
     (((func) >= GPIO_FUNC_32) && ((func) <= GPIO_FUNC_63)))
 
-/*  Parameter validity check for debug pin definition. */
+/*! Parameter validity check for debug pin definition. */
 #define IS_GPIO_DEBUG_PORT(port)                                                \
 (   ((port) != 0x00U)                           &&                              \
     (((port) | GPIO_PIN_DEBUG_JTAG) == GPIO_PIN_DEBUG_JTAG))
 
-/*  Parameter validity check for pin sub-function setting. */
+/*! Parameter validity check for pin sub-function setting. */
 #define IS_GPIO_PIN_BFE(bfe)                                                    \
 (   ((bfe) == PIN_SUBFUNC_ENABLE)               ||                              \
     ((bfe) == PIN_SUBFUNC_DISABLE))
 
-/*  Parameter validity check for pin read wait cycle. */
+/*! Parameter validity check for pin read wait cycle. */
 #define IS_GPIO_READ_WAIT(wait)                                                 \
 (   ((wait) == GPIO_READ_WAIT_0)                ||                              \
     ((wait) == GPIO_READ_WAIT_1)                ||                              \
@@ -261,7 +261,7 @@ en_result_t GPIO_Init(uint8_t u8Port, uint16_t u16Pin, const stc_gpio_init_t *ps
 
         for (u16PinPos = 0U; u16PinPos < 16U; u16PinPos++)
         {
-            if (u16Pin & (1UL<<u16PinPos))
+            if ((u16Pin & (1UL<<u16PinPos)) != 0U)
             {
                 PCRx = (__IO uint16_t *)((uint32_t)(&M4_GPIO->PCRA0) +               \
                                   ((uint32_t)(u8Port) * 0x40UL) + u16PinPos * 4UL);
@@ -381,11 +381,11 @@ void GPIO_SetDebugPort(uint8_t u8DebugPort, en_functional_state_t enNewState)
 
     if (Enable == enNewState)
     {
-        SET_REG16_BIT(M4_GPIO->PSPCR, (u8DebugPort & GPIO_PSPCR_SPFE));
+        SET_REG16_BIT(M4_GPIO->PSPCR, ((uint16_t)u8DebugPort & GPIO_PSPCR_SPFE));
     }
     else
     {
-        CLEAR_REG16_BIT(M4_GPIO->PSPCR, (u8DebugPort & GPIO_PSPCR_SPFE));
+        CLEAR_REG16_BIT(M4_GPIO->PSPCR, ((uint16_t)u8DebugPort & GPIO_PSPCR_SPFE));
     }
 }
 
@@ -468,12 +468,14 @@ void GPIO_OE(uint8_t u8Port, uint16_t u16Pin, en_functional_state_t enNewState)
 /**
  * @brief  GPIO read wait cycle configure.
  * @param  [in] u16ReadWait
- *   @arg  GPIO_READ_WAIT_0
- *   @arg  GPIO_READ_WAIT_1
- *   @arg  GPIO_READ_WAIT_2
- *   @arg  GPIO_READ_WAIT_3
- *   @arg  GPIO_READ_WAIT_4
- *   @arg  GPIO_READ_WAIT_5
+ *   @arg  GPIO_READ_WAIT_0: ~ 50MHz
+ *   @arg  GPIO_READ_WAIT_1: 50 ~ 100MHz
+ *   @arg  GPIO_READ_WAIT_2: 100 ~ 150MHz
+ *   @arg  GPIO_READ_WAIT_3: 150 ~ 200MHz
+ *   @arg  GPIO_READ_WAIT_4: 200 ~ 250MHz
+ *   @arg  GPIO_READ_WAIT_5: 250MHz above
+ *   @arg  GPIO_READ_WAIT_6: 250MHz above
+ *   @arg  GPIO_READ_WAIT_7: 250MHz above
  * @retval None
  */
 void GPIO_SetReadWaitCycle(uint16_t u16ReadWait)
@@ -534,7 +536,7 @@ en_pin_state_t GPIO_ReadInputPins(uint8_t u8Port, uint16_t u16Pin)
 
     PIDRx = (__IO uint16_t *)((uint32_t)(&M4_GPIO->PIDRA) + 0x10UL * u8Port);
 
-    return (READ_REG16(*PIDRx) & (u16Pin)) ? Pin_Set : Pin_Reset;
+    return ((READ_REG16(*PIDRx) & (u16Pin)) != 0U) ? Pin_Set : Pin_Reset;
 }
 
 /**
@@ -570,7 +572,7 @@ en_pin_state_t GPIO_ReadOutputPins(uint8_t u8Port, uint16_t u16Pin)
 
     PODRx = (__IO uint16_t *)((uint32_t)(&M4_GPIO->PODRA) + 0x10UL * u8Port);
 
-    return (*PODRx & (u16Pin)) ? Pin_Set : Pin_Reset;
+    return ((*PODRx & (u16Pin)) != 0U) ? Pin_Set : Pin_Reset;
 }
 
 /**

@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  ev_hc32f4a0_lqfp176.h
+ * @file  ev_hc32f4a0_lqfp176_lcd.h
  * @brief This file contains all the functions prototypes of the
  *        EV_HC32F4A0_LQFP176 BSP driver library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -182,7 +182,7 @@ extern "C"
 #define LED_RED_PORT            (EIO_PORT1)
 #define LED_RED_PIN             (EIO_LED_RED)
 #define LED_BLUE_PORT           (EIO_PORT1)
-#define LED_BLUE_PIN            (EIO_LED_BULE)
+#define LED_BLUE_PIN            (EIO_LED_BLUE)
 /**
  * @}
  */
@@ -191,7 +191,7 @@ extern "C"
  * @{
  */
 #define LED_RED                 (EIO_LED_RED)
-#define LED_BLUE                (EIO_LED_BULE)
+#define LED_BLUE                (EIO_LED_BLUE)
 /**
  * @}
  */
@@ -270,6 +270,7 @@ void BSP_LED_Toggle(uint8_t u8Led);
 void BSP_KEY_Init(void);
 en_flag_status_t BSP_KEY_GetStatus(uint32_t u32Key);
 void BSP_CLK_Init(void);
+void BSP_CAM_IO_Init(void);
 void BSP_CAM_Init(void);
 void BSP_CAM_RSTCmd(uint8_t Cmd);
 void BSP_CAM_STBCmd(uint8_t Cmd);

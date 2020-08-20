@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-30       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -85,7 +85,8 @@
  ******************************************************************************/
 static void ClockConfig(void);
 static void TrngConfig(void);
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -94,6 +95,57 @@ static uint32_t m_au32Random[2U];
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    //SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    //EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    //SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    //EFM_Lock();
+}
 /**
  * @brief  TRNG end IRQ callback
  * @param  None
@@ -113,12 +165,12 @@ void Trng_IrqCallback(void)
 int32_t main(void)
 {
     stc_irq_signin_config_t stcIrqRegiCfg;
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* Config Clock */
     ClockConfig();
-
     /* Config UART for printing. Baud rate 115200. */
     DDL_PrintfInit();
-
     /* Config TRNG */
     TrngConfig();
 
@@ -131,6 +183,8 @@ int32_t main(void)
     NVIC_SetPriority(stcIrqRegiCfg.enIRQn, DDL_IRQ_PRIORITY_15);
     NVIC_EnableIRQ(stcIrqRegiCfg.enIRQn);
 
+    /* Lock peripherals or registers */
+    Peripheral_WP();
     /* Start TRNG, check TRNG and get random number. */
     TRNG_Generate(m_au32Random);
     while (1)
@@ -140,7 +194,7 @@ int32_t main(void)
 }
 
 /**
- * @brief  Config System Clock and Pclk4 Clock.
+ * @brief  Config System Clock and Pclk4.
  * @param  None
  * @retval None
  */
@@ -164,8 +218,10 @@ static void TrngConfig(void)
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_TRNG, Enable);
     /* Shift 64 times */
     TRNG_SetShiftCnt(TRNG_SHIFT_COUNT_64);
+
     /* Disable the Load function */
-    TRNG_LoadCmd(TRNG_RELOAD_DISABLE);
+    TRNG_ReloadCmd(TRNG_RELOAD_DISABLE);
+    
 }
 
 /**

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-12       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -82,16 +82,27 @@
  * @{
  */
 /* Delay count for timeout */
-#define AES_TIMEOUT                       (0x1000UL)
+#define AES_TIMEOUT                       (30000UL)
+
+/**
+ * @defgroup AES_KEY_LENGTH AES key length in bytes
+ * @{
+ */
+#define AES_KEY_LEN_128BIT            (16U)
+#define AES_KEY_LEN_192BIT            (24U)
+#define AES_KEY_LEN_256BIT            (32U)
+/**
+ * @}
+ */
 
 /**
  * @defgroup AES_Check_Parameters_Validity AES Check Parameters Validity
  * @{
  */
 #define IS_AES_KEYLENGTH(x)                                                    \
-(   ((x) == AES_KEY_LEN_128)                     ||                            \
-    ((x) == AES_KEY_LEN_192)                     ||                            \
-    ((x) == AES_KEY_LEN_256))
+(   ((x) == AES_KEY_LEN_128BIT)                  ||                            \
+    ((x) == AES_KEY_LEN_192BIT)                  ||                            \
+    ((x) == AES_KEY_LEN_256BIT))
 /**
  * @}
  */
@@ -106,8 +117,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void AES_WriteData(uint32_t u32Addr);
-static void AES_ReadData(uint32_t u32Addr);
+static void AES_WriteData(const uint8_t *pu8Srcdata);
+static void AES_ReadData(const uint8_t *pu8Result);
 static void AES_WriteKey(const uint8_t *pu8Key, uint8_t u8KeyLength);
 
 /*******************************************************************************
@@ -124,33 +135,33 @@ static void AES_WriteKey(const uint8_t *pu8Key, uint8_t u8KeyLength);
 
 /**
  * @brief  AES encryption.
- * @param  [in] pu8Plaintext       Pointer to ciphertext(the source data which will be encrypted).
+ * @param  [in] au8Plaintext       Buffer of the plaintext(the source data which will be encrypted).
  * @param  [in] u32PlaintextSize   Length of plaintext in bytes.
  * @param  [in] pu8Key             Pointer to the AES key.
- * @param  [in] u8KeyLength        Length of key in bytes.
- * @param  [in] pu8Ciphertext      The destination address to store the result of the encryption.
+ * @param  [in] u8KeyLength        Buffer of the key in bytes.
+ * @param  [out] au8Ciphertext     Buffer of the ciphertext.
  * @retval An en_result_t enumeration value:
  *         Ok: Encryption successfully.
  *         ErrorInvalidParameter: Invalid parameter
  *         ErrorTimeout: Encryption error timeout
  */
-en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
+en_result_t AES_Encrypt(uint8_t au8Plaintext[],
                         uint32_t u32PlaintextSize,
                         const uint8_t *pu8Key,
                         uint8_t u8KeyLength,
-                        const uint8_t pu8Ciphertext[])
+                        uint8_t au8Ciphertext[])
 {
     en_result_t   enRet = ErrorInvalidParameter;
-    uint32_t u32TimeCount = 0U;
-    uint32_t u32Index = 0U;
-    uint32_t Temp;
-    if((pu8Plaintext != NULL) && (u32PlaintextSize != 0U)   \
+    uint32_t u32TimeCount = 0UL;
+    uint32_t u32Index = 0UL;
+    uint8_t au8FillBuffer[16U] = {0U};
+    if((au8Plaintext != NULL) && (u32PlaintextSize != 0UL)   \
           && (pu8Key != NULL) && (u8KeyLength != 0U)        \
-          && (pu8Ciphertext != NULL))
+          && (au8Ciphertext != NULL))
     {
         DDL_ASSERT(IS_AES_KEYLENGTH(u8KeyLength));
         enRet = Ok;
-        while(u32PlaintextSize)
+        while(u32PlaintextSize > 0UL)
         {
             /* Wait for AES to stop */
             while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1U)
@@ -161,78 +172,96 @@ en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
                     break;
                 }
             }
-            Temp = (uint32_t)&pu8Plaintext[u32Index];
-            AES_WriteData(Temp);
-            AES_WriteKey(pu8Key, u8KeyLength);
-            switch (u8KeyLength)
+            if (enRet == Ok)
             {
-            case AES_KEY_LEN_128:
-                MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_128);
-                break;
-
-            case AES_KEY_LEN_192:
-                MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_192);
-                break;
-
-            case AES_KEY_LEN_256:
-                MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_256);
-                break;
-
-            default:
-                break;
-            }
-            /* Set AES encrypt. */
-            CLEAR_REG32_BIT(M4_AES->CR, AES_CR_MODE);
-            /* Start AES calculating. */
-            SET_REG32_BIT(M4_AES->CR, AES_CR_START);
-            /* Wait for AES to stop */
-            while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1U)
-            {
-                if(u32TimeCount++ > AES_TIMEOUT)
+                if (u32PlaintextSize >= AES_BLOCK_LEN)
                 {
-                    enRet = ErrorTimeout;
+                    AES_WriteData(&au8Plaintext[u32Index]);
+                }
+                else
+                {
+                    memcpy(au8FillBuffer, &au8Plaintext[u32Index], u32PlaintextSize);
+                    AES_WriteData(&au8FillBuffer[0U]);
+                }
+                AES_WriteKey(pu8Key, u8KeyLength);
+                switch (u8KeyLength)
+                {
+                case AES_KEY_LEN_128BIT:
+                    MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_128BIT);
+                    break;
+
+                case AES_KEY_LEN_192BIT:
+                    MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_192BIT);
+                    break;
+
+                case AES_KEY_LEN_256BIT:
+                    MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_256BIT);
+                    break;
+
+                default:
                     break;
                 }
+                /* Set AES encrypt. */
+                CLEAR_REG32_BIT(M4_AES->CR, AES_CR_MODE);
+                /* Start AES calculating. */
+                SET_REG32_BIT(M4_AES->CR, AES_CR_START);
+                /* Wait for AES to stop */
+                u32TimeCount = 0UL;
+                while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1U)
+                {
+                    if(u32TimeCount++ > AES_TIMEOUT)
+                    {
+                        enRet = ErrorTimeout;
+                        break;
+                    }
+                }
+                if (enRet == Ok)
+                {
+                    AES_ReadData(&au8Ciphertext[u32Index]);
+                    if (u32PlaintextSize < AES_BLOCK_LEN)
+                    {
+                        u32PlaintextSize = 0UL;
+                    }
+                    else
+                    {
+                        u32PlaintextSize -= AES_BLOCK_LEN;
+                    }
+                    u32Index += AES_BLOCK_LEN;
+                }
             }
-            Temp = (uint32_t)&pu8Ciphertext[u32Index];
-            AES_ReadData(Temp);
-            u32PlaintextSize -= AES_BLOCK_LEN;
-            u32Index += AES_BLOCK_LEN;
         }
     }
-
     return enRet;
 }
 
 /**
  * @brief  AES decryption.
- * @param  [in] pu8Ciphertext       Pointer to ciphertext(the source data which will be decrypted).
+ * @param  [in] au8Ciphertext       Buffer of the Ciphertext(the source data which will be decrypted).
  * @param  [in] u32CiphertextSize   Length of ciphertext in bytes.
  * @param  [in] pu8Key              Pointer to the AES key.
  * @param  [in] u8KeyLength         Length of key in bytes.
- * @param  [in] pu8Plaintext        The destination address to store the result of the decryption.
+ * @param  [out] au8Plaintext       Buffer of the plaintext.
  * @retval An en_result_t enumeration value:
  *         Ok: Decryption successfully.
  *         ErrorInvalidParameter: Invalid parameter
  *         ErrorTimeout: Decryption error timeout
  */
-en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
+en_result_t AES_Decrypt(uint8_t au8Ciphertext[],
                         uint32_t u32CiphertextSize,
                         const uint8_t *pu8Key,
                         uint8_t u8KeyLength,
-                        const uint8_t pu8Plaintext[])
+                        uint8_t au8Plaintext[])
 {
     en_result_t   enRet = Ok;
-    uint32_t u32TimeCount = 0U;
-    uint32_t u32Index = 0U;
-    uint32_t u32Temp;
-    if((pu8Plaintext != NULL) && (u32CiphertextSize != 0U)   \
-          && (pu8Key != NULL) && (u8KeyLength != 0U)         \
-          && (pu8Ciphertext != NULL))
+    uint32_t u32TimeCount = 0UL;
+    uint32_t u32Index = 0UL;
+    if((au8Plaintext != NULL) && (u32CiphertextSize != 0UL)   \
+          && (pu8Key != NULL) && (u8KeyLength != 0U)          \
+          && (au8Ciphertext != NULL))
     {
         DDL_ASSERT(IS_AES_KEYLENGTH(u8KeyLength));
         enRet = Ok;
-        while(u32CiphertextSize)
+        while(u32CiphertextSize > 0UL)
         {
             /* Wait for AES to stop */
             while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1U)
@@ -243,43 +272,48 @@ en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
                     break;
                 }
             }
-            u32Temp = (uint32_t)&pu8Ciphertext[u32Index];
-            AES_WriteData(u32Temp);
-            AES_WriteKey(pu8Key, u8KeyLength);
-            switch (u8KeyLength)
+            if (enRet == Ok)
             {
-            case AES_KEY_LEN_128:
-                MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_128);
-                break;
-
-            case AES_KEY_LEN_192:
-                MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_192);
-                break;
-
-            case AES_KEY_LEN_256:
-                MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_256);
-                break;
-
-            default:
-                break;
-            }
-            /* Set AES decrypt. */
-            SET_REG32_BIT(M4_AES->CR, AES_CR_MODE);
-            /* Start AES calculating. */
-            SET_REG32_BIT(M4_AES->CR, AES_CR_START);
-            /* Wait for AES to stop */
-            while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1U)
-            {
-                if(u32TimeCount++ > AES_TIMEOUT)
+                AES_WriteData(&au8Ciphertext[u32Index]);
+                AES_WriteKey(pu8Key, u8KeyLength);
+                switch (u8KeyLength)
                 {
-                    enRet = ErrorTimeout;
+                case AES_KEY_LEN_128BIT:
+                    MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_128BIT);
+                    break;
+
+                case AES_KEY_LEN_192BIT:
+                    MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_192BIT);
+                    break;
+
+                case AES_KEY_LEN_256BIT:
+                    MODIFY_REG32(M4_AES->CR, AES_CR_KEYSIZE, AES_KEY_SIZE_256BIT);
+                    break;
+
+                default:
                     break;
                 }
+                /* Set AES decrypt. */
+                SET_REG32_BIT(M4_AES->CR, AES_CR_MODE);
+                /* Start AES calculating. */
+                SET_REG32_BIT(M4_AES->CR, AES_CR_START);
+                /* Wait for AES to stop */
+                u32TimeCount = 0UL;
+                while(READ_REG32_BIT(M4_AES->CR, AES_CR_START) == 1UL)
+                {
+                    if(u32TimeCount++ >= AES_TIMEOUT)
+                    {
+                        enRet = ErrorTimeout;
+                        break;
+                    }
+                }
+                if (enRet == Ok)
+                {
+                    AES_ReadData(&au8Plaintext[u32Index]);
+                    u32CiphertextSize -= AES_BLOCK_LEN;
+                    u32Index += AES_BLOCK_LEN;
+                }
             }
-            u32Temp = pu8Plaintext[u32Index];
-            AES_ReadData(u32Temp);
-            u32CiphertextSize -= AES_BLOCK_LEN;
-            u32Index += AES_BLOCK_LEN;
         }
     }
     return enRet;
@@ -287,39 +321,38 @@ en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
 
 /**
  * @brief  Write the input buffer in data register.
- * @param  [in] u32Addr    Pointer to source data buffer.
- *
+ * @param  [in] pu8Srcdata    Point to the source data buffer.
  * @retval None
  */
-static void AES_WriteData(uint32_t u32Addr)
+static void AES_WriteData(const uint8_t *pu8Srcdata)
 {
-    uint8_t  cnt;
+    uint8_t  i;
     uint32_t u32DrAddr  = (uint32_t)&(M4_AES->DR0);
+    uint32_t u32SrcAddr = (uint32_t)pu8Srcdata;
 
-    for(cnt = 0U; cnt < 4U; cnt++)
+    for(i = 0U; i < 4U; i++)
     {
-        *(__IO uint32_t *)u32DrAddr = *(uint32_t*)u32Addr;
-        u32Addr += 4U;
-        u32DrAddr  += 4U;
+        RW_MEM32(u32DrAddr) = RW_MEM32(u32SrcAddr);
+        u32SrcAddr += 4UL;
+        u32DrAddr  += 4UL;
     }
 }
 
 /**
  * @brief  Read the from data register.
- * @param  [in] u32Addr    Pointer to the destination buffer.
- *
+ * @param  [out] pu8Result    Point to the result buffer.
  * @retval None
  */
-static void AES_ReadData(uint32_t u32Addr)
+static void AES_ReadData(const uint8_t *pu8Result)
 {
-    uint8_t  cnt;
+    uint8_t  i;
     uint32_t u32DrAddr   = (uint32_t)&(M4_AES->DR0);
-
-    for(cnt = 0U; cnt < 4U; cnt++)
+    uint32_t u32ResultAddr = (uint32_t)pu8Result;
+    for(i = 0U; i < 4U; i++)
     {
-        *(uint32_t*)u32Addr = *(__IO uint32_t *)u32DrAddr;
+        RW_MEM32(u32ResultAddr) = RW_MEM32(u32DrAddr);
         u32DrAddr += 4U;
-        u32Addr   += 4U;
+        u32ResultAddr += 4UL;
     }
 }
 
@@ -331,31 +364,34 @@ static void AES_ReadData(uint32_t u32Addr)
  */
 static void AES_WriteKey(const uint8_t *pu8Key, uint8_t u8KeyLength)
 {
-    uint8_t cnt;
-    uint8_t length = 0U;
-    uint32_t u32SrcKeyAddr = (uint32_t)pu8Key;
-    uint32_t u32KeyAddr    = (uint32_t)&(M4_AES->KR0);
+    uint8_t i;
+    uint8_t Length = 0U;
+    uint32_t u32KeyAddr  = (uint32_t)&(M4_AES->KR0);
+    uint32_t u32DataAddr = (uint32_t)pu8Key;
     switch (u8KeyLength)
     {
-        case 16U:
-            length = 4U;
+        case AES_KEY_LEN_128BIT:
+            Length = 4U;
             break;
-        case 24U:
-            length = 6U;
+        case AES_KEY_LEN_192BIT:
+            Length = 6U;
             break;
-        case 32U:
-            length = 8U;
+        case AES_KEY_LEN_256BIT:
+            Length = 8U;
             break;
         default:
             break;
     }
-    for(cnt = 0U; cnt < length; cnt++)
+    for(i = 0U; i < Length; i++)
     {
-        *(__IO uint32_t *)u32KeyAddr = *(uint32_t*)u32SrcKeyAddr;
-        u32SrcKeyAddr += 4U;
-        u32KeyAddr    += 4U;
+        RW_MEM32(u32KeyAddr) = RW_MEM32(u32DataAddr);
+        u32DataAddr += 4UL;
+        u32KeyAddr += 4UL;
     }
 }
+/**
+ * @}
+ */
 
 #endif /* DDL_AES_ENABLE */
 

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-23       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -150,10 +150,10 @@
     ((x) == RTC_INTRU_FILTER_THREE_TIME_CLK_DIV32))
 
 #define IS_RTC_INTRUSION_DETECT_EDGE(x)                                        \
-(   ((x) == RTC_DETECT_DEGE_NONE)                   ||                         \
-    ((x) == RTC_DETECT_DEGE_RISING)                 ||                         \
-    ((x) == RTC_DETECT_DEGE_FALLING)                ||                         \
-    ((x) == RTC_DETECT_DEGE_RISING_FALLING))
+(   ((x) == RTC_DETECT_EDGE_NONE)                   ||                         \
+    ((x) == RTC_DETECT_EDGE_RISING)                 ||                         \
+    ((x) == RTC_DETECT_EDGE_FALLING)                ||                         \
+    ((x) == RTC_DETECT_EDGE_RISING_FALLING))
 
 #define IS_RTC_GET_FLAG(x)                                                     \
 (   (0UL != (x))                                    &&                         \
@@ -235,7 +235,7 @@
  */
 en_result_t RTC_DeInit(void)
 {
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
     en_result_t enRet = Ok;
 
     WRITE_REG32(bM4_RTC->CR0_b.RESET, Reset);
@@ -243,7 +243,7 @@ en_result_t RTC_DeInit(void)
     u32Count = RTC_SOFTWARE_RESET_TIMEOUT * (HCLK_VALUE / 20000UL);
     do
     {
-        if (--u32Count == 0UL)
+        if (u32Count-- == 0UL)
         {
             enRet = ErrorTimeout;
             break;
@@ -258,7 +258,7 @@ en_result_t RTC_DeInit(void)
         u32Count = RTC_SOFTWARE_RESET_TIMEOUT * (HCLK_VALUE / 20000UL);
         do
         {
-            if (--u32Count == 0UL)
+            if (u32Count-- == 0UL)
             {
                 enRet = ErrorTimeout;
                 break;
@@ -345,23 +345,26 @@ en_result_t RTC_StructInit(stc_rtc_init_t *pstcRtcInit)
  */
 en_result_t RTC_EnterRwMode(void)
 {
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
     en_result_t enRet = Ok;
 
     /* Mode switch when RTC is running */
     if (0UL != READ_REG32(bM4_RTC->CR1_b.START))
     {
-        WRITE_REG32(bM4_RTC->CR2_b.RWREQ, Set);
-        /* Waiting for RWEN bit set */
-        u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
-        do
+        if (1UL != READ_REG32(bM4_RTC->CR2_b.RWEN))
         {
-            if (--u32Count == 0UL)
+            WRITE_REG32(bM4_RTC->CR2_b.RWREQ, Set);
+            /* Waiting for RWEN bit set */
+            u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
+            do
             {
-                enRet = ErrorTimeout;
-                break;
-            }
-        } while (1UL != READ_REG32(bM4_RTC->CR2_b.RWEN));
+                if (u32Count-- == 0UL)
+                {
+                    enRet = ErrorTimeout;
+                    break;
+                }
+            } while (1UL != READ_REG32(bM4_RTC->CR2_b.RWEN));
+        }
     }
 
     return enRet;
@@ -376,23 +379,26 @@ en_result_t RTC_EnterRwMode(void)
  */
 en_result_t RTC_ExitRwMode(void)
 {
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
     en_result_t enRet = Ok;
 
     /* Mode switch when RTC is running */
     if (0UL != READ_REG32(bM4_RTC->CR1_b.START))
     {
-        WRITE_REG32(bM4_RTC->CR2_b.RWREQ, Reset);
-        /* Waiting for RWEN bit reset */
-        u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
-        do
+        if (0UL != READ_REG32(bM4_RTC->CR2_b.RWEN))
         {
-            if (--u32Count == 0UL)
+            WRITE_REG32(bM4_RTC->CR2_b.RWREQ, Reset);
+            /* Waiting for RWEN bit reset */
+            u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
+            do
             {
-                enRet = ErrorTimeout;
-                break;
-            }
-        } while (0UL != READ_REG32(bM4_RTC->CR2_b.RWEN));
+                if (u32Count-- == 0UL)
+                {
+                    enRet = ErrorTimeout;
+                    break;
+                }
+            } while (0UL != READ_REG32(bM4_RTC->CR2_b.RWEN));
+        }
     }
 
     return enRet;
@@ -413,7 +419,8 @@ en_result_t RTC_ExitRwMode(void)
  */
 void RTC_PeriodIntConfig(uint8_t u8IntCond)
 {
-    uint32_t u32RtcSta, u32IntSta;
+    uint32_t u32RtcSta;
+    uint32_t u32IntSta;
 
     /* Check parameters */
     DDL_ASSERT(IS_RTC_PERIOD_INTERRUPT(u8IntCond));
@@ -445,7 +452,7 @@ void RTC_PeriodIntConfig(uint8_t u8IntCond)
  */
 en_result_t RTC_LowPowerCheck(void)
 {
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
     en_result_t enRet = Ok;
 
     /* Check RTC work status */
@@ -456,7 +463,7 @@ en_result_t RTC_LowPowerCheck(void)
         u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
         do
         {
-            if (--u32Count == 0UL)
+            if (u32Count-- == 0UL)
             {
                 enRet = ErrorTimeout;
                 break;
@@ -470,7 +477,7 @@ en_result_t RTC_LowPowerCheck(void)
             u32Count = RTC_MODE_SWITCH_TIMEOUT * (HCLK_VALUE / 20000UL);
             do
             {
-                if (--u32Count == 0UL)
+                if (u32Count-- == 0UL)
                 {
                     enRet = ErrorTimeout;
                     break;
@@ -992,17 +999,17 @@ void RTC_AlarmCmd(en_functional_state_t enNewSta)
  *         This parameter can be one of the following values:
  *           @arg RTC_INTRU_CH0:    Intrusion channel 0
  *           @arg RTC_INTRU_CH1:    Intrusion channel 1
- * @param  [out] stcIntru               Pointer to a @ref stc_rtc_intrusion_t structure
+ * @param  [in] pstcIntru               Pointer to a @ref stc_rtc_intrusion_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Configure RTC intrusion function success
  *           - ErrorInvalidParameter: Invalid parameter
  */
-en_result_t RTC_IntrusionConfig(uint8_t u8Ch, const stc_rtc_intrusion_t *stcIntru)
+en_result_t RTC_IntrusionConfig(uint8_t u8Ch, const stc_rtc_intrusion_t *pstcIntru)
 {
     en_result_t enRet = Ok;
     __IO uint8_t *TPCR = NULL;
 
-    if (NULL == stcIntru)
+    if (NULL == pstcIntru)
     {
         enRet = ErrorInvalidParameter;
     }
@@ -1010,16 +1017,16 @@ en_result_t RTC_IntrusionConfig(uint8_t u8Ch, const stc_rtc_intrusion_t *stcIntr
     {
         /* Check parameters */
         DDL_ASSERT(IS_RTC_INTRUSION_CHANNEL(u8Ch));
-        DDL_ASSERT(IS_RTC_INTRUSION_TIMESTAMP(stcIntru->u8TimeStampEn));
-        DDL_ASSERT(IS_RTC_RESET_BACKUP_REGISTER(stcIntru->u8ResetBackupRegEn));
-        DDL_ASSERT(IS_RTC_INTRUSION_FILTER(stcIntru->u8Filter));
-        DDL_ASSERT(IS_RTC_INTRUSION_DETECT_EDGE(stcIntru->u8TrigEdge));
+        DDL_ASSERT(IS_RTC_INTRUSION_TIMESTAMP(pstcIntru->u8TimeStampEn));
+        DDL_ASSERT(IS_RTC_RESET_BACKUP_REGISTER(pstcIntru->u8ResetBackupRegEn));
+        DDL_ASSERT(IS_RTC_INTRUSION_FILTER(pstcIntru->u8Filter));
+        DDL_ASSERT(IS_RTC_INTRUSION_DETECT_EDGE(pstcIntru->u8TrigEdge));
 
         TPCR = (__IO uint8_t *)RTC_TPCRx(u8Ch);
         /* RTC Intrusion control Configuration */
         MODIFY_REG8(*TPCR, RTC_TPCR_CLEAR_MASK,
-                    (stcIntru->u8TimeStampEn | stcIntru->u8ResetBackupRegEn |
-                     stcIntru->u8Filter | stcIntru->u8TrigEdge));
+                    (pstcIntru->u8TimeStampEn | pstcIntru->u8ResetBackupRegEn |
+                     pstcIntru->u8Filter      | pstcIntru->u8TrigEdge));
     }
 
     return enRet;
@@ -1031,16 +1038,16 @@ en_result_t RTC_IntrusionConfig(uint8_t u8Ch, const stc_rtc_intrusion_t *stcIntr
  *         This parameter can be one of the following values:
  *           @arg RTC_DATA_FORMAT_DEC:  Decimal data format
  *           @arg RTC_DATA_FORMAT_BCD:  BCD data format
- * @param  [out] stcTimestamp           Pointer to a @ref stc_rtc_timestamp_t structure
+ * @param  [out] pstcTimestamp          Pointer to a @ref stc_rtc_timestamp_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Get RTC intrusion timestamp success
  *           - ErrorInvalidParameter: Invalid parameter
  */
-en_result_t RTC_GetIntrusionTimestamp(uint8_t u8Format, stc_rtc_timestamp_t *stcTimestamp)
+en_result_t RTC_GetIntrusionTimestamp(uint8_t u8Format, stc_rtc_timestamp_t *pstcTimestamp)
 {
     en_result_t enRet = Ok;
 
-    if (NULL == stcTimestamp)
+    if (NULL == pstcTimestamp)
     {
         enRet = ErrorInvalidParameter;
     }
@@ -1050,37 +1057,37 @@ en_result_t RTC_GetIntrusionTimestamp(uint8_t u8Format, stc_rtc_timestamp_t *stc
         DDL_ASSERT(IS_RTC_DATA_FORMAT(u8Format));
 
         /* Get RTC Timestamp registers */
-        stcTimestamp->stcTSTime.u8Hour   = READ_REG8(M4_RTC->HOURTP);
-        stcTimestamp->stcTSTime.u8Minute = READ_REG8(M4_RTC->MINTP);
-        stcTimestamp->stcTSTime.u8Second = READ_REG8(M4_RTC->SECTP);
-        stcTimestamp->u8TSMonth          = READ_REG8(M4_RTC->MONTP);
-        stcTimestamp->u8TSDay            = READ_REG8(M4_RTC->DAYTP);
+        pstcTimestamp->stcTSTime.u8Hour   = READ_REG8(M4_RTC->HOURTP);
+        pstcTimestamp->stcTSTime.u8Minute = READ_REG8(M4_RTC->MINTP);
+        pstcTimestamp->stcTSTime.u8Second = READ_REG8(M4_RTC->SECTP);
+        pstcTimestamp->u8TSMonth          = READ_REG8(M4_RTC->MONTP);
+        pstcTimestamp->u8TSDay            = READ_REG8(M4_RTC->DAYTP);
 
         if (RTC_HOUR_FORMAT_12 == READ_REG32(bM4_RTC->CR1_b.AMPM))
         {
-            if (RTC_HOUR12_PM == (stcTimestamp->stcTSTime.u8Hour & RTC_HOUR12_PM))
+            if (RTC_HOUR12_PM == (pstcTimestamp->stcTSTime.u8Hour & RTC_HOUR12_PM))
             {
-                stcTimestamp->stcTSTime.u8Hour &= (uint8_t)(~RTC_HOUR12_PM);
-                stcTimestamp->stcTSTime.u8AmPm  = RTC_HOUR12_PM;
+                pstcTimestamp->stcTSTime.u8Hour &= (uint8_t)(~RTC_HOUR12_PM);
+                pstcTimestamp->stcTSTime.u8AmPm  = RTC_HOUR12_PM;
             }
             else
             {
-                stcTimestamp->stcTSTime.u8AmPm = RTC_HOUR12_AM_HOUR24;
+                pstcTimestamp->stcTSTime.u8AmPm = RTC_HOUR12_AM_HOUR24;
             }
         }
         else
         {
-            stcTimestamp->stcTSTime.u8AmPm = RTC_HOUR12_AM_HOUR24;
+            pstcTimestamp->stcTSTime.u8AmPm = RTC_HOUR12_AM_HOUR24;
         }
 
         /* Check decimal format*/
         if (RTC_DATA_FORMAT_DEC == u8Format)
         {
-            stcTimestamp->stcTSTime.u8Hour   = BCD2DEC(stcTimestamp->stcTSTime.u8Hour);
-            stcTimestamp->stcTSTime.u8Minute = BCD2DEC(stcTimestamp->stcTSTime.u8Minute);
-            stcTimestamp->stcTSTime.u8Second = BCD2DEC(stcTimestamp->stcTSTime.u8Second);
-            stcTimestamp->u8TSMonth          = BCD2DEC(stcTimestamp->u8TSMonth);
-            stcTimestamp->u8TSDay            = BCD2DEC(stcTimestamp->u8TSDay);
+            pstcTimestamp->stcTSTime.u8Hour   = BCD2DEC(pstcTimestamp->stcTSTime.u8Hour);
+            pstcTimestamp->stcTSTime.u8Minute = BCD2DEC(pstcTimestamp->stcTSTime.u8Minute);
+            pstcTimestamp->stcTSTime.u8Second = BCD2DEC(pstcTimestamp->stcTSTime.u8Second);
+            pstcTimestamp->u8TSMonth          = BCD2DEC(pstcTimestamp->u8TSMonth);
+            pstcTimestamp->u8TSDay            = BCD2DEC(pstcTimestamp->u8TSDay);
         }
     }
 
@@ -1088,7 +1095,7 @@ en_result_t RTC_GetIntrusionTimestamp(uint8_t u8Format, stc_rtc_timestamp_t *stc
 }
 
 /**
- * @brief  Enable or disable RTC alarm.
+ * @brief  Enable or disable RTC intrusion.
  * @param  [in] u8Ch                    Specifies the RTC intrusion channel.
  *         This parameter can be one of the following values:
  *           @arg RTC_INTRU_CH0:    Intrusion channel 0
@@ -1119,8 +1126,8 @@ void RTC_IntrusionCmd(uint8_t u8Ch, en_functional_state_t enNewSta)
  *         This parameter can be one or any combination of the following values:
  *           @arg RTC_INT_PRDIE:    Period interrupt
  *           @arg RTC_INT_ALMIE:    Alarm interrupt
- *           @arg RTC_INT_TPIE0:    RTCIC0 invasion interrupt
- *           @arg RTC_INT_TPIE1:    RTCIC1 invasion interrupt
+ *           @arg RTC_INT_TPIE0:    RTCIC0 intrusion interrupt
+ *           @arg RTC_INT_TPIE1:    RTCIC1 intrusion interrupt
  * @param  [in] enNewSta                The function new state.
  *           @arg This parameter can be: Enable or Disable.
  * @retval None
@@ -1161,9 +1168,9 @@ void RTC_IntCmd(uint32_t u32IntSrc, en_functional_state_t enNewSta)
  *           @arg RTC_FLAG_PRDF:    Period flag
  *           @arg RTC_FLAG_ALMF:    Alarm flag
  *           @arg RTC_FLAG_RWEN:    Read and write permission flag
- *           @arg RTC_FLAG_TPOVF:   Invasion overflow flag
- *           @arg RTC_FLAG_TPF0:    RTCIC0 invasion flag
- *           @arg RTC_FLAG_TPF1:    RTCIC1 invasion flag
+ *           @arg RTC_FLAG_TPOVF:   Intrusion overflow flag
+ *           @arg RTC_FLAG_TPF0:    RTCIC0 intrusion flag
+ *           @arg RTC_FLAG_TPF1:    RTCIC1 intrusion flag
  * @retval An en_flag_status_t enumeration value:
  *           - Set: Flag is set
  *           - Reset: Flag is reset
@@ -1171,7 +1178,8 @@ void RTC_IntCmd(uint32_t u32IntSrc, en_functional_state_t enNewSta)
 en_flag_status_t RTC_GetStatus(uint32_t u32Flag)
 {
     en_flag_status_t enFlagSta = Reset;
-    uint8_t u8NormalFlag = 0U, u8IntruFlag = 0U;
+    uint8_t u8NormalFlag;
+    uint8_t u8IntruFlag;
 
     /* Check parameters */
     DDL_ASSERT(IS_RTC_GET_FLAG(u32Flag));
@@ -1180,14 +1188,14 @@ en_flag_status_t RTC_GetStatus(uint32_t u32Flag)
     u8IntruFlag  = (uint8_t)((u32Flag >> 16U) & 0xFFU);
     if (0U != u8NormalFlag)
     {
-        if (Reset != (READ_REG8_BIT(M4_RTC->CR2, u8NormalFlag)))
+        if (0U != (READ_REG8_BIT(M4_RTC->CR2, u8NormalFlag)))
         {
             enFlagSta = Set;
         }
     }
-    if (0U != u8IntruFlag)
+    if ((0U != u8IntruFlag) && (Set != enFlagSta))
     {
-        if (Reset != (READ_REG8_BIT(M4_RTC->TPSR, u8IntruFlag)))
+        if (0U != (READ_REG8_BIT(M4_RTC->TPSR, u8IntruFlag)))
         {
             enFlagSta = Set;
         }
@@ -1202,14 +1210,15 @@ en_flag_status_t RTC_GetStatus(uint32_t u32Flag)
  *         This parameter can be one or any combination of the following values:
  *           @arg RTC_FLAG_PRDF:    Period flag
  *           @arg RTC_FLAG_ALMF:    Alarm flag
- *           @arg RTC_FLAG_TPOVF:   Invasion overflow flag
- *           @arg RTC_FLAG_TPF0:    RTCIC0 invasion flag
- *           @arg RTC_FLAG_TPF1:    RTCIC1 invasion flag
+ *           @arg RTC_FLAG_TPOVF:   Intrusion overflow flag
+ *           @arg RTC_FLAG_TPF0:    RTCIC0 intrusion flag
+ *           @arg RTC_FLAG_TPF1:    RTCIC1 intrusion flag
  * @retval None
  */
 void RTC_ClearStatus(uint32_t u32Flag)
 {
-    uint8_t u8NormalFlag = 0U, u8IntruFlag = 0U;
+    uint8_t u8NormalFlag;
+    uint8_t u8IntruFlag;
 
     /* Check parameters */
     DDL_ASSERT(IS_RTC_CLEAR_FLAG(u32Flag));

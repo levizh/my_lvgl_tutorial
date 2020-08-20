@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -81,7 +81,7 @@
 #define APP_ADC_UNIT1                       (M4_ADC1)
 #define APP_ADC_UNIT2                       (M4_ADC2)
 #define APP_ADC_PERIP_CLK                   (PWC_FCG3_ADC2 | PWC_FCG3_ADC1)
-#define APP_PGA_PERIP_CLK                   (1UL << 3U)//TODO:
+#define APP_PGA_PERIP_CLK                   (PWC_FCG3_CMBIAS)
 
 /* Definitions of PGA. */
 #define APP_ADC_PGA1                        (ADC_PGA_1)
@@ -146,6 +146,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void AdcConfig(void);
 static void AdcClockConfig(void);
 static void AdcInitConfig(void);
@@ -179,13 +182,16 @@ int32_t main(void)
 {
     /* The default system clock source is MRC(8MHz). */
 
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures ADC. */
     AdcConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
     /***************** Configuration end, application start **************/
 
@@ -208,13 +214,65 @@ int32_t main(void)
         DBG("\t--->> PGA1 input voltage: %.3f, output voltage: %.3f.\n", APP_CAL_VOL(m_au16Adc1SaInVal[0U]), APP_CAL_VOL(m_au16Adc1SaVal[0U]));
         DBG("\t--->> PGA3 input voltage: %.3f, output voltage: %.3f.\n", APP_CAL_VOL(m_au16Adc1SaInVal[1U]), APP_CAL_VOL(m_au16Adc1SaVal[1U]));
         DBG("\t--->> PGA4 input voltage: %.3f, output voltage: %.3f.\n", APP_CAL_VOL(m_au16Adc2SaInVal[0U]), APP_CAL_VOL(m_au16Adc2SaVal[0U]));
-        DDL_Delay1ms(1000U);
+        DDL_DelayMS(1000U);
 #else
         ADC_PollingSA(APP_ADC_UNIT1, m_au16Adc1SaVal, APP_ADC1_SA_CH_COUNT, APP_TIMEOUT_MS);
         ADC_PollingSA(APP_ADC_UNIT2, m_au16Adc2SaVal, APP_ADC2_SA_CH_COUNT, APP_TIMEOUT_MS);
         /* TODO: Use the ADC values. */
 #endif
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    // PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    // EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    // PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    // EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -307,7 +365,7 @@ static void AdcPgaConfig(void)
     PWC_Fcg3PeriphClockCmd(APP_PGA_PERIP_CLK, Enable);
 
     /* 2. Delay 2us is needed by PGA. */
-    DDL_Delay1ms(1U);
+    DDL_DelayUS(5U);
 
     /* 3. Specify the gain factor and the VSS. */
     ADC_PGA_Config(APP_ADC_PGA1, APP_ADC_PGA1_GAIN, APP_ADC_PGA1_VSS);
@@ -334,15 +392,15 @@ static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32C
 {
     uint8_t u8PinNum;
 
-    u8PinNum = 0u;
-    while (u32Channel != 0u)
+    u8PinNum = 0U;
+    while (u32Channel != 0U)
     {
-        if (u32Channel & 0x1u)
+        if (u32Channel & 0x1U)
         {
             AdcSetPinAnalogMode(ADCx, u8PinNum);
         }
 
-        u32Channel >>= 1u;
+        u32Channel >>= 1U;
         u8PinNum++;
     }
 }

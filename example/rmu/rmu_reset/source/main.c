@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  rmu/source/main.c
+ * @file  rmu/rmu_reset/source/main.c
  * @brief Main program of RMU for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-20       Heqb         First version
+   2020-06-12       Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup RMU
+ * @addtogroup RMU_Reset
  * @{
  */
 
@@ -82,7 +82,7 @@
 #define RESET_CLKFREQERR                (5U)
 
 /* Modify for test reset mode */
-#define TEST_RESET_MODE                 (RESET_CLKFREQERR)
+#define TEST_RESET_MODE                 (RESET_PVD)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -91,9 +91,10 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-static void PrintResetMode(stc_rmu_rstcause_t stcRst);
+static void PrintResetMode(void);
 static void MakeReset(void);
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -101,6 +102,57 @@ static void MakeReset(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    //GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    //PWC_FCG0_Lock();
+    /* Lock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    //PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    //SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    //EFM_Lock();
+}
 
 /**
  * @brief  Main function of RMU project
@@ -109,8 +161,8 @@ static void MakeReset(void);
  */
 int32_t main(void)
 {
-    stc_rmu_rstcause_t stcResetFlag;
-
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* Configure system clock. HClK = 240MHZ */
     BSP_CLK_Init();
     /* configuration uart for debug information */
@@ -120,15 +172,12 @@ int32_t main(void)
     BSP_KEY_Init();
     /* Enable CPU lockup reset */
     RMU_CPULockUpCmd(Enable);
-    RMU_CPULockUpCmd(Disable);
 
-    /* Get reset cause */
-    RMU_GetStatus(&stcResetFlag);
     /* Printf reset cause */
-    PrintResetMode(stcResetFlag);
+    PrintResetMode();
 
-    printf("\nPress SW10 to config reset condition.\n");
-    /* Wait short press key SW10 */
+    printf("\nPress SW1 to config reset condition.\n");
+    /* Wait short press KEY_1(SW1) */
     while(Reset == BSP_KEY_GetStatus(BSP_KEY_1))
     {
         ;
@@ -136,78 +185,80 @@ int32_t main(void)
     /* Clear reset cause */
     RMU_ClrStatus();
     MakeReset();
-
+    /* Lock peripherals or registers */
+    Peripheral_WP();
     /* Reset condition configuration finished */
-    while(1u)
+    while(1U)
     {
+        ;
     }
 }
 
 
 /**
  * @brief  Print reset information.
- * @param  [in]  stcResetFlag    Reset cause structure
+ * @param  None
  * @retval None
  */
-static void PrintResetMode(stc_rmu_rstcause_t stcResetFlag)
+static void PrintResetMode(void)
 {
-    if(Set == stcResetFlag.enXtalErrRst)
+    if(Set == RMU_GetStatus(RMU_RST_XTAL_ERR))
     {
         printf("XTAL error reset.\r\n");
     }
-    if(Set == stcResetFlag.enCpuLockErrRst)
+    if(Set == RMU_GetStatus(RMU_RST_LOCKUP))
     {
         printf("M4 CPU lock reset.\r\n");
     }
-    if(Set == stcResetFlag.enClkFreqErrRst)
+    if(Set == RMU_GetStatus(RMU_RST_CLK_ERR))
     {
         printf("Clock freqence error reset.\r\n");
     }
-    if(Set == stcResetFlag.enRamEccRst)
+    if(Set == RMU_GetStatus(RMU_RST_RAM_ECC))
     {
         printf("Ram ECC reset.\r\n");
     }
-    if(Set == stcResetFlag.enRamParityErrRst)
+    if(Set == RMU_GetStatus(RMU_RST_RAM_PARITY_ERR))
     {
         printf("RAM parity error reset.\r\n");
     }
-    if(Set == stcResetFlag.enMpuErrRst)
+    if(Set == RMU_GetStatus(RMU_RST_MPU_ERR))
     {
         printf("Mpu error reset.\r\n");
     }
-    if(Set == stcResetFlag.enSoftwareRst)
+    if(Set == RMU_GetStatus(RMU_RST_SOFTWARE))
     {
         printf("Software reset.\r\n");
     }
-    if(Set == stcResetFlag.enPowerDownRst)
+    if(Set == RMU_GetStatus(RMU_RST_POWER_DOWN))
     {
         printf("Power down reset.\r\n");
     }
-    if(Set == stcResetFlag.enSwdtRst)
+    if(Set == RMU_GetStatus(RMU_RST_SWDT))
     {
         printf("Special watchdog timer reset.\r\n");
     }
-    if(Set == stcResetFlag.enWdtRst)
+    if(Set == RMU_GetStatus(RMU_RST_WDT))
     {
         printf("Watchdog timer reset.\r\n");
     }
-    if(Set == stcResetFlag.enPvd2Rst)
+    if(Set == RMU_GetStatus(RMU_RST_PVD2))
     {
         printf("Program voltage Dectection 2 reset.\r\n");
     }
-    if(Set == stcResetFlag.enPvd1Rst)
+    if(Set == RMU_GetStatus(RMU_RST_PVD1))
     {
         printf("Program voltage Dectection 1 reset.\r\n");
     }
-    if(Set == stcResetFlag.enBrownOutRst)
+    if(Set == RMU_GetStatus(RMU_RST_BROWN_OUT))
     {
-        printf("Low voltage 0 detect reset.\r\n");
+        printf("Brown-out reset.\r\n");
     }
-    if(Set == stcResetFlag.enRstPinRst)
+    if(Set == RMU_GetStatus(RMU_RST_RESET_PIN))
     {
         printf("Reset pin reset.\r\n");
     }
-    if(Set == stcResetFlag.enPowerOnRst)
+    if(Set == RMU_GetStatus(RMU_RST_POWER_ON))
     {
         printf("Power on reset.\r\n");
     }
@@ -250,11 +301,11 @@ static void MakeReset(void)
     stcSwdtInit.u32CountCycle    = SWDT_COUNTER_CYCLE_256;
     stcSwdtInit.u32ClockDivision = SWDT_CLOCK_DIV64;
     stcSwdtInit.u32RefreshRange  = SWDT_RANGE_0TO25PCT;
-    stcSwdtInit.u32LPModeCountEn = SWDT_LPW_MODE_COUNT_STOP;
+    stcSwdtInit.u32LPModeCountEn = SWDT_LPM_COUNT_STOP;
     stcSwdtInit.u32TrigType      = SWDT_TRIG_EVENT_RESET;
     SWDT_Init(&stcSwdtInit);
     /* Start SWDT */
-    SWDT_ReloadCounter();
+    SWDT_Feed();
 
 #elif (TEST_RESET_MODE == RESET_WDT)
     /* Configuration  Special Watchdog function */
@@ -263,26 +314,35 @@ static void MakeReset(void)
     stcWdtInit.u32CountCycle    = WDT_COUNTER_CYCLE_65536;
     stcWdtInit.u32ClockDivision = WDT_CLOCK_DIV512;
     stcWdtInit.u32RefreshRange  = WDT_RANGE_0TO25PCT;
-    stcWdtInit.u32LPModeCountEn = WDT_LPW_MODE_COUNT_STOP;
+    stcWdtInit.u32LPModeCountEn = WDT_LPM_COUNT_STOP;
     stcWdtInit.u32TrigType      = WDT_TRIG_EVENT_RESET;
     WDT_Init(&stcWdtInit);
     /* Start SWDT */
-    WDT_ReloadCounter();
+    WDT_Feed();
 
 #elif (TEST_RESET_MODE == RESET_PVD)
     /* Configuration Program voltage Dectection */
-    stc_pwc_lvd_config_t  stcPwcLvdConfig;
-    PWC_LVD_StructInit(&stcPwcLvdConfig);
-    /* Config PVD */
+    stc_pwc_pvd_config_t  stcPwcPvdConfig;
+    PWC_PVD_StructInit(&stcPwcPvdConfig);
+    /* Config PVD1 */
     /* PVD1: 2.8V; PVD2: 2.7V */
-    stcPwcLvdConfig.u8LvdVoltage  = PWC_LVD1_2V8 | PWC_LVD2_2V7;
-    stcPwcLvdConfig.u8LvdCmpOutEn = PWC_LVD1_CMP_ON | PWC_LVD2_CMP_ON;
-    stcPwcLvdConfig.u8LvdEn       = PWC_LVD1_ON | PWC_LVD2_ON;
-    stcPwcLvdConfig.u8LvdIntRstEn = PWC_LVD1_IR_ON | PWC_LVD2_IR_ON;
-    stcPwcLvdConfig.u8LvdIntRstSel= PWC_LVD1_RST | PWC_LVD2_RST;
-    stcPwcLvdConfig.u8LvdNmiEn    = PWC_LVD1_INT_MASK | PWC_LVD2_INT_MASK;
-    PWC_LVD_Init(&stcPwcLvdConfig);
+    stcPwcPvdConfig.u8PvdVoltage  = PWC_PVD1_2V7_PVD2_2V8;
+    stcPwcPvdConfig.u8PvdCmpOutEn = PWC_PVD_CMP_ON;
+    stcPwcPvdConfig.u8PvdEn       = PWC_PVD_ON;
+    stcPwcPvdConfig.u8PvdIntRstEn = PWC_PVD_IR_ON;
+    stcPwcPvdConfig.u8PvdIntRstSel= PWC_PVD_RST;
+    stcPwcPvdConfig.u8PvdNmiEn    = PWC_PVD_INT_MASK;
+    PWC_PVD_Init(PWC_PVD_CH1, &stcPwcPvdConfig);
 
+    /* Config PVD2 */
+    /* PVD1: 2.8V; PVD2: 2.7V */
+    stcPwcPvdConfig.u8PvdVoltage  = PWC_PVD1_2V7_PVD2_2V8;
+    stcPwcPvdConfig.u8PvdCmpOutEn = PWC_PVD_CMP_ON;
+    stcPwcPvdConfig.u8PvdEn       = PWC_PVD_ON;
+    stcPwcPvdConfig.u8PvdIntRstEn = PWC_PVD_IR_ON;
+    stcPwcPvdConfig.u8PvdIntRstSel= PWC_PVD_RST;
+    stcPwcPvdConfig.u8PvdNmiEn    = PWC_PVD_INT_MASK;
+    PWC_PVD_Init(PWC_PVD_CH2, &stcPwcPvdConfig);
 #elif (TEST_RESET_MODE == RESET_CLKFREQERR)
     /* Configuration Clk freqence  measurement function */
     stc_fcm_init_t stcFcmInit;

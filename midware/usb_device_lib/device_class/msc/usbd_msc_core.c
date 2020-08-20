@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-05-15       Zhangxl         First version
+   2020-06-12      Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -278,7 +278,7 @@ uint8_t  USBD_MSC_Init(void  *pdev,
 }
 
 /**
- * @brief  DeInitilaize  the mass storage configuration
+ * @brief Initialize the mass storage configuration
  * @param pdev : device instance
  * @param cfgidx : configuration index
  * @retval : status

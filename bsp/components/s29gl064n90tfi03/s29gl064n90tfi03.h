@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-09       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -76,7 +76,7 @@ extern "C"
  */
 
 /**
- * @defgroup S29GL064N90TFI03
+ * @addtogroup S29GL064N90TFI03
  * @{
  */
 
@@ -89,10 +89,26 @@ extern "C"
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/**
+ * @defgroup S29GL064N90TFI03_Global_Macros S29GL064N90TFI03 Global Macros
+ * @{
+ */
+
+/**
+ * @defgroup S29GL064N90TFI03_ID_Information S29GL064N90TFI03 ID Information
+ * @{
+ */
 #define S29GL064N90TFI03_MANUFACTURER_ID    (0x0001U)
 #define S29GL064N90TFI03_DEVICE_ID1         (0x227EU)
 #define S29GL064N90TFI03_DEVICE_ID2         (0x2210U)
 #define S29GL064N90TFI03_DEVICE_ID3         (0x2201U)
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -169,6 +185,10 @@ en_result_t BSP_SMC_S29GL064_ReadBuffer(uint32_t u32DevicBaseAddress,
 /**
  * @}
  */
+
+/**
+* @}
+*/
 
 #ifdef __cplusplus
 }

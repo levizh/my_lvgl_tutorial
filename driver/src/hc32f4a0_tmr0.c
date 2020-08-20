@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-15       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -91,9 +91,9 @@
 #define TMR0_CHB_CLKSRC_MSK             (TMR0_BCONR_SYNSB   |                  \
                                         TMR0_BCONR_SYNCLKB  |                  \
                                         TMR0_BCONR_ASYNCLKB)
-#define TMR0_COM_TRIG_EN_MSK            (TMR0_COM1_TRIG_ENABLE | TMR0_COM2_TRIG_ENABLE)
-#define TMR0_CHB_POS                    (16U)
 
+#define TMR0_CHB_POS                    (16U)
+#define TMR0_OFFEST(ch)                 ((ch) * TMR0_CHB_POS)
 /**
  * @defgroup TMR0_Check_Parameters_Validity TMR0 Check Parameters Validity
  * @{
@@ -103,8 +103,8 @@
     ((x) == M4_TMR0_2))
 
 #define IS_VALID_CHANNEL(x)                                                    \
-(   ((x) == TMR0_ChannelA)                         ||                          \
-    ((x) == TMR0_ChannelB))
+(   ((x) == TMR0_CH_A)                             ||                          \
+    ((x) == TMR0_CH_B))
 
 #define IS_VALID_CLK_DIVISION(x)                                               \
 (   ((x) == TMR0_CLK_DIV1)                         ||                          \
@@ -130,9 +130,11 @@
 
 #define IS_VALID_TMR0_FUNC(x)                                                  \
 (   ((x) == TMR0_FUNC_CMP)                         ||                          \
-    ((x) == TMR0_FUNC_CAPTURE))
+    ((x) == TMR0_FUNC_CAP))
 
-#define IS_VALID_TMR0_COM_TRIG(x)       ((x) | TMR0_COM_TRIG_EN_MSK == TMR0_COM_TRIG_EN_MSK)
+#define IS_VALID_TMR0_COM_TRIG(x)                                              \
+(   ((x) != 0x0UL)                                 &&                          \
+    (((x) | TMR0_COM_TRIG_MASk) == TMR0_COM_TRIG_MASk))
 /**
  * @}
  */
@@ -152,7 +154,7 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static void TMR0_AsyncDelay(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel);
+
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -193,18 +195,22 @@ en_result_t TMR0_StructInit(stc_tmr0_init_t* pstcInitStruct)
  * This parameter can be a value of the following:
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
- * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ * @param  [in] u8Channel          TMR0_CH_A or TMR0_CH_B
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @param  [in] pstcTmr0Init       TMR0 function base parameter structure
  *   @arg  See the structure definition for @ref stc_tmr0_init_t
  * @retval Ok: Success
  *         ErrorInvalidParameter: Parameter error
- * @note   In capture mode, don't need configure member u32HwTrigFunc and u16CmpValue
+ * @note   In capture mode, don't need configure member u32HwTrigFunc and u16CmpValue.
+ *         In asynchronous clock, continuous operation of the BCONR register requires waiting for 3 asynchronous clocks.
  */
-en_result_t TMR0_Init(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,       \
+en_result_t TMR0_Init(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, \
                         const stc_tmr0_init_t* pstcTmr0Init)
 {
     uint32_t u32Temp;
-    uint32_t u32CMPRAddr, u32CNTRAddr;
+    uint32_t u32CMPRAddr;
+    uint32_t u32CNTRAddr;
     en_result_t enRet = ErrorInvalidParameter;
     if (pstcTmr0Init != NULL)
     {
@@ -231,7 +237,6 @@ en_result_t TMR0_Init(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,       \
         MODIFY_REG32(TMR0x->BCONR, (TMR0_BCONR_INIT_MSK << u8Channel), (u32Temp << u8Channel));
         /* Config clock mode */
         MODIFY_REG32(TMR0x->BCONR, (TMR0_CHA_CLKSRC_MSK << u8Channel), (pstcTmr0Init->u32ClockSource << u8Channel));
-        TMR0_AsyncDelay(TMR0x, u8Channel);
     }
     return enRet;
 }
@@ -243,13 +248,16 @@ en_result_t TMR0_Init(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,       \
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
  * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @param  [in] u32ClkSrc          Specifies the clock source
  * This parameter can be a value of the following:
  *   @arg  TMR0_CLK_SRC_PCLK1:     Synchronous clock source: PCLK1.
  *   @arg  TMR0_CLK_SRC_INTHWTRIG: Synchronous clock source: Hardware Trigger Event.
  *   @arg  TMR0_CLK_SRC_XTAL32:    Asynchronous clock source: XTAl32
  *   @arg  TMR0_CLK_SRC_LRC:       Asynchronous clock source: LRC
- * @retval None
+ * @retval None.
+ * @note   In asynchronous clock, continuous operation of the BCONR register requires waiting for 3 asynchronous clocks.
  */
 void TMR0_SetClkSrc(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkSrc)
 {
@@ -257,9 +265,8 @@ void TMR0_SetClkSrc(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkSr
     DDL_ASSERT(IS_VALID_CHANNEL(u8Channel));
     DDL_ASSERT(IS_VALID_CLK_SRC(u32ClkSrc));
 
-    u8Channel *= TMR0_CHB_POS;
+    u8Channel = TMR0_OFFEST(u8Channel);
     MODIFY_REG32(TMR0x->BCONR, (TMR0_CHA_CLKSRC_MSK << u8Channel), (u32ClkSrc << u8Channel));
-    TMR0_AsyncDelay(TMR0x, u8Channel);
 }
 
 /**
@@ -269,6 +276,8 @@ void TMR0_SetClkSrc(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkSr
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
  * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @param  [in] u32ClkDiv          Specifies the clock source division
  * This parameter can be a value of the following:
  *   @arg  TMR0_CLK_DIV1:          Clock source.
@@ -282,7 +291,8 @@ void TMR0_SetClkSrc(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkSr
  *   @arg  TMR0_CLK_DIV256:        Clock source / 256.
  *   @arg  TMR0_CLK_DIV512:        Clock source / 512.
  *   @arg  TMR0_CLK_DIV1024:       Clock source / 1024.
- * @retval None
+ * @retval None.
+ * @note   In asynchronous clock, continuous operation of the BCONR register requires waiting for 3 asynchronous clocks.
  */
 void TMR0_SetClkDiv(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkDiv)
 {
@@ -290,9 +300,8 @@ void TMR0_SetClkDiv(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkDi
     DDL_ASSERT(IS_VALID_CHANNEL(u8Channel));
     DDL_ASSERT(IS_VALID_CLK_DIVISION(u32ClkDiv));
 
-    u8Channel *= TMR0_CHB_POS;
+    u8Channel = TMR0_OFFEST(u8Channel);
     MODIFY_REG32(TMR0x->BCONR, (TMR0_BCONR_CKDIVA << u8Channel), (u32ClkDiv << u8Channel));
-    TMR0_AsyncDelay(TMR0x, u8Channel);
 }
 
 /**
@@ -302,10 +311,13 @@ void TMR0_SetClkDiv(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkDi
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
  * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @param  [in] u32HWFunc          Select TMR0 hardware trigger function
- *                                 This parameter can be a value of @ref TMR0_HardwareTrigger_Func_define
+ * This parameter can be a value of @ref TMR0_HardwareTrigger_Func_define
  * @param  [in] enNewState         Disable or Enable the function
  * @retval None
+ * @note   In asynchronous clock, continuous operation of the BCONR register requires waiting for 3 asynchronous clocks.
  */
 void TMR0_HWTrigCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, \
                            uint32_t u32HWFunc, en_functional_state_t enNewState)
@@ -315,40 +327,40 @@ void TMR0_HWTrigCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, \
     DDL_ASSERT(IS_VALID_HWTRG_FUNC(u32HWFunc));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    u8Channel *= TMR0_CHB_POS;
+    u8Channel = TMR0_OFFEST(u8Channel);
     if(enNewState == Enable)
     {
-        MODIFY_REG32(TMR0x->BCONR, (TMR0_BT_HETRG_FUNC_MASK << u8Channel), (u32HWFunc << u8Channel));
+        MODIFY_REG32(TMR0x->BCONR, (u32HWFunc << u8Channel), (u32HWFunc << u8Channel));
     }
     else
     {
         CLEAR_REG32_BIT(TMR0x->BCONR, (u32HWFunc << u8Channel));
     }
-    TMR0_AsyncDelay(TMR0x, u8Channel);
 }
 
 /**
- * @brief  Set Tmr0  Function
+ * @brief  Set Tmr0 Function
  * @param  [in] TMR0x              Pointer to TMR0 instance register base.
  * This parameter can be a value of the following:
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
- * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ * @param  [in] u8Channel          TMR0_CH_A or TMR0_CH_B
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @param  [in] u32Func            Select TMR0 function
- *   @arg  TMR0_FUNC_CMP           Select the Compare function for TMR0
- *   @arg  TMR0_FUNC_CAPTURE       Select the Capture function for TMR0
- * @param  [in] enNewState         Disable or Enable the function
+ *   @arg  TMR0_FUNC_CMP:          Select the Compare function for TMR0
+ *   @arg  TMR0_FUNC_CAP:          Select the Capture function for TMR0
  * @retval None
+ * @note   In asynchronous clock, continuous operation of the BCONR register requires waiting for 3 asynchronous clocks.
  */
-void TMR0_FuncCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32Func)
+void TMR0_SetFunc(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32Func)
 {
     DDL_ASSERT(IS_VALID_UNIT(TMR0x));
     DDL_ASSERT(IS_VALID_CHANNEL(u8Channel));
     DDL_ASSERT(IS_VALID_TMR0_FUNC(u32Func));
 
-    u8Channel *= TMR0_CHB_POS;
-    MODIFY_REG32(TMR0x->BCONR, (TMR0_BCONR_CAPMDA << u8Channel), (u32Func << TMR0_CHB_POS));
-    TMR0_AsyncDelay(TMR0x, u8Channel);
+    u8Channel = TMR0_OFFEST(u8Channel);
+    MODIFY_REG32(TMR0x->BCONR, (TMR0_BCONR_CAPMDA << u8Channel), (u32Func << u8Channel));
 }
 
 /**
@@ -357,20 +369,24 @@ void TMR0_FuncCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32Func)
  * This parameter can be a value of the following:
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
- * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ * @param  [in] u8Channel          TMR0_CH_A or TMR0_CH_B
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @retval Set: Flag is set
  *         Reset: Flag is reset
  */
 en_flag_status_t TMR0_GetStatus(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
 {
-    uint32_t enRet = 0U;
+    en_flag_status_t enRet = Reset;
     DDL_ASSERT(IS_VALID_UNIT(TMR0x));
     DDL_ASSERT(IS_VALID_CHANNEL(u8Channel));
 
-    u8Channel *= TMR0_CHB_POS;
-    enRet = READ_REG32_BIT(TMR0x->STFLR, (TMR0_STFLR_CMFA << u8Channel));
-
-    return (enRet ? Set : Reset);
+    u8Channel = TMR0_OFFEST(u8Channel);
+    if (READ_REG32_BIT(TMR0x->STFLR, (TMR0_STFLR_CMFA << u8Channel)) != 0U)
+    {
+        enRet = Set;
+    }
+    return enRet;
 }
 
 /**
@@ -379,18 +395,20 @@ en_flag_status_t TMR0_GetStatus(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
  * This parameter can be a value of the following:
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
- * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ * @param  [in] u8Channel          TMR0_CH_A or TMR0_CH_B
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @retval None
+ * @note   In asynchronous clock, continuous operation of the STFLR register requires waiting for 3 asynchronous clocks.
  */
 void TMR0_ClearStatus(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
 {
     DDL_ASSERT(IS_VALID_UNIT(TMR0x));
     DDL_ASSERT(IS_VALID_CHANNEL(u8Channel));
 
-    u8Channel *= TMR0_CHB_POS;
+    u8Channel = TMR0_OFFEST(u8Channel);
     /*Clear the Flag*/
     CLEAR_REG32_BIT(TMR0x->STFLR, (TMR0_STFLR_CMFA << u8Channel));
-    TMR0_AsyncDelay(TMR0x, u8Channel);
 }
 
 /**
@@ -399,9 +417,12 @@ void TMR0_ClearStatus(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
  * This parameter can be a value of the following:
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
- * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ * @param  [in] u8Channel          TMR0_CH_A or TMR0_CH_B
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @param  [in] enNewState         Disable or Enable the function
  * @retval None
+ * @note   In asynchronous clock, continuous operation of the BCONR register requires waiting for 3 asynchronous clocks.
  */
 void TMR0_Cmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
                         en_functional_state_t enNewState)
@@ -410,9 +431,8 @@ void TMR0_Cmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
     DDL_ASSERT(IS_VALID_CHANNEL(u8Channel));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    u8Channel *= TMR0_CHB_POS;
-    MODIFY_REG32(TMR0x->BCONR, (TMR0_BCONR_CSTA <<u8Channel), (enNewState << TMR0_BCONR_CSTA_POS) << u8Channel);
-    TMR0_AsyncDelay(TMR0x, u8Channel);
+    u8Channel = TMR0_OFFEST(u8Channel);
+    MODIFY_REG32(TMR0x->BCONR, (TMR0_BCONR_CSTA <<u8Channel), ((uint32_t)enNewState << TMR0_BCONR_CSTA_POS) << u8Channel);
 }
 
 /**
@@ -421,9 +441,12 @@ void TMR0_Cmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
  * This parameter can be a value of the following:
  *   @arg  M4_TMR0_1:            TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:            TMR0 unit 2 instance register base
- * @param  [in] u8Channel        TMR0_ChannelA or TMR0_ChannelB
+ * @param  [in] u8Channel        TMR0_CH_A or TMR0_CH_B
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @param  [in] enNewState       Disable or Enable the function
  * @retval None
+ * @note   In asynchronous clock, continuous operation of the BCONR register requires waiting for 3 asynchronous clocks.
  */
 void TMR0_IntCmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
                         en_functional_state_t enNewState)
@@ -432,8 +455,8 @@ void TMR0_IntCmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
     DDL_ASSERT(IS_VALID_CHANNEL(u8Channel));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    u8Channel *= TMR0_CHB_POS;
-    MODIFY_REG32(TMR0x->BCONR, (TMR0_BCONR_INTENA << u8Channel), (enNewState << TMR0_BCONR_INTENA_POS) << u8Channel);
+    u8Channel = TMR0_OFFEST(u8Channel);
+    MODIFY_REG32(TMR0x->BCONR, (TMR0_BCONR_INTENA << u8Channel), ((uint32_t)enNewState << TMR0_BCONR_INTENA_POS) << u8Channel);
 }
 
 /**
@@ -443,11 +466,14 @@ void TMR0_IntCmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
  *   @arg  M4_TMR0_1:            TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:            TMR0 unit 2 instance register base
  * @param  [in] u8Channel        TMR0_ChannelA or TMR0_ChannelB
- * @retval The counter register data
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
+ * @retval In asynchronous clock, Get the value requires stop timer0
+ *
  */
 uint16_t TMR0_GetCntVal(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
 {
-    uint16_t u16CntVal = 0U;
+    uint16_t u16CntVal;
     uint32_t u32CNTRAddr;
     DDL_ASSERT(IS_VALID_UNIT(TMR0x));
     DDL_ASSERT(IS_VALID_CHANNEL(u8Channel));
@@ -463,7 +489,9 @@ uint16_t TMR0_GetCntVal(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
  * This parameter can be a value of the following:
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
- * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ * @param  [in] u8Channel          TMR0_CH_A or TMR0_CH_B
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @param  [in] u16Value           The data to write to the counter register
  * @retval None
  * @note   Setting the count requires stop timer0
@@ -485,11 +513,13 @@ void TMR0_SetCntVal(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, uint16_t u16Value
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
  * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
- * @retval The compare register data
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
+ * @retval In asynchronous clock, Get the value requires stop timer0
  */
 uint16_t TMR0_GetCmpVal(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
 {
-    uint16_t u16CmpVal = 0U;
+    uint16_t u16CmpVal;
     uint32_t u32CMPRAddr;
     DDL_ASSERT(IS_VALID_UNIT(TMR0x));
     DDL_ASSERT(IS_VALID_CHANNEL(u8Channel));
@@ -506,8 +536,10 @@ uint16_t TMR0_GetCmpVal(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
  * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
+ *   @arg  TMR0_CH_A.
+ *   @arg  TMR0_CH_B.
  * @param  [in] u16Value           The data to write to the compare register
- * @retval None
+ * @retval Setting the count requires stop timer0
  */
 void TMR0_SetCmpVal(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, uint16_t u16Value)
 {
@@ -522,7 +554,7 @@ void TMR0_SetCmpVal(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, uint16_t u16Value
 /**
  * @brief  De-Initialize TMR0 function
  * @param  [in] TMR0x              Pointer to TMR0 instance register base.
- * This parameter can be a value of the following:
+ * This parameter can be value of the following:
  *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
  *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
  * @retval None
@@ -540,25 +572,32 @@ void TMR0_DeInit(M4_TMR0_TypeDef* TMR0x)
 }
 
 /**
- * @brief  Set common trigger source for Tmr0
- * @param  [in] u32ComTrigEn        Common trigger event enable bit mask.
- *                                  This parameter can be a value of @ref TMR0_Common_Trigger_Sel
- *   @arg  TMR0_COM1_TRIG_DISABLE:  Enable common trigger event 1 for the specified usage.
- *   @arg  TMR0_COM2_TRIG_DISABLE:  Enable common trigger event 2 for the specified usage.
- *   @arg  TMR0_COM1_TRIG_ENABLE:   Disable common trigger event 1 for the specified usage.
- *   @arg  TMR0_COM2_TRIG_ENABLE:   Disable common trigger event 2 for the specified usage.
+ * @brief  Enable or Disable common trigger source for Tmr0
+ * @param  [in] u32ComTrig              Common trigger event enable bit mask.
+ *  This parameter can be value of @ref TMR0_Common_Trigger_Sel
+ *   @arg  TMR0_COM_TRIG1:              Common trigger source 1.
+ *   @arg  TMR0_COM_TRIG2:              Common trigger source 2.
+ * @param  [in] enNewState              Disable or Enable the function
  * @retval None
  */
-void TMR0_ComTrigCmd(uint32_t u32ComTrigEn)
+void TMR0_ComTriggerCmd(uint32_t u32ComTrig, en_functional_state_t enNewState)
 {
-    DDL_ASSERT(IS_VALID_TMR0_COM_TRIG(u32ComTrigEn));
-    MODIFY_REG32(M4_AOS->TMR0_HTSSR, TMR0_COM_TRIG_EN_MSK, u32ComTrigEn);
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_VALID_TMR0_COM_TRIG(u32ComTrig));
+
+    if (enNewState == Enable)
+    {
+        SET_REG32_BIT(M4_AOS->TMR0_HTSSR, u32ComTrig);
+    }
+    else
+    {
+        CLEAR_REG32_BIT(M4_AOS->TMR0_HTSSR, u32ComTrig);
+    }
 }
 
 /**
- * @brief  Set external trigger source for Tmr0
+ * @brief  Set trigger source for Tmr0
  * @param  [in] enEvent        External event source, @ref en_event_src_t
- *
  * @retval None
  */
 void TMR0_SetTriggerSrc(en_event_src_t enEvent)
@@ -568,47 +607,13 @@ void TMR0_SetTriggerSrc(en_event_src_t enEvent)
 
 /**
  * @}
- */
-
-
-/**
- * @defgroup TMR0_Local_Functions TIMER0 Local Functions
- * @{
- */
-
-/**
- * @brief  Time delay for register write in asynchronous mode
- * @param  [in] TMR0x              Pointer to TMR0 instance register base.
- * This parameter can be a value of the following:
- *   @arg  M4_TMR0_1:              TMR0 unit 1 instance register base
- *   @arg  M4_TMR0_2:              TMR0 unit 2 instance register base
- * @param  [in] u8Channel          TMR0_ChannelA or TMR0_ChannelB
- * @retval None
- */
-static void TMR0_AsyncDelay(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel)
-{
-    uint32_t u32Mode = 0UL;
-
-    u8Channel *= TMR0_CHB_POS;
-    u32Mode = READ_REG32_BIT(TMR0x->BCONR, (TMR0_BCONR_SYNSA << u8Channel));
-    if(u32Mode != 0UL)
-    {
-        for(uint32_t i=0UL; i < (SystemCoreClock/10000UL); i++)
-        {
-            __NOP();
-        }
-    }
-}
-
-/**
- * @}
- */
+*/
 
 #endif /* DDL_TMR0_ENABLE */
 
 /**
  * @}
- */
+*/
 
 /**
 * @}

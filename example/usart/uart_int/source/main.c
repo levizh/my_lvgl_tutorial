@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-20       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup UART_Interrupt
+ * @addtogroup USART_UART_Interrupt
  * @{
  */
 
@@ -120,6 +120,8 @@ typedef struct
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 static void USART_TxEmpty_IrqCallback(void);
 static void USART_TxComplete_IrqCallback(void);
 static void USART_Rx_IrqCallback(void);
@@ -144,13 +146,65 @@ static stc_ring_buffer_t m_stcRingBuf = {
  ******************************************************************************/
 
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
  * @brief  USART transmit data register empty IRQ callback.
  * @param  None
  * @retval None
  */
 static void USART_TxEmpty_IrqCallback(void)
 {
-    uint8_t u8Data = 0u;
+    uint8_t u8Data = 0U;
 
     if (Ok == RingBufRead(&m_stcRingBuf, &u8Data))
     {
@@ -193,14 +247,12 @@ static void USART_Rx_IrqCallback(void)
  */
 static void USART_RxErr_IrqCallback(void)
 {
-    __IO uint8_t u8Data;
-
-    if (Set == USART_GetFlag(USART_UNIT, (USART_FLAG_PE | USART_FLAG_FE)))
+    if (Set == USART_GetStatus(USART_UNIT, (USART_FLAG_PE | USART_FLAG_FE)))
     {
-        u8Data = (uint8_t)USART_RecData(USART_UNIT);
+        (void)USART_RecData(USART_UNIT);
     }
 
-    USART_ClearFlag(USART_UNIT, (USART_CLEAR_FLAG_PE | \
+    USART_ClearStatus(USART_UNIT, (USART_CLEAR_FLAG_PE | \
                                  USART_CLEAR_FLAG_FE | \
                                  USART_CLEAR_FLAG_ORE));
 }
@@ -260,7 +312,7 @@ static en_result_t RingBufRead(stc_ring_buffer_t *pstcBuffer, uint8_t *pu8Data)
 /**
  * @brief  Instal IRQ handler.
  * @param  [in] pstcConfig      Pointer to struct @ref stc_irq_signin_config_t
- * @param  [in] Priority        Interrupt priority
+ * @param  [in] u32Priority     Interrupt priority
  * @retval None
  */
 static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
@@ -286,29 +338,31 @@ int32_t main(void)
     const stc_usart_uart_init_t stcUartInit = {
         .u32Baudrate = 115200UL,
         .u32BitDirection = USART_LSB,
-        .u32StopBit = USART_STOP_BITS_1,
+        .u32StopBit = USART_STOPBIT_1BIT,
         .u32Parity = USART_PARITY_NONE,
-        .u32DataWidth = USART_DATA_WIDTH_BITS_8,
-        .u32ClkMode = USART_INTCLK_NONE_OUTPUT,
-        .u32OversamplingBits = USART_OVERSAMPLING_BITS_8,
+        .u32DataWidth = USART_DATA_LENGTH_8BIT,
+        .u32ClkMode = USART_INTERNCLK_NONE_OUTPUT,
+        .u32PclkDiv = USART_PCLK_DIV64,
+        .u32OversamplingBits = USART_OVERSAMPLING_8BIT,
         .u32NoiseFilterState = USART_NOISE_FILTER_DISABLE,
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
 
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
+
     /* Initialize system clock. */
     BSP_CLK_Init();
-    CLK_ClkDiv(CLK_CATE_ALL, (CLK_PCLK0_DIV32 | CLK_PCLK1_DIV32 | \
-                              CLK_PCLK2_DIV4  | CLK_PCLK3_DIV32 | \
-                              CLK_PCLK4_DIV2  | CLK_EXCLK_DIV2  | CLK_HCLK_DIV1));
 
     /* Initialize LED. */
     BSP_LED_Init();
 
     /* Configure USART RX/TX pin. */
-    GPIO_Unlock();
     GPIO_SetFunc(USART_RX_PORT, USART_RX_PIN, USART_RX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
     GPIO_SetFunc(USART_TX_PORT, USART_TX_PIN, USART_TX_GPIO_FUNC, PIN_SUBFUNC_DISABLE);
-    GPIO_Lock();
+
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
 
     /* Enable peripheral clock */
     PWC_Fcg3PeriphClockCmd(USART_FUNCTION_CLK_GATE, Enable);

@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  template/source/ddl_config.h
+ * @file  timer6/timer6_cmp_triangular_buf/source/ddl_config.h
  * @brief This file contains HC32 Series Device Driver Library usage management.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-03       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -136,34 +136,34 @@ extern "C"
 #define DDL_VBAT_ENABLE                             (DDL_OFF)
 #define DDL_WDT_ENABLE                              (DDL_OFF)
 
-/* Midware module on-off define */
-#define MW_ON                                       (1U)
-#define MW_OFF                                      (0U)
-
-/**
- * @brief This is the list of midware modules to be used.
- * Select the modules you need to use to MW_ON.
- */
-#define MW_FS_ENABLE                                (MW_OFF)
-
 /* BSP on-off define */
 #define BSP_ON                                      (1U)
 #define BSP_OFF                                     (0U)
+
 /**
- * @brief This is the list of BSP board to be used.
- * Select the board you need to use to BSP_ON.
+ * @brief The following is a list of currently supported BSP boards.
  */
 #define BSP_EV_HC32F4A0_LQFP176                     (1U)
+#define BSP_MS_HC32F4A0_LQFP176_050_MEM             (2U)
 
+/**
+ * @brief The macro BSP_EV_HC32F4A0 is used to specify the BSP board currently
+ * in use.
+ * The value should be set to one of the list of currently supported BSP boards.
+ * @note  If there is no supported BSP board or the BSP function is not used,
+ * the value needs to be set to BSP_EV_HC32F4A0.
+ */
 #define BSP_EV_HC32F4A0                             (BSP_EV_HC32F4A0_LQFP176)
 
 /**
  * @brief This is the list of BSP components to be used.
  * Select the components you need to use to BSP_ON.
  */
+#define BSP_CY62167EV30LL_ENABLE                    (BSP_OFF)
 #define BSP_IS42S16400J7TLI_ENABLE                  (BSP_OFF)
 #define BSP_IS62WV51216_ENABLE                      (BSP_OFF)
 #define BSP_MT29F2G08AB_ENABLE                      (BSP_OFF)
+#define BSP_S29GL064N90TFI03_ENABLE                 (BSP_OFF)
 #define BSP_TCA9539_ENABLE                          (BSP_ON)
 #define BSP_W25QXX_ENABLE                           (BSP_OFF)
 #define BSP_WM8731_ENABLE                           (BSP_OFF)
@@ -190,11 +190,11 @@ extern "C"
 #define PHY_ADDRESS                     (0x00U)               /* RTL8201F                             */
 
 /* PHY Configuration delay */
-#define PHY_HW_RESET_DELAY              (0x00000020UL)
-#define PHY_RESET_DELAY                 (0x00000040UL)
-#define PHY_CONFIG_DELAY                (0x0000007FUL)
-#define PHY_READ_TIMEOUT                (0x000000FFUL)
-#define PHY_WRITE_TIMEOUT               (0x000000FFUL)
+#define PHY_HW_RESET_DELAY              (0x0000003FUL)
+#define PHY_RESET_DELAY                 (0x0000007FUL)
+#define PHY_CONFIG_DELAY                (0x0000003FUL)
+#define PHY_READ_TIMEOUT                (0x00000005UL)
+#define PHY_WRITE_TIMEOUT               (0x00000005UL)
 
 /* Common PHY Registers */
 #define PHY_BCR                         (0x00U)     /*!< Basic Control Register               */
@@ -218,20 +218,6 @@ extern "C"
 #define PHY_AUTONEGO_COMPLETE           (0x0020U)   /*!< Auto-Negotiation process completed   */
 #define PHY_LINK_STATUS                 (0x0004U)   /*!< Valid link established               */
 #define PHY_JABBER_DETECTION            (0x0002U)   /*!< Jabber condition detected            */
-
-/* Extended PHY Registers */
-#define PHY_RMSR                        (0x0010U)   /*!< PHY RMII Mode Setting Register                        */
-#define PHY_IWLFR                       (0x0013U)   /*!< PHY Interrupt, WOL Enable, and LED Function Registers */
-#define PHY_IISDR                       (0x001EU)   /*!< PHY Interrupt Indicators and SNR Display Register     */
-
-/* The following parameters will return to default values after a software reset */
-#define PHY_RMII_CLK_DIR                (0x1000U)   /*!< TXC direction in RMII Mode, 0: Output, 1: Input       */
-#define PHY_RMII_MODE                   (0x0008U)   /*!< RMII Mode, 0: MII Mode, 1: RMII Mode                  */
-#define PHY_RMII_RXDV_CRSDV             (0x0004U)   /*!< RXDV select, 0: CRS_DV, 1: RXDV                       */
-
-#define PHY_LINK_INT_EN                 (0x2000U)   /*!< Link Change Interrupt Mask                            */
-
-#define PHY_LINK_INTERRUPT              (0x0800U)   /*!< Link Status Change Interrupt                          */
 
 /*******************************************************************************
  * Global variable definitions ('extern')

@@ -6,7 +6,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
+   2020-07-03       Zhangxl         Modify for 16MHz & 20MHz HRC
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -78,7 +79,17 @@
  * @{
  */
 
-__NO_INIT uint32_t SystemCoreClock;  /*!< System clock frequency (Core clock) */
+/*!< System clock frequency (Core clock) */
+#if defined ( __GNUC__ ) && !defined (__CC_ARM) /*!< GNU Compiler */
+__NO_INIT uint32_t SystemCoreClock;
+__NO_INIT uint32_t HRC_VALUE;
+#elif defined (__ICCARM__)                      /*!< IAR Compiler */
+__NO_INIT uint32_t SystemCoreClock;
+__NO_INIT uint32_t HRC_VALUE;
+#else
+uint32_t HRC_VALUE = HRC_16MHz_VALUE;
+uint32_t SystemCoreClock = MRC_VALUE;
+#endif
 
 /**
  * @}
@@ -104,7 +115,7 @@ __NO_INIT uint32_t SystemCoreClock;  /*!< System clock frequency (Core clock) */
  */
 void SystemInit(void)
 {
-    (*((volatile unsigned short*)(0x400543FEUL)))=0xA50FU;
+    (*((volatile unsigned short*)(0x400543FEUL)))=0xA50BU;
     (*((volatile unsigned int*)(0x4004CCE8UL)))=0x00040000UL;
     (*((volatile unsigned short*)(0x400543FEUL)))=0xA500U;
     /* FPU settings */
@@ -121,28 +132,42 @@ void SystemInit(void)
  */
 void SystemCoreClockUpdate(void)
 {
-    uint32_t tmp = 0UL;
-    uint32_t plln = 19UL, pllp = 1UL, pllm = 0UL;
+    uint8_t tmp;
+    uint32_t plln;
+    uint32_t pllp;
+    uint32_t pllm;
+
+    /* Select proper HRC_VALUE according to ICG1.HRCFREQSEL bit */
+    /* ICG1.HRCFREQSEL = '0' represent HRC_VALUE = 20000000UL   */
+    /* ICG1.HRCFREQSEL = '1' represent HRC_VALUE = 16000000UL   */
+    if (1UL == (HRC_FREQ_MON() & 1UL))
+    {
+        HRC_VALUE = HRC_16MHz_VALUE;
+    }
+    else
+    {
+        HRC_VALUE = HRC_20MHz_VALUE;
+    }
 
     tmp = M4_CMU->CKSWR & CMU_CKSWR_CKSW;
     switch(tmp)
     {
-        case 0x00UL:  /* use internal high speed RC */
+        case 0x00U:  /* use internal high speed RC */
             SystemCoreClock = HRC_VALUE;
             break;
-        case 0x01UL:  /* use internal middle speed RC */
+        case 0x01U:  /* use internal middle speed RC */
             SystemCoreClock = MRC_VALUE;
             break;
-        case 0x02UL:  /* use internal low speed RC */
+        case 0x02U:  /* use internal low speed RC */
             SystemCoreClock = LRC_VALUE;
             break;
-        case 0x03UL:  /* use external high speed RC */
+        case 0x03U:  /* use external high speed OSC */
             SystemCoreClock = XTAL_VALUE;
             break;
-        case 0x04UL:  /* use external low speed RC */
+        case 0x04U:  /* use external low speed OSC */
             SystemCoreClock = XTAL32_VALUE;
             break;
-        case 0x05UL:  /* use PLLH */
+        case 0x05U:  /* use PLLH */
             /* PLLCLK = ((pllsrc / pllm) * plln) / pllp */
             pllp = (uint32_t)((M4_CMU->PLLHCFGR >> CMU_PLLHCFGR_PLLHP_POS) & 0x0FUL);
             plln = (uint32_t)((M4_CMU->PLLHCFGR >> CMU_PLLHCFGR_PLLHN_POS) & 0xFFUL);
@@ -159,8 +184,21 @@ void SystemCoreClockUpdate(void)
                 SystemCoreClock = (HRC_VALUE) / (pllm + 1UL) * (plln + 1UL) / (pllp + 1UL);
             }
             break;
+        default:
+            break;
     }
 }
+
+#if defined (__CC_ARM) || defined (__CLANG_ARM)
+extern int32_t $Super$$main(void);
+/* re-define main function */
+int $Sub$$main(void)
+{
+    SystemCoreClockUpdate();
+    $Super$$main();
+    return 0;
+}
+#endif
 
 /**
  * @}

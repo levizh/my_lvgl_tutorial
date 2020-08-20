@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-31       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -88,7 +88,7 @@
 #endif
 
 /* CAN FD function control. Non-zero to enable. */
-#define APP_CAN_FD_ENABLE                   (1U)
+#define APP_CAN_FD_ENABLE                   (0U)
 
 /* Unit definition of CAN in this example. */
 #define APP_CAN_SEL_U1                      (0U)
@@ -178,7 +178,12 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
+
+static void CanPhyEnable(void);
 
 static void CanConfig(void);
 static void Tmr2Config(void);
@@ -244,19 +249,22 @@ static uint8_t m_u8TmrFlag = 0U;
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the system clock as 120MHz. */
     SystemClockConfig();
-
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures CAN. */
     CanConfig();
-
-    /* Configures and starts TIMER2 for 1 second timing. */
+    /* Set CAN PYH STB pin as low. */
+    CanPhyEnable();
+    /* Configures and starts Timer2 for 1 second timing. */
     Tmr2Config();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
     /***************** Configuration end, application start **************/
 
@@ -270,6 +278,58 @@ int32_t main(void)
 
         CanRx();
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -313,12 +373,24 @@ static void SystemClockConfig(void)
     CLK_PLLHInit(&stcPLLHInit);
 
     /* Set EFM wait cycle. 2 wait cycles needed when system clock is 120MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_2);
-    EFM_Lock();
 
     CLK_PLLHCmd(Enable);
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
+}
+
+/**
+ * @brief  Set CAN PHY STB pin as low.
+ * @param  None
+ * @retval None
+ */
+static void CanPhyEnable(void)
+{
+    BSP_IO_Init();
+    BSP_CAN_STB_IO_Init();
+
+    /* Set PYH STB pin as low. */
+    BSP_CAN_STBCmd(EIO_PIN_RESET);
 }
 
 /**
@@ -375,7 +447,7 @@ static void CanConfig(void)
 }
 
 /**
- * @brief  TIMER2 configuration.
+ * @brief  Timer2 configuration.
  * @param  None
  * @retval None
  */
@@ -389,7 +461,7 @@ static void Tmr2Config(void)
     TMR2_StructInit(&stcInit);
 
     stcInit.u32ClkSrc = TMR2_CLK_SYNC_PCLK1;
-    stcInit.u32ClkDiv = TMR2_CLK_DIV_256;
+    stcInit.u32ClkDiv = TMR2_CLK_DIV256;
     stcInit.u32CmpVal = 29296U;
     TMR2_Init(M4_TMR2_1, TMR2_CH_A, &stcInit);
 
@@ -412,9 +484,10 @@ static void Tmr2Config(void)
  */
 static void CanTx(void)
 {
+    uint8_t i;
     stc_can_tx_t stcTx;
 
-    for (uint8_t i=0U; i<APP_DATA_SIZE; i++)
+    for (i=0U; i<APP_DATA_SIZE; i++)
     {
         m_au8TxPayload[i] = i + 1U;
     }
@@ -463,7 +536,7 @@ static void CanTx(void)
 
 /**
  * @brief  CAN transmission entity.
- * @param  None
+ * @param  [in]  pstcTx                 Pointer to a frame which is going to be transmitted.
  * @retval None
  */
 static void CanTxEntity(const stc_can_tx_t *pstcTx)
@@ -572,7 +645,7 @@ static void CanRx(void)
 }
 
 /**
- * @brief  TIMER2 interrupt callback.
+ * @brief  Timer2 interrupt callback.
  * @param  None
  * @retval None
  */

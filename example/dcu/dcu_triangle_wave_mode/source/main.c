@@ -5,7 +5,10 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-11       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-15       Hongjh          Replace DAC_ChannelCmd by DAC_Start
+   2020-07-23       Hongjh          1. Replace DCU_IntFuncCmd by DCU_GlobalIntCmd£»
+                                    2. Modify paramters after refine DCU_IntCmd.
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -74,6 +77,7 @@
  ******************************************************************************/
 /* DCU unit definition */
 #define DCU_UNIT                        (M4_DCU1)
+#define DCU_WAVE_UPPER_LIMIT            (3999U)
 #define DCU_FUNCTION_CLK_GATE           (PWC_FCG0_DCU1)
 
 /* DCU unit interrupt definition */
@@ -85,7 +89,7 @@
 
 /* DAC unit definition */
 #define DAC_UNIT                        (M4_DAC1)
-#define DAC_CH                          (DAC_Channel_1)
+#define DAC_CH                          (DAC_CH_1)
 #define DAC_FUNCTION_CLK_GATE           (PWC_FCG3_DAC1)
 
 /* DAC unit definition */
@@ -99,17 +103,74 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 static uint32_t Tmr0PclkFreq(void);
+static void TMR0_CmpIrqCallback(void);
 static void Tmr0Config(void);
 static void DCU_IrqCallback(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+static __IO uint16_t m_u16Timer0IrqCnt = 0U;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
 /**
  * @brief  Get TIMER4 PCLK frequency.
  * @param  None
@@ -124,6 +185,23 @@ static uint32_t Tmr0PclkFreq(void)
 }
 
 /**
+ * @brief  TMR0_1 channelA compare IRQ callback
+ * @param  None
+ * @retval None
+ */
+static void TMR0_CmpIrqCallback(void)
+{
+    if ((2U * DCU_WAVE_UPPER_LIMIT + 1U) == m_u16Timer0IrqCnt++)
+    {
+        m_u16Timer0IrqCnt = 0U;
+        DCU_IntCmd(DCU_UNIT, DCU_INT_WAVE_MD, DCU_INT_WAVE_TRIANGLE_BOTTOM, Enable);
+    }
+
+    /* Clear the compare matching flag */
+    TMR0_ClearStatus(M4_TMR0_1, TMR0_CH_A);
+}
+
+/**
  * @brief  Configure TMR0.
  * @param  None
  * @retval None
@@ -131,20 +209,31 @@ static uint32_t Tmr0PclkFreq(void)
 static void Tmr0Config(void)
 {
     stc_tmr0_init_t stcTmr0Init;
+    stc_irq_signin_config_t stcIrqSignConfig;
 
     /* Enable timer0 peripheral clock */
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMR0_1, Enable);
 
     /* TIMER0 basetimer function initialize */
     TMR0_StructInit(&stcTmr0Init);
-    stcTmr0Init.u32ClockDivision = TMR0_CLK_DIV1;          /* Config clock division */
+    stcTmr0Init.u32ClockDivision = TMR0_CLK_DIV1;           /* Config clock division */
     stcTmr0Init.u32ClockSource = TMR0_CLK_SRC_PCLK1;        /* Chose clock source */
     stcTmr0Init.u32Tmr0Func = TMR0_FUNC_CMP;                /* Timer0 compare mode */
-    stcTmr0Init.u16CmpValue = (uint16_t)(TMR0_CNT_1S_VAL(1UL)/32000UL);
-    TMR0_Init(M4_TMR0_1, TMR0_ChannelA, &stcTmr0Init);
+    stcTmr0Init.u16CmpValue = (uint16_t)(TMR0_CNT_1S_VAL(1UL)/(4UL * (DCU_WAVE_UPPER_LIMIT + 1UL)));
+    TMR0_Init(M4_TMR0_1, TMR0_CH_A, &stcTmr0Init);
+    TMR0_IntCmd(M4_TMR0_1, TMR0_CH_A, Enable);
+
+    /* Register IRQ handler && configure NVIC. */
+    stcIrqSignConfig.enIRQn = Int014_IRQn;
+    stcIrqSignConfig.enIntSrc = INT_TMR0_1_CMPA;
+    stcIrqSignConfig.pfnCallback = &TMR0_CmpIrqCallback;
+    INTC_IrqSignIn(&stcIrqSignConfig);
+    NVIC_ClearPendingIRQ(stcIrqSignConfig.enIRQn);
+    NVIC_SetPriority(stcIrqSignConfig.enIRQn, DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(stcIrqSignConfig.enIRQn);
 
     /* Start timer */
-    TMR0_Cmd(M4_TMR0_1, TMR0_ChannelA, Enable);
+    TMR0_Cmd(M4_TMR0_1, TMR0_CH_A, Enable);
 }
 
 /**
@@ -154,25 +243,27 @@ static void Tmr0Config(void)
  */
 static void DacConfig(void)
 {
+    stc_dac_init_t stcInit;
     stc_gpio_init_t stcGpioInit;
 
     /* Set DAC pin */
-    GPIO_Unlock();
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
     GPIO_Init(DAC_PORT, DAC_PIN, &stcGpioInit);
-    GPIO_Lock();
 
     /* Enable DAC peripheral clock. */
     PWC_Fcg3PeriphClockCmd(DAC_FUNCTION_CLK_GATE, Enable);
 
-    DAC_DataPatternConfig(DAC_UNIT, DAC_Align_12b_R);
+    /* Initialize DAC */
+    stcInit.enOutput = Enable;
+    stcInit.u16Src = DAC_DATA_SRC_DCU;
+    DAC_Init(DAC_UNIT, DAC_CH, &stcInit);
 
-    /* DAC data from DCU */
-    DAC_SetDataSource(DAC_UNIT, DAC_CH, DAC_Data_From_DCU);
+    /* Set DAC data alignment */
+    DAC_DataRegAlignConfig(DAC_UNIT, DAC_DATA_ALIGN_R);
 
     /* Enable DAC */
-    DAC_ChannelCmd(DAC_UNIT, DAC_CH, Enable);
+    DAC_Start(DAC_UNIT, DAC_CH);
 }
 
 /**
@@ -182,8 +273,10 @@ static void DacConfig(void)
  */
 static void DCU_IrqCallback(void)
 {
+    DCU_IntCmd(DCU_UNIT, DCU_INT_WAVE_MD, DCU_INT_WAVE_TRIANGLE_BOTTOM, Disable);
+
     GPIO_TogglePins(GPIO_PORT_E, GPIO_PIN_04);
-    DCU_ClearFlag(DCU_UNIT, (DCU_FLAG_TRIANGLE_WAVE_BOTTOM | DCU_FLAG_TRIANGLE_WAVE_TOP));
+    DCU_ClearStatus(DCU_UNIT, DCU_FLAG_WAVE_TRIANGLE_BOTTOM);
 }
 
 /**
@@ -198,43 +291,43 @@ int32_t main(void)
     stc_gpio_init_t stcGpioInit;
     stc_irq_signin_config_t stcIrqSigninCfg;
 
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
+
     /* Initialize system clock. */
     BSP_CLK_Init();
 
     /* Initialize IO for testing DCU reload time. */
-    GPIO_Unlock();
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinDir = PIN_DIR_OUT;
     GPIO_Init(GPIO_PORT_E, GPIO_PIN_04, &stcGpioInit);
-    GPIO_Lock();
 
     /* Enable peripheral clock */
-    PWC_Fcg0PeriphClockCmd(DCU_FUNCTION_CLK_GATE, Enable);
+    PWC_Fcg0PeriphClockCmd((DCU_FUNCTION_CLK_GATE | PWC_FCG0_AOS), Enable);
 
     /* Configure DCU wave amplitude && step */
     stcCfg.u32LowerLimit = 0x000UL;
-    stcCfg.u32UpperLimit = 4000UL;
+    stcCfg.u32UpperLimit = DCU_WAVE_UPPER_LIMIT;
     stcCfg.u32Step = 0x1UL;
     DCU_WaveCfg(DCU_UNIT, &stcCfg);
 
     /* Initialize DCU */
     DCU_StructInit(&stcDcuInit);
     stcDcuInit.u32Mode = DCU_TRIANGLE_WAVE;
-    stcDcuInit.u32DataSize = DCU_DATA_BITS_16;
+    stcDcuInit.u32DataSize = DCU_DATA_SIZE_16BIT;
     DCU_Init(DCU_UNIT, &stcDcuInit);
-    DCU_IntCmd(DCU_UNIT, (DCU_INT_TRIANGLE_WAVE_BOTTOM | DCU_INT_TRIANGLE_WAVE_TOP), Enable);
+    DCU_IntCmd(DCU_UNIT, DCU_INT_WAVE_MD, DCU_INT_WAVE_TRIANGLE_BOTTOM, Enable);
 
     /* Set DCU IRQ */
     stcIrqSigninCfg.enIRQn = DCU_UNIT_INT_IRQn;
     stcIrqSigninCfg.enIntSrc = DCU_UNIT_INT_SRC;
     stcIrqSigninCfg.pfnCallback = &DCU_IrqCallback;
     INTC_IrqSignIn(&stcIrqSigninCfg);
-    NVIC_SetPriority(stcIrqSigninCfg.enIRQn, DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_SetPriority(stcIrqSigninCfg.enIRQn, DDL_IRQ_PRIORITY_00);
     NVIC_ClearPendingIRQ(stcIrqSigninCfg.enIRQn);
     NVIC_EnableIRQ(stcIrqSigninCfg.enIRQn);
 
     /* Set hardware trigger source */
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     DCU_SetTriggerSrc(DCU_UNIT, EVT_TMR0_1_CMPA);
 
     /* Initialize DAC. */
@@ -244,7 +337,10 @@ int32_t main(void)
     Tmr0Config();
 
     /* Eanble DCU interrupt function */
-    DCU_IntFuncCmd(DCU_UNIT, Enable);
+    DCU_GlobalIntCmd(DCU_UNIT, Enable);
+
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
 
     while (1)
     {

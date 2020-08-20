@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usbd_customhid_core.c
+ * @file  usbd_hid_custom_core.c
  * @brief Provides the CUSTOM_HID core functions.
  *       
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -352,7 +352,7 @@ uint8_t  USBD_CUSTOM_HID_Init (void  *pdev,
     DCD_EP_PrepareRx(pdev,
                      HID_OUT_EP,
                      Report_buf,
-                     2u);
+                     2U);
     DCD_SetEPStatus (pdev , HID_OUT_EP , USB_OTG_EP_RX_VALID);
 
     return USBD_OK;
@@ -384,8 +384,8 @@ uint8_t  USBD_CUSTOM_HID_DeInit (void  *pdev,
 uint8_t  USBD_CUSTOM_HID_Setup (void  *pdev,
                                 USB_SETUP_REQ *req)
 {
-    uint8_t USBD_HID_Report_LENGTH=0u;
-    uint16_t len = 0u;
+    uint8_t USBD_HID_Report_LENGTH=0U;
+    uint16_t len = 0U;
     uint8_t  *pbuf = NULL;
     uint8_t u8Ret = USBD_OK;
 

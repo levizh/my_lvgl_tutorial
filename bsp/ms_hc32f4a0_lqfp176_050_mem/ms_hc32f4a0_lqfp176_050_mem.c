@@ -1,11 +1,12 @@
 /**
  *******************************************************************************
  * @file  ms_hc32f4a0_lqfp176_050_mem.c
- * @brief This file provides firmware functions for MS-HC32F4A0-LQF176-050-MEM BSP
+ * @brief This file provides firmware functions for MS_HC32F4A0_LQF176_050_MEM BSP
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
+   2020-07-15       Zhangxl         Use XTAL 8MHz as PLL source
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -55,6 +56,7 @@
  ******************************************************************************/
 #include "hc32f4a0_clk.h"
 #include "hc32f4a0_efm.h"
+#include "hc32f4a0_gpio.h"
 #include "hc32f4a0_sram.h"
 #include "ms_hc32f4a0_lqfp176_050_mem.h"
 
@@ -128,25 +130,28 @@ void BSP_CLK_Init(void)
                 CLK_HCLK_DIV1));
 
     CLK_PLLHStrucInit(&stcPLLHInit);
-    /* VCO = 16/2*120 = 960MHz*/
+    /* VCO = (8/1)*120 = 960MHz*/
     stcPLLHInit.u8PLLState = CLK_PLLH_ON;
     stcPLLHInit.PLLCFGR = 0UL;
-    stcPLLHInit.PLLCFGR_f.PLLM = 2UL - 1UL;
+    stcPLLHInit.PLLCFGR_f.PLLM = 1UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLN = 120UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLP = 4UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLQ = 4UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLR = 4UL - 1UL;
-    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_HRC;
+    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL;
     CLK_PLLHInit(&stcPLLHInit);
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
 
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
-    EFM_Unlock();
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+
+    /* 0-wait @ 40MHz */
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
-    EFM_Unlock();
+
+    /* 4 cycles for 200 ~ 250MHz */
+    GPIO_SetReadWaitCycle(GPIO_READ_WAIT_4);
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }

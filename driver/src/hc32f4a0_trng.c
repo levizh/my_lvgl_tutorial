@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
  * @file  hc32f4a0_trng.c
- * @brief This file provides firmware functions to manage the True Random 
+ * @brief This file provides firmware functions to manage the True Random
  *        Number Generator(TRNG).
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-21       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -81,7 +81,7 @@
  * @defgroup TRNG_Local_Macros TRNG Local Macros
  * @{
  */
-#define TIMEOUT              (0x1000U)
+#define TRNG_TIMEOUT                        (20000UL)
 
 /**
  * @defgroup TRNG_Check_Parameters_Validity TRNG Check Parameters Validity
@@ -144,40 +144,41 @@ void TRNG_SetShiftCnt(uint32_t u32ShiftCount)
 
 /**
  * @brief  Enable or disable load new value
- * @param  [in] u32LoadCmd              Enable or disable load new value.
+ * @param  [in] u32ReloadCmd              Enable or disable load new value.
  *  This parameter can be a value of the following:
- *   @arg  TRNG_RELOAD_ENABLE           Enable the function
- *   @arg  TRNG_RELOAD_DISABLE          Disable the function
+ *   @arg  TRNG_RELOAD_ENABLE             Enable the function
+ *   @arg  TRNG_RELOAD_DISABLE            Disable the function
  * @retval None
  */
-void TRNG_LoadCmd(uint32_t u32LoadCmd)
+void TRNG_ReloadCmd(uint32_t u32ReloadCmd)
 {
-    DDL_ASSERT(IS_VALID_RELOAD(u32LoadCmd));
-    MODIFY_REG32(M4_TRNG->MR, TRNG_MR_LOAD, u32LoadCmd);
+    DDL_ASSERT(IS_VALID_RELOAD(u32ReloadCmd));
+    MODIFY_REG32(M4_TRNG->MR, TRNG_MR_LOAD, u32ReloadCmd);
 }
 
 /**
- * @brief  Start TRNG and generate random number
- * @param  [in] u32Random       The destination address where the random number will be stored.
+ * @brief  Start TRNG and get random number
+ * @param  [in] au32Random       The destination address where the random number will be stored.
  * @retval Ok: Success
  *         ErrorTimeout: Process timeout
  *         ErrorInvalidParameter: Parameter error
+ * @note   Please pass in an array of 64 bits or more
  */
-en_result_t TRNG_Generate(uint32_t u32Random[])
+en_result_t TRNG_Generate(uint32_t au32Random[])
 {
     en_result_t enRet = ErrorInvalidParameter;
     uint32_t u32TimeCount = 0U;
-    if(u32Random != NULL)
+    if(au32Random != NULL)
     {
         enRet = Ok;
-        /* Turn on TRNG circuit. */
-        bM4_TRNG->CR_b.EN = 1U;
+        /* Enable TRNG circuit. */
+        SET_REG32_BIT(M4_TRNG->CR, TRNG_CR_EN);
         /* Start TRNG */
-        bM4_TRNG->CR_b.RUN = 1U;
+        SET_REG32_BIT(M4_TRNG->CR, TRNG_CR_RUN);
         /* Wait for the TRNG to stop */
-        while(bM4_TRNG->CR_b.RUN == 1U)
+        while(READ_REG32_BIT(M4_TRNG->CR, TRNG_CR_RUN) == 1U)
         {
-            if(u32TimeCount++ > TIMEOUT)
+            if(u32TimeCount++ > TRNG_TIMEOUT)
             {
                 enRet = ErrorTimeout;
                 break;
@@ -186,14 +187,11 @@ en_result_t TRNG_Generate(uint32_t u32Random[])
         if(enRet == Ok)
         {
             /* Get the random number. */
-            u32Random[0U] = M4_TRNG->DR0;
-            u32Random[1U] = M4_TRNG->DR1;
+            au32Random[0U] = READ_REG32(M4_TRNG->DR0);
+            au32Random[1U] = READ_REG32(M4_TRNG->DR1);
+            /* Disable TRNG circuit. */
+            CLEAR_REG32_BIT(M4_TRNG->CR, TRNG_CR_EN);
         }
-        /* Stop TRNG generating. */
-        bM4_TRNG->CR_b.RUN = 0U;
-
-        /* Turn off TRNG circuit. */
-        bM4_TRNG->CR_b.EN = 0U;
     }
     return enRet;
 }
@@ -214,4 +212,3 @@ en_result_t TRNG_Generate(uint32_t u32Random[])
 /*******************************************************************************
  * EOF (not truncated)
  ******************************************************************************/
-

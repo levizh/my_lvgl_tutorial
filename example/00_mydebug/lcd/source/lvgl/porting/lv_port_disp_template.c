@@ -10,7 +10,7 @@
  *      INCLUDES
  *********************/
 #include "lv_port_disp_template.h"
-#include "hc32_ddl.h"
+#include "hc32_ddl_lcd.h"
 
 /*********************
  *      DEFINES
@@ -172,7 +172,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
         do {
           __asm("nop");
         } while(cnt--);
-//        DDL_Delay1ms(1);
+//        DDL_DelayMS(1);
 
         /* Prepare to write to LCD RAM */
         LCD_WriteReg(lcddev.wramcmd);
@@ -194,7 +194,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
         while(Reset == DMA_GetTransIntStatus(M4_DMA1, DMA_TC_INT0))
         {
             AOS_SW_Trigger();
-            //DDL_Delay1ms(1);
+            //DDL_DelayMS(1);
         }
         DMA_ClearTransIntStatus(M4_DMA1, DMA_TC_INT0);
 //        if(memcmp(color_p, test_buf, line_size))

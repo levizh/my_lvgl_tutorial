@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-14       Heqb         First version
+   2020-06-12       Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -80,10 +80,6 @@ extern "C"
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-/**
- * @defgroup HASH_Global_Types HASH Global Types
- * @{
- */
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
@@ -94,7 +90,6 @@ extern "C"
  * @{
  */
 
-#define HASH_TIMEOUT                 (0x1000UL)
 #define HASH_GROUP_LEN               (64U)
 #define LAST_GROUP_MAX_LEN           (56U)
 
@@ -111,8 +106,8 @@ extern "C"
  * @defgroup HASH_Key_Len HASH Key Length
  * @{
  */
-#define HASH_KEY_LEN_LONG            (HASH_CR_LKEY)                /*!< Key length > 64 Bytes */
-#define HASH_KEY_LEN_SHORT           (0x0UL)                       /*!< Key length <= 64 Bytes */
+#define HASH_KEY_LEN_LONG            (HASH_CR_LKEY)             /*!< Key length > 64 Bytes */
+#define HASH_KEY_LEN_SHORT           (0x0UL)                    /*!< Key length <= 64 Bytes */
 /**
  * @}
  */
@@ -121,9 +116,8 @@ extern "C"
  * @defgroup HASH_Interrupt_Definition HASH Interrupt Definition
  * @{
  */
-#define HASH_INT_GROUP               (HASH_CR_HEIE)                 /*!< A set of data operations complete interrupt */
-#define HASH_INT_ALL                 (HASH_CR_HCIE)                 /*!< All data operations complete interrupt */
-#define HASH_INT_BOTH                (HASH_CR_HCIE | HASH_CR_HEIE)  /*!< Both */
+#define HASH_INT_GROUP               (HASH_CR_HEIE)             /*!< A set of data operations complete interrupt */
+#define HASH_INT_ALL                 (HASH_CR_HCIE)             /*!< All data operations complete interrupt */
 /**
  * @}
  */
@@ -144,11 +138,10 @@ extern "C"
  * @defgroup HASH_Status HASH Status
  * @{
  */
-#define HASH_FLAG_START              (0U)                      /*!< Operation in progress */
-#define HASH_FLAG_BUSY               (1U)                      /*!< HASH in operation */
-#define HASH_FLAG_CYC_END            (2U)                      /*!< key or message operation completed */
-#define HASH_FLAG_HMAC_END           (3U)                      /*!< HMAC operation completed */
-#define HASH_FLAG_CYC_HMAC_END       (4U)                      /*!< Message or HMAC operation completed */
+#define HASH_FLAG_START              (HASH_CR_START)            /*!< Operation in progress */
+#define HASH_FLAG_BUSY               (HASH_CR_BUSY)             /*!< HASH in operation */
+#define HASH_FLAG_CYC_END            (HASH_CR_CYC_END)          /*!< key or message operation completed */
+#define HASH_FLAG_HMAC_END           (HASH_CR_HMAC_END)         /*!< HMAC operation completed */
 /**
  * @}
  */
@@ -157,10 +150,9 @@ extern "C"
  * @defgroup HASH_Common_Trigger_Sel HASH common trigger source select
  * @{
  */
-#define HASH_COM1_TRIG_DISABLE       (0x00UL)
-#define HASH_COM2_TRIG_DISABLE       (0x00UL)
-#define HASH_COM1_TRIG_ENABLE        (0x01UL << 31UL)
-#define HASH_COM2_TRIG_ENABLE        (0x01Ul << 30UL)
+#define HASH_COM_TRIG1               (AOS_HASH_ITRGSELA_COMTRG_EN_0)
+#define HASH_COM_TRIG2               (AOS_HASH_ITRGSELA_COMTRG_EN_1)
+#define HASH_COM_TRIG_MASk           (AOS_HASH_ITRGSELA_COMTRG_EN)
 /**
  * @}
  */
@@ -169,8 +161,8 @@ extern "C"
  * @defgroup HASH_Common_Trigger_Reg_Sel HASH common trigger cource select
  * @{
  */
-#define HASH_TRIG_REG_BLKCOM         (0U)              /*!< DMA block transfer complete register */
-#define HASH_TRID_REG_TRNCOM         (1U)              /*!< DMA transfer complete register*/
+#define HASH_TRIG_REG_BLKCOM          (0U)              /*!< DMA block transfer complete register */
+#define HASH_TRIG_REG_TRNCOM          (1U)              /*!< DMA transfer complete register*/
 /**
  * @}
  */
@@ -234,7 +226,7 @@ en_result_t HASH_Calculate(const void *pvSrcData,
                            uint8_t au8MsgDigest[]);
 en_result_t HMAC_Calculate(const void *pvSrcData,
                            uint32_t u32SrcDataSize,
-                           const uint8_t pu8Key[],
+                           const uint8_t au8Key[],
                            uint32_t u32KeyLength,
                            uint8_t au8MsgDigest[]);
 en_result_t HASH_Start(void);
@@ -244,9 +236,10 @@ en_result_t HASH_SetKeyLength(uint32_t u32KeyLen);
 en_result_t HASH_MsgGrpConfig(uint32_t u32MsgGroup);
 en_result_t HASH_ClearStatus(uint32_t u32ClearFlag);
 void HASH_SetTriggerSrc(en_event_src_t enSrc);
-void HASH_ComTrigCmd(uint8_t u8TrigReg, uint32_t u32ComTrigEn);
+void HASH_ComTriggerCmd(uint8_t u8TrigReg, uint32_t u32ComTrig, \
+                        en_functional_state_t enNewState);
 en_flag_status_t HASH_GetStatus(uint32_t u32HashFlag);
-void HASH_GetResult(uint8_t u8MsgDigest[]);
+void HASH_GetResult(uint8_t au8MsgDigest[]);
 /**
  * @}
  */

@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-23       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -105,6 +105,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -114,6 +116,58 @@
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
  * @brief  EXINT Ch.8 as KYESCAN row 0 callback function
  * @param  None
  * @retval None
@@ -122,9 +176,7 @@ void KEYSCAN_ROW0_IrqCallback(void)
 {
     if (Set == EXINT_GetExIntSrc(KEYSCAN_ROW0_EXINT))
     {
-#if (DDL_PRINT_ENABLE == DDL_ON)
         printf("Key row 0, col %ld is pressed.\n", KEYSCAN_GetKeyoutIdx());
-#endif
         /* clear int request flag */
         EXINT_ClrExIntSrc(KEYSCAN_ROW0_EXINT);
     }
@@ -139,9 +191,7 @@ void KEYSCAN_ROW1_IrqCallback(void)
 {
     if (Set == EXINT_GetExIntSrc(KEYSCAN_ROW1_EXINT))
     {
-#if (DDL_PRINT_ENABLE == DDL_ON)
         printf("Key row 1, col %ld is pressed.\n", KEYSCAN_GetKeyoutIdx());
-#endif
         /* clear int request flag */
         EXINT_ClrExIntSrc(KEYSCAN_ROW1_EXINT);
     }
@@ -156,9 +206,7 @@ void KEYSCAN_ROW2_IrqCallback(void)
 {
     if (Set == EXINT_GetExIntSrc(KEYSCAN_ROW2_EXINT))
     {
-#if (DDL_PRINT_ENABLE == DDL_ON)
         printf("Key row 2, col %ld is pressed.\n", KEYSCAN_GetKeyoutIdx());
-#endif
         /* clear int request flag */
         EXINT_ClrExIntSrc(KEYSCAN_ROW2_EXINT);
     }
@@ -284,13 +332,13 @@ void KEYSCAN_COL_Init(void)
 
     stcGpioInit.u16PullUp = PIN_PU_ON;
     GPIO_Init(KEYOUT0_PORT, KEYOUT0_PIN, &stcGpioInit);
-    GPIO_SetFunc(KEYOUT0_PORT, KEYOUT0_PIN, GPIO_FUNC_8_KEYSCAN, Disable);
+    GPIO_SetFunc(KEYOUT0_PORT, KEYOUT0_PIN, GPIO_FUNC_8_KEYSCAN, PIN_SUBFUNC_DISABLE);
 
     GPIO_Init(KEYOUT1_PORT, KEYOUT1_PIN, &stcGpioInit);
-    GPIO_SetFunc(KEYOUT1_PORT, KEYOUT1_PIN, GPIO_FUNC_8_KEYSCAN, Disable);
+    GPIO_SetFunc(KEYOUT1_PORT, KEYOUT1_PIN, GPIO_FUNC_8_KEYSCAN, PIN_SUBFUNC_DISABLE);
 
     GPIO_Init(KEYOUT2_PORT, KEYOUT2_PIN, &stcGpioInit);
-    GPIO_SetFunc(KEYOUT2_PORT, KEYOUT2_PIN, GPIO_FUNC_8_KEYSCAN, Disable);
+    GPIO_SetFunc(KEYOUT2_PORT, KEYOUT2_PIN, GPIO_FUNC_8_KEYSCAN, PIN_SUBFUNC_DISABLE);
 
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_KEY, Enable);
 
@@ -311,17 +359,20 @@ void KEYSCAN_COL_Init(void)
  */
 int32_t main(void)
 {
-#if (DDL_PRINT_ENABLE == DDL_ON)
+    /* Register write enable for some required peripherals. */
+    Peripheral_WE();
+    /* System clock init */
+    BSP_CLK_Init();
+
     DDL_PrintfInit();
-#endif
-    /* unlock GPIO register in advance */
-    GPIO_Unlock();
-    
+
     KEYSCAN_ROW0_Init();
     KEYSCAN_ROW1_Init();
     KEYSCAN_ROW2_Init();
 
     KEYSCAN_COL_Init();
+    /* Register write protected for some required peripherals. */
+    Peripheral_WP();
 
     /* Clear all KEYIN interrupt flag before enable */
     EXINT_ClrExIntSrc(KEYSCAN_ROW0_EXINT);

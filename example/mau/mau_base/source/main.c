@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  mau/mau_base/source/main.c
- * @brief Main program of MAU for the Device Driver Library.
+ * @brief Main program of MAU base for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-20       Hexiao         First version
+   2020-06-12       Hexiao         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,7 +62,7 @@
  */
 
 /**
- * @addtogroup MAU_OUTPUT
+ * @addtogroup MAU
  * @{
  */
 
@@ -101,6 +101,58 @@
  ******************************************************************************/
 
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
  * @brief   MAU Initialization
  * @param   None
  * @retval  None
@@ -113,8 +165,9 @@ static void MAU_Init(void)
 
 /**
  * @brief  Check whether the delta between two values is below threshold
- * @param  [in] u32VarA   First input variable
- * @param  [in] u32VarB   Second input variable
+ * @param  [in] u32VarA       First input variable
+ * @param  [in] u32VarB       Second input variable
+ * @param  [in] u32MaxError   threshold
  * @retval Status
  *           0: Delta is below threshold
  *           1: Delta is above threshold
@@ -141,7 +194,7 @@ static uint8_t MAU_CheckResidualErr(uint32_t u32VarA, uint32_t u32VarB, uint32_t
 
 /**
  * @brief  Error Handler, toggle led red if u32IsError is 1, else turn led blue on
- * @param  [in] u32IsError   
+ * @param  [in] u32IsError
  * @retval  None
  */
 static void ErrHandler(uint32_t u32IsError)
@@ -151,7 +204,7 @@ static void ErrHandler(uint32_t u32IsError)
         while(1)
         {
             BSP_LED_Toggle(LED_RED);
-            DDL_Delay1ms(LED_DLY_MS);
+            DDL_DelayMS(LED_DLY_MS);
         }
     }
     else
@@ -165,13 +218,13 @@ static void ErrHandler(uint32_t u32IsError)
 }
 
 /**
- * @brief   Interrupt callback function of sqrt Done 
+ * @brief   Interrupt callback function of sqrt Done
  * @param   None
  * @retval  None
  */
 static void MAU_SqrtIrqCallback(void)
 {
-    MAU_SqrtRead(M4_MAU);
+    MAU_SqrtReadDataReg(M4_MAU);
 }
 
 /**
@@ -183,7 +236,7 @@ static void Sqrt_IntCfg(void)
 {
     stc_irq_signin_config_t stcIrqSignCfg;
     MAU_SqrtIntCmd(M4_MAU, Enable);
-    
+
     /* Register IRQ handler && configure NVIC. */
     stcIrqSignCfg.enIRQn = MAU_SQRT_IRQn;
     stcIrqSignCfg.enIntSrc = MAU_SQRT_INTSRC;
@@ -196,7 +249,7 @@ static void Sqrt_IntCfg(void)
 
 /**
  * @brief  Generate random data as radicand parameters for sqrt example
- * @param  [in] u32TrngArr  array to hold random data 
+ * @param  [in] u32TrngArr  array to hold random data
  * @param  [in] count       number of random data that will be generated
  * @retval None
  */
@@ -209,7 +262,7 @@ static void  Trng_Gen(uint32_t u32TrngArr[],uint32_t count)
     /* Shift 64 times */
     TRNG_SetShiftCnt(TRNG_SHIFT_COUNT_64);
     /* Disable the Load function */
-    TRNG_LoadCmd(TRNG_RELOAD_DISABLE);
+    TRNG_ReloadCmd(TRNG_RELOAD_DISABLE);
     for(i = 0U; i < trngloop; i++)
     {
         TRNG_Generate(&u32TrngArr[i * 2U]);
@@ -229,16 +282,16 @@ static en_result_t Sqrt_Example(void)
     static uint32_t u32SplGrp[SQRT_DATA_CNT];
     static uint32_t u32CtrlGrp[SQRT_DATA_CNT];
     uint32_t u32CtrlScale = 1U;
-    en_result_t enRet;
+    en_result_t enRet = Ok;
 
     /* Generate random data as radicand parameters for sqrt example */
     Trng_Gen(u32Radicands,SQRT_DATA_CNT);
     /* Sqrt configuration */
     Sqrt_IntCfg();
-    MAU_SqrtResultLShiftCfg(M4_MAU,0);
+    MAU_SqrtResultLShiftCfg(M4_MAU,0U);
     /* Input random radicands, generate sqrt and compare results */
     for(uint32_t i = 0U; i < SQRT_DATA_CNT; i++)
-    {        
+    {
         /* Generate sample group by mau */
         enRet = MAU_Sqrt(M4_MAU, u32Radicands[i], &u32SplGrp[i]);
         if(Ok == enRet)
@@ -274,7 +327,7 @@ static uint32_t Sin_Example(void)
 {
     static uint32_t u32SplGrp[SIN_DOT_CNT];
     static uint32_t u32CtrlGrp[SIN_DOT_CNT];
-    volatile uint16_t u16AvgAngIdx = (uint16_t)(float32_t)((float32_t)MAU_SIN_ANG_TOTAL / (float32_t)SIN_DOT_CNT + (float32_t)0.5);
+    volatile uint16_t u16AvgAngIdx = (uint16_t)(float32_t)((float32_t)MAU_SIN_ANGIDX_TOTAL / (float32_t)SIN_DOT_CNT + (float32_t)0.5);
     uint32_t u32Err = 0U;
     float32_t fAvgRadian;
 
@@ -282,7 +335,7 @@ static uint32_t Sin_Example(void)
     {
         u16AvgAngIdx = 1U;
     }
-    fAvgRadian = (float32_t)u16AvgAngIdx / (float32_t)MAU_SIN_ANG_TOTAL * (float32_t)2 * PI;
+    fAvgRadian = (float32_t)u16AvgAngIdx / (float32_t)MAU_SIN_ANGIDX_TOTAL * (float32_t)2 * PI;
     for(uint32_t i = 0U; i < SIN_DOT_CNT; i++)
     {
         /* Generate sqrt sample group by mau */
@@ -308,6 +361,8 @@ static uint32_t Sin_Example(void)
  */
 int32_t main(void)
 {
+    Peripheral_WE();
+
     BSP_CLK_Init();
     BSP_IO_Init();
     BSP_LED_Init();

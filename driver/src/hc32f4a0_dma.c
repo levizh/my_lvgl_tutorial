@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -81,127 +81,132 @@
  * @defgroup DMA_Local_Macros DMA Local Macros
  * @{
  */
-#define DMA_CH_REG(reg_base, ch)    (*(uint32_t *)((uint32_t)(&reg_base) + ((ch) * 0x40UL)))
+#define DMA_CH_REG(reg_base, ch)    (*(uint32_t *)((uint32_t)(&(reg_base)) + ((ch) * 0x40UL)))
 
 /**
  * @defgroup DMA_Check_Parameters_Validity DMA Check Parameters Validity
  * @{
  */
-/* Parameter valid check for DMA unit. */
+/*! Parameter valid check for DMA unit. */
 #define IS_DMA_UNIT(unit)                                                       \
 (   ((unit) == M4_DMA1)                     ||                                  \
     ((unit) == M4_DMA2))
 
-/* Parameter valid check for DMA channel. */
+/*! Parameter valid check for DMA channel. */
 #define IS_DMA_CH(ch)           ((ch) <= DMA_CH7)
 
-/* Parameter valid check for DMA multiplex channel. */
+/*! Parameter valid check for DMA multiplex channel. */
 #define IS_DMA_MX_CH(ch)                                                        \
 (   ((ch) != 0x00UL)                        &&                                  \
     (((ch) | DMA_MX_CH_ALL) == DMA_MX_CH_ALL))
 
-/* Parameter valid check for DMA block size. */
-#define IS_DMA_BLKSZ(bc)        (bc <= 1024U)
+/*! Parameter valid check for DMA block size. */
+#define IS_DMA_BLKSZ(bc)        ((bc) <= 1024U)
 
-/* Parameter valid check for DMA non-sequence transfer count. */
-#define IS_DMA_NS_TRANSCNT(tc)  (tc <= 4096U)
+/*! Parameter valid check for DMA non-sequence transfer count. */
+#define IS_DMA_NS_TRANSCNT(tc)  ((tc) <= 4096U)
 
-/* Parameter valid check for DMA non-sequence offset. */
-#define IS_DMA_NS_OFFSET(ofs)   (ofs <= ((1UL <<20U) - 1UL))
+/*! Parameter valid check for DMA non-sequence offset. */
+#define IS_DMA_NS_OFFSET(ofs)   ((ofs) <= ((1UL <<20U) - 1UL))
 
-/* Parameter valid check for DMA LLP pointer address. */
+/*! Parameter valid check for DMA LLP pointer address. */
 #define IS_DMA_LLP_ADDR(llp)         (((llp) & 0x03UL) == 0x00UL)
 
-/* Parameter valid check for DMA LLP function. */
+/*! Parameter valid check for DMA LLP function. */
 #define IS_DMA_LLP_EN(en)                                                       \
 (   ((en) == DMA_LLP_ENABLE)                ||                                  \
     ((en) == DMA_LLP_DISABLE))
 
-/* Parameter valid check for DMA linked-list-pointer mode. */
+/*! Parameter valid check for DMA linked-list-pointer mode. */
 #define IS_DMA_LLP_MODE(mode)                                                   \
 (   ((mode) == DMA_LLP_RUN)                 ||                                  \
     ((mode) == DMA_LLP_WAIT))
 
-/* Parameter valid check for DMA error interrupt. */
+/*! Parameter valid check for DMA error interrupt. */
 #define IS_DMA_ERR_INT(it)                                                      \
 (   ((it) != 0x00000000UL)                  &&                                  \
     (((it) | DMA_ERR_INT_MASK) == DMA_ERR_INT_MASK))
 
-/* Parameter valid check for DMA transfer interrupt. */
+/*! Parameter valid check for DMA transfer interrupt. */
 #define IS_DMA_TRANS_INT(it)                                                    \
 (   ((it) != 0x00000000UL)                  &&                                  \
     (((it) | DMA_TRANS_INT_MASK) == DMA_TRANS_INT_MASK))
 
-/* Parameter valid check for DMA request status. */
+/*! Parameter valid check for DMA request status. */
 #define IS_DMA_REQ_STAT(stat)                                                   \
 (   ((stat) != 0x00000000UL)                &&                                  \
     (((stat) | DMA_REQ_STAT_MASK) == DMA_REQ_STAT_MASK))
 
-/* Parameter valid check for DMA channel status. */
+/*! Parameter valid check for DMA channel status. */
 #define IS_DMA_TRANS_STAT(stat)                                                 \
 (   ((stat) != 0x00000000UL)                &&                                  \
     (((stat) | DMA_TRANS_STAT_MASK) == DMA_TRANS_STAT_MASK))
 
-/* Parameter valid check for DMA transfer data width. */
+/*! Parameter valid check for DMA transfer data width. */
 #define IS_DMA_DATA_WIDTH(dw)                                                   \
 (   ((dw) == DMA_DATAWIDTH_8BIT)            ||                                  \
     ((dw) == DMA_DATAWIDTH_16BIT)           ||                                  \
     ((dw) == DMA_DATAWIDTH_32BIT))
 
-/* Parameter valid check for DMA source address mode. */
+/*! Parameter valid check for DMA source address mode. */
 #define IS_DMA_SADDR_MODE(mode)                                                 \
 (   ((mode) == DMA_SRC_ADDR_FIX)            ||                                  \
     ((mode) == DMA_SRC_ADDR_INC)            ||                                  \
     ((mode) == DMA_SRC_ADDR_DEC))
 
-/* Parameter valid check for DMA destination address mode. */
+/*! Parameter valid check for DMA destination address mode. */
 #define IS_DMA_DADDR_MODE(mode)                                                 \
 (   ((mode) == DMA_DEST_ADDR_FIX)           ||                                  \
     ((mode) == DMA_DEST_ADDR_INC)           ||                                  \
     ((mode) == DMA_DEST_ADDR_DEC))
 
-/* Parameter valid check for DMA source address repeat selection. */
+/*! Parameter valid check for DMA source address repeat selection. */
 #define IS_DMA_SRC_RPT(rpt)                                                     \
 (   ((rpt) == DMA_SRC_RPT_ENABLE)           ||                                  \
     ((rpt) == DMA_SRC_RPT_DISABLE))
 
-/* Parameter valid check for DMA destination address repeat selection. */
+/*! Parameter valid check for DMA destination address repeat selection. */
 #define IS_DMA_DEST_RPT(rpt)                                                    \
 (   ((rpt) == DMA_DEST_RPT_ENABLE)          ||                                  \
     ((rpt) == DMA_DEST_RPT_DISABLE))
 
-/* Parameter valid check for DMA source non-sequence selection. */
+/*! Parameter valid check for DMA source non-sequence selection. */
 #define IS_DMA_SRC_NS(ns)                                                       \
 (   ((ns) == DMA_SRC_NS_ENABLE)             ||                                  \
     ((ns) == DMA_SRC_NS_DISABLE))
 
-/* Parameter valid check for DMA destination non-sequence selection. */
+/*! Parameter valid check for DMA destination non-sequence selection. */
 #define IS_DMA_DEST_NS(ns)                                                      \
 (   ((ns) == DMA_DEST_NS_ENABLE)            ||                                  \
     ((ns) == DMA_DEST_NS_DISABLE))
 
-/* Parameter valid check for DMA global interrupt function. */
+/*! Parameter valid check for DMA global interrupt function. */
 #define IS_DMA_INT_FUNC(func)                                                   \
 (   ((func) == DMA_INT_ENABLE)              ||                                  \
     ((func) == DMA_INT_DISABLE))
 
-/* Parameter valid check for DMA reconfig count mode. */
+/*! Parameter valid check for DMA reconfig count mode. */
 #define IS_DMA_RC_CNT_MODE(mode)                                                \
 (   ((mode) == DMA_RC_CNT_FIX)              ||                                  \
     ((mode) == DMA_RC_CNT_SRC)              ||                                  \
     ((mode) == DMA_RC_CNT_DEST))
 
-/* Parameter valid check for DMA reconfig destination address mode. */
+/*! Parameter valid check for DMA reconfig destination address mode. */
 #define IS_DMA_RC_DA_MODE(mode)                                                 \
 (   ((mode) == DMA_RC_DA_FIX)               ||                                  \
     ((mode) == DMA_RC_DA_NS )               ||                                  \
     ((mode) == DMA_RC_DA_RPT))
 
-/* Parameter valid check for DMA reconfig source address mode. */
+/*! Parameter valid check for DMA reconfig source address mode. */
 #define IS_DMA_RC_SA_MODE(mode)                                                 \
 (   ((mode) == DMA_RC_SA_FIX)               ||                                  \
     ((mode) == DMA_RC_SA_NS )               ||                                  \
     ((mode) == DMA_RC_SA_RPT))
+
+/*! Parameter valid check for DMA common trigger config. */
+#define IS_DMA_COM_TRIG(trig)                                                   \
+(   ((trig) != 0x00UL)                      &&                                  \
+    (((trig) | DMA_COM_TRIG_MASK) == DMA_COM_TRIG_MASK))
 
 /**
  * @}
@@ -589,7 +594,32 @@ en_flag_status_t DMA_GetTransStatus(const M4_DMA_TypeDef *DMAx, uint32_t u32Stat
  */
 void DMA_SetReConfigTriggerSrc(en_event_src_t enSrc)
 {
-    WRITE_REG32(M4_AOS->DMA_TRGSELRC, enSrc);
+    MODIFY_REG32(M4_AOS->DMA_TRGSELRC, AOS_DMA_TRGSELRC_TRGSEL, enSrc);
+}
+
+/**
+ * @brief  AOS common trigger function config for DMA re-config mode.
+ * @param  [in] u32ComTrig Common trigger event enable.
+ *         This parameter can be one of the following values:
+ *           @arg  DMA_COM_TRIG1: Common trigger event 1 .
+ *           @arg  DMA_COM_TRIG2: Common trigger event 2.
+ * @param  [in] enNewState New state of common trigger function.
+ * @retval None
+ * @note This register belongs to AOS module, please ensure enable it in advance.
+ */
+void DMA_RCComTriggerCmd(uint32_t u32ComTrig, en_functional_state_t enNewState)
+{
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_DMA_COM_TRIG(u32ComTrig));
+
+    if (Enable == enNewState)
+    {
+        SET_REG32_BIT(M4_AOS->DMA_TRGSELRC, u32ComTrig);
+    }
+    else
+    {
+        CLEAR_REG32_BIT(M4_AOS->DMA_TRGSELRC, u32ComTrig);
+    }
 }
 
 /**
@@ -613,20 +643,73 @@ void DMA_SetReConfigTriggerSrc(en_event_src_t enSrc)
  */
 void DMA_SetTriggerSrc(const M4_DMA_TypeDef *DMAx, uint8_t u8Ch, en_event_src_t enSrc)
 {
+    __IO uint32_t *TRGSELx;
+
     DDL_ASSERT(IS_DMA_UNIT(DMAx));
     DDL_ASSERT(IS_DMA_CH(u8Ch));
 
     if (M4_DMA1 == DMAx)
     {
-        *(uint32_t*)((uint32_t)(&M4_AOS->DMA_1_TRGSEL0) + u8Ch*4UL) = enSrc;
-    }
-    else if (M4_DMA2 == DMAx)
-    {
-        *(uint32_t*)((uint32_t)(&M4_AOS->DMA_2_TRGSEL0) + u8Ch*4UL) = enSrc;
+//        *(uint32_t*)((uint32_t)(&M4_AOS->DMA_1_TRGSEL0) + u8Ch*4UL) = enSrc;
+        TRGSELx = (uint32_t *)((uint32_t)(&M4_AOS->DMA_1_TRGSEL0) + u8Ch*4UL);
     }
     else
     {
-        /* resvd */
+//        *(uint32_t*)((uint32_t)(&M4_AOS->DMA_2_TRGSEL0) + u8Ch*4UL) = enSrc;
+        TRGSELx = (uint32_t *)((uint32_t)(&M4_AOS->DMA_2_TRGSEL0) + u8Ch*4UL);
+    }
+    MODIFY_REG32(*TRGSELx, AOS_DMA_1_TRGSEL_TRGSEL, enSrc);
+}
+
+/**
+ * @brief  AOS common trigger function config for DMA
+ * @param  [in] DMAx DMA unit instance.
+ *   @arg  M4_DMA1 Unit1.
+ *   @arg  M4_DMA2 Unit2.
+ * @param  [in] u8Ch DMA channel.
+ *   @arg  DMA_CH0.
+ *   @arg  DMA_CH1.
+ *   @arg  DMA_CH2.
+ *   @arg  DMA_CH3.
+ *   @arg  DMA_CH4.
+ *   @arg  DMA_CH5.
+ *   @arg  DMA_CH6.
+ *   @arg  DMA_CH7.
+ * @param  [in] u32ComTrig Common trigger event enable.
+ *         This parameter can be one of the following values:
+ *           @arg  DMA_COM_TRIG1: Common trigger event 1 .
+ *           @arg  DMA_COM_TRIG2: Common trigger event 2.
+ * @param  [in] enNewState New state of common trigger function.
+ * @retval None
+ * @note This register belongs to AOS module, please ensure enable it in advance.
+ */
+void DMA_ComTriggerCmd(const M4_DMA_TypeDef *DMAx, uint8_t u8Ch, uint32_t u32ComTrig, en_functional_state_t enNewState)
+{
+    __IO uint32_t *TRGSELx;
+
+    DDL_ASSERT(IS_DMA_UNIT(DMAx));
+    DDL_ASSERT(IS_DMA_CH(u8Ch));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+    DDL_ASSERT(IS_DMA_COM_TRIG(u32ComTrig));
+
+    if (M4_DMA1 == DMAx)
+    {
+//        *(uint32_t*)((uint32_t)(&M4_AOS->DMA_1_TRGSEL0) + u8Ch*4UL) = enSrc;
+        TRGSELx = (uint32_t *)((uint32_t)(&M4_AOS->DMA_1_TRGSEL0) + u8Ch*4UL);
+    }
+    else
+    {
+//        *(uint32_t*)((uint32_t)(&M4_AOS->DMA_2_TRGSEL0) + u8Ch*4UL) = enSrc;
+        TRGSELx = (uint32_t *)((uint32_t)(&M4_AOS->DMA_2_TRGSEL0) + u8Ch*4UL);
+    }
+
+    if (Enable == enNewState)
+    {
+        SET_REG32_BIT(*TRGSELx, u32ComTrig);
+    }
+    else
+    {
+        CLEAR_REG32_BIT(*TRGSELx, u32ComTrig);
     }
 }
 
@@ -1104,7 +1187,7 @@ en_result_t DMA_NonSeqStructInit(stc_dma_nonseq_init_t *pstcDmaNonSeqInit)
  *   @arg  DMA_CH5.
  *   @arg  DMA_CH6.
  *   @arg  DMA_CH7.
- * @param  [in] pstcDmaRptInit DMA non-sequence mode config structure.
+ * @param  [in] pstcDmaNonSeqInit DMA non-sequence mode config structure.
  *   @arg  u32SrcNonSeqEn   DMA source non-sequence enable or disable.
  *   @arg  u32SrcNonSeqCnt  DMA source non-sequence count.
  *   @arg  u32SrcNonSeqOfs  DMA source non-sequence offset.

@@ -516,14 +516,14 @@ void OV5640_Init(void)
 
     reg_val = 0x82U;
     BSP_CAM_WriteReg(0x3008U, (uint8_t *)&reg_val, 1U);
-    DDL_Delay1ms(100);
+    DDL_DelayMS(100);
 
     for (i = 0; i < (sizeof(OV5640_init_reg_tbl)/sizeof(uint16_t)); i++)
     {
         BSP_CAM_WriteReg(OV5640_init_reg_tbl[i][0], (uint8_t *)&OV5640_init_reg_tbl[i][1], 1U);
     }
     BSP_OV5640_Light_Ctrl(1U);
-    DDL_Delay1ms(50UL);
+    DDL_DelayMS(50UL);
     BSP_OV5640_Light_Ctrl(0U);
 }
 

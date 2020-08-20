@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-15       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -71,7 +71,7 @@ extern "C"
  */
 
 /**
- * @addtogroup TMR0
+ * @addtogroup DDL_TMR0
  * @{
  */
 
@@ -148,8 +148,8 @@ typedef struct
  * @defgroup TMR0_Channel_Index TMR0 Channel Index
  * @{
  */
-#define TMR0_ChannelA                (0U)
-#define TMR0_ChannelB                (1U)
+#define TMR0_CH_A                    (0U)
+#define TMR0_CH_B                    (1U)
 /**
  * @}
  */
@@ -169,7 +169,7 @@ typedef struct
  * @{
  */
 #define TMR0_FUNC_CMP                (0x00000000UL)
-#define TMR0_FUNC_CAPTURE            (TMR0_BCONR_CAPMDA | TMR0_BCONR_HICPA)
+#define TMR0_FUNC_CAP                (TMR0_BCONR_CAPMDA | TMR0_BCONR_HICPA)
 /**
  * @}
  */
@@ -192,8 +192,8 @@ typedef struct
  * @defgroup TMR0_CAMPAR_FLAG TMR0 Compare Status
  * @{
  */
-#define TMR0_CMP_A                  (TMR0_STFLR_CMFA)
-#define TMR0_CMP_B                  (TMR0_STFLR_CMFB)
+#define TMR0_FLAG_CMP_A             (TMR0_STFLR_CMFA)
+#define TMR0_FLAG_CMP_B             (TMR0_STFLR_CMFB)
 /**
  * @}
  */
@@ -202,10 +202,10 @@ typedef struct
  * @defgroup TMR0_Common_Trigger_Sel TMR0 common Trigger source select
  * @{
  */
-#define TMR0_COM1_TRIG_DISABLE      (0x00UL)
-#define TMR0_COM2_TRIG_DISABLE      (0x00UL)
-#define TMR0_COM1_TRIG_ENABLE       ((0x01UL << 31U))
-#define TMR0_COM2_TRIG_ENABLE       ((0x01Ul << 30U))
+#define TMR0_COM_TRIG1              (AOS_TMR0_HTSSR_COMTRG_EN_0)
+#define TMR0_COM_TRIG2              (AOS_TMR0_HTSSR_COMTRG_EN_1)
+#define TMR0_COM_TRIG_MASk          (AOS_TMR0_HTSSR_COMTRG_EN)
+
 /**
  * @}
  */
@@ -226,8 +226,8 @@ typedef struct
  * @{
  */
 en_result_t TMR0_StructInit(stc_tmr0_init_t* pstcInitStruct);
-en_result_t TMR0_Init(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel,
-                      const stc_tmr0_init_t* pstcBaseInit);
+en_result_t TMR0_Init(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, \
+                      const stc_tmr0_init_t* pstcTmr0Init);
 void TMR0_DeInit(M4_TMR0_TypeDef* TMR0x);
 void TMR0_Cmd(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, \
               en_functional_state_t enNewState);
@@ -237,12 +237,12 @@ void TMR0_SetClkSrc(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkSr
 void TMR0_SetClkDiv(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32ClkDiv);
 void TMR0_HWTrigCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, \
                     uint32_t u32HWFunc, en_functional_state_t enNewState);
-void TMR0_FuncCmd(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32Func);
+void TMR0_SetFunc(M4_TMR0_TypeDef *TMR0x, uint8_t u8Channel, uint32_t u32Func);
 void TMR0_SetCntVal(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, uint16_t u16Value);
 void TMR0_SetCmpVal(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel, uint16_t u16Value);
 void TMR0_ClearStatus(M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel);
 void TMR0_SetTriggerSrc(en_event_src_t enEvent);
-void TMR0_ComTrigCmd(uint32_t u32ComTrigEn);
+void TMR0_ComTriggerCmd(uint32_t u32ComTrig, en_functional_state_t enNewState);
 
 en_flag_status_t TMR0_GetStatus(const M4_TMR0_TypeDef* TMR0x, uint8_t u8Channel);
 

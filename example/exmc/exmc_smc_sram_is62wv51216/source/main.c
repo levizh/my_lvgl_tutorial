@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-09       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,7 +62,7 @@
  */
 
 /**
- * @addtogroup EXMC_SMC_SRAM
+ * @addtogroup EXMC_SMC_SRAM_IS62WV51216
  * @{
  */
 
@@ -82,6 +82,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -108,6 +110,59 @@ static uint32_t m_u32WordTestErrorCnt = 0UL;
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
 /**
  * @brief  Main function of EXMC SRAM project
  * @param  None
@@ -118,6 +173,9 @@ int32_t main(void)
     uint32_t i;
     uint32_t j;
     uint32_t u32MemAddr;
+
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
 
     /* Initialize system clock: */
     BSP_CLK_Init();
@@ -130,21 +188,15 @@ int32_t main(void)
                               CLK_PCLK2_DIV4 | CLK_PCLK3_DIV4 | \
                               CLK_PCLK4_DIV2 | CLK_EXCLK_DIV4 | CLK_HCLK_DIV1));
 
-    /* Permit write the GPIO configuration register */
-    GPIO_Unlock();
-
     /* Initialize UART print */
     DDL_PrintfInit();
-
-    /* Don't permit write the GPIO configuration register */
-    GPIO_Lock();
 
     /* Initialize LED */
     BSP_IO_Init();
     BSP_LED_Init();
 
     /* Initialize test data. */
-    for (i = 0U; i < DATA_BUFFER_LEN; i++)
+    for (i = 0UL; i < DATA_BUFFER_LEN; i++)
     {
         m_au8ReadData[i] = 0U;
         m_au8WriteData[i] = 0x12U;
@@ -159,17 +211,21 @@ int32_t main(void)
     /* Configure SRAM. */
     IS62WV51216_Init();
     IS62WV51216_GetMemInfo(&m_u32MemStartAddr, &m_u32MemByteSize);
+
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
+
     m_u32MemHalfwordSize = m_u32MemByteSize/2UL;
     m_u32MemWordSize = m_u32MemByteSize/4UL;
 
-    printf("Memory start address: 0x%08x \r\n", m_u32MemStartAddr);
-    printf("Memory end   address: 0x%08x \r\n", (m_u32MemStartAddr + m_u32MemByteSize - 1UL));
-    printf("Memory size  (Bytes): 0x%08x \r\n\r\n", m_u32MemByteSize);
+    printf("Memory start address: 0x%08lx \r\n", m_u32MemStartAddr);
+    printf("Memory end   address: 0x%08lx \r\n", (m_u32MemStartAddr + m_u32MemByteSize - 1UL));
+    printf("Memory size  (Bytes): 0x%08lx \r\n\r\n", m_u32MemByteSize);
 
     while (1)
     {
         m_u32TestCnt++;
-        printf("******** Write/read test times: %d ********\r\n", m_u32TestCnt);
+        printf("******** Write/read test times: %ld ********\r\n", m_u32TestCnt);
 
         /****************** Byte read/write *****************/
         m_u32ByteTestErrorCnt = 0UL;
@@ -185,7 +241,7 @@ int32_t main(void)
                 if (m_au8WriteData[j] != m_au8ReadData[j])
                 {
                     m_u32ByteTestErrorCnt++;
-                    printf("Byte read/write error: address = 0x%x; write data = 0x%x; read data = 0x%x\r\n", 
+                    printf("Byte read/write error: address = 0x%lx; write data = 0x%x; read data = 0x%x\r\n", 
                            (u32MemAddr+j), m_au8WriteData[j], m_au8ReadData[j]);
                 }
             }
@@ -195,7 +251,7 @@ int32_t main(void)
             BSP_LED_Toggle(LED_BLUE);
         }
 
-        printf("     Byte read/write error data count: %d \r\n", m_u32ByteTestErrorCnt);
+        printf("     Byte read/write error data count: %ld \r\n", m_u32ByteTestErrorCnt);
 
         /**************** Halfword read/write ****************/
         BSP_LED_Toggle(LED_BLUE);
@@ -212,7 +268,7 @@ int32_t main(void)
                 if (m_au16WriteData[j] != m_au16ReadData[j])
                 {
                     m_u32HalfwordTestErrorCnt++;
-                    printf("Halfword read/write error: address = 0x%x; write data = 0x%x; read data = 0x%x\r\n", 
+                    printf("Halfword read/write error: address = 0x%lx; write data = 0x%x; read data = 0x%x\r\n", 
                            (u32MemAddr+j), m_au16WriteData[j], m_au16ReadData[j]);
                 }
             }
@@ -222,7 +278,7 @@ int32_t main(void)
             BSP_LED_Toggle(LED_BLUE);
         }
 
-        printf(" Halfword read/write error data count: %d \r\n", m_u32HalfwordTestErrorCnt);
+        printf(" Halfword read/write error data count: %ld \r\n", m_u32HalfwordTestErrorCnt);
 
         /****************** Word read/write ******************/
         BSP_LED_Toggle(LED_BLUE);
@@ -239,7 +295,7 @@ int32_t main(void)
                 if (m_au32WriteData[j] != m_au32ReadData[j])
                 {
                     m_u32WordTestErrorCnt++;
-                    printf("Word read/write error: address = 0x%x; write data = 0x%x; read data = 0x%x\r\n", 
+                    printf("Word read/write error: address = 0x%lx; write data = 0x%lx; read data = 0x%lx\r\n", 
                            (u32MemAddr+j), m_au32WriteData[j], m_au32ReadData[j]);
                 }
             }
@@ -249,7 +305,7 @@ int32_t main(void)
             BSP_LED_Toggle(LED_BLUE);
         }
 
-        printf("     Word read/write error data count: %d \r\n\r\n", m_u32WordTestErrorCnt);
+        printf("     Word read/write error data count: %ld \r\n\r\n", m_u32WordTestErrorCnt);
 
         /****************** Error check ******************/
         if (m_u32ByteTestErrorCnt || m_u32HalfwordTestErrorCnt || m_u32WordTestErrorCnt)

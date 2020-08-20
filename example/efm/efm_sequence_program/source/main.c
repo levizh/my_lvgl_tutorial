@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-21       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -81,17 +81,69 @@
  * Local function prototypes ('static')
  ******************************************************************************/
 static void SystemClockConfig(void);
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static uint8_t u8TestBuf[] = {1,2,3,4,5,6,7,8,9,10,\
-                              11,12,13,14,15,16,17,\
-                              18,19,20,21,22,23,24,\
-                              25,26,27,28,29,30,31,32};
+static uint32_t u32TestBuf[] = {0x11223344UL,0x55667788UL,0x99887766UL, \
+                                0x55443322UL,0xFFEEDDCCUL,0xBBAA9988UL, \
+                                0x00112233UL,0x11992288UL,0x55AA5A5AUL, \
+                                0x12345678UL,0x44556677UL,0x00001111UL};
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  Main function of EFM project
@@ -103,12 +155,12 @@ int32_t main(void)
     stc_efm_cfg_t stcEfmCfg;
     uint32_t flag1, flag2;
 
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* Configure system clock. */
     SystemClockConfig();
-    /* Unlock EFM. */
-    EFM_Unlock();
     /* EFM default config. */
-    EFM_StrucInit(&stcEfmCfg);
+    EFM_StructInit(&stcEfmCfg);
     /* EFM config */
     stcEfmCfg.u32BusStatus  = EFM_BUS_RELEASE;  /* Bus release while programming or erasing */
     /*
@@ -125,20 +177,26 @@ int32_t main(void)
     do{
         flag1 = EFM_GetFlagStatus(EFM_FLAG_RDY0);
         flag2 = EFM_GetFlagStatus(EFM_FLAG_RDY1);
-    }while((Set != flag1) || (Set != flag2));
-    /* FLASH disables write protection */
-    EFM_SectorUnlock(EFM_SECTOR0_ADDR, 0x1FFFFFUL, Enable);
-    /* Chip Erase: flash All erased */
-    EFM_ChipErase(EFM_MODE_ERASECHIP2, EFM_SECTOR0_ADDR);
-    /* Sequence program. */
-    EFM_SequenceProgram(EFM_SECTOR0_ADDR, sizeof(u8TestBuf), u8TestBuf);
-    /* Sequence program. */
-    EFM_SequenceProgram(EFM_SECTOR128_ADDR, sizeof(u8TestBuf), u8TestBuf);
-    /* Chip Erase: flash All erased */
-    EFM_ChipErase(EFM_MODE_ERASECHIP2, EFM_SECTOR0_ADDR);
+    }while(((uint32_t)Set != flag1) || ((uint32_t)Set != flag2));
 
-    /* Lock EFM. */
-    EFM_Lock();
+    /* FLASH disable write protection (sector 0~255) */
+    EFM_SectorCmd_Sequential(EFM_ADDR_SECTOR0, 256U, Enable);
+
+    /* Chip Erase: flash0 chip erased (sector 0~127)*/
+    EFM_ChipErase(EFM_MODE_ERASECHIP1, EFM_ADDR_SECTOR0);
+    /* Sequence program. */
+    EFM_SequenceProgram(EFM_ADDR_SECTOR0, sizeof(u32TestBuf), u32TestBuf);
+    /* Chip Erase: flash1 chip erased (sector 128~255)*/
+    EFM_ChipErase(EFM_MODE_ERASECHIP1, EFM_ADDR_SECTOR128);
+    /* Sequence program. */
+    EFM_SequenceProgram(EFM_ADDR_SECTOR128, sizeof(u32TestBuf), u32TestBuf);
+    /* Chip Erase: flash All erased */
+    EFM_ChipErase(EFM_MODE_ERASEFULL, EFM_ADDR_SECTOR0);
+
+    /* FLASH enable write protection (sector 0~255) */
+    EFM_SectorCmd_Sequential(EFM_ADDR_SECTOR0, 256U, Disable);
+    /* Lock peripherals or registers */
+    Peripheral_WP();
 
     while(1)
     {
@@ -191,13 +249,12 @@ static void SystemClockConfig(void)
     CLK_PLLHInit(&stcPLLHInit);
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
 
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
-    EFM_Unlock();
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* EFM wait cycle */
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 5-wait @ 240MHz */
-    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }

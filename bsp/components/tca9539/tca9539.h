@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -74,7 +74,7 @@ extern "C"
  * @{
  */
 
-/** @defgroup TCA9539
+/** @addtogroup TCA9539
   * @{
   */
 

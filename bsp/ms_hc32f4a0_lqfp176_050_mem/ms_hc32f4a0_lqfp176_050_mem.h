@@ -2,11 +2,11 @@
  *******************************************************************************
  * @file  ms_hc32f4a0_lqfp176_050_mem.h
  * @brief This file contains all the functions prototypes of the
- *        MS-HC32F4A0-LQF176-050-MEM BSP driver library.
+ *        MS_HC32F4A0_LQF176_050_MEM BSP driver library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -68,6 +68,11 @@ extern "C"
  * @{
  */
 
+/**
+ * @addtogroup MS_HC32F4A0_LQFP176_050_MEM
+ * @{
+ */
+
 #if (BSP_MS_HC32F4A0_LQFP176_050_MEM == BSP_EV_HC32F4A0)
 
 /*******************************************************************************
@@ -86,7 +91,7 @@ extern "C"
   Global function prototypes (definition in C source)
  ******************************************************************************/
 /**
- * @addtogroup BSP_Global_Functions
+ * @addtogroup BSP_MS_HC32F4A0_LQFP176_050_MEM_Global_Functions
  * @{
  */
 void BSP_CLK_Init(void);
@@ -96,6 +101,11 @@ void BSP_CLK_Init(void);
  */
 
 #endif /* BSP_MS_HC32F4A0_LQFP176_050_MEM */
+
+/**
+ * @}
+ */
+
 /**
  * @}
  */

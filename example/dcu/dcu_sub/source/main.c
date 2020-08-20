@@ -5,8 +5,9 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-11       Hongjh          First version
- @endverbatim
+   2020-06-12       Hongjh          First version
+   2020-07-23       Hongjh          1. Modify DCU DATA read/write API;
+                                    2. Modify paramters after refine DCU_IntCmd.
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
  *
@@ -87,16 +88,70 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 static void DCU_IrqCallback(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static uint32_t m_u32AddUnderflowCnt = 0UL;
+static __IO uint32_t m_u32AddUnderflowCnt = 0UL;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  DCU irq callback function.
@@ -105,10 +160,10 @@ static uint32_t m_u32AddUnderflowCnt = 0UL;
  */
 static void DCU_IrqCallback(void)
 {
-    if (Set == DCU_GetFlag(DCU_UNIT, DCU_FLAG_OPERATION))
+    if (Set == DCU_GetStatus(DCU_UNIT, DCU_FLAG_OPERATION))
     {
         m_u32AddUnderflowCnt++;
-        DCU_ClearFlag(DCU_UNIT, DCU_FLAG_OPERATION);
+        DCU_ClearStatus(DCU_UNIT, DCU_FLAG_OPERATION);
     }
 }
 
@@ -119,15 +174,19 @@ static void DCU_IrqCallback(void)
  */
 int32_t main(void)
 {
+    uint32_t i;
     stc_dcu_init_t stcDcuInit;
     en_result_t enTestResult = Ok;
     stc_irq_signin_config_t stcIrqSigninCfg;
     uint32_t u32SumData1 = 0UL;
-    uint32_t u32Data0InitValue = 0x88888888UL;
+    const uint32_t u32Data0InitValue = 0x88888888UL;
     uint32_t u32UnderflowData0 = 0UL;
     uint32_t au32Data0Val[4];
     uint32_t au32Data2Val[4];
     uint32_t au32Data1Val[4] = {0x00000000, 0x22222222, 0x22222222, 0x22222222};
+
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
 
     /* Initialize system clock. */
     BSP_CLK_Init();
@@ -141,13 +200,16 @@ int32_t main(void)
     /* Enable peripheral clock */
     PWC_Fcg0PeriphClockCmd(DCU_FUNCTION_CLK_GATE, Enable);
 
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
+
     /* Initialize DCU */
     DCU_StructInit(&stcDcuInit);
     stcDcuInit.u32IntEn = DCU_INT_ENABLE;
     stcDcuInit.u32Mode = DCU_SUB;
-    stcDcuInit.u32DataSize = DCU_DATA_BITS_32;
+    stcDcuInit.u32DataSize = DCU_DATA_SIZE_32BIT;
     DCU_Init(DCU_UNIT, &stcDcuInit);
-    DCU_IntCmd(DCU_UNIT, DCU_INT_OPERATION, Enable);
+    DCU_IntCmd(DCU_UNIT, DCU_INT_OP, DCU_INT_OP_UDF_OVF, Enable);
 
     /* Set DCU IRQ */
     stcIrqSigninCfg.enIRQn = DCU_UNIT_INT_IRQn;
@@ -158,18 +220,18 @@ int32_t main(void)
     NVIC_ClearPendingIRQ(stcIrqSigninCfg.enIRQn);
     NVIC_EnableIRQ(stcIrqSigninCfg.enIRQn);
 
-    DCU_WriteReg32Data0(DCU_UNIT, u32Data0InitValue);
+    DCU_WriteData32(DCU_UNIT, DCU_DATA0_IDX, u32Data0InitValue);
 
-    for (uint32_t i = 0U; i < ARRAY_SZ(au32Data1Val); i++)
+    for (i = 0UL; i < ARRAY_SZ(au32Data1Val); i++)
     {
         u32SumData1 += au32Data1Val[i];
-        DCU_WriteReg32Data1(DCU_UNIT, au32Data1Val[i]);
+        DCU_WriteData32(DCU_UNIT, DCU_DATA1_IDX, au32Data1Val[i]);
 
-        au32Data0Val[i] = DCU_ReadReg32Data0(DCU_UNIT);
-        au32Data2Val[i] = DCU_ReadReg32Data2(DCU_UNIT);
+        au32Data0Val[i] = DCU_ReadData32(DCU_UNIT, DCU_DATA0_IDX);
+        au32Data2Val[i] = DCU_ReadData32(DCU_UNIT, DCU_DATA2_IDX);
 
         /* Compare DCU regisger DATA0 && DATA2 value: DATA0 value == 2 * DATA2 value */
-        if (au32Data0Val[i] != (2ul * au32Data2Val[i]))
+        if (au32Data0Val[i] != (2UL * au32Data2Val[i]))
         {
             enTestResult = Error;
             break;
@@ -177,13 +239,13 @@ int32_t main(void)
     }
 
     u32SumData1 += 0x22222223UL;
-    DCU_WriteReg32Data1(DCU_UNIT, 0x22222223UL);
+    DCU_WriteData32(DCU_UNIT, DCU_DATA1_IDX, 0x22222223UL);
 
-    while (!m_u32AddUnderflowCnt)    /* Wait sub underflow */
+    while (0UL == m_u32AddUnderflowCnt)    /* Wait sub underflow */
     {
     }
 
-    u32UnderflowData0 = DCU_ReadReg32Data0(DCU_UNIT);
+    u32UnderflowData0 += DCU_ReadData32(DCU_UNIT, DCU_DATA0_IDX);
 
     /* Compare DCU regisger DATA0 value: DATA0 value == 0 - 0x22222222UL */
     if (u32UnderflowData0 != (u32Data0InitValue - u32SumData1))

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -206,7 +206,7 @@ typedef struct
                                                  It is used to distinguish between data frames and remote frames. */
             uint32_t IDE: 1;                /*!< Identifier extension flag.
                                                  It is used to distinguish between standard format and extended format.
-                                                 This parameter can be a value of @ref CAN_ID_Type */
+                                                 This parameter can be a 1 or 0. */
             uint32_t RSVD: 24;              /*!< Reserved bits. */
         };
     };
@@ -233,7 +233,7 @@ typedef struct
                                                  It is used to distinguish between data frames and remote frames. */
             uint32_t IDE: 1;                /*!< Identifier extension flag.
                                                  It is used to distinguish between standard format and extended format.
-                                                 This parameter can be a value of @ref CAN_ID_Type */
+                                                 This parameter can be 1 or 0. */
             uint32_t RSVD: 4;               /*!< Reserved bits. */
             uint32_t TX: 1;                 /*!< This bit is set to 1 when receiving self-transmitted data in loopback mode. */
             uint32_t ERRT: 3;               /*!< Error type. */
@@ -688,7 +688,6 @@ typedef struct
             void CAN_ClrErrCount(M4_CAN_TypeDef *CANx);
      en_result_t CAN_AFConfig(M4_CAN_TypeDef *CANx, uint16_t u16AFSel, const stc_can_af_cfg_t pstcAFCfg[]);
             void CAN_AFCmd(M4_CAN_TypeDef *CANx, uint16_t u16AFSel, en_functional_state_t enNewState);
-            void CAN_AFSetType(M4_CAN_TypeDef *CANx, uint8_t u8AFType);
 
          uint8_t CAN_GetTBType(const M4_CAN_TypeDef *CANx);
             void CAN_AbortTrans(M4_CAN_TypeDef *CANx, uint8_t u8TBType);
@@ -718,16 +717,16 @@ en_flag_status_t CAN_TTC_GetStatus(const M4_CAN_TypeDef *CANx, uint8_t u8Flag);
             void CAN_TTC_SetRefMsgIDE(M4_CAN_TypeDef *CANx, uint32_t u32IDE);
         uint32_t CAN_TTC_GetRefMsgID(const M4_CAN_TypeDef *CANx);
         uint32_t CAN_TTC_GetRefMsgIDE(const M4_CAN_TypeDef *CANx);
-            void CAN_TTC_SetTxTriggerTBS(M4_CAN_TypeDef *CANx, uint8_t u8TBSlotPtr);
-         uint8_t CAN_TTC_GetTxTriggerTBS(const M4_CAN_TypeDef *CANx);
-            void CAN_TTC_SetTriggerType(M4_CAN_TypeDef *CANx, uint16_t u16TriggerType);
-        uint16_t CAN_TTC_GetTriggerType(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetTxTrigTBS(M4_CAN_TypeDef *CANx, uint8_t u8TBSlotPtr);
+         uint8_t CAN_TTC_GetTxTrigTBS(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetTrigType(M4_CAN_TypeDef *CANx, uint16_t u16TrigType);
+        uint16_t CAN_TTC_GetTrigType(const M4_CAN_TypeDef *CANx);
             void CAN_TTC_SetTxEnableWindow(M4_CAN_TypeDef *CANx, uint16_t u16TxEnableWindow);
         uint16_t CAN_TTC_GetTxEnableWindow(const M4_CAN_TypeDef *CANx);
-            void CAN_TTC_SetTxTriggerTime(M4_CAN_TypeDef *CANx, uint16_t u16TxTriggerTime);
-        uint16_t CAN_TTC_GetTxTriggerTime(const M4_CAN_TypeDef *CANx);
-            void CAN_TTC_SetWatchTriggerTime(M4_CAN_TypeDef *CANx, uint16_t u16WatchTriggerTime);
-        uint16_t CAN_TTC_GetWatchTriggerTime(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetTxTrigTime(M4_CAN_TypeDef *CANx, uint16_t u16TxTrigTime);
+        uint16_t CAN_TTC_GetTxTrigTime(const M4_CAN_TypeDef *CANx);
+            void CAN_TTC_SetWatchTrigTime(M4_CAN_TypeDef *CANx, uint16_t u16WatchTrigTime);
+        uint16_t CAN_TTC_GetWatchTrigTime(const M4_CAN_TypeDef *CANx);
 
      en_result_t CAN_TransData(M4_CAN_TypeDef *CANx, const stc_can_tx_t *pstcTx,
                                uint8_t u8TxBufType, uint8_t u8STBTxCtrl, uint32_t u32Timeout);

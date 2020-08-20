@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-17       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -78,7 +78,7 @@
 /* SPI mode, can be SPI_MODE_0/SPI_MODE_1/SPI_MODE_2/SPI_MODE_3 */
 #define EXAMPLE_SPI_MODE        (SPI_MODE_0)
 /* Baudrate = PCLK1/DIVx */
-#define EXAMPLE_BR_DIV          (SPI_BR_DIV_256)
+#define EXAMPLE_BR_DIV          (SPI_BR_PCLK1_DIV256)
 
 
 #if (EXAMPLE_WIRE_MODE == SPI_WIRE_3)
@@ -111,7 +111,7 @@
 #define SPI_S_MISO_PORT         (GPIO_PORT_B)
 #define SPI_S_MISO_PIN          (GPIO_PIN_02)
 
-#define BUF_LENGTH              128UL
+#define BUF_LENGTH              (128UL)
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -134,6 +134,57 @@ static char u8SlaveRxBuf[BUF_LENGTH];
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  Main function of spi_master_base project
@@ -144,13 +195,21 @@ int32_t main(void)
 {
     stc_gpio_init_t stcGpioCfg;
 
-    /* System clock and LED initialize */
+    Peripheral_WE();
+
     BSP_CLK_Init();
+    BSP_IO_Init();
+    BSP_KEY_Init();
     BSP_LED_Init();
 
     /* Configure peripheral clock */
     PWC_Fcg1PeriphClockCmd(PWC_FCG1_SPI1, Enable);
     PWC_Fcg1PeriphClockCmd(PWC_FCG1_SPI2, Enable);
+
+#if (APP_TEST_MODE == COM_MASTER)
+    /* Wait for key */
+    while(Pin_Set == GPIO_ReadInputPins(GPIO_PORT_A, GPIO_PIN_00));
+#endif
 
     /* Port configurate, High driving capacity for output pin. */
     GPIO_StructInit(&stcGpioCfg);
@@ -245,7 +304,7 @@ int32_t main(void)
         while(1)
         {
             BSP_LED_Toggle(LED_BLUE);
-            DDL_Delay1ms(500UL);
+            DDL_DelayMS(500UL);
         }
     }
     else
@@ -254,7 +313,7 @@ int32_t main(void)
         while(1)
         {
             BSP_LED_Toggle(LED_RED);
-            DDL_Delay1ms(500UL);
+            DDL_DelayMS(500UL);
         }
     }
 }

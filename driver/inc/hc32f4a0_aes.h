@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-12       Heqb         First version
+   2020-06-12       Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -93,16 +93,6 @@ extern "C"
 #define AES_BLOCK_LEN                 (16U)
 
 /**
- * @defgroup AES_KEY_LENGTH AES key length in bytes
- * @{
- */
-#define AES_KEY_LEN_128               (16U)
-#define AES_KEY_LEN_192               (24U)
-#define AES_KEY_LEN_256               (32U)
-/**
- * @}
- */
-/**
  * @defgroup AES_STATUS AES Start or Stop
  * @{
  */
@@ -116,9 +106,9 @@ extern "C"
  * @defgroup AES_KEY_SIZE AES Key Size
  * @{
  */
-#define AES_KEY_SIZE_128              (0UL << AES_CR_KEYSIZE_POS)
-#define AES_KEY_SIZE_192              (1UL << AES_CR_KEYSIZE_POS)
-#define AES_KEY_SIZE_256              (2UL << AES_CR_KEYSIZE_POS)
+#define AES_KEY_SIZE_128BIT              (0UL << AES_CR_KEYSIZE_POS)
+#define AES_KEY_SIZE_192BIT              (1UL << AES_CR_KEYSIZE_POS)
+#define AES_KEY_SIZE_256BIT              (2UL << AES_CR_KEYSIZE_POS)
 /**
  * @}
  */
@@ -138,17 +128,17 @@ extern "C"
  * @addtogroup AES_Global_Functions
  * @{
  */
-en_result_t AES_Encrypt(const uint8_t pu8Plaintext[],
+en_result_t AES_Encrypt(uint8_t au8Plaintext[],
                         uint32_t u32PlaintextSize,
                         const uint8_t *pu8Key,
-                        uint8_t  u8KeyLength,
-                        const uint8_t pu8Ciphertext[]);
+                        uint8_t u8KeyLength,
+                        uint8_t au8Ciphertext[]);
 
-en_result_t AES_Decrypt(const uint8_t pu8Ciphertext[],
+en_result_t AES_Decrypt(uint8_t au8Ciphertext[],
                         uint32_t u32CiphertextSize,
                         const uint8_t *pu8Key,
-                        uint8_t  u8KeyLength,
-                        const uint8_t pu8Plaintext[]);
+                        uint8_t u8KeyLength,
+                        uint8_t au8Plaintext[]);
 /**
  * @}
  */

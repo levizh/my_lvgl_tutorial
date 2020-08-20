@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-03       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -83,11 +83,11 @@ extern "C"
 #endif /* USE_DDL_DRIVER */
 
 /**
- * @brief HC32 Series Device Driver Library version number v1.0.0
+ * @brief HC32 Series Device Driver Library version number
  */
 #define HC32_DDL_VERSION_MAIN           0x01U  /*!< [31:24] main version */
 #define HC32_DDL_VERSION_SUB1           0x00U  /*!< [23:16] sub1 version */
-#define HC32_DDL_VERSION_SUB2           0x00U  /*!< [15:8]  sub2 version */
+#define HC32_DDL_VERSION_SUB2           0x03U  /*!< [15:8]  sub2 version */
 #define HC32_DDL_VERSION_RC             0x00U  /*!< [7:0]   release candidate */
 #define HC32_DDL_VERSION                ((HC32_DDL_VERSION_MAIN << 24) | \
                                          (HC32_DDL_VERSION_SUB1 << 16) | \
@@ -332,16 +332,6 @@ extern "C"
     #include "mt29f2g08ab.h"
 #endif /* BSP_MT29F2G08AB_ENABLE */
 
-#if (BSP_NT35510_ENABLE == BSP_ON)
-    #include "ev_hc32f4a0_lqfp176_nt35510.h"
-    #include "nt35510.h"
-#endif /* BSP_NT35510_ENABLE */
-
-#if (BSP_GT9147_ENABLE == BSP_ON)
-    #include "ev_hc32f4a0_lqfp176_gt9147.h"
-    #include "gt9147.h"
-#endif /* BSP_GT9147_ENABLE */
-
 #if (BSP_S29GL064N90TFI03_ENABLE == BSP_ON)
     #include "s29gl064n90tfi03.h"
 #endif /* BSP_S29GL064N90TFI03_ENABLE */
@@ -350,11 +340,6 @@ extern "C"
     #include "ev_hc32f4a0_lqfp176_tca9539.h"
     #include "tca9539.h"
 #endif /* BSP_TCA9539_ENABLE */
-
-#if (BSP_OV5640_ENABLE == BSP_ON)
-    #include "ev_hc32f4a0_lqfp176_ov5640.h"
-    #include "ov5640.h"
-#endif /* BSP_OV5640_ENABLE */
 
 #endif /* USE_DDL_DRIVER */
 

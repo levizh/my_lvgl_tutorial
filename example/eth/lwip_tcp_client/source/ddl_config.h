@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-06       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -136,15 +136,6 @@ extern "C"
 #define DDL_VBAT_ENABLE                             (DDL_OFF)
 #define DDL_WDT_ENABLE                              (DDL_OFF)
 
-/* Midware module on-off define */
-#define MW_ON                                       (1U)
-#define MW_OFF                                      (0U)
-
-/**
- * @brief This is the list of midware modules to be used.
- * Select the modules you need to use to MW_ON.
- */
-
 /* BSP on-off define */
 #define BSP_ON                                      (1U)
 #define BSP_OFF                                     (0U)
@@ -153,6 +144,7 @@ extern "C"
  * @brief The following is a list of currently supported BSP boards.
  */
 #define BSP_EV_HC32F4A0_LQFP176                     (1U)
+#define BSP_MS_HC32F4A0_LQFP176_050_MEM             (2U)
 
 /**
  * @brief The macro BSP_EV_HC32F4A0 is used to specify the BSP board currently
@@ -167,9 +159,11 @@ extern "C"
  * @brief This is the list of BSP components to be used.
  * Select the components you need to use to BSP_ON.
  */
+#define BSP_CY62167EV30LL_ENABLE                    (BSP_OFF)
 #define BSP_IS42S16400J7TLI_ENABLE                  (BSP_OFF)
 #define BSP_IS62WV51216_ENABLE                      (BSP_OFF)
 #define BSP_MT29F2G08AB_ENABLE                      (BSP_OFF)
+#define BSP_S29GL064N90TFI03_ENABLE                 (BSP_OFF)
 #define BSP_TCA9539_ENABLE                          (BSP_ON)
 #define BSP_W25QXX_ENABLE                           (BSP_OFF)
 #define BSP_WM8731_ENABLE                           (BSP_OFF)
@@ -196,11 +190,11 @@ extern "C"
 #define PHY_ADDRESS                     (0x00U)               /* RTL8201F                             */
 
 /* PHY Configuration delay */
-#define PHY_HW_RESET_DELAY              (0x00000020UL)
-#define PHY_RESET_DELAY                 (0x00000040UL)
-#define PHY_CONFIG_DELAY                (0x0000007FUL)
-#define PHY_READ_TIMEOUT                (0x000000FFUL)
-#define PHY_WRITE_TIMEOUT               (0x000000FFUL)
+#define PHY_HW_RESET_DELAY              (0x0000003FUL)
+#define PHY_RESET_DELAY                 (0x0000007FUL)
+#define PHY_CONFIG_DELAY                (0x0000003FUL)
+#define PHY_READ_TIMEOUT                (0x00000005UL)
+#define PHY_WRITE_TIMEOUT               (0x00000005UL)
 
 /* Common PHY Registers */
 #define PHY_BCR                         (0x00U)     /*!< Basic Control Register               */

@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-09       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -73,10 +73,10 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 
-/* The primary clock source of ADC. */
-#define APP_PRIMARY_CLK_SYS_CLK             (1U)
-#define APP_PRIMARY_CLK_PLLH                (2U)
-#define APP_PRIMARY_CLK_PLLA                (3U)
+/* The clock source of ADC. */
+#define APP_CLK_SYS_CLK                     (1U)
+#define APP_CLK_PLLH                        (2U)
+#define APP_CLK_PLLA                        (3U)
 
 /*
  * Selects a clock source according to the application requirements.
@@ -91,15 +91,15 @@
  *
  * In this example, PLLHP(240MHz) is configured as the system clock.
  */
-#define APP_PRIMARY_CLK                     (APP_PRIMARY_CLK_PLLA)
+#define APP_CLK                             (APP_CLK_SYS_CLK)
 
-#if (APP_PRIMARY_CLK == APP_PRIMARY_CLK_SYS_CLK)
+#if (APP_CLK == APP_CLK_SYS_CLK)
     #define APP_ADC_CLK                     (CLK_PERI_CLK_PCLK)
 
-#elif (APP_PRIMARY_CLK == APP_PRIMARY_CLK_PLLH)
+#elif (APP_CLK == APP_CLK_PLLH)
     #define APP_ADC_CLK                     (CLK_PERI_CLK_PLLHQ)
 
-#elif (APP_PRIMARY_CLK == APP_PRIMARY_CLK_PLLA)
+#elif (APP_CLK == APP_CLK_PLLA)
     #define APP_ADC_CLK                     (CLK_PERI_CLK_PLLAP)
 
 #else
@@ -137,7 +137,7 @@
 #define APP_ADC_AVG_CH                      (APP_ADC_SA_CH)
 
 /* ADC reference voltage. The voltage of pin VREFH. */
-#define APP_ADC_VREF                        (3.3219f)
+#define APP_ADC_VREF                        (3.245f)
 
 /* ADC accuracy(according to the resolution of ADC). */
 #define APP_ADC_ACCURACY                    (1UL << 12U)
@@ -162,6 +162,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void AdcConfig(void);
 
 static void AdcClockConfig(void);
@@ -189,17 +192,19 @@ int32_t main(void)
 {
     /* The default system clock is MRC(8MHz). */
 
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures ADC. */
     AdcConfig();
-
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
     /***************** Configuration end, application start **************/
 
-    while (1u)
+    while (1U)
     {
         ADC_PollingSA(APP_ADC_UNIT, m_au16AdcSaVal, APP_ADC_SA_CH_COUNT, APP_TIMEOUT_MS);
 #if (DDL_PRINT_ENABLE == DDL_ON)
@@ -207,6 +212,58 @@ int32_t main(void)
              m_au16AdcSaVal[0U], APP_CAL_VOL(m_au16AdcSaVal[0U]));
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    // PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    // EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    // PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    // EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -229,7 +286,7 @@ static void AdcConfig(void)
  */
 static void AdcClockConfig(void)
 {
-#if (APP_PRIMARY_CLK == APP_PRIMARY_CLK_SYS_CLK)
+#if (APP_CLK == APP_CLK_SYS_CLK)
     /*
      * 1. Configures the clock divider of PCLK2 and PCLK4 here or in the function of configuring the system clock.
      *    In this example, the default system clock is MRC(8MHz).
@@ -239,7 +296,7 @@ static void AdcClockConfig(void)
      */
     CLK_ClkDiv((CLK_CATE_PCLK2 | CLK_CATE_PCLK4), (CLK_PCLK2_DIV8 | CLK_PCLK4_DIV2));
 
-#elif (APP_PRIMARY_CLK == APP_PRIMARY_CLK_PLLH)
+#elif (APP_CLK == APP_CLK_PLLH)
     /*
      * 1. Configures PLLH and the divider of PLLHx(x=Q, R).
      *    PLLHx(x=Q, R) is used as both the digital interface clock and the analog circuit clock.
@@ -273,7 +330,7 @@ static void AdcClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-#elif (APP_PRIMARY_CLK == APP_PRIMARY_CLK_PLLA)
+#elif (APP_CLK == APP_CLK_PLLA)
     /*
      * 1. Configures PLLA and the divider of PLLAx(x=P, Q, R).
      *    PLLAx(x=P, Q, R) is used as both the digital interface clock and the analog circuit clock.
@@ -367,15 +424,15 @@ static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32C
 {
     uint8_t u8PinNum;
 
-    u8PinNum = 0u;
-    while (u32Channel != 0u)
+    u8PinNum = 0U;
+    while (u32Channel != 0U)
     {
-        if (u32Channel & 0x1u)
+        if (u32Channel & 0x1U)
         {
             AdcSetPinAnalogMode(ADCx, u8PinNum);
         }
 
-        u32Channel >>= 1u;
+        u32Channel >>= 1U;
         u8PinNum++;
     }
 }

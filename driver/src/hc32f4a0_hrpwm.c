@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-04       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -82,8 +82,8 @@
  * @{
  */
 /* About 1mS timeout */
-#define HRPWM_CAL_TIMEOUT       (SystemCoreClock/1000UL)
-#define HRPWM_PCLK0_MIN         (120000000UL)
+#define HRPWM_CAL_TIMEOUT             (HCLK_VALUE/1000UL)
+#define HRPWM_PCLK0_MIN               (120000000UL)
 
 #define HRPWM_SYSCLKSOURCE_HRC        (0x00U)
 #define HRPWM_SYSCLKSOURCE_MRC        (0x01U)
@@ -100,17 +100,17 @@
  * @{
  */
 
-/* Parameter valid check for HRPWM output channel */
+/*! Parameter valid check for HRPWM output channel */
 #define IS_VALID_HRPWM_CH(x)                                                   \
 (   ((x) >= HRPWM_CH_MIN)                       &&                             \
     ((x) <= HRPWM_CH_MAX))
 
-/* Parameter valid check for HRPWM caliration unit */
+/*! Parameter valid check for HRPWM caliration unit */
 #define IS_VALID_HRPWM_CAL_UNIT(x)                                             \
 (   (HRPWM_CAL_UNIT0 == (x))                   ||                             \
     (HRPWM_CAL_UNIT1 == (x)))
 
-/* Parameter valid check for HRPWM delay number */
+/*! Parameter valid check for HRPWM delay number */
 #define IS_VALID_HRPWM_DELAY_NUM(x)                                            \
 (   ((x) >= HRPWM_CH_DELAY_NUM_MIN)             &&                             \
     ((x) <= HRPWM_CH_DELAY_NUM_MAX))
@@ -199,7 +199,7 @@ void HRPWM_CalibrateCmd(uint32_t u32Unit, en_functional_state_t enNewState)
 
     CALCRx = (__IO uint32_t*)(((uint32_t)&M4_HRPWM->CALCR0) + 4UL*u32Unit);
 
-    if(enNewState)
+    if(Enable == enNewState)
     {
         SET_REG32_BIT(*CALCRx, HRPWM_CALCR_CALEN);
 
@@ -249,7 +249,7 @@ uint8_t HRPWM_GetCalCode(uint32_t u32Unit)
 
     CALCRx = (__IO uint32_t*)(((uint32_t)&M4_HRPWM->CALCR0) + 4UL*u32Unit);
 
-    return ((uint8_t)(READ_REG32(CALCRx)));
+    return ((uint8_t)(READ_REG32(*CALCRx)));
 }
 
 /**
@@ -344,7 +344,7 @@ void HRPWM_CHPositCfg(uint32_t u32Ch, uint32_t u32DelayNum)
 /**
  * @brief  HRPWM negative edge adjust delay counts configration for specified channel
  * @param  [in] u32Ch       Channel, the parameter should range from HRPWM_CH_MIN to HRPWM_CH_MAX
- * @param  [in] u8DelayNum  Delay counts of minimum delay time.
+ * @param  [in] u32DelayNum Delay counts of minimum delay time.
  * @retval None
  */
 void HRPWM_CHNegatCfg(uint32_t u32Ch, uint32_t u32DelayNum)
@@ -367,8 +367,11 @@ void HRPWM_CHNegatCfg(uint32_t u32Ch, uint32_t u32DelayNum)
 en_functional_state_t HRPWM_ConditionConfirm(void)
 {
     en_functional_state_t enRet = Enable;
-    uint32_t plln, pllp, pllm;
-    uint32_t sysclkFreq, pclk0Freq;
+    uint32_t plln;
+    uint32_t pllp;
+    uint32_t pllm;
+    uint32_t sysclkFreq;
+    uint32_t pclk0Freq;
 
     switch (READ_REG8_BIT(M4_CMU->CKSWR, CMU_CKSWR_CKSW))
     {

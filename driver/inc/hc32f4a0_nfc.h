@@ -6,7 +6,12 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-14       Hongjh          1. Merge API from EXMC_NFC_Enable/Disable to EXMC_NFC_Cmd
+                                    2. Merge API from EXMC_NFC_Enable/DisableEcc
+                                       to EXMC_NFC_EccCmd
+                                    3. Merge API from EXMC_NFC_Enable/DisableWriteProtect
+                                       to EXMC_NFC_WriteProtectCmd
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -324,8 +329,8 @@ typedef struct
  * @defgroup EXMC_NFC_Memory_Width EXMC NFC Memory Width
  * @{
  */
-#define EXMC_NFC_MEM_WIDTH_8                    (0UL)
-#define EXMC_NFC_MEM_WIDTH_16                   (NFC_BACR_B16BIT)
+#define EXMC_NFC_MEMORY_WIDTH_8BIT              (0UL)
+#define EXMC_NFC_MEMORY_WIDTH_16BIT             (NFC_BACR_B16BIT)
 /**
  * @}
  */
@@ -507,29 +512,9 @@ typedef struct
   Global function prototypes (definition in C source)
  ******************************************************************************/
 /**
- * @addtogroup EXMC_NFC_Global_Functions NAND Flash Controller Global Functions
+ * @addtogroup EXMC_NFC_Global_Functions
  * @{
  */
-
-/**
- * @brief  Enable NFC.
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void EXMC_NFC_Enable(void)
-{
-    WRITE_REG32(bM4_PERIC->EXMC_ENAR_b.NFCEN, 1UL);
-}
-
-/**
- * @brief  Disable NFC.
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void EXMC_NFC_Disable(void)
-{
-    WRITE_REG32(bM4_PERIC->EXMC_ENAR_b.NFCEN, 0UL);
-}
 
 /**
  * @brief  Set EXMC NFC command register value.
@@ -543,7 +528,7 @@ __STATIC_INLINE void EXMC_NFC_WriteCmdReg(uint32_t u32Val)
 
 /**
  * @brief  Set EXMC NFC Index register value.
- * @param  [in] u64Val                      The combination value of NFC_IDXR0.
+ * @param  [in] u32Val                      The value of NFC_IDXR0.
  *         This parameter can be a value between Min_Data = 0 and Max_Data = 0xFFFFFFFF
  * @retval None
  */
@@ -554,7 +539,7 @@ __STATIC_INLINE void EXMC_NFC_WriteIDXR0(uint32_t u32Val)
 
 /**
  * @brief  Set EXMC NFC Index register value.
- * @param  [in] u32Val                      The combination value of NFC_IDXR1.
+ * @param  [in] u32Val                      The value of NFC_IDXR1.
  *         This parameter can be a value between Min_Data = 0 and Max_Data = 0xFF
  * @retval None
  */
@@ -574,46 +559,6 @@ __STATIC_INLINE void EXMC_NFC_DeselectChip(void)
 }
 
 /**
- * @brief  Enable NFC ECC function.
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void EXMC_NFC_EnableEcc(void)
-{
-    CLEAR_REG32_BIT(M4_NFC ->IENR, NFC_IENR_ECCDIS);
-}
-
-/**
- * @brief  Disable NFC ECC function.
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void EXMC_NFC_DisableEcc(void)
-{
-    SET_REG32_BIT(M4_NFC ->IENR, NFC_IENR_ECCDIS);
-}
-
-/**
- * @brief  Enable NFC write protection function.
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void EXMC_NFC_EnableWriteProtect(void)
-{
-    CLEAR_REG32_BIT(M4_NFC ->BACR, NFC_BACR_WP);
-}
-
-/**
- * @brief  Disable NFC write protection function.
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void EXMC_NFC_DisableWriteProtect(void)
-{
-    SET_REG32_BIT(M4_NFC ->BACR, NFC_BACR_WP);
-}
-
-/**
  * @brief  Get the 4BIT ECC error section.
  * @param  None
  * @retval The register value
@@ -627,8 +572,13 @@ __STATIC_INLINE uint32_t EXMC_NFC_GetEcc4BitsErrSection(void)
 en_result_t EXMC_NFC_Init(const stc_exmc_nfc_init_t *pstcInit);
 void EXMC_NFC_DeInit(void);
 en_result_t EXMC_NFC_StructInit(stc_exmc_nfc_init_t *pstcInit);
+void EXMC_NFC_Cmd(en_functional_state_t enNewState);
+void EXMC_NFC_EccCmd(en_functional_state_t enNewState);
+void EXMC_NFC_WriteProtectCmd(en_functional_state_t enNewState);
 void EXMC_NFC_IntCmd(uint16_t u16IntSource, en_functional_state_t enNewState);
-en_flag_status_t EXMC_NFC_GetFlag(uint32_t u32Flag);
+en_flag_status_t EXMC_NFC_GetStatus(uint32_t u32Flag);
+void EXMC_NFC_ClearStatus(uint32_t u32Flag);
+en_flag_status_t EXMC_NFC_GetIntResultStatus(uint32_t u32Flag);
 uint32_t EXMC_NFC_GetEcc1BitResult(uint32_t u32Section);
 en_result_t EXMC_NFC_GetSyndrome(uint32_t u32Section,
                                         uint16_t au16Synd[],
@@ -648,7 +598,7 @@ en_result_t EXMC_NFC_ResetLun(uint32_t u32Bank,
 en_result_t EXMC_NFC_ReadId(uint32_t u32Bank,
                                 uint32_t u32IdAddr,
                                 uint8_t au8DevId[],
-                                uint8_t u8NumBytes);
+                                uint32_t u32NumBytes);
 en_result_t EXMC_NFC_ReadUniqueId(uint32_t u32Bank,
                                         uint32_t u32IdAddr,
                                         uint32_t au32UniqueId[],

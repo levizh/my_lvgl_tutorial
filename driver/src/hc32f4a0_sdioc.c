@@ -6,7 +6,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-05       Yangjp          First version
+   2020-06-12       Yangjp          First version
+   2020-08-11       Yangjp          Fix a known potential risk in SDIOC_VerifyClockDiv function
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -211,23 +212,23 @@
 
 #define IS_SDIOC_GET_HOST_FLAG(x)                                              \
 (   (0UL != (x))                                            &&                 \
-    (0UL == ((x) & ((uint32_t)(~(SDIOC_HOST_FALG_CMDL       |                  \
-                                 SDIOC_HOST_FALG_DATL       |                  \
-                                 SDIOC_HOST_FALG_DATL_D0    |                  \
-                                 SDIOC_HOST_FALG_DATL_D1    |                  \
-                                 SDIOC_HOST_FALG_DATL_D2    |                  \
-                                 SDIOC_HOST_FALG_DATL_D3    |                  \
-                                 SDIOC_HOST_FALG_WPL        |                  \
-                                 SDIOC_HOST_FALG_CDL        |                  \
-                                 SDIOC_HOST_FALG_CSS        |                  \
-                                 SDIOC_HOST_FALG_CIN        |                  \
-                                 SDIOC_HOST_FALG_BRE        |                  \
-                                 SDIOC_HOST_FALG_BWE        |                  \
-                                 SDIOC_HOST_FALG_RTA        |                  \
-                                 SDIOC_HOST_FALG_WTA        |                  \
-                                 SDIOC_HOST_FALG_DA         |                  \
-                                 SDIOC_HOST_FALG_CID        |                  \
-                                 SDIOC_HOST_FALG_CIC))))))
+    (0UL == ((x) & ((uint32_t)(~(SDIOC_HOST_FLAG_CMDL       |                  \
+                                 SDIOC_HOST_FLAG_DATL       |                  \
+                                 SDIOC_HOST_FLAG_DATL_D0    |                  \
+                                 SDIOC_HOST_FLAG_DATL_D1    |                  \
+                                 SDIOC_HOST_FLAG_DATL_D2    |                  \
+                                 SDIOC_HOST_FLAG_DATL_D3    |                  \
+                                 SDIOC_HOST_FLAG_WPL        |                  \
+                                 SDIOC_HOST_FLAG_CDL        |                  \
+                                 SDIOC_HOST_FLAG_CSS        |                  \
+                                 SDIOC_HOST_FLAG_CIN        |                  \
+                                 SDIOC_HOST_FLAG_BRE        |                  \
+                                 SDIOC_HOST_FLAG_BWE        |                  \
+                                 SDIOC_HOST_FLAG_RTA        |                  \
+                                 SDIOC_HOST_FLAG_WTA        |                  \
+                                 SDIOC_HOST_FLAG_DA         |                  \
+                                 SDIOC_HOST_FLAG_CID        |                  \
+                                 SDIOC_HOST_FLAG_CIC))))))
 
 #define IS_SDIOC_GET_NORMAL_ERROR_INT_FLAG(x)                                  \
 (   (0UL != (x))                                            &&                 \
@@ -474,7 +475,7 @@ en_result_t SDIOC_StructInit(stc_sdioc_init_t *pstcSdiocInit)
 en_result_t SDIOC_SoftwareReset(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8ResetType)
 {
     en_result_t enRet = Ok;
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
 
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
@@ -485,7 +486,7 @@ en_result_t SDIOC_SoftwareReset(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8ResetType)
     u32Count = SDIOC_SW_RESET_TIMEOUT * (HCLK_VALUE / 20000UL);
     do
     {
-        if (--u32Count == 0UL)
+        if (u32Count-- == 0UL)
         {
             enRet = ErrorTimeout;
             break;
@@ -538,7 +539,7 @@ en_functional_state_t SDIOC_GetPowerState(const M4_SDIOC_TypeDef *SDIOCx)
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
 
-    if (Reset != (READ_REG8_BIT(SDIOCx->PWRCON, SDIOC_PWRCON_PWON)))
+    if (0U != (READ_REG8_BIT(SDIOCx->PWRCON, SDIOC_PWRCON_PWON)))
     {
         enPowerSta = Enable;
     }
@@ -558,7 +559,7 @@ en_functional_state_t SDIOC_GetPowerState(const M4_SDIOC_TypeDef *SDIOCx)
  */
 uint32_t SDIOC_GetMode(const M4_SDIOC_TypeDef *SDIOCx)
 {
-    uint32_t u32SdMode = SDIOC_MODE_SD;
+    uint32_t u32SdMode;
 
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
@@ -647,8 +648,9 @@ void SDIOC_SetClockDiv(M4_SDIOC_TypeDef *SDIOCx, uint16_t u16ClkDiv)
 en_result_t SDIOC_GetOptimumClockDiv(uint32_t u32ClkFreq, uint16_t *pu16ClkDiv)
 {
     en_result_t enRet = Ok;
-    uint32_t u32BusClk = 0UL, u32ClkDiv = 0UL;
-    uint32_t u32Temp = 0UL;
+    uint32_t u32BusClk;
+    uint32_t u32ClkDiv;
+    uint32_t u32Temp;
 
     if ((NULL == pu16ClkDiv) || (0UL == u32ClkFreq))
     {
@@ -720,8 +722,10 @@ en_result_t SDIOC_GetOptimumClockDiv(uint32_t u32ClkFreq, uint16_t *pu16ClkDiv)
 en_result_t SDIOC_VerifyClockDiv(uint32_t u32Mode, uint8_t u8SpeedMode, uint16_t u16ClkDiv)
 {
     en_result_t enRet = Ok;
-    uint32_t u32BusClk = 0UL, u32ClkFreq = 0UL;
-    uint32_t u32MaxFreq = 0UL;
+    uint32_t u32BusClk;
+    uint32_t u32ClkFreq;
+    uint32_t u32MaxFreq;
+    uint32_t u32DivValue;
 
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_MODE(u32Mode));
@@ -730,7 +734,16 @@ en_result_t SDIOC_VerifyClockDiv(uint32_t u32Mode, uint8_t u8SpeedMode, uint16_t
 
     /* Get PCLK1 frequency */
     u32BusClk = SystemCoreClock / (0x01UL << (READ_REG32_BIT(M4_CMU->SCFGR, CMU_SCFGR_PCLK1S) >> CMU_SCFGR_PCLK1S_POS));
-    u32ClkFreq = u32BusClk / ((uint32_t)u16ClkDiv >> (SDIOC_CLKCON_FS_POS - 1U));
+    u32DivValue = ((uint32_t)u16ClkDiv >> (SDIOC_CLKCON_FS_POS - 1U));
+    if (0UL == u32DivValue)
+    {
+        u32ClkFreq = u32BusClk;
+    }
+    else
+    {
+        u32ClkFreq = u32BusClk / u32DivValue;
+    }
+
     if (SDIOC_SPEED_MODE_NORMAL == u8SpeedMode)
     {
         if (SDIOC_MODE_SD != u32Mode)   /* MMC mode */
@@ -779,9 +792,9 @@ en_functional_state_t SDIOC_GetDeviceInsertState(const M4_SDIOC_TypeDef *SDIOCx)
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
 
-    if (Reset != (READ_REG32_BIT(SDIOCx->PSTAT, SDIOC_PSTAT_CSS)))
+    if (0UL != (READ_REG32_BIT(SDIOCx->PSTAT, SDIOC_PSTAT_CSS)))
     {
-        if (Reset != (READ_REG32_BIT(SDIOCx->PSTAT, SDIOC_PSTAT_CIN)))
+        if (0UL != (READ_REG32_BIT(SDIOCx->PSTAT, SDIOC_PSTAT_CIN)))
         {
             enInsertSta = Enable;
         }
@@ -1014,7 +1027,7 @@ en_result_t SDIOC_GetResponse(M4_SDIOC_TypeDef *SDIOCx, uint8_t u8RespReg, uint3
 en_result_t SDIOC_ConfigData(M4_SDIOC_TypeDef *SDIOCx, const stc_sdioc_data_init_t *pstcData)
 {
     en_result_t enRet = Ok;
-    uint16_t u16BlkCnt = 0U;
+    uint16_t u16BlkCnt;
 
     if (NULL == pstcData)
     {
@@ -1096,9 +1109,9 @@ en_result_t SDIOC_DataStructInit(stc_sdioc_data_init_t *pstcData)
 en_result_t SDIOC_ReadBuffer(M4_SDIOC_TypeDef *SDIOCx, uint8_t au8Data[], uint32_t u32Len)
 {
     en_result_t enRet = Ok;
-    uint32_t i = 0UL;
-    uint32_t u32Temp = 0UL;
-    __IO uint32_t *BUF_REG = NULL;
+    uint32_t i;
+    uint32_t u32Temp;
+    __IO uint32_t *BUF_REG;
 
     if ((NULL == au8Data) || (0U != (u32Len % 4U)))
     {
@@ -1138,9 +1151,9 @@ en_result_t SDIOC_ReadBuffer(M4_SDIOC_TypeDef *SDIOCx, uint8_t au8Data[], uint32
 en_result_t SDIOC_WriteBuffer(M4_SDIOC_TypeDef *SDIOCx, const uint8_t au8Data[], uint32_t u32Len)
 {
     en_result_t enRet = Ok;
-    uint32_t i = 0UL;
-    uint32_t u32Temp = 0UL;
-    __IO uint32_t *BUF_REG = NULL;
+    uint32_t i;
+    uint32_t u32Temp;
+    __IO uint32_t *BUF_REG;
 
     if ((NULL == au8Data) || (0U != (u32Len % 4U)))
     {
@@ -1287,7 +1300,8 @@ void SDIOC_BlockGapInterruptCmd(M4_SDIOC_TypeDef *SDIOCx, en_functional_state_t 
  */
 void SDIOC_IntCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc, en_functional_state_t enNewSta)
 {
-    uint16_t u16NormalInt = 0U, u16ErrorInt = 0U;
+    uint16_t u16NormalInt;
+    uint16_t u16ErrorInt;
 
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
@@ -1351,7 +1365,8 @@ void SDIOC_IntCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc, en_functional_st
  */
 en_functional_state_t SDIOC_GetIntEnableState(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc)
 {
-    uint16_t u16NormalInt = 0U, u16ErrorInt = 0U;
+    uint16_t u16NormalInt;
+    uint16_t u16ErrorInt;
     en_functional_state_t enIntSta = Disable;
 
     /* Check parameters */
@@ -1411,7 +1426,8 @@ en_functional_state_t SDIOC_GetIntEnableState(const M4_SDIOC_TypeDef *SDIOCx, ui
 en_flag_status_t SDIOC_GetIntStatus(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag)
 {
     en_flag_status_t enFlagSta = Reset;
-    uint16_t u16NormalFlag = 0U, u16ErrorFlag = 0U;
+    uint16_t u16NormalFlag;
+    uint16_t u16ErrorFlag;
 
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
@@ -1422,14 +1438,14 @@ en_flag_status_t SDIOC_GetIntStatus(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32
 
     if (0U != u16NormalFlag)
     {
-        if (Reset != (READ_REG16_BIT(SDIOCx->NORINTST, u16NormalFlag)))
+        if (0U != (READ_REG16_BIT(SDIOCx->NORINTST, u16NormalFlag)))
         {
             enFlagSta = Set;
         }
     }
     if (0U != u16ErrorFlag)
     {
-        if (Reset != (READ_REG16_BIT(SDIOCx->ERRINTST, u16ErrorFlag)))
+        if (0U != (READ_REG16_BIT(SDIOCx->ERRINTST, u16ErrorFlag)))
         {
             enFlagSta = Set;
         }
@@ -1465,8 +1481,8 @@ en_flag_status_t SDIOC_GetIntStatus(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u32
  */
 void SDIOC_ClearIntStatus(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag)
 {
-    volatile uint16_t u16NormalFlag = 0U;
-    volatile uint16_t u16ErrorFlag = 0U;
+    uint16_t u16NormalFlag;
+    uint16_t u16ErrorFlag;
 
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
@@ -1514,7 +1530,8 @@ void SDIOC_ClearIntStatus(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Flag)
  */
 void SDIOC_IntStatusCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc, en_functional_state_t enNewSta)
 {
-    uint16_t u16NormalInt = 0U, u16ErrorInt = 0U;
+    uint16_t u16NormalInt;
+    uint16_t u16ErrorInt;
 
     /* Check parameters */
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
@@ -1556,23 +1573,23 @@ void SDIOC_IntStatusCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32IntSrc, en_functio
  *           @arg M4_SDIOC2:            SDIOC unit 2 instance register base
  * @param  [in] u32Flag                 Host flag
  *         This parameter can be one or any combination the following values:
- *           @arg SDIOC_HOST_FALG_CMDL:     CMD Line Level status
- *           @arg SDIOC_HOST_FALG_DATL:     DAT[3:0] Line Level status
- *           @arg SDIOC_HOST_FALG_DATL_D0:  DAT[0] Line Level status
- *           @arg SDIOC_HOST_FALG_DATL_D1:  DAT[1] Line Level status
- *           @arg SDIOC_HOST_FALG_DATL_D2:  DAT[2] Line Level status
- *           @arg SDIOC_HOST_FALG_DATL_D3:  DAT[3] Line Level status
- *           @arg SDIOC_HOST_FALG_WPL:      Write Protect Line Level status
- *           @arg SDIOC_HOST_FALG_CDL:      Card Detect Line Level status
- *           @arg SDIOC_HOST_FALG_CSS:      Device Stable Status
- *           @arg SDIOC_HOST_FALG_CIN:      Device Inserted status
- *           @arg SDIOC_HOST_FALG_BRE:      Data buffer full status
- *           @arg SDIOC_HOST_FALG_BWE:      Data buffer empty status
- *           @arg SDIOC_HOST_FALG_RTA:      Read operation status
- *           @arg SDIOC_HOST_FALG_WTA:      Write operation status
- *           @arg SDIOC_HOST_FALG_DA:       DAT Line transfer status
- *           @arg SDIOC_HOST_FALG_CID:      Command Inhibit with data status
- *           @arg SDIOC_HOST_FALG_CIC:      Command Inhibit status
+ *           @arg SDIOC_HOST_FLAG_CMDL:     CMD Line Level status
+ *           @arg SDIOC_HOST_FLAG_DATL:     DAT[3:0] Line Level status
+ *           @arg SDIOC_HOST_FLAG_DATL_D0:  DAT[0] Line Level status
+ *           @arg SDIOC_HOST_FLAG_DATL_D1:  DAT[1] Line Level status
+ *           @arg SDIOC_HOST_FLAG_DATL_D2:  DAT[2] Line Level status
+ *           @arg SDIOC_HOST_FLAG_DATL_D3:  DAT[3] Line Level status
+ *           @arg SDIOC_HOST_FLAG_WPL:      Write Protect Line Level status
+ *           @arg SDIOC_HOST_FLAG_CDL:      Card Detect Line Level status
+ *           @arg SDIOC_HOST_FLAG_CSS:      Device Stable Status
+ *           @arg SDIOC_HOST_FLAG_CIN:      Device Inserted status
+ *           @arg SDIOC_HOST_FLAG_BRE:      Data buffer full status
+ *           @arg SDIOC_HOST_FLAG_BWE:      Data buffer empty status
+ *           @arg SDIOC_HOST_FLAG_RTA:      Read operation status
+ *           @arg SDIOC_HOST_FLAG_WTA:      Write operation status
+ *           @arg SDIOC_HOST_FLAG_DA:       DAT Line transfer status
+ *           @arg SDIOC_HOST_FLAG_CID:      Command Inhibit with data status
+ *           @arg SDIOC_HOST_FLAG_CIC:      Command Inhibit status
  * @retval An en_flag_status_t enumeration value:
  *           - Set: Flag is set
  *           - Reset: Flag is reset
@@ -1585,7 +1602,7 @@ en_flag_status_t SDIOC_GetHostStatus(const M4_SDIOC_TypeDef *SDIOCx, uint32_t u3
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
     DDL_ASSERT(IS_SDIOC_GET_HOST_FLAG(u32Flag));
 
-    if (Reset != (READ_REG32_BIT(SDIOCx->PSTAT, u32Flag)))
+    if (0UL != (READ_REG32_BIT(SDIOCx->PSTAT, u32Flag)))
     {
         enFlagSta = Set;
     }
@@ -1619,7 +1636,7 @@ en_flag_status_t SDIOC_GetAutoCmdErrorStatus(const M4_SDIOC_TypeDef *SDIOCx, uin
     DDL_ASSERT(IS_SDIOC_UNIT(SDIOCx));
     DDL_ASSERT(IS_SDIOC_AUTO_CMD_ERROR_FLAG(u16Flag));
 
-    if (Reset != (READ_REG16_BIT(SDIOCx->ATCERRST, u16Flag)))
+    if (0U != (READ_REG16_BIT(SDIOCx->ATCERRST, u16Flag)))
     {
         enFlagSta = Set;
     }
@@ -1694,7 +1711,7 @@ void SDIOC_ForceErrorInterruptEvent(M4_SDIOC_TypeDef *SDIOCx, uint16_t u16IntFla
  */
 en_result_t SDMMC_CMD0_GoIdleState(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -1735,7 +1752,7 @@ en_result_t SDMMC_CMD0_GoIdleState(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSt
 */
 en_result_t SDMMC_CMD2_AllSendCID(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -1776,7 +1793,7 @@ en_result_t SDMMC_CMD2_AllSendCID(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta
 */
 en_result_t SDMMC_CMD3_SendRelativeAddr(M4_SDIOC_TypeDef *SDIOCx, uint16_t *pu16RCA, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if ((NULL == pu16RCA) || (NULL == pu32ErrSta))
@@ -1817,9 +1834,9 @@ en_result_t SDMMC_CMD3_SendRelativeAddr(M4_SDIOC_TypeDef *SDIOCx, uint16_t *pu16
 */
 en_result_t SDMMC_CMD6_SwitchFunc(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Argument, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
-    uint32_t u32SdMode = 0UL;
+    uint32_t u32SdMode;
 
     if (NULL == pu32ErrSta)
     {
@@ -1875,7 +1892,7 @@ en_result_t SDMMC_CMD6_SwitchFunc(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Argument
 */
 en_result_t SDMMC_CMD7_SelectDeselectCard(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32RCA, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -1915,9 +1932,9 @@ en_result_t SDMMC_CMD7_SelectDeselectCard(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32
 */
 en_result_t SDMMC_CMD8_SendInterfaceCond(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
-    uint32_t u32SdMode = 0UL;
+    uint32_t u32SdMode;
 
     if (NULL == pu32ErrSta)
     {
@@ -1975,7 +1992,7 @@ en_result_t SDMMC_CMD8_SendInterfaceCond(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu3
 */
 en_result_t SDMMC_CMD9_SendCSD(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32RCA, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2015,7 +2032,7 @@ en_result_t SDMMC_CMD9_SendCSD(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32RCA, uint32
 */
 en_result_t SDMMC_CMD12_StopTransmission(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2056,7 +2073,7 @@ en_result_t SDMMC_CMD12_StopTransmission(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu3
 */
 en_result_t SDMMC_CMD13_SendStatus(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32RCA, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2097,7 +2114,7 @@ en_result_t SDMMC_CMD13_SendStatus(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32RCA, ui
 */
 en_result_t SDMMC_CMD16_SetBlockLength(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32BlockLen, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2138,7 +2155,7 @@ en_result_t SDMMC_CMD16_SetBlockLength(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Blo
 */
 en_result_t SDMMC_CMD17_ReadSingleBlock(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32ReadAddr, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2179,7 +2196,7 @@ en_result_t SDMMC_CMD17_ReadSingleBlock(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Re
 */
 en_result_t SDMMC_CMD18_ReadMultipleBlock(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32ReadAddr, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2220,7 +2237,7 @@ en_result_t SDMMC_CMD18_ReadMultipleBlock(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32
 */
 en_result_t SDMMC_CMD24_WriteSingleBlock(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32WriteAddr, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2261,7 +2278,7 @@ en_result_t SDMMC_CMD24_WriteSingleBlock(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32W
 */
 en_result_t SDMMC_CMD25_WriteMultipleBlock(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32WriteAddr, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2302,7 +2319,7 @@ en_result_t SDMMC_CMD25_WriteMultipleBlock(M4_SDIOC_TypeDef *SDIOCx, uint32_t u3
 */
 en_result_t SDMMC_CMD32_EraseBlockStartAddr(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32StartAddr, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2343,7 +2360,7 @@ en_result_t SDMMC_CMD32_EraseBlockStartAddr(M4_SDIOC_TypeDef *SDIOCx, uint32_t u
 */
 en_result_t SDMMC_CMD33_EraseBlockEndAddr(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32EndAddr, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2383,7 +2400,7 @@ en_result_t SDMMC_CMD33_EraseBlockEndAddr(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32
 */
 en_result_t SDMMC_CMD38_Erase(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2425,7 +2442,7 @@ en_result_t SDMMC_CMD38_Erase(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
 */
 en_result_t SDMMC_CMD55_AppCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Argument, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2469,7 +2486,7 @@ en_result_t SDMMC_CMD55_AppCmd(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Argument, u
 */
 en_result_t SDMMC_ACMD6_SetBusWidth(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32BusWidth, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2509,7 +2526,7 @@ en_result_t SDMMC_ACMD6_SetBusWidth(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32BusWid
 */
 en_result_t SDMMC_ACMD13_SendStatus(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2550,7 +2567,7 @@ en_result_t SDMMC_ACMD13_SendStatus(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrS
 */
 en_result_t SDMMC_ACMD41_SendOperatCond(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Argument, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2590,7 +2607,7 @@ en_result_t SDMMC_ACMD41_SendOperatCond(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Ar
 */
 en_result_t SDMMC_ACMD51_SendSCR(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2631,7 +2648,7 @@ en_result_t SDMMC_ACMD51_SendSCR(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32ErrSta)
 */
 en_result_t SDMMC_CMD1_SendOperatCond(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Argument, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2672,7 +2689,7 @@ en_result_t SDMMC_CMD1_SendOperatCond(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Argu
 */
 en_result_t SDMMC_CMD35_EraseGroupStartAddr(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32StartAddr, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2713,7 +2730,7 @@ en_result_t SDMMC_CMD35_EraseGroupStartAddr(M4_SDIOC_TypeDef *SDIOCx, uint32_t u
 */
 en_result_t SDMMC_CMD36_EraseGroupEndAddr(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32EndAddr, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
+    en_result_t enRet;
     stc_sdioc_cmd_init_t stcCmdInit;
 
     if (NULL == pu32ErrSta)
@@ -2760,7 +2777,7 @@ en_result_t SDMMC_CMD36_EraseGroupEndAddr(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32
 */
 static en_result_t SDMMC_WaitResponse(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32CheckFlag, uint32_t u32Timeout, uint32_t *pu32ErrSta)
 {
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
     en_result_t enRet = Ok;
 
     *pu32ErrSta = 0UL;
@@ -2768,7 +2785,7 @@ static en_result_t SDMMC_WaitResponse(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Chec
     u32Count = u32Timeout * (HCLK_VALUE / 20000UL);
     do
     {
-        if (--u32Count == 0UL)
+        if (u32Count-- == 0UL)
         {
             enRet = ErrorTimeout;
             break;
@@ -2825,14 +2842,14 @@ static en_result_t SDMMC_WaitResponse(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Chec
  */
 static en_result_t SDMMC_GetCmdError(M4_SDIOC_TypeDef *SDIOCx)
 {
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
     en_result_t enRet = Ok;
 
     /* The SDMMC_CMD_TIMEOUT is expressed in ms */
     u32Count = SDMMC_CMD_TIMEOUT * (HCLK_VALUE / 20000UL);
     do
     {
-        if (--u32Count == 0UL)
+        if (u32Count-- == 0UL)
         {
             enRet = ErrorTimeout;
             break;
@@ -2862,8 +2879,8 @@ static en_result_t SDMMC_GetCmdError(M4_SDIOC_TypeDef *SDIOCx)
 */
 static en_result_t SDMMC_GetCmdResp1(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Timeout, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
-    uint32_t u32RespVal = 0UL;
+    en_result_t enRet;
+    uint32_t u32RespVal;
 
     enRet = SDMMC_WaitResponse(SDIOCx,
                                (SDIOC_NORMAL_INT_FLAG_CC  | SDIOC_ERROR_INT_FLAG_CIE | SDIOC_ERROR_INT_FLAG_CEBE |
@@ -2898,9 +2915,9 @@ static en_result_t SDMMC_GetCmdResp1(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Timeo
 */
 static en_result_t SDMMC_GetCmdResp1Busy(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32Timeout, uint32_t *pu32ErrSta)
 {
-    __IO uint32_t u32Count = 0UL;
-    en_result_t enRet = Ok;
-    uint32_t u32RespVal = 0UL;
+    __IO uint32_t u32Count;
+    en_result_t enRet;
+    uint32_t u32RespVal;
 
     enRet = SDMMC_WaitResponse(SDIOCx,
                                (SDIOC_NORMAL_INT_FLAG_CC  | SDIOC_ERROR_INT_FLAG_CIE | SDIOC_ERROR_INT_FLAG_CEBE |
@@ -2921,12 +2938,12 @@ static en_result_t SDMMC_GetCmdResp1Busy(M4_SDIOC_TypeDef *SDIOCx, uint32_t u32T
             u32Count = u32Timeout * (HCLK_VALUE / 20000UL);
             do
             {
-                if (--u32Count == 0UL)
+                if (u32Count-- == 0UL)
                 {
                     enRet = ErrorTimeout;
                     break;
                 }
-            } while (Reset == SDIOC_GetHostStatus(SDIOCx, SDIOC_HOST_FALG_DATL_D0));
+            } while (Reset == SDIOC_GetHostStatus(SDIOCx, SDIOC_HOST_FLAG_DATL_D0));
         }
     }
 
@@ -2986,8 +3003,8 @@ static en_result_t SDMMC_GetCmdResp3(M4_SDIOC_TypeDef *SDIOCx, uint32_t *pu32Err
 */
 static en_result_t SDMMC_GetCmdResp6(M4_SDIOC_TypeDef *SDIOCx, uint16_t *pu16RCA, uint32_t *pu32ErrSta)
 {
-    en_result_t enRet = Ok;
-    uint32_t u32RespVal = 0UL;
+    en_result_t enRet;
+    uint32_t u32RespVal;
 
     enRet = SDMMC_WaitResponse(SDIOCx,
                                (SDIOC_NORMAL_INT_FLAG_CC  | SDIOC_ERROR_INT_FLAG_CIE | SDIOC_ERROR_INT_FLAG_CEBE |

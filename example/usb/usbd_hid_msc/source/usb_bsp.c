@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_hid_msc\source\usb_bsp_template.c
+ * @file  usb/usbd_hid_msc/source/usb_bsp.c
  * @brief BSP for example.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -74,12 +74,13 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* KEY0 */
-#define  KEY1_PORT       (GPIO_PORT_A)
-#define  KEY1_PIN        (GPIO_PIN_00)
-#define  KEY1_EXINT_CH   (EXINT_CH00)
-#define  KEY1_INT_SRC    (INT_PORT_EIRQ0)
-#define  KEY1_IRQn       (Int003_IRQn)
+/* KEY10 */
+#define KEY10_PORT      (GPIO_PORT_A)
+#define KEY10_PIN       (GPIO_PIN_00)
+#define KEY10_EXINT_CH  (EXINT_CH00)
+#define KEY10_INT_SRC   (INT_PORT_EIRQ0)
+#define KEY10_IRQn      (Int003_IRQn)
+
 
 #ifdef USB_OTG_FS_CORE
 
@@ -143,7 +144,7 @@
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
-uint8_t PrevXferDone = 1u;
+uint8_t PrevXferDone = 1U;
 
 /*******************************************************************************
  * Local function prototypes ('static')
@@ -157,48 +158,53 @@ uint8_t PrevXferDone = 1u;
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 extern  USB_OTG_CORE_HANDLE      USB_OTG_dev;
-extern  uint32_t USBD_OTG_ISR_Handler (USB_OTG_CORE_HANDLE *pdev);
-
 
 /**
  * @brief  Usb interrupt handle
  * @param  None
  * @retval None
  */
-void USB_IRQ_Handler(void)
+static void USB_IRQ_Handler(void)
 {
     USBD_OTG_ISR_Handler(&USB_OTG_dev);
 }
 
 /**
- * @brief KEY1_IrqCallback callback function
+ * @brief  KEY10 External interrupt Ch.0 callback function
+ *         IRQ No.0 in Global IRQ entry No.0~31 is used for EXINT0
  * @param  None
  * @retval None
  */
-void KEY1_IrqCallback(void)
+static void EXINT_KEY10_IrqCallback(void)
 {
-    if (Set == EXINT_GetExIntSrc(KEY1_EXINT_CH))
-    {
-        if ((PrevXferDone) && (USB_OTG_dev.dev.device_status == USB_OTG_CONFIGURED))
-        {
-            Send_Buf[0] = KEY_REPORT_ID;
+   if (Set == EXINT_GetExIntSrc(KEY10_EXINT_CH))
+   {
+      if ((PrevXferDone) && (USB_OTG_dev.dev.device_status == USB_OTG_CONFIGURED))
+      {
+          Send_Buf[0U] = KEY_REPORT_ID;
 
-            if(Pin_Reset == GPIO_ReadInputPins(KEY1_PORT, KEY1_PIN))
-            {
-                Send_Buf[1] = 0x01u;
-            }
-            else
-            {
-                Send_Buf[1] = 0x00u;
-            }
+          if(Pin_Reset == GPIO_ReadInputPins(KEY10_PORT, KEY10_PIN))
+          {
+              Send_Buf[1U] = 0x01U;
+          }
+          else
+          {
+              Send_Buf[1U] = 0x00U;
+          }
 
-            USBD_CUSTOM_HID_SendReport(&USB_OTG_dev, Send_Buf, 2u);
-            PrevXferDone = 0u;
-        }
-    }
+          USBD_CUSTOM_HID_SendReport(&USB_OTG_dev, Send_Buf, 2U);
+          PrevXferDone = 0U;
+      }
+      EXINT_ClrExIntSrc(KEY10_EXINT_CH);
+   }
 }
 
-static void SW2_ExitIntIni(void)
+/**
+ * @brief  KEY10 initialize
+ * @param  None
+ * @retval None
+ */
+static void Key10_Init(void)
 {
     stc_exint_init_t stcExintInit;
     stc_irq_signin_config_t stcIrqSignConfig;
@@ -208,50 +214,105 @@ static void SW2_ExitIntIni(void)
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16ExInt = PIN_EXINT_ON;
     stcGpioInit.u16PullUp = PIN_PU_ON;
-    GPIO_Init(KEY1_PORT, KEY1_PIN, &stcGpioInit);
+    GPIO_Init(KEY10_PORT, KEY10_PIN, &stcGpioInit);
 
     /* Exint config */
     EXINT_StructInit(&stcExintInit);
-    stcExintInit.u32ExIntCh = KEY1_EXINT_CH;
+    stcExintInit.u32ExIntCh = KEY10_EXINT_CH;
     stcExintInit.u32ExIntLvl= EXINT_TRIGGER_FALLING;
     EXINT_Init(&stcExintInit);
 
     /* IRQ sign-in */
-    stcIrqSignConfig.enIntSrc = KEY1_INT_SRC;
-    stcIrqSignConfig.enIRQn   = KEY1_IRQn;
-    stcIrqSignConfig.pfnCallback = &KEY1_IrqCallback;
+    stcIrqSignConfig.enIntSrc = KEY10_INT_SRC;
+    stcIrqSignConfig.enIRQn   = KEY10_IRQn;
+    stcIrqSignConfig.pfnCallback = &EXINT_KEY10_IrqCallback;
     INTC_IrqSignIn(&stcIrqSignConfig);
 
     /* NVIC config */
-    NVIC_ClearPendingIRQ(KEY1_IRQn);
-    NVIC_SetPriority(KEY1_IRQn,DDL_IRQ_PRIORITY_DEFAULT);
-    NVIC_EnableIRQ(KEY1_IRQn);
+    NVIC_ClearPendingIRQ(KEY10_IRQn);
+    NVIC_SetPriority(KEY10_IRQn,DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(KEY10_IRQn);
 }
 
 /**
- * @brief  Initilizes BSP configurations
+ * @brief  MCU Peripheral registers write unprotected.
  * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
+ * @brief  Initializes BSP configurations
+ * @param  pdev     Selected device
  * @retval None
  */
 void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
 {
     stc_gpio_init_t stcGpioCfg;
 
-    /* System clock configurate */
+    Peripheral_WE();
+
     BSP_CLK_Init();
     BSP_IO_Init();
     BSP_LED_Init();
 
+#if (DDL_PRINT_ENABLE == DDL_ON)
     DDL_PrintfInit();
+#endif
 
     /* USB clock source configurate */
     CLK_USB_ClkConfig(CLK_USB_CLK_MCLK_DIV5);
 
-    /* KEY SW2 interrupt function initialize */
-    SW2_ExitIntIni();
-
+    /* KEY SW10 interrupt function initialize */
+    Key10_Init();
+#if (DDL_PRINT_ENABLE == DDL_ON)
     printf("USBFS start !!\n");
-
+#endif
     GPIO_StructInit(&stcGpioCfg);
 
 #ifdef USE_EMBEDDED_PHY
@@ -261,7 +322,7 @@ void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
     GPIO_Init(USB_DP_PORT, USB_DP_PIN, &stcGpioCfg);
 
     /* GPIO function configurate */
-    //GPIO_SetFunc(USB_SOF_PORT, USB_SOF_PIN, Func_UsbF, Disable); //SOF
+    //GPIO_SetFunc(USB_SOF_PORT, USB_SOF_PIN, Func_UsbF, PIN_SUBFUNC_DISABLE); //SOF
 
 #ifdef USB_OTG_FS_CORE
     GPIO_SetFunc(USB_VBUS_PORT, USB_VBUS_PIN, GPIO_FUNC_10_USBF_VBUS, PIN_SUBFUNC_DISABLE); //VBUS
@@ -338,8 +399,8 @@ void USB_OTG_BSP_EnableInterrupt(void)
 
 /**
  * @brief  Drives the Vbus signal through IO
- * @param  speed : Full, Low
- * @param  state : VBUS states
+ * @param  speed    Full, Low
+ * @param  state    VBUS states
  * @retval None
  */
 void USB_OTG_BSP_DriveVBUS(uint32_t speed, uint8_t state)
@@ -349,7 +410,7 @@ void USB_OTG_BSP_DriveVBUS(uint32_t speed, uint8_t state)
 
 /**
  * @brief  Configures the IO for the Vbus and OverCurrent
- * @param  speed : Full, Low
+ * @param  speed    Full, Low
  * @retval None
 */
 void  USB_OTG_BSP_ConfigVBUS(uint32_t speed)
@@ -369,15 +430,15 @@ void USB_OTG_BSP_TimeInit ( void )
 
 /**
  * @brief  This function provides delay time in micro sec
- * @param  usec : Value of delay required in micro sec
+ * @param  usec        Value of delay required in micro sec
  * @retval None
 */
-void USB_OTG_BSP_uDelay (const uint32_t t)
+void USB_OTG_BSP_uDelay (const uint32_t usec)
 {
     uint32_t    i;
     uint32_t    j;
-    j=SystemCoreClock / 1000000ul * t;
-    for(i = 0ul; i < j; i++)
+    j = HCLK_VALUE / 1000000UL * usec;
+    for(i = 0UL; i < j; i++)
     {
         ;
     }
@@ -389,7 +450,7 @@ void USB_OTG_BSP_uDelay (const uint32_t t)
 */
 void USB_OTG_BSP_mDelay (const uint32_t msec)
 {
-    USB_OTG_BSP_uDelay(msec * 1000ul);
+    USB_OTG_BSP_uDelay(msec * 1000UL);
 }
 
 /**

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-11       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -100,46 +100,50 @@
              INTC_WUPEN_ETHWUEN)
 
 /**
+ * @}
+ */
+
+/**
  * @defgroup INTC_Check_Parameters_Validity INTC Check Parameters Validity
  * @{
  */
-/*  Parameter validity check for wakeup source from stop mode. */
+/*! Parameter validity check for wakeup source from stop mode. */
 #define IS_INTC_WKUP_SRC(src)                                                   \
 (   ((src) != 0x00UL)                           &&                              \
     (((src) | INTC_WUPEN_MASK) == INTC_WUPEN_MASK))
 
-/*  Parameter validity check for event index. */
+/*! Parameter validity check for event index. */
 #define IS_INTC_EVENT(event)        ((event) != 0x00UL)
 
-/*  Parameter validity check for interrupt index. */
+/*! Parameter validity check for interrupt index. */
 #define IS_INTC_INT(it)             ((it) != 0x00UL)
 
-/*  Parameter validity check for software interrupt index. */
+/*! Parameter validity check for software interrupt index. */
 #define IS_INTC_SWI(swi)            ((swi) != 0x00UL)
 
-/*  Parameter validity check for NMI trigger source. */
+/*! Parameter validity check for NMI trigger source. */
 #define IS_NMI_SRC(src)                                                         \
 (   ((src) != 0x00UL)                           &&                              \
     (((src) | NMI_SRC_MASK) == NMI_SRC_MASK))
 
-/*  Parameter validity check for EXINT filter A function. */
+/*! Parameter validity check for EXINT filter A function. */
 #define IS_EXINT_FAE(fae)                                                       \
 (   ((fae) == EXINT_FILTER_A_OFF)               ||                              \
     ((fae) == EXINT_FILTER_A_ON))
 
-/*  Parameter validity check for EXINT filter A clock division. */
+/*! Parameter validity check for EXINT filter A clock division. */
 #define IS_EXINT_FACLK(faclk)                                                    \
 (   ((faclk) == EXINT_FACLK_HCLK_DIV1)          ||                              \
     ((faclk) == EXINT_FACLK_HCLK_DIV8)          ||                              \
     ((faclk) == EXINT_FACLK_HCLK_DIV32)         ||                              \
     ((faclk) == EXINT_FACLK_HCLK_DIV64))
 
-/*  Parameter validity check for EXINT filter B function. */
+/*! Parameter validity check for EXINT filter B function. */
 #define IS_EXINT_FBE(fbe)                                                       \
 (   ((fbe) == EXINT_FILTER_B_OFF)               ||                              \
     ((fbe) == EXINT_FILTER_B_ON))
 
-/*  Parameter validity check for EXINT filter B time. */
+/*! Parameter validity check for EXINT filter B time. */
 #define IS_EXINT_FBTIME(fbtime)                                                  \
 (   ((fbtime) == EXINT_FBTIM_500NS)             ||                              \
     ((fbtime) == EXINT_FBTIM_1US)               ||                              \
@@ -147,14 +151,14 @@
     ((fbtime) == EXINT_FBTIM_4US))
 
 
-/*  Parameter validity check for EXINT trigger edge. */
+/*! Parameter validity check for EXINT trigger edge. */
 #define IS_EXINT_TRIGGER(trigger)                                               \
 (   ((trigger) == EXINT_TRIGGER_LOW)            ||                              \
     ((trigger) == EXINT_TRIGGER_RISING)         ||                              \
     ((trigger) == EXINT_TRIGGER_FALLING)        ||                              \
     ((trigger) == EXINT_TRIGGER_BOTH))
 
-/*  Parameter validity check for EXINT channel. */
+/*! Parameter validity check for EXINT channel. */
 #define IS_EXINT_CH(ch)                                                         \
 (   ((ch) != 0x00UL)                            &&                              \
     (((ch) | EXINT_CH_MASK) == EXINT_CH_MASK))
@@ -212,19 +216,25 @@ en_result_t INTC_IrqSignIn(const stc_irq_signin_config_t *pstcIrqSignConfig)
     {
         enRet = ErrorInvalidParameter;
     }
-    else//todo
+    else
     {
         /* IRQ032~127 whether out of range */
-        if (((((pstcIrqSignConfig->enIntSrc / 0x20) * 6 + 0x20) > pstcIrqSignConfig->enIRQn) || \
-             (((pstcIrqSignConfig->enIntSrc / 0x20) * 6 + 0x25) < pstcIrqSignConfig->enIRQn))&& \
-             (pstcIrqSignConfig->enIRQn >= 0x20))
+        if ((((((uint32_t)pstcIrqSignConfig->enIntSrc / 0x20UL) * 6UL + 0x20UL) > (uint32_t)pstcIrqSignConfig->enIRQn) || \
+             ((((uint32_t)pstcIrqSignConfig->enIntSrc / 0x20UL) * 6UL + 0x25U) < (uint32_t)pstcIrqSignConfig->enIRQn))&& \
+             ((uint32_t)pstcIrqSignConfig->enIRQn >= 0x20UL))
         {
             enRet = ErrorInvalidParameter;
         }
         else
         {
-            INTC_SELx = (__IO uint32_t *)((uint32_t)(&M4_INTC->SEL0) + (4U * pstcIrqSignConfig->enIRQn));
-            if ((0x1FFUL == ((*INTC_SELx) & 0x1FFUL)) || ((uint32_t)(pstcIrqSignConfig->enIntSrc) == ((*INTC_SELx) & 0x1FFUL)))
+            INTC_SELx = (__IO uint32_t *)((uint32_t)(&M4_INTC->SEL0) + (4U * (uint32_t)pstcIrqSignConfig->enIRQn));
+            /* for MISRAC2004-12.4 */
+            if (0x1FFUL == ((*INTC_SELx) & 0x1FFUL))
+            {
+                WRITE_REG32(*INTC_SELx, pstcIrqSignConfig->enIntSrc);
+                m_apfnIrqHandler[pstcIrqSignConfig->enIRQn] = pstcIrqSignConfig->pfnCallback;
+            }
+            else if ((uint32_t)(pstcIrqSignConfig->enIntSrc) == ((*INTC_SELx) & 0x1FFUL))
             {
                 WRITE_REG32(*INTC_SELx, pstcIrqSignConfig->enIntSrc);
                 m_apfnIrqHandler[pstcIrqSignConfig->enIRQn] = pstcIrqSignConfig->pfnCallback;
@@ -255,7 +265,7 @@ en_result_t INTC_IrqSignOut(IRQn_Type enIRQn)
     }
     else
     {
-        INTC_SELx = (__IO uint32_t *)((uint32_t)(&M4_INTC->SEL0) + (4UL * enIRQn));
+        INTC_SELx = (__IO uint32_t *)((uint32_t)(&M4_INTC->SEL0) + (4UL * (uint32_t)enIRQn));
         WRITE_REG32(*INTC_SELx, 0x1FFUL);
         m_apfnIrqHandler[enIRQn] = NULL;
     }
@@ -276,14 +286,14 @@ en_result_t INTC_ShareIrqCmd(en_int_src_t enIntSrc, en_functional_state_t enNewS
 
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    INTC_VSSELx = (__IO uint32_t *)(((uint32_t)&M4_INTC->VSSEL128) + (4U * (enIntSrc / 0x20U)));
+    INTC_VSSELx = (__IO uint32_t *)(((uint32_t)&M4_INTC->VSSEL128) + (4U * ((uint32_t)enIntSrc / 0x20U)));
     if (Enable == enNewState)
     {
-        SET_REG32_BIT(*INTC_VSSELx, (uint32_t)(1UL << (enIntSrc & 0x1FUL)));
+        SET_REG32_BIT(*INTC_VSSELx, (uint32_t)(1UL << ((uint32_t)enIntSrc & 0x1FUL)));
     }
     else
     {
-        CLEAR_REG32_BIT(*INTC_VSSELx, (1UL << (enIntSrc & 0x1FUL)));
+        CLEAR_REG32_BIT(*INTC_VSSELx, (1UL << ((uint32_t)enIntSrc & 0x1FUL)));
     }
     return Ok;
 }
@@ -588,7 +598,7 @@ en_flag_status_t NMI_GetNmiSrc(uint32_t u32NmiSrc)
     /* Parameter validity checking */
     DDL_ASSERT(IS_NMI_SRC(u32NmiSrc));
 
-    return ((READ_REG32(M4_INTC->NMIFR) & u32NmiSrc)) ? Set : Reset;
+    return (((READ_REG32(M4_INTC->NMIFR) & u32NmiSrc)) != 0UL) ? Set : Reset;
 }
 
 /**
@@ -655,7 +665,7 @@ void NMI_IrqHandler(void)
  */
 en_result_t EXINT_Init(const stc_exint_init_t *pstcExIntInit)
 {
-    uint8_t u8ExIntPos = 0U;
+    uint8_t u8ExIntPos;
     en_result_t enRet = Ok;
 
     /* Check if pointer is NULL */
@@ -675,7 +685,7 @@ en_result_t EXINT_Init(const stc_exint_init_t *pstcExIntInit)
 
         for (u8ExIntPos = 0U; u8ExIntPos < 16U; u8ExIntPos++)
         {
-            if (pstcExIntInit->u32ExIntCh & (1UL << u8ExIntPos))
+            if ((pstcExIntInit->u32ExIntCh & (1UL << u8ExIntPos)) != 0U)
             {
                 WRITE_REG32(*(uint32_t *)((uint32_t)(&M4_INTC->EIRQCR0) + 4UL*u8ExIntPos),  \
                           (pstcExIntInit->u32ExIntFAE         |                           \
@@ -720,7 +730,7 @@ en_result_t EXINT_StructInit(stc_exint_init_t *pstcExIntInit)
 
 /**
  * @brief  Clear specified External interrupt trigger source
- * @param  [in] u16ExIntCh: External interrupt channel, @ref EXINT_Channel_Sel for details
+ * @param  [in] u32ExIntCh: External interrupt channel, @ref EXINT_Channel_Sel for details
  *   @arg  EXINT_CH00
  *   @arg  EXINT_CH01
  *   @arg  EXINT_CH02
@@ -749,7 +759,7 @@ void EXINT_ClrExIntSrc(uint32_t u32ExIntCh)
 
 /**
  * @brief  Get specified External interrupt trigger source
- * @param  [in] u16ExIntCh: External interrupt channel, @ref EXINT_Channel_Sel for details
+ * @param  [in] u32ExIntCh: External interrupt channel, @ref EXINT_Channel_Sel for details
  *   @arg  EXINT_CH00
  *   @arg  EXINT_CH01
  *   @arg  EXINT_CH02
@@ -774,7 +784,7 @@ en_flag_status_t EXINT_GetExIntSrc(uint32_t u32ExIntCh)
     /* Parameter validity checking */
     DDL_ASSERT(IS_EXINT_CH(u32ExIntCh));
 
-    return (READ_REG16(M4_INTC->EIFR) & u32ExIntCh) ? Set : Reset;
+    return ((READ_REG16(M4_INTC->EIFR) & u32ExIntCh) != 0U) ? Set : Reset;
 }
 
 /**
@@ -2114,7 +2124,7 @@ void IRQ127_Handler(void)
  */
 void IRQ128_Handler(void)
 {
-    uint32_t VSSEL128 = M4_INTC->VSSEL128;
+    const uint32_t VSSEL128 = M4_INTC->VSSEL128;
 
     /* external interrupt 00 */
     if ((1UL == bM4_INTC->EIFR_b.EIFR0) && (VSSEL128 & BIT_MASK_00))
@@ -2205,9 +2215,9 @@ void IRQ128_Handler(void)
  */
 void IRQ129_Handler(void)
 {
-    uint32_t VSSEL129 = M4_INTC->VSSEL129;
-    uint32_t u32Tmp1 = 0UL;
-    uint32_t u32Tmp2 = 0UL;
+    const uint32_t VSSEL129 = M4_INTC->VSSEL129;
+    uint32_t u32Tmp1;
+    uint32_t u32Tmp2;
 
     /* DMA1 Ch.0 interrupt enabled */
     if (1UL == bM4_DMA1->CHCTL0_b.IE)
@@ -2540,9 +2550,9 @@ void IRQ129_Handler(void)
  */
 void IRQ130_Handler(void)
 {
-    uint32_t VSSEL130 = M4_INTC->VSSEL130;
-    uint32_t u32Tmp1 = 0UL;
-    uint32_t u32Tmp2 = 0UL;
+    const uint32_t VSSEL130 = M4_INTC->VSSEL130;
+    uint32_t u32Tmp1;
+    uint32_t u32Tmp2;
 
     /* MAU square */
     if (VSSEL130 & BIT_MASK_19)
@@ -2857,8 +2867,8 @@ void IRQ130_Handler(void)
  */
 void IRQ131_Handler(void)
 {
-    uint32_t VSSEL131 = M4_INTC->VSSEL131;
-    uint32_t u32Tmp1 = 0UL;
+    const uint32_t VSSEL131 = M4_INTC->VSSEL131;
+    uint32_t u32Tmp1;
 
     /* Timer0 unit1, Ch.A compare match */
     if (1UL == bM4_TMR0_1->BCONR_b.INTENA)
@@ -3083,7 +3093,7 @@ void IRQ131_Handler(void)
  */
 void IRQ132_Handler(void)
 {
-    uint32_t VSSEL132 = M4_INTC->VSSEL132;
+    const uint32_t VSSEL132 = M4_INTC->VSSEL132;
 
     /* Timer6 Ch.1 general compare match A */
     if (1UL == bM4_TMR6_1->ICONR_b.INTENA)
@@ -3350,7 +3360,7 @@ void IRQ132_Handler(void)
  */
 void IRQ133_Handler(void)
 {
-    uint32_t VSSEL133 = M4_INTC->VSSEL133;
+    const uint32_t VSSEL133 = M4_INTC->VSSEL133;
 
     /* Timer6 Ch.3 general compare match A */
     if (1UL == bM4_TMR6_3->ICONR_b.INTENA)
@@ -3617,7 +3627,7 @@ void IRQ133_Handler(void)
  */
 void IRQ134_Handler(void)
 {
-    uint32_t VSSEL134 = M4_INTC->VSSEL134;
+    const uint32_t VSSEL134 = M4_INTC->VSSEL134;
 
     /* Timer6 Ch.3 dead time */
     if (1UL == bM4_TMR6_3->ICONR_b.INTENDTE)
@@ -3796,7 +3806,7 @@ void IRQ134_Handler(void)
  */
 void IRQ135_Handler(void)
 {
-    uint32_t VSSEL135 = M4_INTC->VSSEL135;
+    const uint32_t VSSEL135 = M4_INTC->VSSEL135;
 
     /* Timer6 Ch.5 general compare match A */
     if (1UL == bM4_TMR6_5->ICONR_b.INTENA)
@@ -4111,7 +4121,7 @@ void IRQ135_Handler(void)
  */
 void IRQ136_Handler(void)
 {
-    uint32_t VSSEL136 = M4_INTC->VSSEL136;
+    const uint32_t VSSEL136 = M4_INTC->VSSEL136;
 
     /* Timer6 Ch.7 general compare match A */
     if (1UL == bM4_TMR6_7->ICONR_b.INTENA)
@@ -4426,9 +4436,9 @@ void IRQ136_Handler(void)
  */
 void IRQ137_Handler(void)
 {
-    uint32_t VSSEL137 = M4_INTC->VSSEL137;
-    uint32_t u32Tmp1 = 0UL;
-    uint32_t u32Tmp2 = 0UL;
+    const uint32_t VSSEL137 = M4_INTC->VSSEL137;
+    uint32_t u32Tmp1;
+    uint32_t u32Tmp2;
 
     /* EMB0 */
     u32Tmp1 = M4_EMB0->INTEN & (BIT_MASK_01 | BIT_MASK_02 | BIT_MASK_03 |   \
@@ -4652,12 +4662,12 @@ void IRQ137_Handler(void)
  */
 void IRQ138_Handler(void)
 {
-    uint32_t VSSEL138 = M4_INTC->VSSEL138;
-    uint32_t u32Tmp1 = 0UL;
-    uint8_t RTIF = 0U;
-    uint8_t RTIE = 0U;
-    uint8_t ERRINT = 0U;
-    uint8_t TTCFG = 0U;
+    const uint32_t VSSEL138 = M4_INTC->VSSEL138;
+    uint32_t u32Tmp1;
+    uint8_t RTIF;
+    uint8_t RTIE;
+    uint8_t ERRINT;
+    uint8_t TTCFG;
 
     /* TimerA Ch.5 overflow */
     if (1UL == bM4_TMRA_5->BCSTR_b.ITENOVF)
@@ -5024,8 +5034,8 @@ void IRQ138_Handler(void)
  */
 void IRQ139_Handler(void)
 {
-    uint32_t VSSEL139 = M4_INTC->VSSEL139;
-    uint32_t u32Tmp1 = 0UL;
+    const uint32_t VSSEL139 = M4_INTC->VSSEL139;
+    uint32_t u32Tmp1;
 
     /* TimerA Ch.9 overflow */
     if (1UL == bM4_TMRA_9->BCSTR_b.ITENOVF)
@@ -5378,21 +5388,20 @@ void IRQ139_Handler(void)
  */
 void IRQ140_Handler(void)
 {
-    uint32_t VSSEL140 = M4_INTC->VSSEL140;
-    uint32_t u32Tmp1 = 0UL;
-    uint32_t u32Tmp2 = 0UL;
-    uint16_t NORINTST = 0U;
-    uint16_t NORINTSGEN = 0U;
-    uint16_t ERRINTSGEN = 0U;
-    uint32_t MMC_REVSTSR = 0UL;
-    uint32_t MMC_TRSSTSR = 0UL;
-    uint32_t MMC_RITCTLR = 0UL;
-    uint32_t MMC_TITCTLR = 0UL;
-    uint32_t MAC_INTMSKR = 0UL;
-    uint32_t MAC_INTSTSR = 0UL;
-    uint32_t DMA_DMASTSR = 0UL;
-    uint32_t DMA_INTENAR = 0UL;
-
+    const uint32_t VSSEL140 = M4_INTC->VSSEL140;
+    uint32_t u32Tmp1;
+    uint32_t u32Tmp2;
+    uint16_t NORINTST;
+    uint16_t NORINTSGEN;
+    uint16_t ERRINTSGEN;
+    uint32_t MMC_REVSTSR;
+    uint32_t MMC_TRSSTSR;
+    uint32_t MMC_RITCTLR;
+    uint32_t MMC_TITCTLR;
+    uint32_t MAC_INTMSKR;
+    uint32_t MAC_INTSTSR;
+    uint32_t DMA_DMASTSR;
+    uint32_t DMA_INTENAR;
 
     /* I2S Ch.1 Tx */
     if (1UL == bM4_I2S1->CTRL_b.TXIE)
@@ -5619,9 +5628,9 @@ void IRQ140_Handler(void)
  */
 void IRQ141_Handler(void)
 {
-    uint32_t VSSEL141 = M4_INTC->VSSEL141;
-    uint32_t u32Tmp1 = 0UL;
-    uint32_t u32Tmp2 = 0UL;
+    const uint32_t VSSEL141 = M4_INTC->VSSEL141;
+    uint32_t u32Tmp1;
+    uint32_t u32Tmp2;
 
     /* I2S Ch.3 Tx */
     if (1UL == bM4_I2S3->CTRL_b.TXIE)
@@ -5869,9 +5878,9 @@ void IRQ141_Handler(void)
  */
 void IRQ142_Handler(void)
 {
-    uint32_t VSSEL142 = M4_INTC->VSSEL142;
-    uint32_t u32Tmp1 = 0UL;
-    uint32_t u32Tmp2 = 0UL;
+    const uint32_t VSSEL142 = M4_INTC->VSSEL142;
+    uint32_t u32Tmp1;
+    uint32_t u32Tmp2;
 
     /* I2C Ch.4 Rx end */
     if (1UL == bM4_I2C4->CR2_b.RFULLIE)
@@ -5984,20 +5993,20 @@ void IRQ142_Handler(void)
     {
         I2C_6_Err_IrqHandler();
     }
-    /* LVD Ch.1 */
+    /* PVD Ch.1 */
     if (1UL == bM4_PWC->PVDCR1_b.PVD1IRE)
     {
         if ((1UL ==bM4_PWC->PVDDSR_b.PVD1DETFLG) && (VSSEL142 & BIT_MASK_13))
         {
-            PWC_Lvd1_IrqHandler();
+            PWC_Pvd1_IrqHandler();
         }
     }
-    /* LVD Ch.2 */
+    /* PVD Ch.2 */
     if (1UL == bM4_PWC->PVDCR1_b.PVD2IRE)
     {
         if ((1UL ==bM4_PWC->PVDDSR_b.PVD2DETFLG) && (VSSEL142 & BIT_MASK_14))
         {
-            PWC_Lvd2_IrqHandler();
+            PWC_Pvd2_IrqHandler();
         }
     }
     /* FCM error */
@@ -6053,8 +6062,8 @@ void IRQ142_Handler(void)
  */
 void IRQ143_Handler(void)
 {
-    uint32_t VSSEL143 = M4_INTC->VSSEL143;
-    uint32_t u32Tmp1 = 0UL;
+    const uint32_t VSSEL143 = M4_INTC->VSSEL143;
+    uint32_t u32Tmp1;
 
     /* ADC unit1 sequence A */
     if (1UL == bM4_ADC1->ICR_b.EOCAIEN)
@@ -6182,6 +6191,10 @@ void IRQ143_Handler(void)
         }
     }
 }
+
+/**
+ * @}
+ */
 
 #endif /* DDL_INTERRUPTS_ENABLE */
 

@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-27       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -82,7 +82,6 @@
 /*
  * Definitions according to 'APP_CAN'.
  * CAN independent IRQn: [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn].
- * CAN share IRQn: [Int138_IRQn].
  */
 #if (APP_CAN_SEL == APP_CAN_SEL_U1)
     #define APP_CAN_UNIT                    (M4_CAN1)
@@ -99,12 +98,11 @@
     #define APP_CAN_CLK_CH                  (CLK_CAN_CH1)
     #define APP_CAN_CLK_DIV                 (CLK_CAN1_CLK_MCLK_DIV3)
 
-    #define CAN_SHARE_IRQn                  (Int138_IRQn)
     #define APP_CAN_INT_TYPE                (CAN_INT_ALL)
     #define APP_CAN_INT_PRIO                (DDL_IRQ_PRIORITY_03)
     #define APP_CAN_INT_SRC                 (INT_CAN1_HOST)
-    #define APP_CAN_IRQ_CB                  CAN_1_IrqHandler
     #define APP_CAN_IRQn                    (Int092_IRQn)
+	#define APP_CAN_TTC_INT_TYPE			(CAN_TTC_INT_ALL)
 
 #elif (APP_CAN_SEL == APP_CAN_SEL_U2)
     #define APP_CAN_UNIT                    (M4_CAN2)
@@ -121,12 +119,11 @@
     #define APP_CAN_CLK_CH                  (CLK_CAN_CH2)
     #define APP_CAN_CLK_DIV                 (CLK_CAN2_CLK_MCLK_DIV3)
 
-    #define CAN_SHARE_IRQn                  (Int138_IRQn)
     #define APP_CAN_INT_TYPE                (CAN_INT_ALL)
     #define APP_CAN_INT_PRIO                (DDL_IRQ_PRIORITY_03)
     #define APP_CAN_INT_SRC                 (INT_CAN2_HOST)
-    #define APP_CAN_IRQ_CB                  CAN_2_IrqHandler
     #define APP_CAN_IRQn                    (Int092_IRQn)
+	#define APP_CAN_TTC_INT_TYPE			(CAN_TTC_INT_ALL)
 #else
     #error "The unit is NOT supported!!!"
 #endif
@@ -182,13 +179,20 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
+
+static void CanPhyEnable(void);
 
 static void CanConfig(void);
 static void CanIrqConfig(void);
 
-static void TtcanTx(void);
+static void CanTTCTx(void);
 static void CanRx(void);
+
+static void CAN_IrqCallback(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -242,16 +246,20 @@ static uint8_t m_au8RxPayload3[APP_DATA_SIZE];
  */
 int32_t main(void)
 {
-    /* Configures the system clock as 120MHz. */
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
+    /* Configures the system clock as 240MHz. */
     SystemClockConfig();
-
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures CAN. */
     CanConfig();
+    /* Set CAN PHY STB pin as low. */
+    CanPhyEnable();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
     /***************** Configuration end, application start **************/
 
@@ -261,6 +269,58 @@ int32_t main(void)
     {
         CanRx();
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -303,18 +363,29 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set SRAM wait cycles. */
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     /* Set EFM wait cycle. 5 wait cycles needed when system clock is 240MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
-    EFM_Lock();
 
     CLK_PLLHCmd(Enable);
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
+}
+
+/**
+ * @brief  Set CAN PHY STB pin as low.
+ * @param  None
+ * @retval None
+ */
+static void CanPhyEnable(void)
+{
+    BSP_IO_Init();
+    BSP_CAN_STB_IO_Init();
+
+    /* Set PYH STB pin as low. */
+    BSP_CAN_STBCmd(EIO_PIN_RESET);
 }
 
 /**
@@ -354,6 +425,7 @@ static void CanConfig(void)
     PWC_Fcg1PeriphClockCmd(APP_CAN_PERIP_CLK, Enable);
     CAN_Init(APP_CAN_UNIT, &stcInit);
 
+    /* Confiures TTCAN. */
     CAN_TTC_StructInit(&stcTTCCfg);
     /* NTU is slow bit time * 8, is 16us. */
     stcTTCCfg.u8NTUPrescaler   = CAN_TTC_NTU_PRESC_8;
@@ -362,13 +434,12 @@ static void CanConfig(void)
     stcTTCCfg.u16TrigType      = CAN_TTC_TRIG_SSHOT_TRANS_TRIG;
     stcTTCCfg.u16TxTrigTime    = 31250U;
     stcTTCCfg.u16WatchTrigTime = 65000U;
-
-    CAN_TTC_Config(APP_CAN_UNIT, &stcTTCCfg);
     CAN_TTC_ClrStatus(APP_CAN_UNIT, CAN_TTC_FLAG_ALL);
-    CAN_TTC_Cmd(APP_CAN_UNIT, Enable);
+    CAN_TTC_Config(APP_CAN_UNIT, &stcTTCCfg);
 
     /* Configures the interrupts if needed. */
     CanIrqConfig();
+    CAN_TTC_Cmd(APP_CAN_UNIT, Enable);
 }
 
 /**
@@ -382,24 +453,16 @@ static void CanIrqConfig(void)
 
     stcCfg.enIntSrc    = APP_CAN_INT_SRC;
     stcCfg.enIRQn      = APP_CAN_IRQn;
-    stcCfg.pfnCallback = &APP_CAN_IRQ_CB;
-    if (stcCfg.enIRQn == CAN_SHARE_IRQn)
-    {
-        /* Sharing interrupt. */
-        INTC_ShareIrqCmd(stcCfg.enIntSrc, Enable);
-    }
-    else
-    {
-        /* Independent interrupt. */
-        INTC_IrqSignIn(&stcCfg);
-    }
+    stcCfg.pfnCallback = &CAN_IrqCallback;
+    INTC_IrqSignIn(&stcCfg);
+
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
     NVIC_SetPriority(stcCfg.enIRQn, APP_CAN_INT_PRIO);
     NVIC_EnableIRQ(stcCfg.enIRQn);
 
     /* Enable the specified interrupts of CAN. */
     CAN_IntCmd(APP_CAN_UNIT, APP_CAN_INT_TYPE, Enable);
-    CAN_TTC_IntCmd(APP_CAN_UNIT, CAN_TTC_INT_ALL, Enable);
+    CAN_TTC_IntCmd(APP_CAN_UNIT, APP_CAN_TTC_INT_TYPE, Enable);
 }
 
 /**
@@ -407,11 +470,12 @@ static void CanIrqConfig(void)
  * @param  None
  * @retval None
  */
-static void TtcanTx(void)
+static void CanTTCTx(void)
 {
+    uint8_t i;
     stc_can_tx_t stcTx;
 
-    for (uint8_t i=0U; i<APP_DATA_SIZE; i++)
+    for (i=0U; i<APP_DATA_SIZE; i++)
     {
         m_au8TxPayload[i] = 0xC0 + i;
     }
@@ -468,7 +532,7 @@ static void CanRx(void)
 
     if (u8RefMsgFlag)
     {
-        TtcanTx();
+        CanTTCTx();
         DBG("TTCAN loaded data.\n");
     }
 }
@@ -478,7 +542,7 @@ static void CanRx(void)
  * @param  None
  * @retval None
  */
-void APP_CAN_IRQ_CB(void)
+static void CAN_IrqCallback(void)
 {
     uint32_t u32StatusVal;
     uint8_t u8ErrType;
@@ -605,7 +669,7 @@ void APP_CAN_IRQ_CB(void)
             DBG("TTC: Watch Trigger Interrupt Flag\n");
         }
 
-        CAN_TTC_ClrStatus(APP_CAN_UNIT, CAN_TTC_FLAG_ALL);
+        CAN_TTC_ClrStatus(APP_CAN_UNIT, u8TtcStatusVal);
     }
 }
 /**

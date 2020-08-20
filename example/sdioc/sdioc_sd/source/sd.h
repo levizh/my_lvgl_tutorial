@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  sdioc/sdioc_cd/source/sd.h
+ * @file  sdioc/sdioc_sd/source/sd.h
  * @brief This file contains all the functions prototypes of the Secure
  *        Digital(SD) driver library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-13       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.

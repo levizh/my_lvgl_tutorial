@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-09       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -76,7 +76,7 @@ extern "C"
  */
 
 /**
- * @defgroup IS62WV51216
+ * @addtogroup IS62WV51216
  * @{
  */
 
@@ -144,6 +144,10 @@ void BSP_SMC_IS62WV51216_GetMemInfo(uint32_t *pu32MemStartAddr,
 /**
  * @}
  */
+
+/**
+* @}
+*/
 
 #ifdef __cplusplus
 }

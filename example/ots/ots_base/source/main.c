@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-21       Wuze            First version
+   2020-01-01       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -80,15 +80,17 @@
 /*
  * Specifies a clock source for OTS in this example.
  * 'APP_OTS_CLK' can be defined as 'OTS_CLK_XTAL' or 'OTS_CLK_HRC'. */
-#define APP_OTS_CLK                         (OTS_CLK_XTAL)
+#define APP_OTS_CLK                         (OTS_CLK_HRC)
 
 /*
  * Function control of OTS.
  * Defines the following macro as non-zero to enable the corresponding function.
  *
+ * 'APP_OTS_USE_DEFAULT_PARA': With the default parameters, the error may be large.
  * 'APP_OTS_USE_INTERRUPT': Interrupt function control.
  * 'APP_OTS_USE_TRIG': Hardware trigger conditions control. The conditions that used to start OTS.
  */
+#define APP_OTS_USE_DEFAULT_PARA            (1U)
 #define APP_OTS_USE_TRIG                    (0U)
 
 #if (APP_OTS_USE_TRIG > 0U)
@@ -107,14 +109,16 @@
     #define APP_OTS_IRQn                    (Int116_IRQn)
 #endif /* #if (APP_OTS_USE_INTERRUPT > 0U) */
 
-/* OTS parameters. */
-#define OTS_XTAL_K                          (737272.7273f)
-#define OTS_XTAL_M                          (27.549f)
-#define OTS_HRC_K                           (0.0f)
-#define OTS_HRC_M                           (0.0f)
+/* OTS parameters, slope K and offset M. Different chip, different parameters. */
+#if (APP_OTS_USE_DEFAULT_PARA == 0U)
+    #define OTS_XTAL_K                      (527152.3178f)
+    #define OTS_XTAL_M                      (-41.6212f)
+    #define OTS_HRC_K                       (2159.5225f)
+    #define OTS_HRC_M                       (-41.5189f)
+#endif /* #if (APP_OTS_USE_DEFAULT_PARA == 0U) */
 
 /* Timeout value. */
-#define TIMEOUT_MS                          (500U)
+#define TIMEOUT_VAL                         (500U)
 
 /* Debug printing definition. */
 #if (DDL_PRINT_ENABLE == DDL_ON)
@@ -130,6 +134,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 static void OtsConfig(void);
 static void OtsInitConfig(void);
@@ -170,13 +176,16 @@ int32_t main(void)
 {
     /* The system clock is MRC(8MHz) by default. */
 
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures OTS. */
     OtsConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
 #if ((APP_OTS_USE_INTERRUPT > 0U) || (APP_OTS_USE_TRIG > 0U))
     /* Starts OTS. */
@@ -191,15 +200,71 @@ int32_t main(void)
         if (m_u8OtsIntFlag != 0U)
         {
             m_u8OtsIntFlag = 0U;
-            DBG("\nTemperature: %.2f", m_f32Temperature);
+            DBG("Temperature: %.2f\n", m_f32Temperature);
+#if (APP_OTS_USE_TRIG == 0U)
+            DDL_DelayMS(1000U);
+            OTS_Start();
+#endif
         }
 #else
-        OTS_Polling(&m_f32Temperature, TIMEOUT_MS);
-        DBG("\nTemperature: %.2f", m_f32Temperature);
+        OTS_Polling(&m_f32Temperature, TIMEOUT_VAL);
+        DBG("Temperature: %.2f\n", m_f32Temperature);
         m_f32Temperature = 0.0f;
-        DDL_Delay1ms(1000U);
+        DDL_DelayMS(1000U);
 #endif
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, LVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    // EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, LVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    // EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -223,14 +288,16 @@ static void OtsInitConfig(void)
     stc_ots_init_t stcInit;
 
     OTS_StructInit(&stcInit);
-    stcInit.u16ClkSel = APP_OTS_CLK;
-#if (APP_OTS_CLK == OTS_CLK_XTAL)
-    stcInit.f32ParaK  = OTS_XTAL_K;
-    stcInit.f32ParaM  = OTS_XTAL_M;
-#else
-    stcInit.f32ParaK  = OTS_HRC_K;
-    stcInit.f32ParaM  = OTS_HRC_M;
-#endif
+    stcInit.u16ClkSrc = APP_OTS_CLK;
+#if (APP_OTS_USE_DEFAULT_PARA == 0U)
+    #if (APP_OTS_CLK == OTS_CLK_XTAL)
+        stcInit.f32SlopeK  = OTS_XTAL_K;
+        stcInit.f32OffsetM = OTS_XTAL_M;
+    #else
+        stcInit.f32SlopeK  = OTS_HRC_K;
+        stcInit.f32OffsetM = OTS_HRC_M;
+    #endif /* #if (APP_OTS_CLK == OTS_CLK_XTAL) */
+#endif /* #if (APP_OTS_USE_DEFAULT_PARA == 0U) */
 
     /* 1. Enable OTS peripheral clock. */
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_OTS, Enable);
@@ -315,7 +382,7 @@ static void OtsTrigConfig(void)
 {
     /*
      * If a peripheral is used to generate the event which is used as a start trigger condition of OTS, \
-     *     call the API of the peripheral to configure the peripheral.
+     *   call the API of the peripheral to configure the peripheral.
      * The following operations are only used in this example.
      */
 
@@ -325,13 +392,13 @@ static void OtsTrigConfig(void)
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMR2_1, Enable);
     TMR2_StructInit(&stcInit);
     stcInit.u32ClkSrc = TMR2_CLK_SYNC_PCLK1;
-    stcInit.u32ClkDiv = TMR2_CLK_DIV_256;
+    stcInit.u32ClkDiv = TMR2_CLK_DIV256;
     stcInit.u32CmpVal = 31250UL;
     TMR2_Init(M4_TMR2_1, TMR2_CH_A, &stcInit);
 
     /* Specifies event 'EVT_TMR2_1_CMPA' as the trigger source event of OTS. */
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
-    OTS_SetTrigEvent(EVT_TMR2_1_CMPA);
+    OTS_SetTriggerSrc(EVT_TMR2_1_CMPA);
 }
 
 #endif /* #if (APP_OTS_USE_TRIG > 0U) */

@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-14       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -106,6 +106,58 @@ static uint16_t u16AdcSaVal;
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    // GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    // PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
  * @brief  ADC configuration, including clock configuration, initial configuration
  *         and channel configuration.
  * @param  None
@@ -137,6 +189,8 @@ static void AdcConfig(void)
  */
 int32_t main(void)
 {
+    /* Peripheral registers write unprotected */
+    Peripheral_WE();
     /* Configure clock */
     BSP_CLK_Init();
     /* Reset VBAT area */
@@ -155,7 +209,7 @@ int32_t main(void)
     PWC_AdcInternVolSel(PWC_AD_INTERN_REF);
     PWC_AdcBufCmd(Enable);
     /* Delay 50us is needed. */
-    DDL_Delay1ms(1U);
+    DDL_DelayMS(1U);
     ADC_PollingSA(APP_ADC_UNIT, &u16AdcSaVal, 1U, APP_TIMEOUT_MS);
     printf("Internal reference voltage: adc value is %d, voltage is %.3f.\n", u16AdcSaVal, APP_CAL_VOL(u16AdcSaVal));
 
@@ -165,7 +219,7 @@ int32_t main(void)
     PWC_VBAT_MonitorCmd(Enable);
     PWC_AdcBufCmd(Enable);
     /* Delay 50us is needed. */
-    DDL_Delay1ms(1U);
+    DDL_DelayMS(1U);
     ADC_PollingSA(APP_ADC_UNIT, &u16AdcSaVal, 1U, APP_TIMEOUT_MS);
     printf("VBAT: adc value is %d, voltage is %.3f.\n", u16AdcSaVal * 2U, APP_CAL_VOL(u16AdcSaVal) * 2.0f);
 
@@ -174,7 +228,9 @@ int32_t main(void)
     PWC_VBAT_MonitorVolSel(PWC_VBAT_REF_VOL_2P0V);
     PWC_VBAT_MonitorCmd(Enable);
     /* Delay 50us is needed. */
-    DDL_Delay1ms(1U);
+    DDL_DelayMS(1U);
+    /* Peripheral registers write protected */
+    Peripheral_WP();
 
     while (1U)
     {
@@ -191,7 +247,7 @@ int32_t main(void)
             BSP_LED_On(LED_BLUE);
             BSP_LED_Off(LED_RED);
         }
-        DDL_Delay1ms(100U);
+        DDL_DelayMS(100U);
     }
 }
 

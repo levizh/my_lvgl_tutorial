@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  * @file  ev_hc32f4a0_lqfp176_gt9147.h
- * @brief This file contains all the functions prototypes of the 
+ * @brief This file contains all the functions prototypes of the
  *        ev_hc32f4a0_lqfp176_gt9147 driver library.
  @verbatim
    Change Logs:
@@ -117,6 +117,11 @@ void BSP_IO_WritePortPin(uint8_t u8Port, uint8_t u8Pin, uint8_t u8PinState);
 void BSP_IO_ConfigPortPin(uint8_t u8Port, uint8_t u8Pin, uint8_t u8Dir);
 uint8_t BSP_IO_ReadPortPin(uint8_t u8Port, uint8_t u8Pin);
 void BSP_IO_TogglePortPin(uint8_t u8Port, uint8_t u8Pin);
+
+void BSP_TS_Init(void);
+void BSP_TS_ReadReg(uint16_t reg, uint8_t *pRxBuf, uint32_t len);
+void BSP_TS_WriteReg(uint16_t reg, uint8_t *pTxBuf, uint32_t len);
+
 /**
  * @}
  */

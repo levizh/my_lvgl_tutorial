@@ -10,7 +10,7 @@
  *      INCLUDES
  *********************/
 #include "lv_port_indev_template.h"
-#include "hc32_ddl.h"
+#include "hc32_ddl_lcd.h"
 
 /*********************
  *      DEFINES

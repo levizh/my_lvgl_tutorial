@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  timera/timera_pwm/source/main.c
- * @brief Main program TIMERA pwm for the Device Driver Library.
+ * @brief Main program TimerA pwm for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-06       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup TimerA_Pwm
+ * @addtogroup TMRA_Pwm
  * @{
  */
 
@@ -84,20 +84,23 @@
  * Define the configurations of PWM according to the function that selected.
  * In this example:
  *   1. System clock is XTAL(8MHz).
- *   2. Clock source of TIMERA is PCLK(8MHz by default) and divided by 1.
- *   3. Frequency of PWM is 200KHz.
+ *   2. Clock source of TimerA is PCLK(8MHz by default) and divided by 1.
+ *   3. About PWM:
+ *      APP_FUNC_NORMAL_SINGLE_PWM: frequecy 200KHz, high duty 30%
+ *      APP_FUNC_SINGLE_EDGE_ALIGNED_PWM: frequecy 100KH, high duty 30%, 55%
+ *      APP_FUNC_TOW_EDGE_SYMMETRIC_PWM: frequecy 50KHz, high duty 50%, 40%
  *
  * Sawtooth mode:
  *   Calculate the period value according to the frequency:
- *     PeriodVal = (TIMERAClockFrequency(Hz) / PWMFreq) - 1
+ *     PeriodVal = (TimerAClockFrequency(Hz) / PWMFreq) - 1
  *   Calculate the compare value according to the duty ratio:
  *     CmpVal = ((PeriodVal + 1) * Duty) - 1
  *
  * Triangle mode:
  *   Calculate the period value according to the frequency:
- *     PeriodVal = (TIMERAClockFrequency(Hz) / (PWMFreq * 2))
+ *     PeriodVal = (TimerAClockFrequency(Hz) / (PWMFreq * 2))
  *   Calculate the compare value according to the duty ratio:
- *     CmpVal = ((PeriodVal + 1) * Duty)
+ *     CmpVal = (PeriodVal * Duty)
  */
 #if (APP_FUNC == APP_FUNC_NORMAL_SINGLE_PWM)
     #define APP_TMRA_UNIT                   (M4_TMRA_1)
@@ -162,6 +165,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
 static void TmrAConfig(void);
 
@@ -180,13 +186,16 @@ static void TmrAConfig(void);
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the system clock. */
     SystemClockConfig();
-
-    /* Configures TIMERA. */
+    /* Configures TimerA. */
     TmrAConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
-    /* Starts TIMERA. */
+    /* Starts TimerA. */
     TMRA_Start(APP_TMRA_UNIT);
 
     /***************** Configuration end, application start **************/
@@ -199,6 +208,58 @@ int32_t main(void)
          *   TMRA_PWM_Cmd(APP_TMRA_UNIT, APP_TMRA_PWM_x_CH, Disable);
          */
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    // PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    // EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    // PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    // EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -221,7 +282,7 @@ static void SystemClockConfig(void)
 }
 
 /**
- * @brief  TIMERA configuration.
+ * @brief  TimerA configuration.
  * @param  None
  * @retval None
  */
@@ -230,7 +291,7 @@ static void TmrAConfig(void)
     stc_tmra_init_t stcInit;
     stc_tmra_pwm_cfg_t stcCfg;
 
-    /* 1. Enable TIMERA peripheral clock. */
+    /* 1. Enable TimerA peripheral clock. */
     PWC_Fcg2PeriphClockCmd(APP_TMRA_PERIP_CLK, Enable);
 
     /* 2. Set a default initialization value for stcInit. */
@@ -265,9 +326,9 @@ static void TmrAConfig(void)
 
 #else
     TMRA_PWM_StructInit(&stcCfg);
-    stcCfg.u32StartPolarity = TMRA_PWM_START_HI;
-    stcCfg.u32StopPolarity  = TMRA_PWM_STOP_HI;
-    stcCfg.u32PMPolarity    = TMRA_PWM_PM_KEEP;
+    stcCfg.u32StartPolarity  = TMRA_PWM_START_HIGH;
+    stcCfg.u32StopPolarity   = TMRA_PWM_STOP_HIGH;
+    stcCfg.u32PeriodPolarity = TMRA_PWM_PERIOD_KEEP;
     TMRA_SetCmpVal(APP_TMRA_UNIT, APP_TMRA_PWM_A_CH, APP_TMRA_PWM_A_CMP_VAL);
     GPIO_SetFunc(APP_TMRA_PWM_A_PORT, APP_TMRA_PWM_A_PIN, APP_TMRA_PWM_A_PIN_FUNC, PIN_SUBFUNC_DISABLE);
     TMRA_PWM_Config(APP_TMRA_UNIT, APP_TMRA_PWM_A_CH, &stcCfg);

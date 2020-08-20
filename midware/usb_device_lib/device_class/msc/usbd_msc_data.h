@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-05-15       Zhangxl         First version
+   2020-06-12      Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -56,7 +56,7 @@
  ** A detailed description is available at
  ** @link header file for the usbd_msc_data.c @endlink
  **
- **   - 2019-05-15  1.0  Zhangxl First version for USB MSC device demo.
+ **   - 2020-06-12  1.0  Zhangxl First version for USB MSC device demo.
  **
  ******************************************************************************/
 #ifndef __USBD_MSC_DATA_H__

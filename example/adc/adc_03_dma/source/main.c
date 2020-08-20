@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-10       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -121,7 +121,7 @@
 
 /*
  * Definitions of DMA.
- * 'APP_DMA_BLOCK_SIZE': 1~1024, inclusive. For ADC1 and ADC2: 1~16, for ADC3 1~20.
+ * 'APP_DMA_BLOCK_SIZE': 1~1024, inclusive. 1~16 for ADC1 and ADC2; 1~20 for ADC3.
  * 'APP_DMA_TRANS_COUNT': 0~65535, inclusive. 0: always transmit.
  */
 #define APP_DMA_UNIT                        (M4_DMA1)
@@ -133,11 +133,10 @@
 #define APP_DMA_TRIG_SRC                    (EVT_ADC1_EOCA)
 #define APP_DMA_SRC_ADDR                    (&M4_ADC1->DR2)
 
-#define APP_DMA_IRQ_CB                      DMA_1_Btc0_IrqHandler
 #define APP_DMA_IRQ_SRC                     (INT_DMA1_BTC0)
 #define APP_DMA_IRQn                        (Int010_IRQn)
 #define APP_DMA_INT_PRIO                    (DDL_IRQ_PRIORITY_03)
-#define APP_DMA_TRANS_CPLT_FLAG             (DMA_BTC_INT0)
+#define APP_DMA_TRANS_CPLT_FLAG             (DMA_BTC_INT_CH0)
 
 /* Debug printing definition. */
 #if (DDL_PRINT_ENABLE == DDL_ON)
@@ -153,6 +152,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void AdcConfig(void);
 static void AdcClockConfig(void);
 static void AdcInitConfig(void);
@@ -160,6 +162,8 @@ static void AdcChannelConfig(void);
 static void AdcDmaConfig(void);
 static void AdcDmaIrqConfig(void);
 static void AdcTrigSrcConfig(void);
+
+static void DMA_Btc0_IrqCallback(void);
 
 static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32Channel);
 static void AdcSetPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint8_t u8PinNum);
@@ -183,13 +187,16 @@ int32_t main(void)
 {
     /* The default system clock is MRC(8MHz). */
 
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures ADC. */
     AdcConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
     /***************** Configuration end, application start **************/
 
@@ -205,6 +212,58 @@ int32_t main(void)
             m_u32AdcValUpdated &= (uint32_t)(~ADC_SEQ_FLAG_EOCA);
         }
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    // EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    // EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -320,9 +379,9 @@ static void AdcDmaConfig(void)
     stc_dma_rpt_init_t stcDmaRptInit;
 
     /* Enable DMA peripheral clock and AOS function. */
-    PWC_Fcg0PeriphClockCmd((APP_DMA_PERIP_CLK | PWC_FCG0_PTDIS), Enable);
+    PWC_Fcg0PeriphClockCmd((APP_DMA_PERIP_CLK | PWC_FCG0_AOS), Enable);
 
-    DMA_SetTrigSrc(APP_DMA_UNIT, APP_DMA_CH, APP_DMA_TRIG_SRC);
+    DMA_SetTriggerSrc(APP_DMA_UNIT, APP_DMA_CH, APP_DMA_TRIG_SRC);
 
     DMA_StructInit(&stcDmaInit);
     stcDmaInit.u32IntEn     = DMA_INT_ENABLE;
@@ -359,7 +418,7 @@ static void AdcDmaIrqConfig(void)
 
     stcIrqSignConfig.enIntSrc    = APP_DMA_IRQ_SRC;
     stcIrqSignConfig.enIRQn      = APP_DMA_IRQn;
-    stcIrqSignConfig.pfnCallback = &APP_DMA_IRQ_CB;
+    stcIrqSignConfig.pfnCallback = &DMA_Btc0_IrqCallback;
 
     INTC_IrqSignIn(&stcIrqSignConfig);
     DMA_ClearTransIntStatus(APP_DMA_UNIT, APP_DMA_TRANS_CPLT_FLAG);
@@ -375,7 +434,7 @@ static void AdcDmaIrqConfig(void)
  * @param  None
  * @retval None
  */
-void APP_DMA_IRQ_CB(void)
+static void DMA_Btc0_IrqCallback(void)
 {
     DMA_ClearTransIntStatus(APP_DMA_UNIT, APP_DMA_TRANS_CPLT_FLAG);
     m_u32AdcValUpdated |= ADC_SEQ_FLAG_EOCA;
@@ -395,15 +454,15 @@ static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32C
 {
     uint8_t u8PinNum;
 
-    u8PinNum = 0u;
-    while (u32Channel != 0u)
+    u8PinNum = 0U;
+    while (u32Channel != 0U)
     {
-        if (u32Channel & 0x1u)
+        if (u32Channel & 0x1U)
         {
             AdcSetPinAnalogMode(ADCx, u8PinNum);
         }
 
-        u32Channel >>= 1u;
+        u32Channel >>= 1U;
         u8PinNum++;
     }
 }

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -438,7 +438,7 @@ uint8_t  USBD_HID_Setup (void  *pdev,
                 case USB_REQ_GET_INTERFACE :
                     USBD_CtlSendData (pdev,
                                         (uint8_t *)&USBD_HID_AltSet,
-                                        1u);
+                                        1U);
                     break;
                 case USB_REQ_SET_INTERFACE :
                     USBD_HID_AltSet = (uint8_t)(req->wValue);

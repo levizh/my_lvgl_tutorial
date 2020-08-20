@@ -188,7 +188,7 @@ void LCD_Init(void)
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_SMC, Enable);
 
     /* Enable SMC. */
-    EXMC_SMC_Enable();
+    EXMC_SMC_Cmd(Enable);
 
     EXMC_SMC_ExitLowPower();
     while (EXMC_SMC_READY != EXMC_SMC_GetStatus())
@@ -199,7 +199,7 @@ void LCD_Init(void)
     /*0x6000_0000 ~ 0x60FFFFFF, 16Mb area */
     stcSmcInit.stcChipCfg.u32AddressMatch = 0x60;
     stcSmcInit.stcChipCfg.u32AddressMask  = 0xFF;
-    stcSmcInit.stcChipCfg.u32SmcMemWidth  = EXMC_SMC_MEM_WIDTH_16;
+    stcSmcInit.stcChipCfg.u32SmcMemWidth  = EXMC_SMC_MEMORY_WIDTH_16BIT;
     stcSmcInit.stcChipCfg.u32BAA  = EXMC_SMC_BAA_PORT_DISABLE;
     stcSmcInit.stcChipCfg.u32ADV  = EXMC_SMC_ADV_PORT_DISABLE;
     stcSmcInit.stcChipCfg.u32BLS  = EXMC_SMC_BLS_SYNC_CS;
@@ -286,7 +286,7 @@ uint16_t LCD_ReadData(void)
  */
 void LCD_Delay(uint32_t delay)
 {
-    DDL_Delay1ms(delay);
+    DDL_DelayMS(delay);
 }
 
 /**

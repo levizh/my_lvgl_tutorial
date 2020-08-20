@@ -1,11 +1,12 @@
 /**
  *******************************************************************************
- * @file  ev_hc32f4a0_lqfp176.c
+ * @file  ev_hc32f4a0_lqfp176_lcd.c
  * @brief This file provides firmware functions for EV_HC32F4A0_LQFP176 BSP
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
+   2020-07-15       Zhangxl         Use XTAL 8MHz as PLL source
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -82,7 +83,7 @@
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
-uint32_t gu32GlobalKey = 0x00000000UL;
+static uint32_t gu32GlobalKey = 0x00000000UL;
 
 /*******************************************************************************
  * Local function prototypes ('static')
@@ -106,7 +107,7 @@ uint32_t gu32GlobalKey = 0x00000000UL;
   */
 void EIO_Delay(uint32_t u32Delay)
 {
-    DDL_Delay1ms(u32Delay);
+    DDL_DelayMS(u32Delay);
 }
 
 /**
@@ -127,7 +128,7 @@ void EIO_Init(void)
     for (i = 0; i <= 20; i++)
     {
         GPIO_TogglePins(TCA9539_SCL_PORT, TCA9539_SCL_PIN);
-        DDL_Delay1ms(1UL);
+        DDL_DelayMS(1UL);
     }
 
     GPIO_StructInit(&stcGpioInit);
@@ -215,7 +216,7 @@ void EIO_Reset(void)
 //    GPIO_Unlock();
     GPIO_OE(GPIO_PORT_C, GPIO_PIN_13, Enable);
     GPIO_ResetPins(GPIO_PORT_C, GPIO_PIN_13);
-    DDL_Delay1ms(3UL);
+    DDL_DelayMS(3UL);
     GPIO_SetPins(GPIO_PORT_C, GPIO_PIN_13);
 //    GPIO_Lock();
 }
@@ -250,7 +251,7 @@ void BSP_CAM_IO_Init(void)
  *   @arg  EIO_PIN_RESET
  * @retval none
  */
-void BSP_CAM_ResetCmd(uint8_t Cmd)
+void BSP_CAM_RSTCmd(uint8_t Cmd)
 {
     BSP_IO_WritePortPin(CAM_PORT, CAM_RST_PIN, Cmd);
 }
@@ -262,7 +263,7 @@ void BSP_CAM_ResetCmd(uint8_t Cmd)
  *   @arg  EIO_PIN_RESET
  * @retval none
  */
-void BSP_CAM_StandbyCmd(uint8_t Cmd)
+void BSP_CAM_STBCmd(uint8_t Cmd)
 {
     BSP_IO_WritePortPin(CAM_PORT, CAM_STB_PIN, Cmd);
 }
@@ -290,13 +291,13 @@ void BSP_LCD_IO_Init(void)
                 |---------------------------------
     INT     ____|
     */
-    DDL_Delay1ms(100UL);
+    DDL_DelayMS(100UL);
 //    BSP_IO_WritePortPin(LCD_CTINT_PORT, LCD_CTINT_PIN, EIO_PIN_SET);      /* 0x28/0x29 */
     BSP_IO_WritePortPin(LCD_CTINT_PORT, LCD_CTINT_PIN, EIO_PIN_RESET);    /* 0xBA/0xBB */
     BSP_IO_ConfigPortPin(LCD_CTINT_PORT, LCD_CTINT_PIN, EIO_DIR_OUT);
-    DDL_Delay1ms(100UL);
+    DDL_DelayMS(100UL);
     BSP_IO_WritePortPin(LCD_CTRST_PORT, LCD_CTRST_PIN, EIO_PIN_SET);
-    DDL_Delay1ms(100UL);
+    DDL_DelayMS(100UL);
     BSP_IO_ConfigPortPin(LCD_CTINT_PORT, LCD_CTINT_PIN, EIO_DIR_IN);
 }
 
@@ -307,7 +308,7 @@ void BSP_LCD_IO_Init(void)
  *   @arg  EIO_PIN_RESET
  * @retval none
  */
-void BSP_LCD_ResetCmd(uint8_t Cmd)
+void BSP_LCD_RSTCmd(uint8_t Cmd)
 {
     BSP_IO_WritePortPin(LCD_RST_PORT, LCD_RST_PIN, Cmd);
 }
@@ -339,7 +340,7 @@ void BSP_LCD_BKLCmd(uint8_t Cmd)
  *   @arg  EIO_PIN_RESET
  * @retval none
  */
-void BSP_CT_ResetCmd(uint8_t Cmd)
+void BSP_CT_RSTCmd(uint8_t Cmd)
 {
     BSP_IO_WritePortPin(LCD_CTRST_PORT, LCD_CTRST_PIN, Cmd);
 }
@@ -694,22 +695,22 @@ void BSP_CLK_Init(void)
                 CLK_HCLK_DIV1));
 
     CLK_PLLHStrucInit(&stcPLLHInit);
-    /* VCO = 16/2*120 = 960MHz*/
+    /* VCO = (8/1)*120 = 960MHz*/
     stcPLLHInit.u8PLLState = CLK_PLLH_ON;
     stcPLLHInit.PLLCFGR = 0UL;
-    stcPLLHInit.PLLCFGR_f.PLLM = 2UL - 1UL;
+    stcPLLHInit.PLLCFGR_f.PLLM = 1UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLN = 120UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLP = 4UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLQ = 4UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLR = 4UL - 1UL;
-    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_HRC;
+    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL;
     CLK_PLLHInit(&stcPLLHInit);
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
 
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
     EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
     EFM_Lock();

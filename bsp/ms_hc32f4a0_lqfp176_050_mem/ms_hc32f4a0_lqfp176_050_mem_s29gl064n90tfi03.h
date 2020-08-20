@@ -2,11 +2,11 @@
  *******************************************************************************
  * @file  ms_hc32f4a0_lqfp176_050_mem_s29gl064n90tfi03.h
  * @brief This file contains all the functions prototypes for s29gl064n90tfi03 
- *        of the board MS-HC32F4A0-LQF176-050-MEM.
+ *        of the board MS_HC32F4A0_LQF176_050_MEM.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-16       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -70,8 +70,12 @@ extern "C"
  */
 
 /** @addtogroup MS_HC32F4A0_LQFP176_050_MEM
-  * @{
-  */
+ * @{
+ */
+
+/** @addtogroup MS_HC32F4A0_LQFP176_050_MEM_S29GL064N90TFI03
+ * @{
+ */
 
 #if ((BSP_ON == BSP_S29GL064N90TFI03_ENABLE) && \
      (BSP_MS_HC32F4A0_LQFP176_050_MEM == BSP_EV_HC32F4A0))
@@ -110,6 +114,10 @@ extern "C"
 
 
 #endif /* BSP_MS_HC32F4A0_LQFP176/BSP_S29GL064N90TFI03_ENABLE */
+
+/**
+ * @}
+ */
 
 /**
  * @}

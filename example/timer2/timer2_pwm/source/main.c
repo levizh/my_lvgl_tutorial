@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  timer2/timer2_pwm/source/main.c
- * @brief Main program TIMER2 pwm for the Device Driver Library.
+ * @brief Main program Timer2 pwm for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-16       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup Timer2_Pwm
+ * @addtogroup TMR2_Pwm
  * @{
  */
 
@@ -75,38 +75,37 @@
 
 /*
  * Functions of this example.
- * Use one channel of TIMER2 to output one PWM.
+ * Use one channel of Timer2 to output one PWM.
  */
 
 /*
- * TIMER2 unit and channel definitions for this example.
+ * Timer2 unit and channel definitions for this example.
  * 'APP_TMR2_UNIT' can be defined as M4_TMR2_<t>(t=1 ~ 4).
  * 'APP_TMR2_CH' can be defined as TMR2_CH_x(x=A, B).
  * 
  * NOTE!!! The following definitions are depend on the definitions of 'APP_TMR2_UNIT' and 'APP_TMR2_CH'.
- *
- *         APP_TMR2_PWM_PORT
- *         APP_TMR2_PWM_PIN
- *         APP_TMR2_PWM_PIN_FUNC
+ *   APP_TMR2_PWM_PORT
+ *   APP_TMR2_PWM_PIN
+ *   APP_TMR2_PWM_PIN_FUNC
  */
 #define APP_TMR2_UNIT                       (M4_TMR2_1)
 #define APP_TMR2_CH                         (TMR2_CH_A)
 #define APP_TMR2_PERIP_CLK                  (PWC_FCG2_TMR2_1)
 
-/* TIMER2 PWM pin definitions. */
+/* Timer2 PWM pin definitions. */
 #define APP_TMR2_PWM_PORT                   (GPIO_PORT_A)
 #define APP_TMR2_PWM_PIN                    (GPIO_PIN_02)
 #define APP_TMR2_PWM_PIN_FUNC               (GPIO_FUNC_16_TIM21_PWMA)
 
-/* TIMER2 clock source definitions. */
+/* Timer2 clock source definitions. */
 #define APP_TMR2_CLK_SRC                    (TMR2_CLK_SYNC_PCLK1)
-#define APP_TMR2_CLK_DIV                    (TMR2_CLK_DIV_4)
+#define APP_TMR2_CLK_DIV                    (TMR2_CLK_DIV4)
 
 /*
  * Calculate the compare value register according to clock source, the prescaler of the clock source and PWM frequency.
- * CmpVal = (TIMER2ClockFrequency(Hz) / PwmFrequency(Hz) / 2) - 1.
+ * CmpVal = (Timer2ClockFrequency(Hz) / PwmFrequency(Hz) / 2) - 1.
  * In this example:
- *   TIMER2ClockFrequency = MRC(8MHz) / Timer2ClockPrescaler(4) = 2000000Hz;
+ *   Timer2ClockFrequency = MRC(8MHz) / Timer2ClockPrescaler(4) = 2000000Hz;
  *   PwmFrequency = 1000000Hz;
  *   CmpVal = (2000000 / 1000000 / 2) - 1 = 0.
  *
@@ -122,6 +121,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
 static void Tmr2Config(void);
 
@@ -140,13 +142,16 @@ static void Tmr2Config(void);
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the XTAL(8MHz) as the system clock. */
     SystemClockConfig();
-
-    /* Configures TIMER2. */
+    /* Configures Timer2. */
     Tmr2Config();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
-    /* Starts TIMER2 to start PWM output. */
+    /* Starts Timer2 to start PWM output. */
     TMR2_Start(APP_TMR2_UNIT, APP_TMR2_CH);
 
     /***************** Configuration end, application start **************/
@@ -155,6 +160,58 @@ int32_t main(void)
     {
         /* Use TMR2_Stop(APP_TMR2_UNIT, APP_TMR2_CH) to stop the PWM output. */
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    // PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    // EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    // PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    // EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -177,7 +234,7 @@ static void SystemClockConfig(void)
 }
 
 /**
- * @brief  TIMER2 configuration.
+ * @brief  Timer2 configuration.
  * @param  None
  * @retval None
  */
@@ -186,7 +243,7 @@ static void Tmr2Config(void)
     stc_tmr2_init_t stcInit;
     stc_tmr2_pwm_cfg_t stcCfg;
 
-    /* 1. Enable TIMER2 peripheral clock. */
+    /* 1. Enable Timer2 peripheral clock. */
     PWC_Fcg2PeriphClockCmd(APP_TMR2_PERIP_CLK, Enable);
 
     /* 2. Set a default initialization value for stcInit. */

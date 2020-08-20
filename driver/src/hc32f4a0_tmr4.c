@@ -1,12 +1,15 @@
 /**
  *******************************************************************************
  * @file  hc32f4a0_tmr4.c
- * @brief This file provides firmware functions to manage the TIMER4
- *        (TIMER4).
+ * @brief This file provides firmware functions to manage the TMR4(Timer4)
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-17       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-15       Hongjh          Modify error parameter assert condition for 
+                                    the function TMR4_PWM_SetPclkDiv.
+   2020-07-25       Hongjh          Modify TMR4_OCO_SetLowChCompareMode function 
+                                    comment:from TMR4_OCO_UH/VH/WH to TMR4_OCO_UL/VL/WL
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -63,8 +66,8 @@
  */
 
 /**
- * @defgroup DDL_TIMER4 TIMER4
- * @brief TIMER4 Driver Library
+ * @defgroup DDL_TMR4 TMR4
+ * @brief TMR4 Driver Library
  * @{
  */
 
@@ -78,12 +81,12 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup TIMER4_Local_Macros TIMER4 Local Macros
+ * @defgroup TMR4_Local_Macros TMR4 Local Macros
  * @{
  */
 
 /**
- * @defgroup TIMER4_Check_Parameters_Validity TIMER4 Check Parameters Validity
+ * @defgroup TMR4_Check_Parameters_Validity TMR4 Check Parameters Validity
  * @{
  */
 
@@ -92,18 +95,18 @@
     (M4_TMR4_2 == (x))                          ||                             \
     (M4_TMR4_3 == (x)))
 
-#define IS_VALID_TMR4_CNT_CLK_DIV(x)                                           \
-(   (TMR4_CNT_CLK_DIV1 == (x))                  ||                             \
-    (TMR4_CNT_CLK_DIV2 == (x))                  ||                             \
-    (TMR4_CNT_CLK_DIV4 == (x))                  ||                             \
-    (TMR4_CNT_CLK_DIV8 == (x))                  ||                             \
-    (TMR4_CNT_CLK_DIV16 == (x))                 ||                             \
-    (TMR4_CNT_CLK_DIV32 == (x))                 ||                             \
-    (TMR4_CNT_CLK_DIV64 == (x))                 ||                             \
-    (TMR4_CNT_CLK_DIV128 == (x))                ||                             \
-    (TMR4_CNT_CLK_DIV256 == (x))                ||                             \
-    (TMR4_CNT_CLK_DIV512 == (x))                ||                             \
-    (TMR4_CNT_CLK_DIV1024 == (x)))
+#define IS_VALID_TMR4_CNT_PCLK_DIV(x)                                           \
+(   (TMR4_CNT_PCLK_DIV1 == (x))                  ||                             \
+    (TMR4_CNT_PCLK_DIV2 == (x))                  ||                             \
+    (TMR4_CNT_PCLK_DIV4 == (x))                  ||                             \
+    (TMR4_CNT_PCLK_DIV8 == (x))                  ||                             \
+    (TMR4_CNT_PCLK_DIV16 == (x))                 ||                             \
+    (TMR4_CNT_PCLK_DIV32 == (x))                 ||                             \
+    (TMR4_CNT_PCLK_DIV64 == (x))                 ||                             \
+    (TMR4_CNT_PCLK_DIV128 == (x))                ||                             \
+    (TMR4_CNT_PCLK_DIV256 == (x))                ||                             \
+    (TMR4_CNT_PCLK_DIV512 == (x))                ||                             \
+    (TMR4_CNT_PCLK_DIV1024 == (x)))
 
 #define IS_VALID_TMR4_CNT_MODE(x)                                              \
 (   (TMR4_CNT_MODE_SAWTOOTH_WAVE == (x))        ||                             \
@@ -136,12 +139,12 @@
     (TMR4_CNT_INT_MASK_15 == (x)))
 
 #define IS_VALID_TMR4_CNT_INT(x)                                               \
-(   (x)                                         &&                             \
-    (!((x) & ((uint16_t)(~(TMR4_CNT_INT_PEAK | TMR4_CNT_INT_ZERO))))))
+(   (0UL != (x))                                 &&                            \
+    (TMR4_CNT_INT_MASK == ((x) | TMR4_CNT_INT_MASK)))
 
 #define IS_VALID_TMR4_CNT_FLAG(x)                                              \
-(   (x)                                         &&                             \
-    (!((x) & ((uint16_t)(~(TMR4_CNT_FLAG_PEAK | TMR4_CNT_FLAG_ZERO))))))
+(   (0UL != (x))                                 &&                            \
+    (TMR4_CNT_FLAG_MASK == ((x) | TMR4_CNT_FLAG_MASK)))
 
 #define IS_VALID_TMR4_OCO_CH(x)                                                \
 (   (TMR4_OCO_UH == (x))                        ||                             \
@@ -166,7 +169,7 @@
     (TMR4_OCO_ENABLE == (x)))
 
 #define IS_VALID_TMR4_OCO_EXTEND_MATCH(x)                                      \
-(   (TMR4_OCO_EXTEND_MATCH_DISABLE == (x))      ||                         \
+(   (TMR4_OCO_EXTEND_MATCH_DISABLE == (x))      ||                             \
     (TMR4_OCO_EXTEND_MATCH_ENABLE == (x)))
 
 #define IS_VALID_TMR4_OCO_OCCR_LINK_TRANSFER(x)                                \
@@ -192,10 +195,6 @@
 #define IS_VALID_TMR4_OCO_PORT_INVALID_OP(x)                                   \
 (   (TMR4_OCO_INVAILD_OP_LOW == (x))            ||                             \
     (TMR4_OCO_INVAILD_OP_HIGH == (x)))
-
-#define IS_VALID_TMR4_OCO_OCF_STATE(x)                                         \
-(   (TMR4_OCO_OCF_HOLD == (x))                  ||                             \
-    (TMR4_OCO_OCF_SET == (x)))
 
 #define IS_VALID_TMR4_OCO_OCF_STATE(x)                                         \
 (   (TMR4_OCO_OCF_HOLD == (x))                  ||                             \
@@ -231,15 +230,15 @@
     (TMR4_PWM_OP_OXH_HOLD_OXL_INVERT == (x))    ||                             \
     (TMR4_PWM_OP_OXH_INVERT_OXL_INVERT == (x)))
 
-#define IS_VALID_TMR4_PWM_CLK_DIV(x)                                           \
-(   (TMR4_PWM_CLK_DIV1 == (x))                  ||                             \
-    (TMR4_PWM_CLK_DIV2 == (x))                  ||                             \
-    (TMR4_PWM_CLK_DIV4 == (x))                  ||                             \
-    (TMR4_PWM_CLK_DIV8 == (x))                  ||                             \
-    (TMR4_PWM_CLK_DIV16 == (x))                 ||                             \
-    (TMR4_PWM_CLK_DIV32 == (x))                 ||                             \
-    (TMR4_PWM_CLK_DIV64 == (x))                 ||                             \
-    (TMR4_PWM_CLK_DIV128 == (x)))
+#define IS_VALID_TMR4_PWM_PCLK_DIV(x)                                          \
+(   (TMR4_PWM_PCLK_DIV1 == (x))                 ||                             \
+    (TMR4_PWM_PCLK_DIV2 == (x))                 ||                             \
+    (TMR4_PWM_PCLK_DIV4 == (x))                 ||                             \
+    (TMR4_PWM_PCLK_DIV8 == (x))                 ||                             \
+    (TMR4_PWM_PCLK_DIV16 == (x))                ||                             \
+    (TMR4_PWM_PCLK_DIV32 == (x))                ||                             \
+    (TMR4_PWM_PCLK_DIV64 == (x))                ||                             \
+    (TMR4_PWM_PCLK_DIV128 == (x)))
 
 #define IS_VALID_TMR4_PWM_EMB_PORT_OUTPUT_STATE(x)                             \
 (   (TMR4_PWM_EMB_PORT_OUTPUT_NORMAL == (x))    ||                             \
@@ -345,7 +344,7 @@
  */
 
 /**
- * @defgroup Get TIMER4 register address
+ * @defgroup TMR4_Register_Address Get TMR4 register address
  * @{
  */
 #define REG_ADDR(__REG__)                   ((uint32_t)(&(__REG__)))
@@ -354,7 +353,7 @@
  */
 
 /**
- * @defgroup Get register value shift bit
+ * @defgroup TMR4_Register_Shift_Bits Get register value shift bit
  * @{
  */
 #define SHIFT_1BIT(__CH__)                  ((uint16_t)((__CH__) % 2UL))
@@ -364,8 +363,8 @@
  */
 
 /**
- * @defgroup TIMER4_OCO_Register TIMER4 OCO Register
- * @brief Get the specified OCO register address of the specified Timer4 unit
+ * @defgroup TMR4_OCO_Register TMR4 OCO Register
+ * @brief Get the specified OCO register address of the specified TMR4 unit
  * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
  * @{
  */
@@ -379,7 +378,7 @@
 
 /**
  * @defgroup TMR4_OCSR_Bit_Mask TMR4_OCSR Bit Mask
- * @brief Get the specified TMR4_OCSR register bis value of the specified Timer4 Oco channel
+ * @brief Get the specified TMR4_OCSR register bis value of the specified TMR4 OCO channel
  * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
  * @{
  */
@@ -395,7 +394,7 @@
 
 /**
  * @defgroup TMR4_OCSR_Bit TMR4_OCSR Bit
- * @brief Get the specified TMR4_OCSR register bis value of the specified Timer4 Oco channel
+ * @brief Get the specified TMR4_OCSR register bis value of the specified TMR4 OCO channel
  * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
  * @{
  */
@@ -409,7 +408,7 @@
 
 /**
  * @defgroup TMR4_OCER_Bit_Mask TMR4_OCER Bit Mask
- * @brief Get the specified TMR4_OCER register bis value of the specified Timer4 Oco channel
+ * @brief Get the specified TMR4_OCER register bis value of the specified TMR4 OCO channel
  * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
  * @{
  */
@@ -427,22 +426,22 @@
 
 /**
  * @defgroup TMR4_OCER_Bit TMR4_OCER Bit
- * @brief Get the specified TMR4_OCER register bis value of the specified Timer4 Oco channel
+ * @brief Get the specified TMR4_OCER register bis value of the specified TMR4 OCO channel
  * @note __CH__ value is TMR4_OCO_xy (x=U/V/W, y=H/L)
  * @{
  */
-#define TMR4_OCER_CxBUFEN(__CH__,__CxBUFEN__)   ((uint16_t)(__CxBUFEN__ << SHIFT_2BIT(__CH__)))
-#define TMR4_OCER_MxBUFEN(__CH__,__MxBUFEN__)   ((uint16_t)(__MxBUFEN__ << SHIFT_2BIT(__CH__)))
-#define TMR4_OCER_LMCx(__CH__,__LMCx__)         ((uint16_t)(__LMCx__ << SHIFT_1BIT(__CH__)))
-#define TMR4_OCER_LMMx(__CH__,__LMMx__)         ((uint16_t)(__LMMx__ << SHIFT_1BIT(__CH__)))
-#define TMR4_OCER_MCECx(__CH__,__MCECx__)       ((uint16_t)(__MCECx__ << SHIFT_1BIT(__CH__)))
+#define TMR4_OCER_CxBUFEN(__CH__,__CxBUFEN__)   ((uint16_t)((__CxBUFEN__) << SHIFT_2BIT(__CH__)))
+#define TMR4_OCER_MxBUFEN(__CH__,__MxBUFEN__)   ((uint16_t)((__MxBUFEN__) << SHIFT_2BIT(__CH__)))
+#define TMR4_OCER_LMCx(__CH__,__LMCx__)         ((uint16_t)((__LMCx__) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCER_LMMx(__CH__,__LMMx__)         ((uint16_t)((__LMMx__) << SHIFT_1BIT(__CH__)))
+#define TMR4_OCER_MCECx(__CH__,__MCECx__)       ((uint16_t)((__MCECx__) << SHIFT_1BIT(__CH__)))
 /**
  * @}
  */
 
 /**
- * @defgroup TIMER4_PWM_Register TIMER4 PWM Register
- * @brief Get the specified PWM register address of the specified Timer4 unit
+ * @defgroup TMR4_PWM_Register TMR4 PWM Register
+ * @brief Get the specified PWM register address of the specified TMR4 unit
  * @note __CH__ value is TMR4_PWM_x (x=U/V/W)
  * @{
  */
@@ -457,22 +456,22 @@
 
 /**
  * @defgroup TMR4_RCSR_Bit_Mask TMR4_RCSR Bit Mask
- * @brief Get the specified TMR4_RCSR register bis value of the specified Timer4 PWM channel
+ * @brief Get the specified TMR4_RCSR register bis value of the specified TMR4 PWM channel
  * @note __CH__ value is TMR4_PWM_x (x=U/V/W)
  * @{
  */
 #define TMR4_RCSR_RTIDx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_RCSR_RTIDU) << (__CH__)))
-#define TMR4_RCSR_RTIFx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_RCSR_RTIFU) << (((__CH__) << 2UL))))
-#define TMR4_RCSR_RTICx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_RCSR_RTICU) << (((__CH__) << 2UL))))
-#define TMR4_RCSR_RTEx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_RCSR_RTEU) << (((__CH__) << 2UL))))
-#define TMR4_RCSR_RTSx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_RCSR_RTSU) << (((__CH__) << 2UL))))
+#define TMR4_RCSR_RTIFx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_RCSR_RTIFU) << ((__CH__) << 2UL)))
+#define TMR4_RCSR_RTICx_MASK(__CH__)        ((uint16_t)(((uint16_t)TMR4_RCSR_RTICU) << ((__CH__) << 2UL)))
+#define TMR4_RCSR_RTEx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_RCSR_RTEU) << ((__CH__) << 2UL)))
+#define TMR4_RCSR_RTSx_MASK(__CH__)         ((uint16_t)(((uint16_t)TMR4_RCSR_RTSU) << ((__CH__) << 2UL)))
 /**
  * @}
  */
 
 /**
  * @defgroup TMR4_PSCR_Bit_Mask TMR4_PSCR Bit Mask
- * @brief Get the specified TMR4_PSCR register bis value of the specified Timer4 PWM port channel
+ * @brief Get the specified TMR4_PSCR register bis value of the specified TMR4 PWM port channel
  * @note __PORT__ value is TMR4_PWM_PORT_Oxy (x=U/V/W, y=H/L)
  * @{
  */
@@ -484,25 +483,25 @@
 
 /**
  * @defgroup TMR4_PSCR_Bit TMR4_PSCR Bit
- * @brief Get the specified TMR4_PSCR register bis value of the specified Timer4 PWM port channel
+ * @brief Get the specified TMR4_PSCR register bis value of the specified TMR4 PWM port channel
  * @note __PORT__ value is TMR4_PWM_PORT_Oxy (x=U/V/W, y=H/L)
  * @{
  */
-#define TMR4_PSCR_OExy(__PORT__, __OExy__)  (__OExy__ << (__PORT__))
-#define TMR4_PSCR_OSxy(__PORT__, __OSxy__)  (__OSxy__ << ((__PORT__) * 2UL))
+#define TMR4_PSCR_OExy(__PORT__, __OExy__)  ((__OExy__) << (__PORT__))
+#define TMR4_PSCR_OSxy(__PORT__, __OSxy__)  ((__OSxy__) << ((__PORT__) * 2UL))
 /**
  * @}
  */
 
 /**
- * @defgroup TIMER4_SEVT_Register TIMER4 SEVT Register
- * @brief Get the specified SEVT register address of the specified Timer4 unit
+ * @defgroup TMR4_SEVT_Register TMR4 SEVT Register
+ * @brief Get the specified SEVT register address of the specified TMR4 unit
  * @note __CH__ value is TMR4_SEVT_xy (x=U/V/W, y=H/L)
  * @{
  */
-#define TMR4_SCCRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCCRUH) + (((__CH__)) << 2UL)))
-#define TMR4_SCSRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCSRUH) + (((__CH__)) << 2UL)))
-#define TMR4_SCMRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCMRUH) + (((__CH__)) << 2UL)))
+#define TMR4_SCCRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCCRUH) + ((__CH__) << 2UL)))
+#define TMR4_SCSRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCSRUH) + ((__CH__) << 2UL)))
+#define TMR4_SCMRx(__TMR4x__, __CH__)       ((__IO uint16_t *)(REG_ADDR((__TMR4x__)->SCMRUH) + ((__CH__) << 2UL)))
 /**
  * @}
  */
@@ -528,22 +527,22 @@
  ******************************************************************************/
 
 /**
- * @defgroup TMR4_Global_Functions TIMER4 Global Functions
+ * @defgroup TMR4_Global_Functions TMR4 Global Functions
  * @{
  */
 
 /**
- * @defgroup TMR4_CNT_Global_Functions TIMER4 Counter Global Functions
+ * @defgroup TMR4_CNT_Global_Functions TMR4 Counter Global Functions
  * @{
  */
 
 /**
- * @brief  Initialize Timer4 counter.
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Initialize TMR4 counter.
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
  * @param  [in] pstcInit                Pointer to a @ref stc_tmr4_cnt_init_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize successfully
@@ -562,7 +561,7 @@ en_result_t TMR4_CNT_Init(M4_TMR4_TypeDef *TMR4x,
         DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
         DDL_ASSERT(IS_VALID_TMR4_CNT_BUF_STATE(pstcInit->u16BufState));
         DDL_ASSERT(IS_VALID_TMR4_CNT_MODE(pstcInit->u16CntMode));
-        DDL_ASSERT(IS_VALID_TMR4_CNT_CLK_DIV(pstcInit->u16ClkDiv));
+        DDL_ASSERT(IS_VALID_TMR4_CNT_PCLK_DIV(pstcInit->u16PclkDiv));
         DDL_ASSERT(IS_VALID_TMR4_CNT_CLK_SRC(pstcInit->u16ClkSrc));
         DDL_ASSERT(IS_VALID_TMR4_CNT_INT_MASKTIMES(pstcInit->u16ZeroIntMask));
         DDL_ASSERT(IS_VALID_TMR4_CNT_INT_MASKTIMES(pstcInit->u16PeakIntMask));
@@ -571,9 +570,9 @@ en_result_t TMR4_CNT_Init(M4_TMR4_TypeDef *TMR4x,
         WRITE_REG16(TMR4x->CCSR, 0x0050U);
         WRITE_REG16(TMR4x->CVPR, 0x0000U);
 
-        /* Set count clock div && cnt mode && buffer enable bit && 
+        /* Set count clock div && cnt mode && buffer enable bit &&
            external clock enable bit && interrupt enable bit */
-        u16Val = (pstcInit->u16ClkDiv  | \
+        u16Val = (pstcInit->u16PclkDiv  | \
                   pstcInit->u16ClkSrc  | \
                   pstcInit->u16CntMode | \
                   TMR4_CCSR_STOP       | \
@@ -585,7 +584,7 @@ en_result_t TMR4_CNT_Init(M4_TMR4_TypeDef *TMR4x,
                   ((uint16_t)(pstcInit->u16PeakIntMask << TMR4_CVPR_PIM_POS)));
         WRITE_REG16(TMR4x->CVPR, u16Val);
 
-        /* Set Timer4 cycle */
+        /* Set TMR4 cycle */
         WRITE_REG16(TMR4x->CPSR, pstcInit->u16CycleVal);
         enRet = Ok;
     }
@@ -610,7 +609,7 @@ en_result_t TMR4_CNT_StructInit(stc_tmr4_cnt_init_t *pstcInit)
         pstcInit->u16CycleVal = 0xFFFFU;
         pstcInit->u16CntMode = TMR4_CNT_MODE_SAWTOOTH_WAVE;
         pstcInit->u16ClkSrc = TMR4_CNT_PCLK;
-        pstcInit->u16ClkDiv = TMR4_CNT_CLK_DIV1;
+        pstcInit->u16PclkDiv = TMR4_CNT_PCLK_DIV1;
         pstcInit->u16ZeroIntMask = TMR4_CNT_INT_MASK_0;
         pstcInit->u16PeakIntMask = TMR4_CNT_INT_MASK_0;
         pstcInit->u16BufState = TMR4_CNT_BUFFER_DISABLE;
@@ -621,12 +620,12 @@ en_result_t TMR4_CNT_StructInit(stc_tmr4_cnt_init_t *pstcInit)
 }
 
 /**
- * @brief  De-Initialize Timer4 counter function
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  De-Initialize TMR4 counter function
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
  * @retval None
  */
 void TMR4_CNT_DeInit(M4_TMR4_TypeDef *TMR4x)
@@ -641,17 +640,18 @@ void TMR4_CNT_DeInit(M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief Set Timer4 counter clock source
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief Set TMR4 counter clock source
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16ClkSrc               Timer4 CNT clock source
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16ClkSrc               TMR4 CNT clock source
  *         This parameter can be one of the following values:
  *           @arg TMR4_CNT_PCLK:      Uses the internal clock (PCLK) as counter's count clock
  *           @arg TMR4_CNT_EXTCLK:    Uses an external input clock (EXCK) as counter's count clock
  * @retval None
+ * @note   The PCLK division function is valid when clock source is PCLK
  */
 void TMR4_CNT_SetClock(M4_TMR4_TypeDef *TMR4x, uint16_t u16ClkSrc)
 {
@@ -664,12 +664,12 @@ void TMR4_CNT_SetClock(M4_TMR4_TypeDef *TMR4x, uint16_t u16ClkSrc)
 }
 
 /**
- * @brief Get Timer4 counter clock source
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief Get TMR4 counter clock source
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
  * @retval Returned value can be one of the following values:
  *           @arg TMR4_CNT_PCLK:      Uses the internal clock (PCLK) as counter's count clock
  *           @arg TMR4_CNT_EXTCLK:    Uses an external input clock (EXCK) as counter's count clock
@@ -684,57 +684,59 @@ uint16_t TMR4_CNT_GetClock(const M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief  Set Timer4 counter clock division
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Set TMR4 counter clock division
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16Div                  Timer4 clock division
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16Div                  TMR4 clock division
  *         This parameter can be one of the following values:
- *           @arg TMR4_CNT_CLK_DIV1:    HCLK
- *           @arg TMR4_CNT_CLK_DIV2:    HCLK/2
- *           @arg TMR4_CNT_CLK_DIV4:    HCLK/4
- *           @arg TMR4_CNT_CLK_DIV8:    HCLK/8
- *           @arg TMR4_CNT_CLK_DIV16:   HCLK/16
- *           @arg TMR4_CNT_CLK_DIV32:   HCLK/32
- *           @arg TMR4_CNT_CLK_DIV64:   HCLK/64
- *           @arg TMR4_CNT_CLK_DIV128:  HCLK/128
- *           @arg TMR4_CNT_CLK_DIV256:  HCLK/256
- *           @arg TMR4_CNT_CLK_DIV512:  HCLK/512
- *           @arg TMR4_CNT_CLK_DIV1024: HCLK/1024
+ *           @arg TMR4_CNT_PCLK_DIV1:    PCLK
+ *           @arg TMR4_CNT_PCLK_DIV2:    PCLK/2
+ *           @arg TMR4_CNT_PCLK_DIV4:    PCLK/4
+ *           @arg TMR4_CNT_PCLK_DIV8:    PCLK/8
+ *           @arg TMR4_CNT_PCLK_DIV16:   PCLK/16
+ *           @arg TMR4_CNT_PCLK_DIV32:   PCLK/32
+ *           @arg TMR4_CNT_PCLK_DIV64:   PCLK/64
+ *           @arg TMR4_CNT_PCLK_DIV128:  PCLK/128
+ *           @arg TMR4_CNT_PCLK_DIV256:  PCLK/256
+ *           @arg TMR4_CNT_PCLK_DIV512:  PCLK/512
+ *           @arg TMR4_CNT_PCLK_DIV1024: PCLK/1024
  * @retval None
+ * @note   The PCLK division function is valid when clock source is PCLK
  */
-void TMR4_CNT_SetClkDiv(M4_TMR4_TypeDef *TMR4x, uint16_t u16Div)
+void TMR4_CNT_SetPclkDiv(M4_TMR4_TypeDef *TMR4x, uint16_t u16Div)
 {
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
-    DDL_ASSERT(IS_VALID_TMR4_CNT_CLK_DIV(u16Div));
+    DDL_ASSERT(IS_VALID_TMR4_CNT_PCLK_DIV(u16Div));
 
     MODIFY_REG16(TMR4x->CCSR, TMR4_CCSR_CKDIV, u16Div);
 }
 
 /**
- * @brief  Get Timer4 counter clock division
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Get TMR4 counter clock division
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
  * @retval Returned value can be one of the following values:
- *           @arg TMR4_CNT_CLK_DIV1:    HCLK
- *           @arg TMR4_CNT_CLK_DIV2:    HCLK/2
- *           @arg TMR4_CNT_CLK_DIV4:    HCLK/4
- *           @arg TMR4_CNT_CLK_DIV8:    HCLK/8
- *           @arg TMR4_CNT_CLK_DIV16:   HCLK/16
- *           @arg TMR4_CNT_CLK_DIV32:   HCLK/32
- *           @arg TMR4_CNT_CLK_DIV64:   HCLK/64
- *           @arg TMR4_CNT_CLK_DIV128:  HCLK/128
- *           @arg TMR4_CNT_CLK_DIV256:  HCLK/256
- *           @arg TMR4_CNT_CLK_DIV512:  HCLK/512
- *           @arg TMR4_CNT_CLK_DIV1024: HCLK/1024
+ *           @arg TMR4_CNT_PCLK_DIV1:    PCLK
+ *           @arg TMR4_CNT_PCLK_DIV2:    PCLK/2
+ *           @arg TMR4_CNT_PCLK_DIV4:    PCLK/4
+ *           @arg TMR4_CNT_PCLK_DIV8:    PCLK/8
+ *           @arg TMR4_CNT_PCLK_DIV16:   PCLK/16
+ *           @arg TMR4_CNT_PCLK_DIV32:   PCLK/32
+ *           @arg TMR4_CNT_PCLK_DIV64:   PCLK/64
+ *           @arg TMR4_CNT_PCLK_DIV128:  PCLK/128
+ *           @arg TMR4_CNT_PCLK_DIV256:  PCLK/256
+ *           @arg TMR4_CNT_PCLK_DIV512:  PCLK/512
+ *           @arg TMR4_CNT_PCLK_DIV1024: PCLK/1024
+ * @note   The PCLK division function is valid when clock source is PCLK
  */
-uint16_t TMR4_CNT_GetClkDiv(const M4_TMR4_TypeDef *TMR4x)
+uint16_t TMR4_CNT_GetPclkDiv(const M4_TMR4_TypeDef *TMR4x)
 {
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
@@ -743,16 +745,16 @@ uint16_t TMR4_CNT_GetClkDiv(const M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief Set Timer4 counter mode
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief Set TMR4 counter mode
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16Mode                 Timer4 counter mode
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16Mode                 TMR4 counter mode
  *         This parameter can be one of the following values:
- *           @arg TMR4_CNT_MODE_SAWTOOTH_WAVE: Timer4 count mode:sawtooth wave
- *           @arg TMR4_CNT_MODE_TRIANGLE_WAVE: Timer4 count mode:triangular wave
+ *           @arg TMR4_CNT_MODE_SAWTOOTH_WAVE: TMR4 count mode:sawtooth wave
+ *           @arg TMR4_CNT_MODE_TRIANGLE_WAVE: TMR4 count mode:triangular wave
  * @retval None
  */
 void TMR4_CNT_SetMode(M4_TMR4_TypeDef *TMR4x, uint16_t u16Mode)
@@ -766,15 +768,15 @@ void TMR4_CNT_SetMode(M4_TMR4_TypeDef *TMR4x, uint16_t u16Mode)
 }
 
 /**
- * @brief Get Timer4 counter mode
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief Get TMR4 counter mode
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
  * @retval Returned value can be one of the following values:
- *           @arg TMR4_CNT_MODE_SAWTOOTH_WAVE: Timer4 count mode:sawtooth wave
- *           @arg TMR4_CNT_MODE_TRIANGLE_WAVE: Timer4 count mode:triangular wave
+ *           @arg TMR4_CNT_MODE_SAWTOOTH_WAVE: TMR4 count mode:sawtooth wave
+ *           @arg TMR4_CNT_MODE_TRIANGLE_WAVE: TMR4 count mode:triangular wave
  */
 uint16_t TMR4_CNT_GetMode(const M4_TMR4_TypeDef *TMR4x)
 {
@@ -786,13 +788,13 @@ uint16_t TMR4_CNT_GetMode(const M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief  Get Timer4 counter flag
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Get TMR4 counter flag
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16Flag                 Timer4 flag
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16Flag                 TMR4 flag
  *         This parameter can be any composed value of the following values:
  *           @arg TMR4_CNT_FLAG_PEAK: Overflow interrupt
  *           @arg TMR4_CNT_FLAG_ZERO: Underflow interrupt
@@ -800,30 +802,30 @@ uint16_t TMR4_CNT_GetMode(const M4_TMR4_TypeDef *TMR4x)
  *           - Set: Flag is set
  *           - Reset: Flag is reset
  */
-en_flag_status_t TMR4_CNT_GetFlag(const M4_TMR4_TypeDef *TMR4x, 
+en_flag_status_t TMR4_CNT_GetStatus(const M4_TMR4_TypeDef *TMR4x,
                                         uint16_t u16Flag)
 {
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
     DDL_ASSERT(IS_VALID_TMR4_CNT_FLAG(u16Flag));
 
-    return READ_REG16_BIT(TMR4x->CCSR, u16Flag) ? Set : Reset;
+    return (READ_REG16_BIT(TMR4x->CCSR, u16Flag) != 0U) ? Set : Reset;
 }
 
 /**
- * @brief  Clear Timer4 counter flag
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Clear TMR4 counter flag
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16Flag                 Timer4 counter flag
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16Flag                 TMR4 counter flag
  *         This parameter can be any composed value of the following values:
  *           @arg TMR4_CNT_FLAG_PEAK:   Overflow interrupt
  *           @arg TMR4_CNT_FLAG_ZERO:   Underflow interrupt
  * @retval None
  */
-void TMR4_CNT_ClearFlag(M4_TMR4_TypeDef *TMR4x, uint16_t u16Flag)
+void TMR4_CNT_ClearStatus(M4_TMR4_TypeDef *TMR4x, uint16_t u16Flag)
 {
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
@@ -833,13 +835,13 @@ void TMR4_CNT_ClearFlag(M4_TMR4_TypeDef *TMR4x, uint16_t u16Flag)
 }
 
 /**
- * @brief  Enable or disable specified Timer4 counter interrupt
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Enable or disable specified TMR4 counter interrupt
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16IntSource            Timer4 interrupt source
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16IntSource            TMR4 interrupt source
  *         This parameter can be any composed value of the following values:
  *           @arg TMR4_CNT_INT_PEAK:    Overflow interrupt
  *           @arg TMR4_CNT_INT_ZERO:    Underflow interrupt
@@ -867,12 +869,12 @@ void TMR4_CNT_IntCmd(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief Start Timer4 counter
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief Start TMR4 counter
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
  * @retval None
  */
 void TMR4_CNT_Start(M4_TMR4_TypeDef *TMR4x)
@@ -884,12 +886,12 @@ void TMR4_CNT_Start(M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief Stop Timer4 counter
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief Stop TMR4 counter
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
  * @retval None
  */
 void TMR4_CNT_Stop(M4_TMR4_TypeDef *TMR4x)
@@ -901,13 +903,13 @@ void TMR4_CNT_Stop(M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief  Set Timer4 counter cycle value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Set TMR4 counter cycle value
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16CycleVal             The Timer4 counter cycle value
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16CycleVal             The TMR4 counter cycle value
  *           @arg number of 16bit
  * @retval None
  */
@@ -920,13 +922,13 @@ void TMR4_CNT_SetCycleVal(M4_TMR4_TypeDef *TMR4x, uint16_t u16CycleVal)
 }
 
 /**
- * @brief  Get Timer4 counter cycle value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Get TMR4 counter cycle value
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @retval The cycle value of the Timer4 counter
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @retval The cycle value of the TMR4 counter
  */
 uint16_t TMR4_CNT_GetCycleVal(const M4_TMR4_TypeDef *TMR4x)
 {
@@ -937,12 +939,12 @@ uint16_t TMR4_CNT_GetCycleVal(const M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief  Clear Timer4 counter count value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Clear TMR4 counter count value
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
  * @retval None
  */
 void TMR4_CNT_ClearCountVal(M4_TMR4_TypeDef *TMR4x)
@@ -954,13 +956,13 @@ void TMR4_CNT_ClearCountVal(M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief  Set Timer4 counter count value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Set TMR4 counter count value
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16CountVal             The Timer4 counter count value
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16CountVal             The TMR4 counter count value
  *           @arg number of 16bit
  * @retval None
  */
@@ -973,13 +975,13 @@ void TMR4_CNT_SetCountVal(M4_TMR4_TypeDef *TMR4x, uint16_t u16CountVal)
 }
 
 /**
- * @brief  Get Timer4 counter count value
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Get TMR4 counter count value
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @retval The count value of the Timer4 counter
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @retval The count value of the TMR4 counter
  */
 uint16_t TMR4_CNT_GetCountVal(const M4_TMR4_TypeDef *TMR4x)
 {
@@ -990,17 +992,17 @@ uint16_t TMR4_CNT_GetCountVal(const M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief  Set Timer4 counter interrupt mask times
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Set TMR4 counter interrupt mask times
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16IntSource            Timer4 interrupt source
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16IntSource            TMR4 interrupt source
  *         This parameter can be one of the following values:
  *           @arg TMR4_CNT_INT_PEAK:    Overflow interrupt
  *           @arg TMR4_CNT_INT_ZERO:    Underflow interrupt
- * @param [in] u16MaskTimes             Timer4 counter interrupt mask times
+ * @param [in] u16MaskTimes             TMR4 counter interrupt mask times
  *         This parameter can be one of the following values:
  *           @arg TMR4_CNT_INT_MASK_0:  Counter interrupt flag is always set(not masked) for every counter count at "0x0000" or peak
  *           @arg TMR4_CNT_INT_MASK_1:  Counter interrupt flag is set once for 2 every counter counts at "0x0000" or peak (skiping 1 count)
@@ -1050,13 +1052,13 @@ en_result_t TMR4_CNT_SetIntMaskTimes(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 CNT interrupt mask times
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Get TMR4 CNT interrupt mask times
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16IntSource            Timer4 interrupt source
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16IntSource            TMR4 interrupt source
  *         This parameter can be one of the following values:
  *           @arg TMR4_CNT_INT_PEAK:    Overflow interrupt
  *           @arg TMR4_CNT_INT_ZERO:    Underflow interrupt
@@ -1116,13 +1118,13 @@ en_result_t TMR4_CNT_GetIntMaskTimes(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 CNT interrupt mask current times
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  Get TMR4 CNT interrupt mask current times
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u16IntSource            Timer4 interrupt source
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u16IntSource            TMR4 interrupt source
  *         This parameter can be one of the following values:
  *           @arg TMR4_CNT_INT_PEAK:    Overflow interrupt
  *           @arg TMR4_CNT_INT_ZERO:    Underflow interrupt
@@ -1182,12 +1184,12 @@ en_result_t TMR4_CNT_GetIntMaskCurrentTimes(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 count direction signal output to port
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 count direction signal output to port
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
  * @param  [in] enNewState          The function new state
  *           @arg  This parameter can be: Enable or Disable
  * @retval None
@@ -1214,25 +1216,25 @@ void TMR4_CNT_PortOutputDirSigCmd(M4_TMR4_TypeDef *TMR4x,
  */
 
 /**
- * @defgroup TMR4_OCO_Global_Functions TIMER4 OCO Global Functions
+ * @defgroup TMR4_OCO_Global_Functions TMR4 OCO Global Functions
  * @{
  */
 
 /**
- * @brief  Initialize Timer4 OCO
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Initialize TMR4 OCO
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @param  [in] pstcInit            Pointer to a @ref stc_tmr4_oco_init_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize successfully
@@ -1313,20 +1315,20 @@ en_result_t TMR4_OCO_StructInit(stc_tmr4_oco_init_t *pstcInit)
 }
 
 /**
- * @brief  De-initialize Timer4 OCO
- * @param  [in] TMR4x                   Pointer to Timer4 instance register base
+ * @brief  De-initialize TMR4 OCO
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:            Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:            Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:            Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @retval None
  */
 void TMR4_OCO_DeInit(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
@@ -1355,21 +1357,21 @@ void TMR4_OCO_DeInit(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 }
 
 /**
- * @brief  Set Timer4 OCO OCCR buffer mode
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 OCO OCCR buffer mode
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
- * @param  [in] u16OccrBufMode      Timer4 OCO OCCR buffer mode
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
+ * @param  [in] u16OccrBufMode      TMR4 OCO OCCR buffer mode
  *         This parameter can be one of the following values:
  *           @arg TMR4_OCO_OCCR_BUF_DISABLE:          Disable the register OCCR buffer function
  *           @arg TMR4_OCO_OCCR_BUF_CNT_ZERO:         Register OCCR buffer transfer when counter value is 0x0000
@@ -1398,20 +1400,20 @@ void TMR4_OCO_SetOccrBufMode(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 OCO OCCR buffer mode
+ * @brief  Get TMR4 OCO OCCR buffer mode
  *         This parameter can be one of the following values:
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @retval Returned value can be one of the following values:
  *           @arg TMR4_OCO_OCCR_BUF_DISABLE:          Disable the register OCCR buffer function
  *           @arg TMR4_OCO_OCCR_BUF_CNT_ZERO:         Register OCCR buffer transfer when counter value is 0x0000
@@ -1438,20 +1440,20 @@ uint16_t TMR4_OCO_GetOccrBufMode(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 OCO OCCR buffer link transfer function
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 OCO OCCR buffer link transfer function
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @param  [in] u16TransferState    The OCO OCCR buffer link transfer state
  *           @arg TMR4_OCO_OCCR_LINK_TRANSFER_DISABLE: Disable the register OCCR buffer link transfer function
  *           @arg TMR4_OCO_OCCR_LINK_TRANSFER_ENABLE: Register OCCR buffer transfer when the value is both 0 and CPSR and ZIC/PIC is 0
@@ -1478,21 +1480,21 @@ void TMR4_OCO_SetOccrLinkTransfer(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 OCO OCMR buffer mode
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 OCO OCMR buffer mode
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
- * @param  [in] u16OcmrBufMode      Timer4 OCO OCCR buffer mode
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
+ * @param  [in] u16OcmrBufMode      TMR4 OCO OCCR buffer mode
  *         This parameter can be one of the following values:
  *           @arg TMR4_OCO_OCMR_BUF_DISABLE:          Disable the register OCMR buffer function
  *           @arg TMR4_OCO_OCMR_BUF_CNT_ZERO:         Register OCMR buffer transfer when counter value is 0x0000
@@ -1521,20 +1523,20 @@ void TMR4_OCO_SetOcmrBufMode(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 OCO OCMR buffer mode
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 OCO OCMR buffer mode
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @retval Returned value can be one of the following values:
  *         This parameter can be one of the following values:
  *           @arg TMR4_OCO_OCMR_BUF_DISABLE:          Disable the register OCMR buffer function
@@ -1562,20 +1564,20 @@ uint16_t TMR4_OCO_GetOcmrBufMode(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 OCO OCMR buffer link transfer function
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 OCO OCMR buffer link transfer function
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @param  [in] u16TransferState    The OCO OCCR buffer link transfer state
  *           @arg TMR4_OCO_OCCR_LINK_TRANSFER_DISABLE: Disable the register OCCR buffer link transfer function
  *           @arg TMR4_OCO_OCCR_LINK_TRANSFER_ENABLE: Register OCCR buffer transfer when the value is both 0 and CPSR and ZIC/PIC is 0
@@ -1602,23 +1604,23 @@ void TMR4_OCO_SetOcmrLinkTransfer(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Extend the matching conditions of Timer4 OCO channel
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Extend the matching conditions of TMR4 OCO channel
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
- * @param  [in] enNewState          The function new state
- *           @arg TMR4_OCO_EXTEND_MATCH_DISABLE: Disable TIMER4 OCO extend match function
- *           @arg TMR4_OCO_EXTEND_MATCH_ENABLE: Enable TIMER4 OCO extend match function
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
+ * @param  [in] u16ExtMatch          TMR4 OCO extend match function selection
+ *           @arg TMR4_OCO_EXTEND_MATCH_DISABLE: Disable TMR4 OCO extend match function
+ *           @arg TMR4_OCO_EXTEND_MATCH_ENABLE: Enable TMR4 OCO extend match function
  * @retval None
  */
 void TMR4_OCO_SetExtMatchCond(M4_TMR4_TypeDef *TMR4x,
@@ -1642,18 +1644,18 @@ void TMR4_OCO_SetExtMatchCond(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set the Timer4 OCO high channel mode
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set the TMR4 OCO high channel mode
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel.
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel.
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- * @param  [in] pstcMode            Pointer to a @ref stc_oco_high_ch_compare_mode_t structure of the Timer4 OCO high channel mode
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ * @param  [in] pstcMode            Pointer to a @ref stc_oco_high_ch_compare_mode_t structure of the TMR4 OCO high channel mode
  * @retval An en_result_t enumeration value:
  *           - Ok: Set successfully
  *           - ErrorInvalidParameter: pstcMode = NULL
@@ -1663,7 +1665,7 @@ en_result_t TMR4_OCO_SetHighChCompareMode(M4_TMR4_TypeDef *TMR4x,
                                 const stc_oco_high_ch_compare_mode_t *pstcMode)
 {
     __IO uint16_t *TMR4_OCER;
-    __IO uint16_t *TMR4_OCMR;
+    __IO uint16_t *TMR4_OCMRxH;
     en_result_t enRet = ErrorInvalidParameter;
 
     /* Check pointer */
@@ -1676,9 +1678,9 @@ en_result_t TMR4_OCO_SetHighChCompareMode(M4_TMR4_TypeDef *TMR4x,
 
         /* Get pointer of current channel OCO register address */
         TMR4_OCER = TMR4_OCERx(TMR4x, u32Ch);
-        TMR4_OCMR = TMR4_OCMRx(TMR4x, u32Ch);
+        TMR4_OCMRxH = TMR4_OCMRx(TMR4x, u32Ch);
 
-        WRITE_REG16(*TMR4_OCMR, pstcMode->OCMRx);
+        WRITE_REG16(*TMR4_OCMRxH, pstcMode->OCMRx);
         MODIFY_REG16(*TMR4_OCER, \
                      TMR4_OCER_MCECx_MASK(u32Ch), \
                      TMR4_OCER_MCECx(u32Ch, pstcMode->u16ExtendMatch));
@@ -1689,18 +1691,18 @@ en_result_t TMR4_OCO_SetHighChCompareMode(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set the Timer4 OCO low channel mode
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set the TMR4 OCO low channel mode
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel.
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel.
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- * @param  [in] pstcMode            Pointer to a @ref stc_oco_low_ch_compare_mode_t structure of the Timer4 OCO low channel mode
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
+ * @param  [in] pstcMode            Pointer to a @ref stc_oco_low_ch_compare_mode_t structure of the TMR4 OCO low channel mode
  * @retval An en_result_t enumeration value:
  *           - Ok: Set successfully
  *           - ErrorInvalidParameter: pstcMode = NULL
@@ -1710,7 +1712,7 @@ en_result_t TMR4_OCO_SetLowChCompareMode(M4_TMR4_TypeDef *TMR4x,
                                 const stc_oco_low_ch_compare_mode_t *pstcMode)
 {
     __IO uint16_t *TMR4_OCER;
-    __IO uint32_t *TMR4_OCMR;
+    __IO uint32_t *TMR4_OCMRxL;
     en_result_t enRet = ErrorInvalidParameter;
 
     /* Check pointer */
@@ -1723,9 +1725,9 @@ en_result_t TMR4_OCO_SetLowChCompareMode(M4_TMR4_TypeDef *TMR4x,
 
         /* Get pointer of current channel OCO register address */
         TMR4_OCER = TMR4_OCERx(TMR4x, u32Ch);
-        TMR4_OCMR = (__IO uint32_t*)TMR4_OCMRx(TMR4x, u32Ch);
+        TMR4_OCMRxL = (__IO uint32_t*)((uint32_t)TMR4_OCMRx(TMR4x, u32Ch));
 
-        WRITE_REG32(*TMR4_OCMR, pstcMode->OCMRx);
+        WRITE_REG32(*TMR4_OCMRxL, pstcMode->OCMRx);
         MODIFY_REG16(*TMR4_OCER, \
                      TMR4_OCER_MCECx_MASK(u32Ch), \
                      TMR4_OCER_MCECx(u32Ch, pstcMode->u16ExtendMatch));
@@ -1736,23 +1738,23 @@ en_result_t TMR4_OCO_SetLowChCompareMode(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set the Timer4 OCO low channel mode
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set the TMR4 OCO low channel mode
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @param  [in] u16OcoCmd           The function new state
- *           @arg TMR4_OCO_DISABLE: Disable TIM4_<t>_OxH/TIM4_<t>_OxL output
- *           @arg TMR4_OCO_ENABLE: Enable TIM4_<t>_OxH/TIM4_<t>_OxL output
+ *           @arg TMR4_OCO_DISABLE: Disable TMR4 OCO function
+ *           @arg TMR4_OCO_ENABLE: Enable TMR4 OCO function
  * @retval None
  */
 void TMR4_OCO_SetOutputCompare(M4_TMR4_TypeDef *TMR4x,
@@ -1776,20 +1778,20 @@ void TMR4_OCO_SetOutputCompare(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set the Timer4 OCO interrupt function
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set the TMR4 OCO interrupt function
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @param  [in] enNewState          The function new state
  *           @arg  This parameter can be: Enable or Disable
  * @retval None
@@ -1819,25 +1821,25 @@ void TMR4_OCO_IntCmd(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set the Timer4 OCO interrupt flag
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set the TMR4 OCO interrupt flag
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @retval An en_flag_status_t enumeration value:
- *           - Reset:               None interrupt request flag is set on Timer4 OCO
- *           - Set:                 Detection interrupt request on Timer4 OCO
+ *           - Reset:               None interrupt request flag is set on TMR4 OCO
+ *           - Set:                 Detection interrupt request on TMR4 OCO
  */
-en_flag_status_t TMR4_OCO_GetFlag(const M4_TMR4_TypeDef *TMR4x,
+en_flag_status_t TMR4_OCO_GetStatus(const M4_TMR4_TypeDef *TMR4x,
                                         uint32_t u32Ch)
 {
     __IO uint16_t *TMR4_OCSR;
@@ -1853,23 +1855,23 @@ en_flag_status_t TMR4_OCO_GetFlag(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Clear the Timer4 OCO interrupt function
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Clear the TMR4 OCO interrupt function
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @retval None
  */
-void TMR4_OCO_ClearFlag(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
+void TMR4_OCO_ClearStatus(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 {
     __IO uint16_t *TMR4_OCSR;
 
@@ -1885,24 +1887,24 @@ void TMR4_OCO_ClearFlag(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 }
 
 /**
- * @brief  Set Timer4 OCO invalid output polarity
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 OCO invalid output polarity
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
- * @param  [in] u16OutputPolarity   Timer4 OCO invalid output polarity.
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
+ * @param  [in] u16OutputPolarity   TMR4 OCO invalid output polarity.
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_INVAILD_OP_LOW:    TIM4_<t>_OxH/TIM4_<t>_OxL output low level when OCO is invalid
- *           @arg TMR4_OCO_INVAILD_OP_HIGH:   TIM4_<t>_OxH/TIM4_<t>_OxL output high level when OCO is invalid
+ *           @arg TMR4_OCO_INVAILD_OP_LOW:    TMR4 OCO output low level when OCO is invalid
+ *           @arg TMR4_OCO_INVAILD_OP_HIGH:   TMR4 OCO output high level when OCO is invalid
  * @retval None
  */
 void TMR4_OCO_SetOcoInvalidOp(M4_TMR4_TypeDef *TMR4x,
@@ -1926,23 +1928,23 @@ void TMR4_OCO_SetOcoInvalidOp(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 OCO output polarity
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 OCO output polarity
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
  * @retval Returned value can be one of the following values:
- *           @arg TMR4_OCO_INVAILD_OP_LOW:    TIM4_<t>_OxH/TIM4_<t>_OxL output low level when OCO is invalid
- *           @arg TMR4_OCO_INVAILD_OP_HIGH:   TIM4_<t>_OxH/TIM4_<t>_OxL output high level when OCO is invalid
+ *           @arg TMR4_OCO_INVAILD_OP_LOW:    TMR4 OCO output low level when OCO is invalid
+ *           @arg TMR4_OCO_INVAILD_OP_HIGH:   TMR4 OCO output high level when OCO is invalid
  */
 uint16_t TMR4_OCO_GetOutputPolarity(const M4_TMR4_TypeDef *TMR4x,
                                                 uint32_t u32Ch)
@@ -1964,21 +1966,21 @@ uint16_t TMR4_OCO_GetOutputPolarity(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 OCO compare value
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 OCO compare value
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
- * @param  [in] u16CompareVal          The Timer4 OCO OCCR register value
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
+ * @param  [in] u16CompareVal          The TMR4 OCO OCCR register value
  *           @arg number of 16bit
  * @retval None
  */
@@ -1999,21 +2001,21 @@ void TMR4_OCO_SetCompareVal(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 OCO OCCR compare value
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 OCO OCCR compare value
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 OCO channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 OCO channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_OCO_UH:      Timer4 OCO channel - UH
- *           @arg TMR4_OCO_UL:      Timer4 OCO channel - UL
- *           @arg TMR4_OCO_VH:      Timer4 OCO channel - VH
- *           @arg TMR4_OCO_VL:      Timer4 OCO channel - VL
- *           @arg TMR4_OCO_WH:      Timer4 OCO channel - WH
- *           @arg TMR4_OCO_WL:      Timer4 OCO channel - WL
- * @retval The OCCR register value of the Timer4 OCO
+ *           @arg TMR4_OCO_UH:      TMR4 OCO channel - UH
+ *           @arg TMR4_OCO_UL:      TMR4 OCO channel - UL
+ *           @arg TMR4_OCO_VH:      TMR4 OCO channel - VH
+ *           @arg TMR4_OCO_VL:      TMR4 OCO channel - VL
+ *           @arg TMR4_OCO_WH:      TMR4 OCO channel - WH
+ *           @arg TMR4_OCO_WL:      TMR4 OCO channel - WL
+ * @retval The OCCR register value of the TMR4 OCO
  */
 uint16_t TMR4_OCO_GetCompareVal(const M4_TMR4_TypeDef *TMR4x,
                                         uint32_t u32Ch)
@@ -2035,22 +2037,22 @@ uint16_t TMR4_OCO_GetCompareVal(const M4_TMR4_TypeDef *TMR4x,
  */
 
 /**
- * @defgroup TMR4_PWM_Global_Functions TIMER4 PWM Global Functions
+ * @defgroup TMR4_PWM_Global_Functions TMR4 PWM Global Functions
  * @{
  */
 
 /**
- * @brief  Initialize Timer4 PWM
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Initialize TMR4 PWM
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @param  [in] pstcInit            Pointer to a @ref stc_tmr4_pwm_init_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize successfully
@@ -2071,7 +2073,7 @@ en_result_t TMR4_PWM_Init(M4_TMR4_TypeDef *TMR4x,
         DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
         DDL_ASSERT(IS_VALID_TMR4_PWM_CH(u32Ch));
         DDL_ASSERT(IS_VALID_TMR4_PWM_MODE(pstcInit->u16Mode));
-        DDL_ASSERT(IS_VALID_TMR4_PWM_CLK_DIV(pstcInit->u16ClkDiv));
+        DDL_ASSERT(IS_VALID_TMR4_PWM_PCLK_DIV(pstcInit->u16PclkDiv));
         DDL_ASSERT(IS_VALID_TMR4_PWM_TRANSFORM_OCO_POLARITY(pstcInit->u16TransformOcoPol));
         DDL_ASSERT(IS_VALID_TMR4_PWM_EMB_PORT_OUTPUT_STATE(pstcInit->u32EmbOxHPortState));
         DDL_ASSERT(IS_VALID_TMR4_PWM_EMB_PORT_OUTPUT_STATE(pstcInit->u32EmbOxLPortState));
@@ -2081,7 +2083,7 @@ en_result_t TMR4_PWM_Init(M4_TMR4_TypeDef *TMR4x,
         TMR4_RCSR = TMR4_RCSRx(TMR4x);
 
         /* Set POCR register */
-        WRITE_REG16(*TMR4_POCR, (pstcInit->u16ClkDiv | pstcInit->u16Mode | pstcInit->u16TransformOcoPol));
+        WRITE_REG16(*TMR4_POCR, (pstcInit->u16PclkDiv | pstcInit->u16Mode | pstcInit->u16TransformOcoPol));
 
         /* Set RCSR register */
         MODIFY_REG16(*TMR4_RCSR,
@@ -2117,7 +2119,7 @@ en_result_t TMR4_PWM_StructInit(stc_tmr4_pwm_init_t *pstcInit)
     if (NULL != pstcInit)
     {
         pstcInit->u16Mode = TMR4_PWM_THROUGH_MODE;
-        pstcInit->u16ClkDiv = TMR4_PWM_CLK_DIV1;
+        pstcInit->u16PclkDiv = TMR4_PWM_PCLK_DIV1;
         pstcInit->u16TransformOcoPol = TMR4_PWM_OP_OXH_HOLD_OXL_HOLD;
         pstcInit->u32OxHPortOutMode = TMR4_PWM_PORT_OUTPUT_OSxy;
         pstcInit->u32EmbOxHPortState = TMR4_PWM_EMB_PORT_OUTPUT_NORMAL;
@@ -2130,17 +2132,17 @@ en_result_t TMR4_PWM_StructInit(stc_tmr4_pwm_init_t *pstcInit)
 }
 
 /**
- * @brief  De-initialize Timer4 PWM
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  De-initialize TMR4 PWM
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @retval None
  */
 void TMR4_PWM_DeInit(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
@@ -2157,7 +2159,7 @@ void TMR4_PWM_DeInit(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
     TMR4_RCSR = TMR4_RCSRx(TMR4x);
 
     /* Set POCR register */
-    WRITE_REG16(*TMR4_POCR, (TMR4_PWM_CLK_DIV1 | \
+    WRITE_REG16(*TMR4_POCR, (TMR4_PWM_PCLK_DIV1 | \
                              TMR4_PWM_THROUGH_MODE | \
                              TMR4_PWM_OP_OXH_HOLD_OXL_HOLD));
 
@@ -2170,18 +2172,95 @@ void TMR4_PWM_DeInit(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 }
 
 /**
- * @brief  Set Timer4 PWM output polarity transform
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 PWM PCLK clock division
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
- * @param  [in] u16OcoPolTransform  Timer4 PWM transform OCO polarity
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
+ * @param  [in] u16Div                  TMR4 PWM PCLK clock division
+ *         This parameter can be one of the following values:
+ *           @arg TMR4_PWM_PCLK_DIV1:    PCLK
+ *           @arg TMR4_PWM_PCLK_DIV2:    PCLK/2
+ *           @arg TMR4_PWM_PCLK_DIV4:    PCLK/4
+ *           @arg TMR4_PWM_PCLK_DIV8:    PCLK/8
+ *           @arg TMR4_PWM_PCLK_DIV16:   PCLK/16
+ *           @arg TMR4_PWM_PCLK_DIV32:   PCLK/32
+ *           @arg TMR4_PWM_PCLK_DIV64:   PCLK/64
+ *           @arg TMR4_PWM_PCLK_DIV128:  PCLK/128
+ * @retval None
+ * @note   The PCLK division function is valid when clock source is PCLK
+ */
+void TMR4_PWM_SetPclkDiv(M4_TMR4_TypeDef *TMR4x,
+                                uint32_t u32Ch,
+                                uint16_t u16Div)
+{
+    __IO uint16_t *TMR4_POCR;
+
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+    DDL_ASSERT(IS_VALID_TMR4_PWM_CH(u32Ch));
+    DDL_ASSERT(IS_VALID_TMR4_PWM_PCLK_DIV(u16Div));
+
+    /* Get pointer of current channel PWM register address */
+    TMR4_POCR = TMR4_POCRx(TMR4x, u32Ch);
+    MODIFY_REG16(*TMR4_POCR, TMR4_POCR_DIVCK, u16Div);
+}
+
+/**
+ * @brief  Get TMR4 PWM PCLK clock division
+ * @param  [in] TMR4x                   Pointer to TMR4 instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_TMR4_1:            TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:            TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:            TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
+ *         This parameter can be one of the following values:
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
+ * @retval Returned value can be one of the following values:
+ *           @arg TMR4_PWM_PCLK_DIV1:    PCLK
+ *           @arg TMR4_PWM_PCLK_DIV2:    PCLK/2
+ *           @arg TMR4_PWM_PCLK_DIV4:    PCLK/4
+ *           @arg TMR4_PWM_PCLK_DIV8:    PCLK/8
+ *           @arg TMR4_PWM_PCLK_DIV16:   PCLK/16
+ *           @arg TMR4_PWM_PCLK_DIV32:   PCLK/32
+ *           @arg TMR4_PWM_PCLK_DIV64:   PCLK/64
+ *           @arg TMR4_PWM_PCLK_DIV128:  PCLK/128
+ * @note   The PCLK division function is valid when clock source is PCLK
+ */
+uint16_t TMR4_PWM_GetPclkDiv(const M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
+{
+    __IO uint16_t *TMR4_POCR;
+
+    /* Check parameters */
+    DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+    DDL_ASSERT(IS_VALID_TMR4_PWM_CH(u32Ch));
+
+    /* Get pointer of current channel PWM register address */
+    TMR4_POCR = TMR4_POCRx(TMR4x, u32Ch);
+    return READ_REG16_BIT(*TMR4_POCR, TMR4_POCR_DIVCK);
+}
+
+/**
+ * @brief  Set TMR4 PWM output polarity transform
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
+ *         This parameter can be one of the following values:
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
+ *         This parameter can be one of the following values:
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
+ * @param  [in] u16OcoPolTransform  TMR4 PWM transform OCO polarity
  *         This parameter can be one of the following values:
  *           @arg TMR4_PWM_OP_OXH_HOLD_OXL_HOLD:      Output PWML and PWMH signals without changing the level
  *           @arg TMR4_PWM_OP_OXH_INVERT_OXL_INVERT:  Output both PWML and PWMH signals reversed
@@ -2207,17 +2286,17 @@ void TMR4_PWM_SetOcoPolarityTransform(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 PWM output polarity transform
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 PWM output polarity transform
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @retval Returned value can be one of the following values:
  *           @arg TMR4_PWM_OP_OXH_HOLD_OXL_HOLD:      Output PWML and PWMH signals without changing the level
  *           @arg TMR4_PWM_OP_OXH_INVERT_OXL_INVERT:  Output both PWML and PWMH signals reversed
@@ -2240,17 +2319,17 @@ uint16_t TMR4_PWM_GetOcoPolarityTransform(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Start Timer4 PWM reload-timer
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Start TMR4 PWM reload-timer
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @retval None
  */
 void TMR4_PWM_StartReloadTimer(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
@@ -2263,17 +2342,17 @@ void TMR4_PWM_StartReloadTimer(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 }
 
 /**
- * @brief  Stop Timer4 PWM reload-timer
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Stop TMR4 PWM reload-timer
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @retval None
  */
 void TMR4_PWM_StopReloadTimer(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
@@ -2286,17 +2365,17 @@ void TMR4_PWM_StopReloadTimer(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 }
 
 /**
- * @brief  Set the Timer4 PWM interrupt function
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set the TMR4 PWM interrupt function
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @param  [in] enNewState          The function new state
  *           @arg  This parameter can be: Enable or Disable
  * @retval None
@@ -2307,6 +2386,7 @@ void TMR4_PWM_IntCmd(M4_TMR4_TypeDef *TMR4x,
 {
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+    DDL_ASSERT(IS_VALID_TMR4_PWM_CH(u32Ch));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
     if (Enable == enNewState)
@@ -2321,27 +2401,28 @@ void TMR4_PWM_IntCmd(M4_TMR4_TypeDef *TMR4x,
 
 /**
  * @brief  Get PWM reload-timer interrupt flag
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @retval An en_flag_status_t enumeration value:
  *           - Reset                None interrupt request on PWM reload-timer
  *           - Set                  Detection interrupt request on PWM reload-timer
  */
-en_flag_status_t TMR4_PWM_GetFlag(const M4_TMR4_TypeDef *TMR4x,
+en_flag_status_t TMR4_PWM_GetStatus(const M4_TMR4_TypeDef *TMR4x,
                                         uint32_t u32Ch)
 {
     __IO uint16_t *TMR4_RCSR;
 
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+    DDL_ASSERT(IS_VALID_TMR4_PWM_CH(u32Ch));
 
     /* Get pointer of current channel PWM register address */
     TMR4_RCSR = TMR4_RCSRx(TMR4x);
@@ -2351,39 +2432,40 @@ en_flag_status_t TMR4_PWM_GetFlag(const M4_TMR4_TypeDef *TMR4x,
 
 /**
  * @brief  Clear PWM reload-timer interrupt flag
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @retval None
  */
-void TMR4_PWM_ClearFlag(M4_TMR4_TypeDef *TMR4x,
+void TMR4_PWM_ClearStatus(M4_TMR4_TypeDef *TMR4x,
                                 uint32_t u32Ch)
 {
     /* Check parameters */
     DDL_ASSERT(IS_VALID_TMR4_INSTANCE(TMR4x));
+    DDL_ASSERT(IS_VALID_TMR4_PWM_CH(u32Ch));
 
     SET_REG16_BIT(TMR4x->RCSR, TMR4_RCSR_RTICx_MASK(u32Ch));
 }
 
 /**
- * @brief  Set Timer4 PWM dead region count
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 PWM dead region count
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @param  [in] u16PDAR             PDAR value
  *           @arg number of 16bit
  * @param  [in] u16PDBR             PDBR value
@@ -2411,17 +2493,17 @@ void TMR4_PWM_SetDeadRegionValue(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 PWM dead region count
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 PWM dead region count
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
  * @param  [out] pu16PDAR           Pointer of 16bit data
  *           @arg pointer of 16bit
  * @param  [out] pu16PDBR           Pointer of 16bit data
@@ -2449,18 +2531,18 @@ void TMR4_PWM_GetDeadRegionValue(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 PWM filter count value
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 PWM filter count value
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_U:       Timer4 PWM couple channel - U
- *           @arg TMR4_PWM_V:       Timer4 PWM couple channel - V
- *           @arg TMR4_PWM_W:       Timer4 PWM couple channel - W
- * @param  [in] u16Count            Timer4 PWM filter count value
+ *           @arg TMR4_PWM_U:       TMR4 PWM couple channel - U
+ *           @arg TMR4_PWM_V:       TMR4 PWM couple channel - V
+ *           @arg TMR4_PWM_W:       TMR4 PWM couple channel - W
+ * @param  [in] u16Count            TMR4 PWM filter count value
  *           @arg number of 16bit
  * @retval None
  */
@@ -2481,13 +2563,13 @@ void TMR4_PWM_SetFilterCountValue(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief Enable Timer4 PWM master output
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief Enable TMR4 PWM master output
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] enNewSta            The function new state
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] enNewState          The function new state
  *           @arg  This parameter can be: Enable or Disable
  * @retval None
  */
@@ -2509,12 +2591,12 @@ void TMR4_PWM_AutoOutputCmd(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief Enable Timer4 PWM master output
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief Enable TMR4 PWM master output
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
  * @param  [in] enNewState          The function new state
  *           @arg  This parameter can be: Enable or Disable
  * @retval None
@@ -2537,20 +2619,20 @@ void TMR4_PWM_MasterOutputCmd(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief Set Timer4 PWM port output mode
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief Set TMR4 PWM port output mode
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32PwmPort          TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_PORT_OUH:  Timer4 PWM port - TIM4_<t>_OUH
- *           @arg TMR4_PWM_PORT_OUL:  Timer4 PWM port - TIM4_<t>_OUL
- *           @arg TMR4_PWM_PORT_OVH:  Timer4 PWM port - TIM4_<t>_OVH
- *           @arg TMR4_PWM_PORT_OVL:  Timer4 PWM port - TIM4_<t>_OVL
- *           @arg TMR4_PWM_PORT_OWH:  Timer4 PWM port - TIM4_<t>_OWH
- *           @arg TMR4_PWM_PORT_OWL:  Timer4 PWM port - TIM4_<t>_OWL
+ *           @arg TMR4_PWM_PORT_OUH:  TMR4 PWM port - TIM4_<t>_OUH
+ *           @arg TMR4_PWM_PORT_OUL:  TMR4 PWM port - TIM4_<t>_OUL
+ *           @arg TMR4_PWM_PORT_OVH:  TMR4 PWM port - TIM4_<t>_OVH
+ *           @arg TMR4_PWM_PORT_OVL:  TMR4 PWM port - TIM4_<t>_OVL
+ *           @arg TMR4_PWM_PORT_OWH:  TMR4 PWM port - TIM4_<t>_OWH
+ *           @arg TMR4_PWM_PORT_OWL:  TMR4 PWM port - TIM4_<t>_OWL
  * @param  [in] u32Mode             The PWM port output mode
  *         This parameter can be one of the following values:
  *           @arg TMR4_PWM_PORT_OUTPUT_OSxy: TIM4_<t>_Oxy output polarity by specified OSxy
@@ -2572,17 +2654,17 @@ void TMR4_PWM_PortOutputMode(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief Set Timer4 PWM port state
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief Set TMR4 PWM port enable bit effective time
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32PwmPort          Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32EffectTime       Effective time
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_IMMEDIATE:TIMER4 PWM port enable bit effective Time - Immediate
- *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_CNTUVF: TIMER4 PWM port enable bit effective Time - Timer4 counter underflow
- *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_CNTOVF: TIMER4 PWM port enable bit effective Time - Timer4 counter overflow
+ *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_IMMEDIATE:Effective time - Immediate
+ *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_CNTUVF: Effective time - TMR4 counter underflow
+ *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_CNTOVF: Effective time - TMR4 counter overflow
  * @retval None
  */
 void TMR4_PWM_SetPortEnBitEffectTime(M4_TMR4_TypeDef *TMR4x,
@@ -2596,16 +2678,16 @@ void TMR4_PWM_SetPortEnBitEffectTime(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief Get Timer4 PWM port state
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief Get TMR4 PWM port state
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
  * @retval Returned value can be one of the following values:
- *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_IMMEDIATE:TIMER4 PWM port enable bit effective Time - Immediate
- *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_CNTUVF: TIMER4 PWM port enable bit effective Time - Timer4 counter underflow
- *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_CNTOVF: TIMER4 PWM port enable bit effective Time - Timer4 counter overflow
+ *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_IMMEDIATE:TMR4 PWM port enable bit effective Time - Immediate
+ *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_CNTUVF: TMR4 PWM port enable bit effective Time - TMR4 counter underflow
+ *           @arg TMR4_PWM_PORT_ENBIT_EFFECT_CNTOVF: TMR4 PWM port enable bit effective Time - TMR4 counter overflow
  */
 uint32_t TMR4_PWM_GetPortEnBitEffectTime(const M4_TMR4_TypeDef *TMR4x)
 {
@@ -2616,20 +2698,20 @@ uint32_t TMR4_PWM_GetPortEnBitEffectTime(const M4_TMR4_TypeDef *TMR4x)
 }
 
 /**
- * @brief Timer4 PWM port output when emb event occur
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief TMR4 PWM port output when emb event occur
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32PwmPort          Timer4 PWM channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32PwmPort          TMR4 PWM channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_PWM_PORT_OUH:  Timer4 PWM port - TIM4_<t>_OUH
- *           @arg TMR4_PWM_PORT_OUL:  Timer4 PWM port - TIM4_<t>_OUL
- *           @arg TMR4_PWM_PORT_OVH:  Timer4 PWM port - TIM4_<t>_OVH
- *           @arg TMR4_PWM_PORT_OVL:  Timer4 PWM port - TIM4_<t>_OVL
- *           @arg TMR4_PWM_PORT_OWH:  Timer4 PWM port - TIM4_<t>_OWH
- *           @arg TMR4_PWM_PORT_OWL:  Timer4 PWM port - TIM4_<t>_OWL
+ *           @arg TMR4_PWM_PORT_OUH:  TMR4 PWM port - TIM4_<t>_OUH
+ *           @arg TMR4_PWM_PORT_OUL:  TMR4 PWM port - TIM4_<t>_OUL
+ *           @arg TMR4_PWM_PORT_OVH:  TMR4 PWM port - TIM4_<t>_OVH
+ *           @arg TMR4_PWM_PORT_OVL:  TMR4 PWM port - TIM4_<t>_OVL
+ *           @arg TMR4_PWM_PORT_OWH:  TMR4 PWM port - TIM4_<t>_OWH
+ *           @arg TMR4_PWM_PORT_OWL:  TMR4 PWM port - TIM4_<t>_OWL
  * @param  [in] u32State            The port new state
  *         This parameter can be one of the following values:
  *           @arg TMR4_PWM_EMB_PORT_OUTPUT_NORMAL:TIM4_<t>_Oxy output normal
@@ -2657,25 +2739,25 @@ void TMR4_PWM_EmbPwmPortOutputState(M4_TMR4_TypeDef *TMR4x,
  */
 
 /**
- * @defgroup TMR4_SEVT_Global_Functions TIMER4 SEVT Global Functions
+ * @defgroup TMR4_SEVT_Global_Functions TMR4 SEVT Global Functions
  * @{
  */
 
 /**
- * @brief  Initialize Timer4 SEVT
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Initialize TMR4 SEVT
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
  * @param  [in] pstcInit            Pointer to a @ref stc_tmr4_sevt_init_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize successfully
@@ -2774,20 +2856,20 @@ en_result_t TMR4_SEVT_StructInit(stc_tmr4_sevt_init_t *pstcInit)
 }
 
 /**
- * @brief  De-initialize Timer4 PWM
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  De-initialize TMR4 PWM
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
  * @retval None
  */
 void TMR4_SEVT_DeInit(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
@@ -2812,28 +2894,28 @@ void TMR4_SEVT_DeInit(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 }
 
 /**
- * @brief  Set Timer4 SEVT trigger event
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 SEVT trigger event
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
- * @param  [in] u16Event            Timer4 SEVT trigger event
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
+ * @param  [in] u16Event            TMR4 SEVT trigger event
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_OUTPUT_EVENT0: TIMER4 SEVT output special event 0
- *           @arg TMR4_SEVT_OUTPUT_EVENT1: TIMER4 SEVT output special event 1
- *           @arg TMR4_SEVT_OUTPUT_EVENT2: TIMER4 SEVT output special event 2
- *           @arg TMR4_SEVT_OUTPUT_EVENT3: TIMER4 SEVT output special event 3
- *           @arg TMR4_SEVT_OUTPUT_EVENT4: TIMER4 SEVT output special event 4
- *           @arg TMR4_SEVT_OUTPUT_EVENT5: TIMER4 SEVT output special event 5
+ *           @arg TMR4_SEVT_OUTPUT_EVENT0: TMR4 SEVT output special event 0
+ *           @arg TMR4_SEVT_OUTPUT_EVENT1: TMR4 SEVT output special event 1
+ *           @arg TMR4_SEVT_OUTPUT_EVENT2: TMR4 SEVT output special event 2
+ *           @arg TMR4_SEVT_OUTPUT_EVENT3: TMR4 SEVT output special event 3
+ *           @arg TMR4_SEVT_OUTPUT_EVENT4: TMR4 SEVT output special event 4
+ *           @arg TMR4_SEVT_OUTPUT_EVENT5: TMR4 SEVT output special event 5
  * @retval None
  */
 void TMR4_SEVT_SetOutpuEvent(M4_TMR4_TypeDef *TMR4x,
@@ -2855,27 +2937,27 @@ void TMR4_SEVT_SetOutpuEvent(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 SEVT trigger event
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 SEVT trigger event
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
  * @retval Returned value can be one of the following values:
- *           @arg TMR4_SEVT_OUTPUT_EVENT0: TIMER4 SEVT output special event 0
- *           @arg TMR4_SEVT_OUTPUT_EVENT1: TIMER4 SEVT output special event 1
- *           @arg TMR4_SEVT_OUTPUT_EVENT2: TIMER4 SEVT output special event 2
- *           @arg TMR4_SEVT_OUTPUT_EVENT3: TIMER4 SEVT output special event 3
- *           @arg TMR4_SEVT_OUTPUT_EVENT4: TIMER4 SEVT output special event 4
- *           @arg TMR4_SEVT_OUTPUT_EVENT5: TIMER4 SEVT output special event 5
+ *           @arg TMR4_SEVT_OUTPUT_EVENT0: TMR4 SEVT output special event 0
+ *           @arg TMR4_SEVT_OUTPUT_EVENT1: TMR4 SEVT output special event 1
+ *           @arg TMR4_SEVT_OUTPUT_EVENT2: TMR4 SEVT output special event 2
+ *           @arg TMR4_SEVT_OUTPUT_EVENT3: TMR4 SEVT output special event 3
+ *           @arg TMR4_SEVT_OUTPUT_EVENT4: TMR4 SEVT output special event 4
+ *           @arg TMR4_SEVT_OUTPUT_EVENT5: TMR4 SEVT output special event 5
  */
 uint16_t TMR4_SEVT_GetOutpuEvent(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 {
@@ -2891,24 +2973,24 @@ uint16_t TMR4_SEVT_GetOutpuEvent(M4_TMR4_TypeDef *TMR4x, uint32_t u32Ch)
 }
 
 /**
- * @brief  Set Timer4 SEVT delay object
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 SEVT delay object
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
- * @param  [in] u16DelayObject      Timer4 SEVT delay object
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
+ * @param  [in] u16DelayObject      TMR4 SEVT delay object
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_DELAY_OCCRXH: TIMER4 SEVT delay object - OCCRxh
- *           @arg TMR4_SEVT_DELAY_OCCRXL: TIMER4 SEVT delay object - OCCRxl
+ *           @arg TMR4_SEVT_DELAY_OCCRXH: TMR4 SEVT delay object - OCCRxh
+ *           @arg TMR4_SEVT_DELAY_OCCRXL: TMR4 SEVT delay object - OCCRxl
  * @retval None
  */
 void TMR4_SEVT_SetDelayObject(M4_TMR4_TypeDef *TMR4x,
@@ -2930,23 +3012,23 @@ void TMR4_SEVT_SetDelayObject(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 SEVT SCCR register value
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 SEVT SCCR register value
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
  * @retval Returned value can be one of the following values:
- *           @arg TMR4_SEVT_DELAY_OCCRXH: TIMER4 SEVT delay object - OCCRxh
- *           @arg TMR4_SEVT_DELAY_OCCRXL: TIMER4 SEVT delay object - OCCRxl
+ *           @arg TMR4_SEVT_DELAY_OCCRXH: TMR4 SEVT delay object - OCCRxh
+ *           @arg TMR4_SEVT_DELAY_OCCRXL: TMR4 SEVT delay object - OCCRxl
  */
 uint16_t TMR4_SEVT_GetDelayObject(const M4_TMR4_TypeDef *TMR4x,
                                             uint32_t u32Ch)
@@ -2964,20 +3046,20 @@ uint16_t TMR4_SEVT_GetDelayObject(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 SEVT compare value
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 SEVT compare value
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
  * @param  [in] u16CompareVal       SCCR register value
  *           @arg number of 16bit
  * @retval None
@@ -3000,20 +3082,20 @@ void TMR4_SEVT_SetCompareVal(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 SEVT compare value
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 SEVT compare value
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
  * @retval SCCR register value
  */
 uint16_t TMR4_SEVT_GetCompareVal(const M4_TMR4_TypeDef *TMR4x,
@@ -3032,20 +3114,20 @@ uint16_t TMR4_SEVT_GetCompareVal(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 SEVT trigger event.
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 SEVT trigger event.
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
  * @param  [in] u16MaskTimes        Mask times
  *           @arg TMR4_SEVT_MASK_0:   Mask 0 times
  *           @arg TMR4_SEVT_MASK_1:   Mask 1 times
@@ -3084,20 +3166,20 @@ void TMR4_SEVT_SetMaskTimes(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 SEVT SCCR register value
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 SEVT SCCR register value
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u32Ch               Timer4 SEVT channel
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u32Ch               TMR4 SEVT channel
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_UH:     Timer4 SEVT channel - UH
- *           @arg TMR4_SEVT_UL:     Timer4 SEVT channel - UL
- *           @arg TMR4_SEVT_VH:     Timer4 SEVT channel - VH
- *           @arg TMR4_SEVT_VL:     Timer4 SEVT channel - VL
- *           @arg TMR4_SEVT_WH:     Timer4 SEVT channel - WH
- *           @arg TMR4_SEVT_WL:     Timer4 SEVT channel - WL
+ *           @arg TMR4_SEVT_UH:     TMR4 SEVT channel - UH
+ *           @arg TMR4_SEVT_UL:     TMR4 SEVT channel - UL
+ *           @arg TMR4_SEVT_VH:     TMR4 SEVT channel - VH
+ *           @arg TMR4_SEVT_VL:     TMR4 SEVT channel - VL
+ *           @arg TMR4_SEVT_WH:     TMR4 SEVT channel - WH
+ *           @arg TMR4_SEVT_WL:     TMR4 SEVT channel - WL
  * @retval Returned value can be one of the following values:
  *           @arg TMR4_SEVT_MASK_0:   Mask 0 times
  *           @arg TMR4_SEVT_MASK_1:   Mask 1 times
@@ -3132,21 +3214,21 @@ uint16_t TMR4_SEVT_GetMaskTimes(const M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Set Timer4 SEVT event signal output to port
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Set TMR4 SEVT event signal output to port
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
- * @param  [in] u16EvtSignal        Timer4 SEVT event signal selection
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
+ * @param  [in] u16EvtSignal        TMR4 SEVT event signal selection
  *         This parameter can be one of the following values:
- *           @arg TMR4_SEVT_PORT_OUTPUT_NONE: Disable output event signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT0_SIGNAL: Output the specified event 0 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT1_SIGNAL: Output the specified event 1 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT2_SIGNAL: Output the specified event 2 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT3_SIGNAL: Output the specified event 3 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT4_SIGNAL: Output the specified event 4 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT5_SIGNAL: Output the specified event 5 signal of Timer4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_NONE: Disable output event signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT0_SIGNAL: Output the specified event 0 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT1_SIGNAL: Output the specified event 1 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT2_SIGNAL: Output the specified event 2 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT3_SIGNAL: Output the specified event 3 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT4_SIGNAL: Output the specified event 4 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT5_SIGNAL: Output the specified event 5 signal of TMR4 Special-EVT
  * @retval None
  */
 void TMR4_SEVT_SetPortOutputEventSig(M4_TMR4_TypeDef *TMR4x,
@@ -3160,20 +3242,20 @@ void TMR4_SEVT_SetPortOutputEventSig(M4_TMR4_TypeDef *TMR4x,
 }
 
 /**
- * @brief  Get Timer4 SEVT event signal output to port
- * @param  [in] TMR4x               Pointer to Timer4 instance register base
+ * @brief  Get TMR4 SEVT event signal output to port
+ * @param  [in] TMR4x               Pointer to TMR4 instance register base
  *         This parameter can be one of the following values:
- *           @arg M4_TMR4_1:        Timer4 unit 1 instance register base
- *           @arg M4_TMR4_2:        Timer4 unit 2 instance register base
- *           @arg M4_TMR4_3:        Timer4 unit 3 instance register base
+ *           @arg M4_TMR4_1:        TMR4 unit 1 instance register base
+ *           @arg M4_TMR4_2:        TMR4 unit 2 instance register base
+ *           @arg M4_TMR4_3:        TMR4 unit 3 instance register base
  * @retval Returned value can be one of the following values:
- *           @arg TMR4_SEVT_PORT_OUTPUT_NONE: Disable output event signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT0_SIGNAL: Output the specified event 0 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT1_SIGNAL: Output the specified event 1 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT2_SIGNAL: Output the specified event 2 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT3_SIGNAL: Output the specified event 3 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT4_SIGNAL: Output the specified event 4 signal of Timer4 Special-EVT
- *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT5_SIGNAL: Output the specified event 5 signal of Timer4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_NONE: Disable output event signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT0_SIGNAL: Output the specified event 0 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT1_SIGNAL: Output the specified event 1 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT2_SIGNAL: Output the specified event 2 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT3_SIGNAL: Output the specified event 3 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT4_SIGNAL: Output the specified event 4 signal of TMR4 Special-EVT
+ *           @arg TMR4_SEVT_PORT_OUTPUT_EVENT5_SIGNAL: Output the specified event 5 signal of TMR4 Special-EVT
  */
 uint16_t TMR4_SEVT_GetPortOutputEventSig(const M4_TMR4_TypeDef *TMR4x)
 {

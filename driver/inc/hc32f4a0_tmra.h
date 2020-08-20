@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  hc32f4a0_timera.h
- * @brief This file contains all the functions prototypes of the TimerA driver
- *        library.
+ * @file  hc32f4a0_tmra.h
+ * @brief This file contains all the functions prototypes of the TMRA(TimerA)
+ *        driver library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -71,7 +71,7 @@ extern "C"
  */
 
 /**
- * @addtogroup DDL_TIMERA
+ * @addtogroup DDL_TMRA
  * @{
  */
 
@@ -81,16 +81,16 @@ extern "C"
  * Global type definitions ('typedef')
  ******************************************************************************/
 /**
- * @defgroup TMRA_Global_Types TimerA Global Types
+ * @defgroup TMRA_Global_Types TMRA Global Types
  * @{
  */
 /**
- * @brief TIMERA initialization structure.
+ * @brief TMRA initialization structure.
  * @note 'u32PCLKDiv', 'u32CntDir' and 'u32CntMode' are valid only when the clock source is PCLK(PCLK0 for unit1 ~ uint4. PCLK1 for unit5 ~ uint12).
  */
 typedef struct
 {
-    uint32_t u32ClkSrc;                     /*!< Specify the counting clock source of TIMERA.
+    uint32_t u32ClkSrc;                     /*!< Specify the counting clock source of TMRA.
                                                  This parameter can be a value of @ref TMRA_Clock_Source */
     uint32_t u32PCLKDiv;                    /*!< Specify the divider of clock source while the clock source is PCLK.
                                                  This parameter can be a value of @ref TMRA_PCLK_Divider */
@@ -100,37 +100,39 @@ typedef struct
                                                  This parameter can be a value of @ref TMRA_Count_Mode */
     uint32_t u32CntOvfOp;                   /*!< Specify the operation when counting overflow/underflow.
                                                  This parameter can be a value of @ref TMRA_Count_Overflow_Operation */
-    uint32_t u32PeriodVal;                  /*!< Specify the period reference value. */
-    uint32_t u32CntVal;                     /*!< Specify the initial value of count register. */
+    uint32_t u32PeriodVal;                  /*!< Specify the period reference value.
+                                                 This parameter can be a number between 0U and 0xFFFFU, inclusive. */
+    uint32_t u32CntVal;                     /*!< Specify the initial value of count register.
+                                                 This parameter can be a number between 0U and 0xFFFFU, inclusive. */
 } stc_tmra_init_t;
 
 /**
- * @brief TIMERA PWM configuration structure.
+ * @brief TMRA PWM configuration structure.
  */
 typedef struct
 {
-    uint32_t u32StartPolarity;              /*!< Specify the polarity when the specified TIMERA channel start counting.
+    uint32_t u32StartPolarity;              /*!< Specify the polarity when the specified TMRA channel start counting.
                                                  This parameter can be a value of @ref TMRA_PWM_Start_Polarity */
-    uint32_t u32StopPolarity;               /*!< Specify the polarity when the specified TIMERA channel stop counting.
+    uint32_t u32StopPolarity;               /*!< Specify the polarity when the specified TMRA channel stop counting.
                                                  This parameter can be a value of @ref TMRA_PWM_Stop_Polarity */
-    uint32_t u32CMPolarity;                 /*!< Specify the polarity when the specified TIMERA channel counting matches the compare register.
-                                                 This parameter can be a value of @ref TMRA_PWM_Count_Match_Polarity */
-    uint32_t u32PMPolarity;                 /*!< Specify the polarity when the specified TIMERA channel counting matches the period register.
-                                                 This parameter can be a value of @ref TMRA_PWM_Period_Match_Polarity */
-    uint32_t u32ForcePolarity;              /*!< Specify the polarity when the specified TIMERA channel at the beginning of the next cycle. 
+    uint32_t u32CmpPolarity;                /*!< Specify the polarity when the specified TMRA channel counting matches the compare register.
+                                                 This parameter can be a value of @ref TMRA_PWM_Match_Cmp_Polarity */
+    uint32_t u32PeriodPolarity;             /*!< Specify the polarity when the specified TMRA channel counting matches the period register.
+                                                 This parameter can be a value of @ref TMRA_PWM_Match_Period_Polarity */
+    uint32_t u32ForcePolarity;              /*!< Specify the polarity when the specified TMRA channel at the beginning of the next cycle.
                                                  This parameter can be a value of @ref TMRA_PWM_Force_Polarity */
 } stc_tmra_pwm_cfg_t;
 
 /**
- * @brief TIMERA hardware trigger condition configuration structure.
+ * @brief TMRA hardware trigger condition configuration structure.
  */
 typedef struct
 {
-    uint32_t u32StartCond;                  /*!< Specify the condition to start the specified TIMERA unit.
+    uint32_t u32StartCond;                  /*!< Specify the condition to start the specified TMRA unit.
                                                  This parameter can be a value of @ref TMRA_Hardware_Start_Condition */
-    uint32_t u32StopCond;                   /*!< Specify the condition to stop the specified TIMERA unit.
+    uint32_t u32StopCond;                   /*!< Specify the condition to stop the specified TMRA unit.
                                                  This parameter can be a value of @ref TMRA_Hardware_Stop_Condition */
-    uint32_t u32ClrCond;                    /*!< Specify the condition to clear the specified TIMERA unit's count register.
+    uint32_t u32ClrCond;                    /*!< Specify the condition to clear the specified TMRA unit's count register.
                                                  This parameter can be a value of @ref TMRA_Hardware_Clear_Condition */
 } stc_tmra_trig_cond_t;
 
@@ -142,29 +144,29 @@ typedef struct
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup TMRA_Global_Macros TimerA Global Macros
+ * @defgroup TMRA_Global_Macros TMRA Global Macros
  * @{
  */
 
 /**
- * @defgroup TMRA_Channel TIMERA Channel
+ * @defgroup TMRA_Channel TMRA Channel
  * @{
  */
-#define TMRA_CH_1                           (0U)                        /*!< Channel 1 of TIMERA. */
-#define TMRA_CH_2                           (1U)                        /*!< Channel 2 of TIMERA. */
-#define TMRA_CH_3                           (2U)                        /*!< Channel 3 of TIMERA. */
-#define TMRA_CH_4                           (3U)                        /*!< Channel 4 of TIMERA. */
+#define TMRA_CH_1                           (0U)                        /*!< Channel 1 of TMRA. */
+#define TMRA_CH_2                           (1U)                        /*!< Channel 2 of TMRA. */
+#define TMRA_CH_3                           (2U)                        /*!< Channel 3 of TMRA. */
+#define TMRA_CH_4                           (3U)                        /*!< Channel 4 of TMRA. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_Input_Pin TIMERA Input Pin
+ * @defgroup TMRA_Input_Pin TMRA Input Pin
  * @{
  */
 #define TMRA_PIN_TRIG                       (1UL << 0U)                 /*!< Pin TIMA_<t>_TRIG. */
-#define TMRA_PIN_CLKA                       (1UL << 1U)                 /*!< Pin TIMA_<t>_PWM1/TIMA_<t>_CLKA. */
-#define TMRA_PIN_CLKB                       (1UL << 2U)                 /*!< Pin TIMA_<t>_PWM2/TIMA_<t>_CLKB. */
+#define TMRA_PIN_CLKA                       (1UL << 1U)                 /*!< Pin TIMA_<t>_CLKA. */
+#define TMRA_PIN_CLKB                       (1UL << 2U)                 /*!< Pin TIMA_<t>_CLKB. */
 #define TMRA_PIN_PWM1                       (1UL << 3U)                 /*!< Pin TIMA_<t>_PWM1. */
 #define TMRA_PIN_PWM2                       (1UL << 4U)                 /*!< Pin TIMA_<t>_PWM2. */
 #define TMRA_PIN_PWM3                       (1UL << 5U)                 /*!< Pin TIMA_<t>_PWM3. */
@@ -181,17 +183,17 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Count_Direction TIMERA Counting Direction
+ * @defgroup TMRA_Count_Direction TMRA Counting Direction
  * @{
  */
-#define TMRA_DIR_DOWN                       (0x0U)                      /*!< TIMERA count goes down. */
-#define TMRA_DIR_UP                         (TMRA_BCSTR_DIR)            /*!< TIMERA count goes up. */
+#define TMRA_DIR_DOWN                       (0x0U)                      /*!< TMRA count down. */
+#define TMRA_DIR_UP                         (TMRA_BCSTR_DIR)            /*!< TMRA count up. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_Count_Mode TIMERA Counting Mode
+ * @defgroup TMRA_Count_Mode TMRA Counting Mode
  * @{
  */
 #define TMRA_MODE_SAWTOOTH                  (0x0U)                      /*!< Count mode is sawtooth wave. */
@@ -201,7 +203,7 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Clock_Source TIMERA Counting Clock Source
+ * @defgroup TMRA_Clock_Source TMRA Counting Clock Source
  * @note PCLK is automatically disabled when other clock is selected.
  * @note Symmetric units: uint 1 and 2; uint 3 and 4; ...; uint 11 and 12.
  * @{
@@ -242,44 +244,46 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_PCLK_Divider TIMERA PCLK Divider
+ * @defgroup TMRA_PCLK_Divider TMRA PCLK Divider
  * @note Clock divider is only valid for PCLK(PCLK0 for unit1 ~ uint4. PCLK1 for unit5 ~ uint12).
  * @{
  */
-#define TMRA_PCLK_DIV_1                     (0x0U)                      /*!< The clock source of TIMERA is PCLK. */
-#define TMRA_PCLK_DIV_2                     (TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TIMERA is PCLK / 2. */
-#define TMRA_PCLK_DIV_4                     (TMRA_BCSTR_CKDIV_1)        /*!< The clock source of TIMERA is PCLK / 4. */
-#define TMRA_PCLK_DIV_8                     (TMRA_BCSTR_CKDIV_1 | \
-                                             TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TIMERA is PCLK / 8. */
-#define TMRA_PCLK_DIV_16                    (TMRA_BCSTR_CKDIV_2)        /*!< The clock source of TIMERA is PCLK / 16. */
-#define TMRA_PCLK_DIV_32                    (TMRA_BCSTR_CKDIV_2 | \
-                                             TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TIMERA is PCLK / 32. */
-#define TMRA_PCLK_DIV_64                    (TMRA_BCSTR_CKDIV_2 | \
-                                             TMRA_BCSTR_CKDIV_1)        /*!< The clock source of TIMERA is PCLK / 64. */
-#define TMRA_PCLK_DIV_128                   (TMRA_BCSTR_CKDIV_2 | \
+#define TMRA_PCLK_DIV1                      (0x0U)                      /*!< The clock source of TMRA is PCLK. */
+#define TMRA_PCLK_DIV2                      (TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TMRA is PCLK / 2. */
+#define TMRA_PCLK_DIV4                      (TMRA_BCSTR_CKDIV_1)        /*!< The clock source of TMRA is PCLK / 4. */
+#define TMRA_PCLK_DIV8                      (TMRA_BCSTR_CKDIV_1 | \
+                                             TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TMRA is PCLK / 8. */
+#define TMRA_PCLK_DIV16                     (TMRA_BCSTR_CKDIV_2)        /*!< The clock source of TMRA is PCLK / 16. */
+#define TMRA_PCLK_DIV32                     (TMRA_BCSTR_CKDIV_2 | \
+                                             TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TMRA is PCLK / 32. */
+#define TMRA_PCLK_DIV64                     (TMRA_BCSTR_CKDIV_2 | \
+                                             TMRA_BCSTR_CKDIV_1)        /*!< The clock source of TMRA is PCLK / 64. */
+#define TMRA_PCLK_DIV128                    (TMRA_BCSTR_CKDIV_2 | \
                                              TMRA_BCSTR_CKDIV_1 | \
-                                             TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TIMERA is PCLK / 128. */
-#define TMRA_PCLK_DIV_256                   (TMRA_BCSTR_CKDIV_3)        /*!< The clock source of TIMERA is PCLK / 256. */
-#define TMRA_PCLK_DIV_512                   (TMRA_BCSTR_CKDIV_3 | \
-                                             TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TIMERA is PCLK / 512. */
-#define TMRA_PCLK_DIV_1024                  (TMRA_BCSTR_CKDIV_3 | \
-                                             TMRA_BCSTR_CKDIV_1)        /*!< The clock source of TIMERA is PCLK / 1024. */
+                                             TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TMRA is PCLK / 128. */
+#define TMRA_PCLK_DIV256                    (TMRA_BCSTR_CKDIV_3)        /*!< The clock source of TMRA is PCLK / 256. */
+#define TMRA_PCLK_DIV512                    (TMRA_BCSTR_CKDIV_3 | \
+                                             TMRA_BCSTR_CKDIV_0)        /*!< The clock source of TMRA is PCLK / 512. */
+#define TMRA_PCLK_DIV1024                   (TMRA_BCSTR_CKDIV_3 | \
+                                             TMRA_BCSTR_CKDIV_1)        /*!< The clock source of TMRA is PCLK / 1024. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_Count_Overflow_Operation TIMERA Count Overflow Operation
+ * @defgroup TMRA_Count_Overflow_Operation TMRA Count Overflow Operation
+ * @note Count up corresponds to overflow, counter zeroing when counting value overflow period value.
+ * @note Count down corresponds to underflow, counter reload period value when counting value underflow 0.
  * @{
  */
-#define TMRA_OVF_KEEP_CNT                   (0x0U)                      /*!< When counting overflow(or underflow), counting keep going. */
-#define TMRA_OVF_STOP                       (TMRA_BCSTR_OVSTP)          /*!< When counting overflow(or underflow), counting stop. */
+#define TMRA_OVF_CNT_CONTINUE               (0x0U)                      /*!< When counting overflow(or underflow), counting continue. */
+#define TMRA_OVF_CNT_STOP                   (TMRA_BCSTR_OVSTP)          /*!< When counting overflow(or underflow), counting stop. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_Interrupt_Type TIMERA Interrupt Type
+ * @defgroup TMRA_Interrupt_Type TMRA Interrupt Type
  * @{
  */
 #define TMRA_INT_OVF                        (1UL << 12U)                /*!< The interrupt of counting overflow. */
@@ -299,7 +303,7 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Event_Type TIMERA Event Type
+ * @defgroup TMRA_Event_Type TMRA Event Type
  * @{
  */
 #define TMRA_EVENT_CMP_CH1                  (TMRA_ECONR_ETEN1)          /*!< The event of compare-match of channel 1. */
@@ -315,7 +319,7 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Status_Flag TIMERA Status Flag
+ * @defgroup TMRA_Status_Flag TMRA Status Flag
  * @{
  */
 #define TMRA_FLAG_OVF                       (1UL << 14U)                /*!< The flag of counting overflow. */
@@ -335,7 +339,7 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Cmp_Value_Cache_Condition TIMERA Compare Value Cache Condition
+ * @defgroup TMRA_Cmp_Value_Cache_Condition TMRA Compare Value Cache Condition
  * @{
  */
 #define TMRA_CACHE_COND_OVF_CLR             (0x0U)                      /*!< This configuration value applies to non-triangular wave counting mode. \
@@ -350,17 +354,17 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Function_Mode TIMERA Function Mode
+ * @defgroup TMRA_Function_Mode TMRA Function Mode
  * @{
  */
-#define TMRA_FUNC_COMPARE                   (0x0U)                      /*!< The function mode of TIMERA is comparison ouput. */
-#define TMRA_FUNC_CAPTURE                   (TMRA_CCONR_CAPMD)          /*!< The function mode of TIMERA is capture the input. */
+#define TMRA_FUNC_COMPARE                   (0x0U)                      /*!< The function mode of TMRA is comparison ouput. */
+#define TMRA_FUNC_CAPTURE                   (TMRA_CCONR_CAPMD)          /*!< The function mode of TMRA is capture the input. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_Channel_Capture_Condition TIMERA Capturing Condition Of Channel
+ * @defgroup TMRA_Channel_Capture_Condition TMRA Capturing Condition Of Channel
  * @note 'TMRA_CAPT_COND_TRIGR' and 'TMRA_CAPT_COND_TRIGF' are only valid for channel 4.
  * @{
  */
@@ -382,19 +386,19 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Filter_Clock_Divider TIMERA Filter Clock Divider
+ * @defgroup TMRA_Filter_Clock_Divider TMRA Filter Clock Divider
  * @{
  */
-#define TMRA_FILTER_CLK_DIV_1               (0x0U)                      /*!< The filter clock is PCLK / 1. */
-#define TMRA_FILTER_CLK_DIV_4               (0x1U)                      /*!< The filter clock is PCLK / 4. */
-#define TMRA_FILTER_CLK_DIV_16              (0x2U)                      /*!< The filter clock is PCLK / 16. */
-#define TMRA_FILTER_CLK_DIV_64              (0x3U)                      /*!< The filter clock is PCLK / 64. */
+#define TMRA_FILTER_CLK_DIV1                (0x0U)                      /*!< The filter clock is PCLK / 1. */
+#define TMRA_FILTER_CLK_DIV4                (0x1U)                      /*!< The filter clock is PCLK / 4. */
+#define TMRA_FILTER_CLK_DIV16               (0x2U)                      /*!< The filter clock is PCLK / 16. */
+#define TMRA_FILTER_CLK_DIV64               (0x3U)                      /*!< The filter clock is PCLK / 64. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_PWM_Out_Command TIMERA PWM Out Command
+ * @defgroup TMRA_PWM_Out_Command TMRA PWM Out Command
  * @{
  */
 #define TMRA_PWM_DISABLE                    (0x0U)                      /*!< Disable PWM output. */
@@ -404,66 +408,64 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_PWM_Start_Polarity TIMERA PWM Start Polarity
+ * @defgroup TMRA_PWM_Start_Polarity TMRA PWM Start Polarity
  * @note The 'START' in the following macros is the state 'counting start'.
  * @{
  */
 #define TMRA_PWM_START_LOW                  (0x0U)                      /*!< PWM output low. */
-#define TMRA_PWM_START_HI                   (TMRA_PCONR_STAC_0)         /*!< PWM output high. */
+#define TMRA_PWM_START_HIGH                 (TMRA_PCONR_STAC_0)         /*!< PWM output high. */
 #define TMRA_PWM_START_KEEP                 (TMRA_PCONR_STAC_1)         /*!< PWM output keeps the current polarity. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_PWM_Stop_Polarity TIMERA PWM Stop Polarity
+ * @defgroup TMRA_PWM_Stop_Polarity TMRA PWM Stop Polarity
  * @note The 'STOP' in the following macros is the state 'counting stop'.
  * @{
  */
 #define TMRA_PWM_STOP_LOW                   (0x0U)                      /*!< PWM output low. */
-#define TMRA_PWM_STOP_HI                    (TMRA_PCONR_STPC_0)         /*!< PWM output high. */
+#define TMRA_PWM_STOP_HIGH                  (TMRA_PCONR_STPC_0)         /*!< PWM output high. */
 #define TMRA_PWM_STOP_KEEP                  (TMRA_PCONR_STPC_1)         /*!< PWM output keeps the current polarity. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_PWM_Count_Match_Polarity TIMERA PWM Count Match Polarity
- * @note The 'CM' in the following macros is the state 'the counter is equal to the comparison reference value'.
+ * @defgroup TMRA_PWM_Match_Cmp_Polarity TMRA PWM Polarity When Counting Matchs Compare Reference Value
  * @{
  */
-#define TMRA_PWM_CM_LOW                     (0x0U)                      /*!< PWM output low. */
-#define TMRA_PWM_CM_HI                      (TMRA_PCONR_CMPC_0)         /*!< PWM output high. */
-#define TMRA_PWM_CM_KEEP                    (TMRA_PCONR_CMPC_1)         /*!< PWM output keeps the current polarity. */
-#define TMRA_PWM_CM_REVERSE                 (TMRA_PCONR_CMPC_1 | \
+#define TMRA_PWM_CMP_LOW                    (0x0U)                      /*!< PWM output low. */
+#define TMRA_PWM_CMP_HIGH                   (TMRA_PCONR_CMPC_0)         /*!< PWM output high. */
+#define TMRA_PWM_CMP_KEEP                   (TMRA_PCONR_CMPC_1)         /*!< PWM output keeps the current polarity. */
+#define TMRA_PWM_CMP_REVERSE                (TMRA_PCONR_CMPC_1 | \
                                              TMRA_PCONR_CMPC_0)         /*!< PWM output reverses the current polarity. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_PWM_Period_Match_Polarity TIMERA PWM Period Match Polarity
- * @note The 'PM' in the following macros is the state 'the counter is equal to the period reference value'.
+ * @defgroup TMRA_PWM_Match_Period_Polarity TMRA PWM Polarity When Counting Matchs Period Reference Value
  * @{
  */
-#define TMRA_PWM_PM_LOW                     (0x0U)                      /*!< PWM output low. */
-#define TMRA_PWM_PM_HI                      (TMRA_PCONR_PERC_0)         /*!< PWM output high. */
-#define TMRA_PWM_PM_KEEP                    (TMRA_PCONR_PERC_1)         /*!< PWM output keeps the current polarity. */
-#define TMRA_PWM_PM_REVERSE                 (TMRA_PCONR_PERC_1 | \
+#define TMRA_PWM_PERIOD_LOW                 (0x0U)                      /*!< PWM output low. */
+#define TMRA_PWM_PERIOD_HIGH                (TMRA_PCONR_PERC_0)         /*!< PWM output high. */
+#define TMRA_PWM_PERIOD_KEEP                (TMRA_PCONR_PERC_1)         /*!< PWM output keeps the current polarity. */
+#define TMRA_PWM_PERIOD_REVERSE             (TMRA_PCONR_PERC_1 | \
                                              TMRA_PCONR_PERC_0)         /*!< PWM output reverses the current polarity. */
 /**
  * @}
  */
 
 /**
- * @defgroup TMRA_PWM_Force_Polarity TIMERA PWM Force Polarity
+ * @defgroup TMRA_PWM_Force_Polarity TMRA PWM Force Polarity
  * @{
  */
 #define TMRA_PWM_FORCE_INVALID              (0x0U)                      /*!< Force polarity is invalid. */
 #define TMRA_PWM_FORCE_LOW                  (TMRA_PCONR_FORC_1)         /*!< Force the PWM output low at the beginning of the next cycle. \
                                                                              The beginning of the next cycle: overflow position or underflow position \
                                                                              of sawtooth wave; valley position of triangle wave. */
-#define TMRA_PWM_FORCE_HI                   (TMRA_PCONR_FORC_1 | \
+#define TMRA_PWM_FORCE_HIGH                 (TMRA_PCONR_FORC_1 | \
                                              TMRA_PCONR_FORC_0)         /*!< Force the PWM output high at the beginning of the next cycle. \
                                                                              The beginning of the next cycle: overflow position or underflow position \
                                                                              of sawtooth wave; valley position of triangle wave. */
@@ -472,14 +474,14 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Hardware_Start_Condition TIMERA Hardware Start Condition
+ * @defgroup TMRA_Hardware_Start_Condition TMRA Hardware Start Condition
  * @{
  */
 #define TMRA_START_COND_INVALID             (0x0U)                  /*!< The condition of start is INVALID. */
-#define TMRA_START_COND_TRIGR               (TMRA_HCONR_HSTA0)      /*!< 1. Sync start is invalid: The condition is that a rising edge is sampled on TRIG of the current TIMERA unit. \
-                                                                         2. Sync start is valid: The condition is that a rising edge is sampled on TRIG of the symmetric TIMERA unit. */
-#define TMRA_START_COND_TRIGF               (TMRA_HCONR_HSTA1)      /*!< 1. Sync start is invalid: The condition is that a falling edge is sampled on TRIG of the current TIMERA unit. \
-                                                                         2. Sync start is valid: The condition is that a falling edge is sampled on TRIG of the symmetric TIMERA unit. */
+#define TMRA_START_COND_TRIGR               (TMRA_HCONR_HSTA0)      /*!< 1. Sync start is invalid: The condition is that a rising edge is sampled on TRIG of the current TMRA unit. \
+                                                                         2. Sync start is valid: The condition is that a rising edge is sampled on TRIG of the symmetric TMRA unit. */
+#define TMRA_START_COND_TRIGF               (TMRA_HCONR_HSTA1)      /*!< 1. Sync start is invalid: The condition is that a falling edge is sampled on TRIG of the current TMRA unit. \
+                                                                         2. Sync start is valid: The condition is that a falling edge is sampled on TRIG of the symmetric TMRA unit. */
 #define TMRA_START_COND_EVENT               (TMRA_HCONR_HSTA2)      /*!< The condition is that the event which is set in register TMRA_HTSSR0 has occurred. */
 #define TMRA_START_COND_ALL                 (TMRA_START_COND_TRIGR | \
                                              TMRA_START_COND_TRIGF | \
@@ -489,12 +491,12 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Hardware_Stop_Condition TIMERA Hardware Stop Condition
+ * @defgroup TMRA_Hardware_Stop_Condition TMRA Hardware Stop Condition
  * @{
  */
 #define TMRA_STOP_COND_INVALID              (0x0U)                  /*!< The condition of stop is INVALID. */
-#define TMRA_STOP_COND_TRIGR                (TMRA_HCONR_HSTP0)      /*!< The condition is that a rising edge is sampled on pin TRIG of the current TIMERA unit. */
-#define TMRA_STOP_COND_TRIGF                (TMRA_HCONR_HSTP1)      /*!< The condition is that a falling edge is sampled on pin TRIG of the current TIMERA unit. */
+#define TMRA_STOP_COND_TRIGR                (TMRA_HCONR_HSTP0)      /*!< The condition is that a rising edge is sampled on pin TRIG of the current TMRA unit. */
+#define TMRA_STOP_COND_TRIGF                (TMRA_HCONR_HSTP1)      /*!< The condition is that a falling edge is sampled on pin TRIG of the current TMRA unit. */
 #define TMRA_STOP_COND_EVENT                (TMRA_HCONR_HSTP2)      /*!< The condition is that the event which is set in register TMRA_HTSSR0 has occurred. */
 #define TMRA_STOP_COND_ALL                  (TMRA_STOP_COND_TRIGR | \
                                              TMRA_STOP_COND_TRIGF | \
@@ -504,18 +506,18 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Hardware_Clear_Condition TIMERA Hardware Clear Condition
+ * @defgroup TMRA_Hardware_Clear_Condition TMRA Hardware Clear Condition
  * @note Symmetric units: uint 1 and 2; uint 3 and 4; ... ; uint 11 and 12.
  * @{
  */
 #define TMRA_CLR_COND_INVALID               (0x0U)                  /*!< The condition of clear is INVALID. */
-#define TMRA_CLR_COND_TRIGR                 (TMRA_HCONR_HCLE0)      /*!< The condition is that a rising edge is sampled on TRIG of the current TIMERA unit. */
-#define TMRA_CLR_COND_TRIGF                 (TMRA_HCONR_HCLE1)      /*!< The condition is that a falling edge is sampled on TRIG of the current TIMERA unit. */
+#define TMRA_CLR_COND_TRIGR                 (TMRA_HCONR_HCLE0)      /*!< The condition is that a rising edge is sampled on TRIG of the current TMRA unit. */
+#define TMRA_CLR_COND_TRIGF                 (TMRA_HCONR_HCLE1)      /*!< The condition is that a falling edge is sampled on TRIG of the current TMRA unit. */
 #define TMRA_CLR_COND_EVENT                 (TMRA_HCONR_HCLE2)      /*!< The condition is that the event which is set in register TMRA_HTSSR0 has occurred. */
 #define TMRA_CLR_COND_SYM_TRIGR             (TMRA_HCONR_HCLE3)      /*!< The condition is that a rising edge is sampled on TRIG of the symmetric unit. */
 #define TMRA_CLR_COND_SYM_TRIGF             (TMRA_HCONR_HCLE4)      /*!< The condition is that a falling edge is sampled on TRIG of the symmetric unit. */
-#define TMRA_CLR_COND_PWM3R                 (TMRA_HCONR_HCLE5)      /*!< The condition is that a rising edge is sampled on PWM3 of the current TIMERA unit. */
-#define TMRA_CLR_COND_PWM3F                 (TMRA_HCONR_HCLE6)      /*!< The condition is that a falling edge is sampled on PWM3 of the current TIMERA unit. */
+#define TMRA_CLR_COND_PWM3R                 (TMRA_HCONR_HCLE5)      /*!< The condition is that a rising edge is sampled on PWM3 of the current TMRA unit. */
+#define TMRA_CLR_COND_PWM3F                 (TMRA_HCONR_HCLE6)      /*!< The condition is that a falling edge is sampled on PWM3 of the current TMRA unit. */
 #define TMRA_CLR_COND_ALL                   (TMRA_CLR_COND_TRIGR     | \
                                              TMRA_CLR_COND_TRIGF     | \
                                              TMRA_CLR_COND_EVENT     | \
@@ -528,7 +530,7 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Event_Usage TIMERA Event Usage
+ * @defgroup TMRA_Event_Usage TMRA Event Usage
  * @{
  */
 #define TMRA_EVENT_USAGE_CNT                (0U)                    /*!< The specified event is used for counting. */
@@ -538,13 +540,11 @@ typedef struct
  */
 
 /**
- * @defgroup TMRA_Common_Trigger_Event_Command TIMERA Common Trigger Event Command
+ * @defgroup TMRA_Common_Trigger_Sel TMRA Common Trigger Source Select
  * @{
  */
-#define TMRA_COM1_TRIG_DISABLE              (0x00UL)
-#define TMRA_COM2_TRIG_DISABLE              (0x00UL)
-#define TMRA_COM1_TRIG_ENABLE               (0x01UL << 30U)
-#define TMRA_COM2_TRIG_ENABLE               (0x01UL << 31U)
+#define TMRA_COM_TRIG1                      (AOS_TMRA_HTSSR_COMTRG_EN_0)
+#define TMRA_COM_TRIG2                      (AOS_TMRA_HTSSR_COMTRG_EN_1)
 /**
  * @}
  */
@@ -586,13 +586,11 @@ typedef struct
             void TMRA_FilterCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8InputPin, en_functional_state_t enNewState);
 
             void TMRA_SetCaptCond(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Cond);
-     en_result_t TMRA_SetTrigCond(M4_TMRA_TypeDef *TMRAx, const stc_tmra_trig_cond_t *pstcCfg);
-     en_result_t TMRA_TrigCondStructInit(stc_tmra_trig_cond_t *pstcCfg);
-            void TMRA_SetCntEvent(M4_TMRA_TypeDef *TMRAx, en_event_src_t enEvent);
-            void TMRA_SetCaptEvent(M4_TMRA_TypeDef *TMRAx, en_event_src_t enEvent);
-
-            void TMRA_SetTrigEvent(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, en_event_src_t enEvent);
-            void TMRA_ComTrigCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, uint32_t u32ComTrigEn);
+     en_result_t TMRA_SetTrigCond(M4_TMRA_TypeDef *TMRAx, const stc_tmra_trig_cond_t *pstcCond);
+     en_result_t TMRA_TrigCondStructInit(stc_tmra_trig_cond_t *pstcCond);
+            void TMRA_SetTriggerSrc(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, en_event_src_t enEvent);
+            void TMRA_ComTriggerCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8EvtUsage, \
+                                    uint32_t u32ComTrig, en_functional_state_t enNewState);
 
             void TMRA_CmpValCacheConfig(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32CacheCond);
             void TMRA_CmpValCacheCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, en_functional_state_t enNewState);
@@ -619,8 +617,8 @@ en_flag_status_t TMRA_GetStatus(const M4_TMRA_TypeDef *TMRAx, uint32_t u32Flag);
 
             void TMRA_PWM_SetStartPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
             void TMRA_PWM_SetStopPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
-            void TMRA_PWM_SetCntMatchPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
-            void TMRA_PWM_SetPeriodMatchPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
+            void TMRA_PWM_SetMatchCmpPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
+            void TMRA_PWM_SetMatchPeriodPolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
             void TMRA_PWM_SetForcePolarity(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32Polarity);
 
             void TMRA_CaptCondCmd(M4_TMRA_TypeDef *TMRAx, uint8_t u8TmrCh, uint32_t u32CaptCond, en_functional_state_t enNewState);

@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_vcp\source\main.c
+ * @file  usb/usbd_vcp/source/main.c
  * @brief Main program of USB CDC example.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -101,7 +101,7 @@ USB_OTG_CORE_HANDLE  USB_OTG_dev;
  */
 int32_t main (void)
 {
-    __IO uint32_t test = 0ul;
+    __IO uint32_t test = 0UL;
 
     USBD_Init(&USB_OTG_dev,
 #ifdef USE_USB_OTG_FS
@@ -116,10 +116,10 @@ int32_t main (void)
     while (1)
     {
         /* remote wakeup test */
-        if(test == 0x1ul)
+        if(test == 0x1UL)
         {
             USB_OTG_ActiveRemoteWakeup(&USB_OTG_dev);
-            test  = 0ul;
+            test  = 0UL;
         }
     }
 }

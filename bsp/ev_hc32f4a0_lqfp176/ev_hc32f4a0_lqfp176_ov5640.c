@@ -264,7 +264,7 @@ uint16_t CAM_ReadData(void)
  */
 void CAM_Delay(uint32_t delay)
 {
-    DDL_Delay1ms(delay);
+    DDL_DelayMS(delay);
 }
 
 

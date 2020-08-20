@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-12-30       Heqb            First version
+   2020-06-12       Heqb            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -64,13 +64,10 @@ extern "C"
 #include "hc32_common.h"
 #include "ddl_config.h"
 
-
-
 /**
  * @addtogroup HC32F4A0_DDL_Driver
  * @{
  */
-
 
 /**
  * @addtogroup DDL_RMU
@@ -81,44 +78,37 @@ extern "C"
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-/**
- * @defgroup RMU_Global_Types RMU Global Types
- * @{
- */
 
-/**
-  * @brief  system reset cause flag
-  */
-typedef struct
-
-{
-    en_flag_status_t   enMultiRst;                  /*!< Multiply reset cause*/
-    en_flag_status_t   enCpuLockErrRst;             /*!< M4 Lockup reset*/
-    en_flag_status_t   enXtalErrRst;                /*!< Xtal error reset*/
-    en_flag_status_t   enClkFreqErrRst;             /*!< Clk freqence error reset*/
-    en_flag_status_t   enRamEccRst;                 /*!< Ram ECC reset*/
-    en_flag_status_t   enRamParityErrRst;           /*!< Ram parity error reset*/
-    en_flag_status_t   enMpuErrRst;                 /*!< Mpu error reset*/
-    en_flag_status_t   enSoftwareRst;               /*!< Software reset*/
-    en_flag_status_t   enPowerDownRst;              /*!< Power down reset*/
-    en_flag_status_t   enSwdtRst;                   /*!< Special watchdog timer reset*/
-    en_flag_status_t   enWdtRst;                    /*!< Watchdog timer reset*/
-    en_flag_status_t   enPvd2Rst;                   /*!< Program voltage Dectection 2 reset*/
-    en_flag_status_t   enPvd1Rst;                   /*!< Program voltage Dectection 1 reset*/
-    en_flag_status_t   enBrownOutRst;               /*!< Brown-out reset*/
-    en_flag_status_t   enRstPinRst;                 /*!< Reset pin reset*/
-    en_flag_status_t   enPowerOnRst;                /*!< Power on reset*/
-}stc_rmu_rstcause_t;
-
-/**
- * @}
- */
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
  * @defgroup RMU_Global_Macros RMU Global Macros
  * @{
+ */
+
+/**
+ * @defgroup RMU_ResetCause Rmu reset cause
+ * @{
+ */
+#define RMU_RST_POWER_ON              (RMU_RSTF0_PORF)        /*!< Power on reset */
+#define RMU_RST_RESET_PIN             (RMU_RSTF0_PINRF)       /*!< Reset pin reset */
+#define RMU_RST_BROWN_OUT             (RMU_RSTF0_BORF)        /*!< Brown-out reset */
+#define RMU_RST_PVD1                  (RMU_RSTF0_PVD1RF)      /*!< Program voltage Detection 1 reset */
+#define RMU_RST_PVD2                  (RMU_RSTF0_PVD2RF)      /*!< Program voltage Detection 2 reset */
+#define RMU_RST_WDT                   (RMU_RSTF0_WDRF)        /*!< Watchdog timer reset */
+#define RMU_RST_SWDT                  (RMU_RSTF0_SWDRF)       /*!< Special watchdog timer reset */
+#define RMU_RST_POWER_DOWN            (RMU_RSTF0_PDRF)        /*!< Power down reset */
+#define RMU_RST_SOFTWARE              (RMU_RSTF0_SWRF)        /*!< Software reset */
+#define RMU_RST_MPU_ERR               (RMU_RSTF0_MPUERF)      /*!< Mpu error reset */
+#define RMU_RST_RAM_PARITY_ERR        (RMU_RSTF0_RAPERF)      /*!< Ram parity error reset */
+#define RMU_RST_RAM_ECC               (RMU_RSTF0_RAECRF)      /*!< Ram ECC reset */
+#define RMU_RST_CLK_ERR               (RMU_RSTF0_CKFERF)      /*!< Clk frequence error reset */
+#define RMU_RST_XTAL_ERR              (RMU_RSTF0_XTALERF)     /*!< Xtal error reset */
+#define RMU_RST_LOCKUP                (RMU_RSTF0_LKUPRF)      /*!< M4 Lockup reset */
+#define RMU_RST_MULTI                 (RMU_RSTF0_MULTIRF)     /*!< Multiply reset cause */
+/**
+ * @}
  */
 
 /**
@@ -137,29 +127,10 @@ typedef struct
  * @{
  */
 
-/**
- * @brief  Enable RMU register write
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void RMU_REG_WRITE_ENABLE(void)
-{
-    WRITE_REG16(M4_PWC->FPRC, 0xA502U);
-}
-
-/**
- * @brief  Disable RMU register write
- * @param  None
- * @retval None
- */
-__STATIC_INLINE void RMU_REG_WRITE_DISABLE(void)
-{
-    WRITE_REG16(M4_PWC->FPRC, 0xA500U);
-}
-
-en_result_t RMU_GetStatus(stc_rmu_rstcause_t *pstcData);
-en_result_t RMU_ClrStatus(void);
+en_flag_status_t RMU_GetStatus(uint32_t u32RmuResetCause);
+void RMU_ClrStatus(void);
 void RMU_CPULockUpCmd(en_functional_state_t enNewState);
+
 /**
  * @}
  */
@@ -176,8 +147,6 @@ void RMU_CPULockUpCmd(en_functional_state_t enNewState);
 #ifdef __cplusplus
 }
 #endif
-
-
 
 #endif /* __HC32F4A0_RMU_H__ */
 

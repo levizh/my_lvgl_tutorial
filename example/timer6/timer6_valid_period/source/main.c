@@ -1,11 +1,12 @@
 /**
  *******************************************************************************
- * @file  timer6\timer6_valid_period\source\main.c
- * @brief Main program template for the Device Driver Library.
+ * @file  timer6/timer6_valid_period/source/main.c
+ * @brief This example demonstrates Timer6 compare output valid period function. 
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-09       Wangmin          First version
+   2020-06-12       Wangmin         First version
+   2020-07-15       Wangmin         Modify after Refine macro define in driver
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -140,6 +141,57 @@ static void AdcSetPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint8_t u8PinNum);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  TIMER6 interrupt handler callback.
@@ -150,23 +202,23 @@ void Tmr6_CallBack(void)
 {
     static uint8_t i;
 
-    if( 0u == i)
+    if( 0U == i)
     {
-        TMR6_SetGenCmpReg(M4_TMR6_1, TMR6_CMP_REG_C, 0x3000u);
+        TMR6_SetGenCmpReg(M4_TMR6_1, TMR6_CMP_REG_C, 0x3000U);
 #ifdef SCMA_ValidPeriod
-        TMR6_SetSpecialCmpReg(M4_TMR6_1, TMR6_CMP_REG_C, 0x3000u);
+        TMR6_SetSpecialCmpReg(M4_TMR6_1, TMR6_CMP_REG_C, 0x3000U);
 #endif
 
-        i = 1u;
+        i = 1U;
     }
     else
     {
-        TMR6_SetGenCmpReg(M4_TMR6_1, TMR6_CMP_REG_C, 0x6000u);
+        TMR6_SetGenCmpReg(M4_TMR6_1, TMR6_CMP_REG_C, 0x6000U);
 #ifdef SCMA_ValidPeriod
-        TMR6_SetSpecialCmpReg(M4_TMR6_1, TMR6_CMP_REG_C, 0x6000u);
+        TMR6_SetSpecialCmpReg(M4_TMR6_1, TMR6_CMP_REG_C, 0x6000U);
 #endif
 
-        i = 0u;
+        i = 0U;
     }
 }
 
@@ -226,15 +278,15 @@ static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32C
 {
     uint8_t u8PinNum;
 
-    u8PinNum = 0u;
-    while (u32Channel != 0u)
+    u8PinNum = 0U;
+    while (u32Channel != 0U)
     {
-        if (u32Channel & 0x1u)
+        if (u32Channel & 0x1U)
         {
             AdcSetPinAnalogMode(ADCx, u8PinNum);
         }
 
-        u32Channel >>= 1u;
+        u32Channel >>= 1U;
         u8PinNum++;
     }
 }
@@ -402,12 +454,17 @@ int32_t main(void)
     stc_tmr6_valid_period_func_cfg_t stcValidPeriodCfg;
     stc_gpio_init_t                stcGpioCfg;
 
+    Peripheral_WE();
+
+    BSP_CLK_Init();
+    BSP_IO_Init();
+    BSP_KEY_Init();
+    BSP_LED_Init();
+
     TMR6_BaseCntStructInit(&stcTIM6BaseCntCfg);
     TMR6_PortOutputStructInit(&stcTIM6PortOutCfg);
     TMR6_BufFuncStructInit(&stcBufCfg);
     TMR6_ValidPeriodStructInit(&stcValidPeriodCfg);
-
-    BSP_CLK_Init();
 
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMR6_1, Enable);
 
@@ -439,7 +496,7 @@ int32_t main(void)
     stcBufCfg.u32BufFunCmd = TMR6_BUF_FUNC_ON;
     stcBufCfg.u32BufNum = TMR6_BUF_FUNC_SINGLE;
     stcBufCfg.u32BufTransTim = TMR6_BUF_TRANS_TIM_UNDERFLOW;
-    TMR6_GenCmpBufCfg(M4_TMR6_1, TMR6_CMP_CHA, &stcBufCfg);
+    TMR6_GenCmpBufCfg(M4_TMR6_1, TMR6_CH_A, &stcBufCfg);
 
     /* Set special compare register */
     u32Compare = 0x3000U;
@@ -450,19 +507,19 @@ int32_t main(void)
     stcBufCfg.u32BufFunCmd = TMR6_BUF_FUNC_ON;
     stcBufCfg.u32BufNum = TMR6_BUF_FUNC_SINGLE;
     stcBufCfg.u32BufTransTim = TMR6_BUF_TRANS_TIM_UNDERFLOW;
-    TMR6_SpecialCmpBufCfg(M4_TMR6_1, TMR6_CMP_CHA, &stcBufCfg);
+    TMR6_SpecialCmpBufCfg(M4_TMR6_1, TMR6_CH_A, &stcBufCfg);
 
      /* Configurate PWM output */
     stcTIM6PortOutCfg.u32PortMode = TMR6_PORT_COMPARE_OUTPUT;
-    stcTIM6PortOutCfg.u32NextPeriodForceStd = TMR6_FORCE_PORT_OUTPUT_INVALID;
-    stcTIM6PortOutCfg.u32DownCntMatchAnotherCmpRegStd = TMR6_PORT_OUTPUT_STD_HOLD;
-    stcTIM6PortOutCfg.u32UpCntMatchAnotherCmpRegStd = TMR6_PORT_OUTPUT_STD_HOLD;
-    stcTIM6PortOutCfg.u32DownCntMatchCmpRegStd = TMR6_PORT_OUTPUT_STD_LOW;
-    stcTIM6PortOutCfg.u32UpCntMatchCmpRegStd = TMR6_PORT_OUTPUT_STD_HIGH;
-    stcTIM6PortOutCfg.u32UnderflowStd = TMR6_PORT_OUTPUT_STD_HOLD;
-    stcTIM6PortOutCfg.u32OverflowStd = TMR6_PORT_OUTPUT_STD_HOLD;
-    stcTIM6PortOutCfg.u32StopStd = TMR6_PORT_OUTPUT_STD_LOW;
-    stcTIM6PortOutCfg.u32StartStd = TMR6_PORT_OUTPUT_STD_LOW;
+    stcTIM6PortOutCfg.u32NextPeriodForceSta = TMR6_FORCE_PORT_OUTPUT_INVALID;
+    stcTIM6PortOutCfg.u32DownCntMatchAnotherCmpRegSta = TMR6_PORT_OUTPUT_STA_HOLD;
+    stcTIM6PortOutCfg.u32UpCntMatchAnotherCmpRegSta = TMR6_PORT_OUTPUT_STA_HOLD;
+    stcTIM6PortOutCfg.u32DownCntMatchCmpRegSta = TMR6_PORT_OUTPUT_STA_LOW;
+    stcTIM6PortOutCfg.u32UpCntMatchCmpRegSta = TMR6_PORT_OUTPUT_STA_HIGH;
+    stcTIM6PortOutCfg.u32UnderflowSta = TMR6_PORT_OUTPUT_STA_HOLD;
+    stcTIM6PortOutCfg.u32OverflowSta = TMR6_PORT_OUTPUT_STA_HOLD;
+    stcTIM6PortOutCfg.u32StopSta = TMR6_PORT_OUTPUT_STA_LOW;
+    stcTIM6PortOutCfg.u32StartSta = TMR6_PORT_OUTPUT_STA_LOW;
     TMR6_PortOutputConfig(M4_TMR6_1, TMR6_IO_PWMA, &stcTIM6PortOutCfg);
 
 #if 0
@@ -470,10 +527,10 @@ int32_t main(void)
     TMR6_SetDeadTimeReg(M4_TMR6_1, TMR6_DEADTIME_REG_UP_A, 3360U);
 
     /* DeadTime function configurate */
-    stcDeadTimCfg.u32EnDtBufDwn = TMR6_DT_CNT_DOWN_BUF_OFF;  /* Disable buffer transfer */
-    stcDeadTimCfg.u32EnDtBufUp = TMR6_DT_CNT_UP_BUF_OFF; /* Disable buffer transfer */
-    stcDeadTimCfg.u32DtEqualUpDwn = TMR6_DT_EQUAL_ON; /* Make the down count dead time value equal to the up count dead time setting */
-    stcDeadTimCfg.u32DtUpdCond = TMR6_DT_TRANS_COND_NONE;
+    stcDeadTimCfg.u32EnDtBufDwn = TMR6_DEADTIME_CNT_DOWN_BUF_OFF;  /* Disable buffer transfer */
+    stcDeadTimCfg.u32EnDtBufUp = TMR6_DEADTIME_CNT_UP_BUF_OFF; /* Disable buffer transfer */
+    stcDeadTimCfg.u32DtEqualUpDwn = TMR6_DEADTIME_EQUAL_ON; /* Make the down count dead time value equal to the up count dead time setting */
+    stcDeadTimCfg.u32DtUpdCond = TMR6_DEADTIME_TRANS_COND_NONE;
     TMR6_DeadTimeCfg(M4_TMR6_1, &stcDeadTimCfg);
     /* Enable DeadTime function */
     TMR6_DeadTimeFuncCmd(M4_TMR6_1, Enable);
@@ -481,7 +538,7 @@ int32_t main(void)
 
 #ifdef SCMA_ValidPeriod
     /* Valid period function configurate */
-    stcValidPeriodCfg.u32CntCond = TMR6_VALID_PERIOD_CNT_COND_BOTHFLOW;
+    stcValidPeriodCfg.u32CntCond = TMR6_VALID_PERIOD_CNT_COND_BOTH;
     stcValidPeriodCfg.u32PeriodInterval = TMR6_VALID_PERIOD_CNT_1;
     stcValidPeriodCfg.u32StatChA = TMR6_VALID_PERIOD_FUNC_CHA_ON;
     stcValidPeriodCfg.u32StatChB = TMR6_VALID_PERIOD_FUNC_CHB_OFF;

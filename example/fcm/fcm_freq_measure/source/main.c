@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-10       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -88,14 +88,69 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
 char *TarClk = 0;
+
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+//    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+//    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+//    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+//    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+//    EFM_Lock();
+}
+
 /**
  * @brief  FCM frequency error IRQ callback
  * @param  None
@@ -130,15 +185,11 @@ void FCM_END_IrqCallback(void)
     FCM_Cmd(Disable);
     if (FCM_REF_CLK_XTAL32 == READ_REG32_BIT(M4_FCM->RCCR, (FCM_RCCR_INEXS | FCM_RCCR_RCKS)))
     {
-#if (DDL_PRINT_ENABLE == DDL_ON)
         printf ("%s freq. is %ld Hz\n" , TarClk, ((XTAL32_VALUE * u16FcmCnt / REF_DIV)*TAR_DIV));
-#endif
     }
     else
     {
-#if (DDL_PRINT_ENABLE == DDL_ON)
         printf ("%s freq. is %ld KHz\n" , TarClk, ((REF_FREQ /1000 * u16FcmCnt / REF_DIV)*TAR_DIV));
-#endif
     }
 
     FCM_ClearStatus(FCM_FLAG_END);
@@ -221,7 +272,7 @@ en_result_t FcmOvfIntInit(void)
 
 /**
  * @brief  FCM init
- * @param  [in] u32TraClk, Target clock type selection.
+ * @param  [in] u32TraClk Target clock type selection.
  *   @arg  FCM_REF_CLK_EXINPUT
  *   @arg  FCM_TAR_CLK_XTAL
  *   @arg  FCM_TAR_CLK_XTAL32
@@ -233,14 +284,12 @@ en_result_t FcmOvfIntInit(void)
  *   @arg  FCM_TAR_CLK_MRC
  *   @arg  FCM_TAR_CLK_PLLHP
  *   @arg  FCM_TAR_CLK_RTCLRC
- * @param  [in] u32TarClkFreq, Target clock frequency.
+ * @param  [in] u32TarClkFreq Target clock frequency.
  * @retval en_result_t
  */
 en_result_t FcmInit(uint32_t u32TraClk, uint32_t u32TarClkFreq)
 {
     stc_fcm_init_t stcFcmInit;
-
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_FCM, Enable);
 
     FCM_StructInit(&stcFcmInit);
     stcFcmInit.u32RefClk     = FCM_REF_CLK_XTAL;
@@ -309,16 +358,6 @@ en_result_t TarClkInit(void)
                 CLK_PCLK3_DIV4 | CLK_PCLK4_DIV2 | CLK_EXCLK_DIV2 |              \
                 CLK_HCLK_DIV1));
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
-
-    EFM_Unlock();
-    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
-    EFM_Lock();
-
     /* PLLH config */
     CLK_PLLHStrucInit(&stcPLLHInit);
     /*
@@ -367,7 +406,7 @@ void SwdtInit(void)
     stcSwdtInit.u32CountCycle    = SWDT_COUNTER_CYCLE_256;
     stcSwdtInit.u32ClockDivision = SWDT_CLOCK_DIV32;
     stcSwdtInit.u32RefreshRange  = SWDT_RANGE_0TO100PCT;
-    stcSwdtInit.u32LPModeCountEn = SWDT_LPW_MODE_COUNT_CONTINUE;
+    stcSwdtInit.u32LPModeCountEn = SWDT_LPM_COUNT_CONTINUE;
     stcSwdtInit.u32TrigType      = SWDT_TRIG_EVENT_INT;
     SWDT_Init(&stcSwdtInit);
 }
@@ -379,10 +418,12 @@ void SwdtInit(void)
  */
 int32_t main(void)
 {
-    /* unlock GPIO register in advance */
-    GPIO_Unlock();
-    
+    /* Register write enable for some required peripherals. */
+    Peripheral_WE();
+    /* Matrix key init */
     BSP_KEY_Init();
+
+    PWC_Fcg0PeriphClockCmd(PWC_FCG0_FCM, Enable);
 
     TarClkInit();
     RefClkInit();
@@ -391,15 +432,17 @@ int32_t main(void)
     FcmOvfIntInit();
     SwdtInit();
 
-#if (DDL_PRINT_ENABLE == DDL_ON)
     DDL_PrintfInit();
 
+    /* Register write protected for some required peripherals. */
+    Peripheral_WP();
+
     printf("XTAL=8MHz divided by 8192 is used as the reference clock for this demo.\n");
-#endif
+
 
     while (1)
     {
-        SWDT_ReloadCounter();
+        SWDT_Feed();
         if (Set == BSP_KEY_GetStatus(BSP_KEY_1))
         {
             TarClk = "XTAL32";

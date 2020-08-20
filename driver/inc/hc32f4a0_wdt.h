@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-26       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -140,7 +140,7 @@ typedef struct
 #define WDT_CLOCK_DIV256                        (WDT_CR_CKS_3)                                /*!< PLCK3/256  */
 #define WDT_CLOCK_DIV512                        (WDT_CR_CKS_3 | WDT_CR_CKS_0)                 /*!< PLCK3/512  */
 #define WDT_CLOCK_DIV1024                       (WDT_CR_CKS_3 | WDT_CR_CKS_1)                 /*!< PLCK3/1024 */
-#define WDT_CLOCK_DIV2028                       (WDT_CR_CKS_3 | WDT_CR_CKS_1 | WDT_CR_CKS_0)  /*!< PLCK3/2048 */
+#define WDT_CLOCK_DIV2048                       (WDT_CR_CKS_3 | WDT_CR_CKS_1 | WDT_CR_CKS_0)  /*!< PLCK3/2048 */
 #define WDT_CLOCK_DIV8192                       (WDT_CR_CKS_3 | WDT_CR_CKS_2 | WDT_CR_CKS_0)  /*!< PLCK3/8192 */
 /**
  * @}
@@ -174,8 +174,8 @@ typedef struct
  * @brief WDT count control in the sleep mode
  * @{
  */
-#define WDT_LPW_MODE_COUNT_CONTINUE             (0UL)             /*!< WDT count continue in the sleep mode */
-#define WDT_LPW_MODE_COUNT_STOP                 (WDT_CR_SLPOFF)   /*!< WDT count stop in the sleep mode     */
+#define WDT_LPM_COUNT_CONTINUE                  (0UL)             /*!< WDT count continue in the sleep mode */
+#define WDT_LPM_COUNT_STOP                      (WDT_CR_SLPOFF)   /*!< WDT count stop in the sleep mode     */
 /**
  * @}
  */
@@ -227,13 +227,13 @@ __STATIC_INLINE uint16_t WDT_GetCountValue(void)
 }
 
 /* Initialization and configuration functions */
-en_result_t      WDT_Init(const stc_wdt_init_t *pstcWdtInit);
-void             WDT_ReloadCounter(void);
-uint16_t         WDT_GetCountValue(void);
+en_result_t WDT_Init(const stc_wdt_init_t *pstcWdtInit);
+void WDT_Feed(void);
+uint16_t WDT_GetCountValue(void);
 
 /* Flags management functions */
 en_flag_status_t WDT_GetStatus(uint32_t u32Flag);
-en_result_t      WDT_ClearStatus(uint32_t u32Flag);
+en_result_t WDT_ClearStatus(uint32_t u32Flag);
 
 /**
  * @}

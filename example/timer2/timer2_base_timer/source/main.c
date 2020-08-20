@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  timer2/timer2_base_timer/source/main.c
- * @brief Main program TIMER2 base timer for the Device Driver Library.
+ * @brief Main program Timer2 base timer for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-13       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup Timer2_Base_Timer
+ * @addtogroup TMR2_Base_Timer
  * @{
  */
 
@@ -78,54 +78,36 @@
  */
 
 /*
- * TIMER2 unit and channel definitions for this example.
+ * Timer2 unit and channel definitions for this example.
  * 'APP_TMR2_UNIT' can be defined as M4_TMR2_<t>(t=1 ~ 4).
  * 'APP_TMR2_CH' can be defined as TMR2_CH_x(x=A, B).
  *
  * NOTE!!! The following definitions are depend on the definitions of 'APP_TMR2_UNIT' and 'APP_TMR2_CH'.
- *
- *         APP_TMR2_ASYNC_CLK_PORT
- *         APP_TMR2_ASYNC_CLK_PIN
- *         APP_TMR2_ASYNC_CLK_PIN_FUNC
- *         APP_TMR2_TRIG_PORT
- *         APP_TMR2_TRIG_PIN
- *         APP_TMR2_TRIG_PIN_FUNC
- *         APP_TMR2_INT_SRC
- *         APP_TMR2_IRQ_CB
+ *   APP_TMR2_ASYNC_CLK_PORT
+ *   APP_TMR2_ASYNC_CLK_PIN
+ *   APP_TMR2_ASYNC_CLK_PIN_FUNC
+ *   APP_TMR2_TRIG_PORT
+ *   APP_TMR2_TRIG_PIN
+ *   APP_TMR2_TRIG_PIN_FUNC
+ *   APP_TMR2_INT_SRC
  */
 #define APP_TMR2_UNIT                       (M4_TMR2_1)
 #define APP_TMR2_CH                         (TMR2_CH_A)
 #define APP_TMR2_PERIP_CLK                  (PWC_FCG2_TMR2_1)
 
 /*
- * Clock source of TIMER2 in this example.
- * 'APP_CLK_SYNC_PCKL1': PCLK1, is configured to 120MHz in this example.
- * 'APP_CLK_ASYNC_LRC': LRC, 32.768KHz.
- * 'APP_CLK_ASYNC_XTAL32': XTAL32, 32.768KHz.
- * 'APP_CLK_ASYNC_PIN_CLK': Clock from pin TIM2_<t>_CLKx(t=1 ~ 4, x=A, B). The frequency is up to 25MHz. \
- *                          2MHz is used in this example.
- */
-#define APP_CLK_SYNC_PCKL1                  (0U)
-#define APP_CLK_ASYNC_LRC                   (1U)
-#define APP_CLK_ASYNC_XTAL32                (2U)
-#define APP_CLK_ASYNC_PIN_CLK               (3U)
-
-/* Select a clock source for this example. */
-#define APP_TMR2_CLK                        (APP_CLK_SYNC_PCKL1)
-
-/*
- * Function control of TIMER2.
+ * Function control of Timer2.
  * Defines the following macro as non-zero to enable the corresponding function.
  *
  * 'APP_TMR2_USE_INTERRUPT': Interrupt function control.
- * 'APP_TMR2_USE_HW_TRIG': Hardware trigger conditions control. The conditions that can start TIMER2, \
- *                         stop TIMER2 or clear counting register of TIMER2
+ * 'APP_TMR2_USE_HW_TRIG': Hardware trigger conditions control. The conditions that can start Timer2, \
+ *                         stop Timer2 or clear counting register of Timer2
  */
 #define APP_TMR2_USE_INTERRUPT              (1U)
 #define APP_TMR2_USE_HW_TRIG                (0U)
 
 /*
- * Define configuration values according to the clock source just selected.
+ * Clock source for this example.
  * In this example:
  *   1. System clock is configured as 240MHz.
  *   2. PCLK1 is 120MHz.
@@ -134,54 +116,29 @@
  * A simple formula for calculating the compare value is:
  *   Tmr2CompareVal = (Tmr2Period(us) * [Tmr2ClockSource(MHz) / Tmr2ClockDiv]) - 1.
  */
-#if (APP_TMR2_CLK == APP_CLK_SYNC_PCKL1)
-    #define APP_TMR2_CLK_SRC                (TMR2_CLK_SYNC_PCLK1)
-    #define APP_TMR2_CLK_DIV                (TMR2_CLK_DIV_64)
-    #define APP_TMR2_CMP_VAL                (18750UL - 1U)
-
-#elif (APP_TMR2_CLK == APP_CLK_ASYNC_LRC)
-    #define APP_TMR2_CLK_SRC                (TMR2_CLK_ASYNC_LRC)
-    #define APP_TMR2_CLK_DIV                (TMR2_CLK_DIV_1)
-    #define APP_TMR2_CMP_VAL                (327UL - 1U)
-
-#elif (APP_TMR2_CLK == APP_CLK_ASYNC_XTAL32)
-    #define APP_TMR2_CLK_SRC                (TMR2_CLK_ASYNC_XTAL32)
-    #define APP_TMR2_CLK_DIV                (TMR2_CLK_DIV_1)
-    #define APP_TMR2_CMP_VAL                (327UL - 1U)
-
-#elif (APP_TMR2_CLK == APP_CLK_ASYNC_PIN_CLK)
-    #define APP_TMR2_CLK_SRC                (TMR2_CLK_ASYNC_PIN_CLK)
-    #define APP_TMR2_CLK_DIV                (TMR2_CLK_DIV_1)
-    #define APP_TMR2_CMP_VAL                (20000UL - 1U)
-    #define APP_TMR2_PIN_CLK_FREQ           (2000000UL)
-    #define APP_TMR2_ASYNC_CLK_PORT         (GPIO_PORT_E)
-    #define APP_TMR2_ASYNC_CLK_PIN          (GPIO_PIN_03)
-    #define APP_TMR2_ASYNC_CLK_PIN_FUNC     (GPIO_FUNC_16_TIM21_CLKA)
-#else
-    #error "The clock source you selected is NOT supported in this example!"
-#endif /* #if (APP_TMR2_CLK == APP_TMR2_CLK_SRC_SYNC_PCKL1) */
+#define APP_TMR2_CLK                        (TMR2_CLK_SYNC_PCLK1)
+#define APP_TMR2_CLK_SRC                    (TMR2_CLK_SYNC_PCLK1)
+#define APP_TMR2_CLK_DIV                    (TMR2_CLK_DIV64)
+#define APP_TMR2_CMP_VAL                    (18750UL - 1U)
 
 /*
- * Definitions about TIMER2 interrupt for the example.
- * TIMER2 independent IRQn: [Int000_IRQn, Int031_IRQn], [Int050_IRQn, Int055_IRQn].
- * TIMER2 share IRQn: [Int131_IRQn].
+ * Definitions about Timer2 interrupt for the example.
+ * Timer2 independent IRQn: [Int000_IRQn, Int031_IRQn], [Int050_IRQn, Int055_IRQn].
  *
  * NOTE:
  *   'APP_TMR2_INT_TYPE' can only be defined as 'TMR2_INT_CMP' for this example.
  */
 #if (APP_TMR2_USE_INTERRUPT > 0U)
-    #define TMR2_SHARE_IRQn                 (Int131_IRQn)
     #define APP_TMR2_INT_TYPE               (TMR2_INT_CMP)
     #define APP_TMR2_INT_PRIO               (DDL_IRQ_PRIORITY_03)
     #define APP_TMR2_INT_SRC                (INT_TMR2_1_CMPA)
-    #define APP_TMR2_IRQ_CB                 TMR2_1_CmpA_IrqHandler
     #define APP_TMR2_IRQn                   (Int050_IRQn)
 #endif /* #if (APP_TMR2_USE_INTERRUPT > 0U) */
 
 /*
  * Specify the hardware trigger conditions if enabled(APP_TMR2_USE_HW_TRIG > 0U).
- * 'APP_TMR2_START_COND' specifies the condition of starting TIMER2.
- * 'APP_TMR2_STOP_COND' specifies the condition of stoping TIMER2.
+ * 'APP_TMR2_START_COND' specifies the condition of starting Timer2.
+ * 'APP_TMR2_STOP_COND' specifies the condition of stoping Timer2.
  * 'APP_TMR2_FILTER_ENABLE': Filter function control. Enable or disable the filter of pin TIM2_<t>_PWMAx. \
  *                           If there is a pin TIM2_<t>_PWMx is used and in input mode, the filter can be used if needed.
  * 'APP_TMR2_FILTER_CLK_DIV': The clock divider of filter of each channel depends on the signal that \
@@ -197,7 +154,7 @@
     #define APP_TMR2_TRIG_PIN               (GPIO_PIN_02)
     #define APP_TMR2_TRIG_PIN_FUNC          (GPIO_FUNC_16_TIM21_PWMA)
     #define APP_TMR2_FILTER_ENABLE          (1U)
-    #define APP_TMR2_FILTER_CLK_DIV         (TMR2_FILTER_CLK_DIV_64)
+    #define APP_TMR2_FILTER_CLK_DIV         (TMR2_FILTER_CLK_DIV64)
 #endif /* #if (APP_TMR2_USE_HW_TRIG > 0U) */
 
 /* Indicate pin definition in this example. */
@@ -214,22 +171,21 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
 static void IndicateConfig(void);
 
 static void Tmr2Config(void);
-static void Tmr2ClkSrcEnable(void);
 
 #if (APP_TMR2_USE_INTERRUPT > 0U)
     static void Tmr2IrqConfig(void);
+    static void TMR2_Cmp_IrqCallback(void);
 #endif
 
 #if (APP_TMR2_USE_HW_TRIG > 0U)
     static void Tmr2TrigCondConfig(void);
-#endif
-
-#if (APP_TMR2_CLK == APP_CLK_ASYNC_PIN_CLK)
-    static void ExternalClockConfig(void);
 #endif
 
 static void Tmr2Start(void);
@@ -249,27 +205,25 @@ static void Tmr2Start(void);
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the system clock. */
     SystemClockConfig();
-
     /* Configures indicator. */
     IndicateConfig();
-
-    /* Configures TIMER2. */
+    /* Configures Timer2. */
     Tmr2Config();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
-#if (APP_TMR2_CLK == APP_CLK_ASYNC_PIN_CLK)
-    ExternalClockConfig();
-#endif
-
-    /* Starts TIMER2. */
+    /* Starts Timer2. */
     Tmr2Start();
 
     /***************** Configuration end, application start **************/
     while (1U)
     {
 #if (APP_TMR2_USE_INTERRUPT > 0U)
-        /* See APP_TMR2_IRQ_CB in this file. */
+        /* See TMR2_Cmp_IrqCallback in this file. */
 #else
         /* Call TMR2_GetStatus to check the flag state. */
         if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP) == Set)
@@ -279,6 +233,58 @@ int32_t main(void)
         }
 #endif /* #if (APP_TMR2_USE_INTERRUPT > 0U) */
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -325,21 +331,18 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set SRAM wait cycles. */
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     /* Set EFM wait cycle. 5 wait cycles needed when system clock is 240MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
-    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
 
 /**
- * @brief  TIMER2 configuration.
+ * @brief  Timer2 configuration.
  * @param  None
  * @retval None
  */
@@ -347,60 +350,32 @@ static void Tmr2Config(void)
 {
     stc_tmr2_init_t stcInit;
 
-    /* 1. If selected asynchronous clock source, enable it firstly is recommended. */
-    Tmr2ClkSrcEnable();
-
-    /* 2. Enable TIMER2 peripheral clock. */
+    /* 1. Enable Timer2 peripheral clock. */
     PWC_Fcg2PeriphClockCmd(APP_TMR2_PERIP_CLK, Enable);
 
-    /* 3. Set a default initialization value for stcInit. */
+    /* 2. Set a default initialization value for stcInit. */
     TMR2_StructInit(&stcInit);
 
-    /* 4. Modifies the initialization values depends on the application. */
+    /* 3. Modifies the initialization values depends on the application. */
     stcInit.u32ClkSrc = APP_TMR2_CLK_SRC;
     stcInit.u32ClkDiv = APP_TMR2_CLK_DIV;
     stcInit.u32CmpVal = APP_TMR2_CMP_VAL;
-#if (APP_TMR2_CLK == APP_CLK_ASYNC_PIN_CLK)
-    stcInit.u32AsyncClkFreq = APP_TMR2_PIN_CLK_FREQ;
-#endif
     TMR2_Init(APP_TMR2_UNIT, APP_TMR2_CH, &stcInit);
 
 #if (APP_TMR2_USE_INTERRUPT > 0U)
-    /* 5. Configures IRQ if needed. */
+    /* 4. Configures IRQ if needed. */
     Tmr2IrqConfig();
 #endif /* #if (APP_TMR2_USE_INTERRUPT > 0U) */
 
 #if (APP_TMR2_USE_HW_TRIG > 0U)
-    /* 6. Configures hardware trigger condition if needed. */
+    /* 5. Configures hardware trigger condition if needed. */
     Tmr2TrigCondConfig();
 #endif /* #if (APP_TMR2_USE_HW_TRIG > 0U) */
 }
 
-/**
- * @brief  Enabled the clock source of TIMER2.
- * @param  None
- * @retval None
- */
-static void Tmr2ClkSrcEnable(void)
-{
-#if (APP_TMR2_CLK == APP_CLK_SYNC_PCKL1)
-    /* Nothing to do. */
-
-#elif (APP_TMR2_CLK == APP_CLK_ASYNC_LRC)
-    CLK_LrcCmd(Enable);
-
-#elif (APP_TMR2_CLK == APP_CLK_ASYNC_XTAL32)
-    CLK_Xtal32Cmd(Enable);
-
-#elif (APP_TMR2_CLK == APP_CLK_ASYNC_PIN_CLK)
-    GPIO_SetFunc(APP_TMR2_ASYNC_CLK_PORT, APP_TMR2_ASYNC_CLK_PIN, \
-                 APP_TMR2_ASYNC_CLK_PIN_FUNC, PIN_SUBFUNC_DISABLE);
-#endif
-}
-
 #if (APP_TMR2_USE_INTERRUPT > 0U)
 /**
- * @brief  TIMER2 interrupt configuration.
+ * @brief  Timer2 interrupt configuration.
  * @param  None
  * @retval None
  */
@@ -410,31 +385,23 @@ static void Tmr2IrqConfig(void)
 
     stcCfg.enIntSrc    = APP_TMR2_INT_SRC;
     stcCfg.enIRQn      = APP_TMR2_IRQn;
-    stcCfg.pfnCallback = &APP_TMR2_IRQ_CB;
-    if (stcCfg.enIRQn == TMR2_SHARE_IRQn)
-    {
-        /* Sharing interrupt. */
-        INTC_ShareIrqCmd(stcCfg.enIntSrc, Enable);
-    }
-    else
-    {
-        /* Independent interrupt. */
-        INTC_IrqSignIn(&stcCfg);
-    }
+    stcCfg.pfnCallback = &TMR2_Cmp_IrqCallback;
+    INTC_IrqSignIn(&stcCfg);
+
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
     NVIC_SetPriority(stcCfg.enIRQn, APP_TMR2_INT_PRIO);
     NVIC_EnableIRQ(stcCfg.enIRQn);
 
-    /* Enable the specified interrupts of TIMER2. */
+    /* Enable the specified interrupts of Timer2. */
     TMR2_IntCmd(APP_TMR2_UNIT, APP_TMR2_CH, APP_TMR2_INT_TYPE, Enable);
 }
 
 /**
- * @brief  TIMER2 counter comparison match interrupt callback function.
+ * @brief  Timer2 counter comparison match interrupt callback function.
  * @param  None
  * @retval None
  */
-void APP_TMR2_IRQ_CB(void)
+static void TMR2_Cmp_IrqCallback(void)
 {
     if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP) == Set)
     {
@@ -456,7 +423,7 @@ static void Tmr2TrigCondConfig(void)
     stc_tmr2_trig_cond_t stcTrigCond;
 
     /*
-     * If a peripheral is used to generate the event which is used as a hardware trigger condition of TIMER2, \
+     * If a peripheral is used to generate the event which is used as a hardware trigger condition of Timer2, \
      *     call the API of the peripheral to configure the peripheral.
      * The following operations are only used in this example.
      */
@@ -474,51 +441,15 @@ static void Tmr2TrigCondConfig(void)
 }
 #endif
 
-#if (APP_TMR2_CLK == APP_CLK_ASYNC_PIN_CLK)
 /**
- * @brief  Configures the external clock source for the specified 'APP_TMR2_UNIT'.
- *         The specified clock source is 2MHz.
- * @param  None
- * @retval None
- */
-static void ExternalClockConfig(void)
-{
-    stc_tmra_init_t stcTmrAInit;
-    stc_tmra_pwm_cfg_t stcPwmCfg;
-
-    PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMRA_1, Enable);
-
-    /* TIMERA unit 1: clock source PCLK0(240MHZ). Divider: 2. Final count clock frequency 120MHz. */
-    TMRA_StructInit(&stcTmrAInit);
-    stcTmrAInit.u32ClkSrc    = TMRA_CLK_PCLK;
-    stcTmrAInit.u32PCLKDiv   = TMRA_PCLK_DIV_2;
-    stcTmrAInit.u32PeriodVal = 60U - 1U;
-    TMRA_Init(M4_TMRA_1, &stcTmrAInit);
-
-    TMRA_SetFuncMode(M4_TMRA_1, TMRA_CH_2, TMRA_FUNC_COMPARE);
-    TMRA_SetCmpVal(M4_TMRA_1, TMRA_CH_2, 30U - 1U);
-
-    TMRA_PWM_StructInit(&stcPwmCfg);
-    TMRA_PWM_Config(M4_TMRA_1, TMRA_CH_2, &stcPwmCfg);
-
-    TMRA_PWM_Cmd(M4_TMRA_1, TMRA_CH_2, Enable);
-
-    GPIO_SetFunc(GPIO_PORT_E, GPIO_PIN_11, \
-                 GPIO_FUNC_4_TIMA1_PWM2, PIN_SUBFUNC_DISABLE);
-
-    TMRA_Start(M4_TMRA_1);
-}
-#endif /* #if (APP_TMR2_CLK == APP_CLK_ASYNC_PIN_CLK) */
-
-/**
- * @brief  Start TIMER2.
+ * @brief  Start Timer2.
  * @param  None
  * @retval None
  */
 static void Tmr2Start(void)
 {
     /*
-     * If a peripheral is used to generate the event which is used as a hardware trigger condition of TIMER2, \
+     * If a peripheral is used to generate the event which is used as a hardware trigger condition of Timer2, \
      *     call the API of the peripheral to start the peripheral here or anywhere else you need.
      * The following operations are only used in this example.
      */
@@ -527,7 +458,7 @@ static void Tmr2Start(void)
      ((APP_TMR2_USE_HW_TRIG > 0U) && (APP_TMR2_START_COND == TMR2_START_COND_INVALID)))
     TMR2_Start(APP_TMR2_UNIT, APP_TMR2_CH);
 #else
-    /* Make an rising edge on pin TIM2_<t>_PWMx to start TIMER2. */
+    /* Make an rising edge on pin TIM2_<t>_PWMx to start Timer2. */
 #endif
 }
 

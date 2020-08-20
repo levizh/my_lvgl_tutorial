@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-10       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -93,8 +93,10 @@
  * Local function prototypes ('static')
  ******************************************************************************/
 static void HASH_Config(void);
-static void DMA_Config(const uint32_t pvData[], uint32_t u32DataLength);
+static void DMA_Config(const uint32_t au32Data[], uint32_t u32DataLength);
 static void IRQ_Config(void);
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 #if (HASH_DATA_TYPE == HASH_DATA_CHAR)
 static void FillData(uint8_t *u8Data);
@@ -120,8 +122,8 @@ static uint32_t u32Pos = 0U;
 static uint32_t u32FillData = 0U;
 static uint8_t  u8FillFlag = 0U;
 static uint8_t  u8TempFlag = 0U;
-static uint32_t  u32FillBuffer[16U] = {0U};
-static uint8_t u8Tempbuffer[64U] = {0U};
+static uint32_t u32FillBuffer[16U] = {0U};
+static uint8_t  u8Tempbuffer[64U] = {0U};
 
 static char *SrcData = \
 "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\
@@ -160,6 +162,57 @@ static uint32_t Key[] = \
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    //PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    //SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    //EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    //PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    //SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    //EFM_Lock();
+}
+/**
  * @brief  HASH operations complete IRQ callback
  * @param  None
  * @retval None
@@ -169,7 +222,7 @@ void Hash_IrqCallback(void)
     if(++u8Count >= 2U)
     {
         /* Get the message digest result */
-        HASH_GetResult((uint32_t)&u8HashMsgDigest[0]);
+        HASH_GetResult(u8HashMsgDigest);
         u8Count = 0U;
         if ((uint8_t)memcmp(u8HashMsgDigest, u8ExpectDigest,sizeof(u8HashMsgDigest)) == 0U)
         {
@@ -204,6 +257,8 @@ void Hash_IrqCallback(void)
  */
 int32_t main(void)
 {
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* Config IRQ */
     IRQ_Config();
     /* Config HASH */
@@ -241,16 +296,16 @@ int32_t main(void)
 #endif
 
 /*********************  Message to calculate *********************/
-while(u8Count == 0U)
-{
-    ;
-}
+    while(u8Count == 0U)
+    {
+        ;
+    }
 #if (HASH_DATA_TYPE == HASH_DATA_CHAR)
     /* Congif DMA */
     DMA_Config((uint32_t *)SrcData, strlen((char *)SrcData));
 #elif (HASH_DATA_TYPE == HASH_DATA_ARRAY)
     /* clear the DAM transfer completed flag */
-    DMA_ClearTransIntStatus(DMA_UNIT, DMA_BTC_INT0 | DMA_TC_INT0);
+    DMA_ClearTransIntStatus(DMA_UNIT, DMA_BTC_INT_CH0 | DMA_TC_INT_CH0);
     /* Congif DMA */
     DMA_Config((uint32_t *)SrcData, sizeof(SrcData));
 #endif
@@ -263,10 +318,11 @@ while(u8Count == 0U)
 #if (HASH_DATA_TYPE == HASH_DATA_CHAR)
     DataConversion(u8Type_Data);
 #endif
-
+    /* Lock peripherals or registers */
+    Peripheral_WP();
     while (1)
     {
-
+        ;
     }
 }
 
@@ -286,16 +342,17 @@ static void HASH_Config(void)
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
     HASH_SetTriggerSrc(HASH_TRG_SRC_DMA1_BTC0);/* Select the DMA1 channal_0 block transfer complete as trigger source */
 #if (HASH_DATA_TYPE == HASH_DATA_ARRAY)
-    HASH_SetTriggerSrc(HASH_TRG_SRC_DMA1_TC0); /* Select the DMA1 channal_0transfer complete as trigger source */
+    HASH_SetTriggerSrc(HASH_TRG_SRC_DMA1_TC0); /* Select the DMA1 channal_0 transfer complete as trigger source */
 #endif
 }
 
 /**
  * @brief  DMA Configration.
- * @param  [in] m_su8SrcData      Pointer to the source data buffer
+ * @param  [in] au32Data        Buffer of the source data
+ * @param  [in] u32DataLength   Length of the source data
  * @retval None
  */
-static void DMA_Config(const uint32_t pvData[], uint32_t u32DataLength)
+static void DMA_Config(const uint32_t au32Data[], uint32_t u32DataLength)
 {
     stc_dma_init_t stcDmaInit;
     /* Enable DMA1. */
@@ -312,7 +369,7 @@ static void DMA_Config(const uint32_t pvData[], uint32_t u32DataLength)
     stcDmaInit.u32SrcAddr = (uint32_t)(&u32FillBuffer[0U]);
 #elif (HASH_DATA_TYPE == HASH_DATA_ARRAY)
     stcDmaInit.u32TransCnt = u32DataSize / HASH_GROUP_LEN;
-    stcDmaInit.u32SrcAddr = (uint32_t)(&pvData[0U]);
+    stcDmaInit.u32SrcAddr = (uint32_t)(&au32Data[0U]);
 #endif /* #if (HASH_DATA_TYPE == HASH_DATA_CHAR) */
 
     stcDmaInit.u32DestAddr = (uint32_t)(&M4_HASH->DR15);
@@ -321,12 +378,14 @@ static void DMA_Config(const uint32_t pvData[], uint32_t u32DataLength)
     if (Ok != DMA_Init(DMA_UNIT, DMA_CH, &stcDmaInit))
     {    
         while (1)
-        {}
+        {
+            ;
+        }
     }
 
 #if (HASH_DATA_TYPE == HASH_DATA_CHAR)
     /* Set DMA trigger source */
-    DMA_SetTrigSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
+    DMA_SetTriggerSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
 
 #elif (HASH_DATA_TYPE == HASH_DATA_ARRAY)
     /* Set DMA trigger source */
@@ -378,7 +437,7 @@ static void DataConversion(uint8_t u8Type)
         {
             do{
                 /* clear the DAM transfer completed flag */
-                DMA_ClearTransIntStatus(DMA_UNIT, DMA_BTC_INT0 | DMA_TC_INT0);
+                DMA_ClearTransIntStatus(DMA_UNIT, DMA_BTC_INT_CH0 | DMA_TC_INT_CH0);
                 u32FillData = strlen((char *)Key) - HASH_GROUP_LEN * u32TsfCnt;
                 if (u32FillData >= HASH_GROUP_LEN)
                 {  
@@ -426,8 +485,8 @@ static void DataConversion(uint8_t u8Type)
         u32Pos = 0U;
         do{
             /* clear the DAM transfer completed flag */
-            DMA_ClearTransIntStatus(DMA_UNIT, DMA_BTC_INT0 | DMA_TC_INT0);
-            if(strlen((char *)SrcData) <= LAST_GROUP_MAX_LEN)
+            DMA_ClearTransIntStatus(DMA_UNIT, DMA_BTC_INT_CH0 | DMA_TC_INT_CH0);
+            if (strlen((char *)SrcData) <= LAST_GROUP_MAX_LEN)
             {
                 /* Set the last group. */
                 HASH_MsgGrpConfig(HASH_MSG_GRP_END);
@@ -473,7 +532,7 @@ static void FillData(uint8_t *u8Data)
     uint8_t u8buffer[64] = {0U};
     u32BitLenHig = (u32DataSize >> 29U) & 0x7U;
     u32BitLenLow = (u32DataSize << 3U);
-    if((u32FillData >= LAST_GROUP_MAX_LEN) && (u8TempFlag == 0U))
+    if ((u32FillData >= LAST_GROUP_MAX_LEN) && (u8TempFlag == 0U))
     {
         memcpy(u8buffer, &u8Data[DMA_BLKSIZE * u32TsfCnt], u32FillData);
         u8buffer[u32FillData] = 0x80U;
@@ -488,7 +547,7 @@ static void FillData(uint8_t *u8Data)
     }
     else
     {
-        if(u8TempFlag == 1U)
+        if (u8TempFlag == 1U)
         {
             ;
         }

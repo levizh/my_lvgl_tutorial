@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Wuze            First version
+   2020-08-11       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,7 +62,7 @@
  */
 
 /**
- * @defgroup DDL_OTS On-chip Temperature Sensor
+ * @defgroup DDL_OTS OTS
  * @brief OTS Driver Library
  * @{
  */
@@ -81,7 +81,20 @@
  * @{
  */
 #define OTS_CTL_INIT_MSK            (OTS_CTL_OTSCK | OTS_CTL_TSSTP)
-#define OTS_COM_TRIG_EN_MSK         (OTS_COM1_TRIG_ENABLE | OTS_COM2_TRIG_ENABLE)
+#define OTS_COM_TRIG_MSK            (OTS_COM_TRIG1 | OTS_COM_TRIG2)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup OTS_Ext_Reg_Address OTS Extension Register Address
+ * @{
+ */
+#define OTS_PDR1_ADDR               (0x40010600UL + 0xE0UL)
+#define OTS_PDR2_ADDR               (0x40010600UL + 0xF4UL)
+#define OTS_PDR3_ADDR               (0x40010600UL + 0xF8UL)
+#define OTS_CR2_ADDR                (0x4004A800UL + 0x10UL)
+#define OTS_TMR_ADDR                (0x4004A800UL + 0x12UL)
 /**
  * @}
  */
@@ -90,13 +103,17 @@
  * @defgroup OTS_Check_Parameters_Validity OTS check parameters validity
  * @{
  */
-#define IS_OTS_CLK_SEL(x)                                                      \
+#define IS_OTS_CLK(x)                                                          \
 (   ((x) == OTS_CLK_HRC)                    ||                                 \
     ((x) == OTS_CLK_XTAL))
 
 #define IS_OTS_AUTO_OFF_EN(x)                                                  \
 (   ((x) == OTS_AUTO_OFF_DISABLE)           ||                                 \
     ((x) == OTS_AUTO_OFF_ENABLE))
+
+#define IS_OTS_COM_TRIGGER(x)                                                  \
+(   ((x) != 0U)                             &&                                 \
+    (((x) | OTS_COM_TRIG_MSK) == OTS_COM_TRIG_MSK))
 
 /**
  * @}
@@ -109,13 +126,13 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void OTS_GetDfltPara(const stc_ots_init_t *pstcInit);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static uint8_t m_u16OtsClkSel = OTS_CLK_HRC;
-static float32_t m_f32ParaK = 0.0f;
-static float32_t m_f32ParaM = 0.0f;
+static float32_t m_f32SlopeK  = 0.0f;
+static float32_t m_f32OffsetM = 0.0f;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -139,20 +156,22 @@ en_result_t OTS_Init(const stc_ots_init_t *pstcInit)
 
     if (pstcInit != NULL)
     {
-        DDL_ASSERT(IS_OTS_CLK_SEL(pstcInit->u16ClkSel));
-        DDL_ASSERT(IS_OTS_AUTO_OFF_EN(pstcInit->u16AutOffEn));
+        DDL_ASSERT(IS_OTS_CLK(pstcInit->u16ClkSrc));
+        DDL_ASSERT(IS_OTS_AUTO_OFF_EN(pstcInit->u16AutoOffEn));
 
         /* Stop OTS sampling. */
         OTS_Stop();
 
-        MODIFY_REG16(M4_OTS->CTL, OTS_CTL_INIT_MSK, (pstcInit->u16ClkSel|pstcInit->u16AutOffEn));
+        MODIFY_REG16(M4_OTS->CTL, OTS_CTL_INIT_MSK, (pstcInit->u16ClkSrc|pstcInit->u16AutoOffEn));
 
-        m_f32ParaK = pstcInit->f32ParaK;
-        m_f32ParaM = pstcInit->f32ParaM;
-
-        if (pstcInit->u16ClkSel == OTS_CLK_XTAL)
+        if ((pstcInit->f32SlopeK == 0.0f) && (pstcInit->f32OffsetM == 0.0f))
         {
-            m_u16OtsClkSel = OTS_CLK_XTAL;
+            OTS_GetDfltPara(pstcInit);
+        }
+        else
+        {
+            m_f32SlopeK  = pstcInit->f32SlopeK;
+            m_f32OffsetM = pstcInit->f32OffsetM;
         }
 
         enRet = Ok;
@@ -175,12 +194,14 @@ en_result_t OTS_StructInit(stc_ots_init_t *pstcInit)
 
     if (pstcInit != NULL)
     {
-        pstcInit->u16ClkSel   = OTS_CLK_HRC;
-        pstcInit->u16AutOffEn = OTS_AUTO_OFF_ENABLE;
-        pstcInit->f32ParaK    = 0.0f;
-        pstcInit->f32ParaM    = 0.0f;
-        pstcInit->u32ClkMHz   = (SystemCoreClock / 1000000UL);
-        pstcInit->enUseDefaultPara = Disable;
+        pstcInit->u16ClkSrc    = OTS_CLK_HRC;
+        pstcInit->f32SlopeK    = 0.0f;
+        pstcInit->f32OffsetM   = 0.0f;
+        pstcInit->u16AutoOffEn = OTS_AUTO_OFF_ENABLE;
+
+        pstcInit->stcParaCond.u16ClkFreq = 8U;
+        pstcInit->stcParaCond.u8T1 = OTS_COND_T25;
+        pstcInit->stcParaCond.u8T2 = OTS_COND_T125;
 
         enRet = Ok;
     }
@@ -195,8 +216,8 @@ en_result_t OTS_StructInit(stc_ots_init_t *pstcInit)
  */
 void OTS_DeInit(void)
 {
+    /* Stop OTS. */
     OTS_Stop();
-
     /* Set the value of all registers to the reset value. */
     WRITE_REG16(M4_OTS->CTL, 0U);
     WRITE_REG16(M4_OTS->DR1, 0U);
@@ -207,33 +228,30 @@ void OTS_DeInit(void)
 /**
  * @brief  Get temperature via normal mode.
  * @param  [out] pf32Temp               Pointer to a float32_t type address that the temperature value to be stored.
- * @param  [in]  u32Timeout             Timeout value(millisecond).
+ * @param  [in]  u32Timeout             Timeout value.
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:      -pf32Temp == NULL.
- *                                     -u32Timeout == 0.
+ *   @arg  ErrorTimeout:                Works timeout.
+ *   @arg  ErrorInvalidParameter:       pf32Temp == NULL.
  */
 en_result_t OTS_Polling(float32_t *pf32Temp, uint32_t u32Timeout)
 {
-    uint32_t  u32TimeCnt;
     en_result_t enRet = ErrorInvalidParameter;
 
-    if ((pf32Temp != NULL) && (u32Timeout != 0U))
+    if (pf32Temp != NULL)
     {
-        /* 10 is the number of required instructions cycles for the below loop statement. */
-        u32TimeCnt = u32Timeout * (SystemCoreClock / 10U / 1000U);
         enRet = ErrorTimeout;
 
         OTS_Start();
-        while (u32TimeCnt--)
+        do
         {
-            if (bM4_OTS->CTL_b.OTSST == 0U)
+            if (READ_REG32(bM4_OTS->CTL_b.OTSST) == 0UL)
             {
                 *pf32Temp = OTS_CalculateTemp();
                 enRet = Ok;
                 break;
             }
-        }
+        } while (u32Timeout-- != 0UL);
         OTS_Stop();
     }
 
@@ -250,7 +268,7 @@ en_result_t OTS_Polling(float32_t *pf32Temp, uint32_t u32Timeout)
 void OTS_IntCmd(en_functional_state_t enNewState)
 {
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
-    bM4_OTS->CTL_b.OTSIE = (uint32_t)enNewState;
+    WRITE_REG32(bM4_OTS->CTL_b.OTSIE, enNewState);
 }
 
 /**
@@ -259,25 +277,35 @@ void OTS_IntCmd(en_functional_state_t enNewState)
  *                                      This parameter can be a value of @ref en_event_src_t except 'EVT_OTS'.
  * @retval None
  */
-void OTS_SetTrigEvent(en_event_src_t enEvent)
+void OTS_SetTriggerSrc(en_event_src_t enEvent)
 {
     MODIFY_REG32(M4_AOS->OTS_TRG, AOS_OTS_TRG_TRGSEL, enEvent);
 }
 
 /**
  * @brief  Enable or disable common trigger event to start OTS.
- * @param  [in]  u32ComTrigEn           Common trigger event enable bit mask.
- *                                      This parameter can be a value of @ref OTS_Common_Trigger_Event_Command
- *   @arg  OTS_COM1_TRIG_DISABLE:       Enable common trigger event 1 to start OTS.
- *   @arg  OTS_COM2_TRIG_DISABLE:       Enable common trigger event 2 to start OTS.
- *   @arg  OTS_COM1_TRIG_ENABLE:        Disable common trigger event 1 to start OTS.
- *   @arg  OTS_COM2_TRIG_ENABLE:        Disable common trigger event 2 to start OTS.
+ * @param  [in]  u32ComTrig             Common trigger event enable bit mask.
+ *                                      This parameter can be a value of @ref OTS_Common_Trigger_Sel
+ *   @arg  OTS_COM_TRIG1:               Common trigger 1.
+ *   @arg  OTS_COM_TRIG2:               Common trigger 2.
+ * @param  [in]  enNewState             An en_functional_state_t enumeration type value.
+ *   @arg Enable:                       Enable the specified common trigger.
+ *   @arg Disable:                      Disable the specified common trigger.
  * @retval None
  */
-void OTS_ComTrigCmd(uint32_t u32ComTrigEn)
+void OTS_ComTriggerCmd(uint32_t u32ComTrig, en_functional_state_t enNewState)
 {
-    u32ComTrigEn &= OTS_COM_TRIG_EN_MSK;
-    MODIFY_REG32(M4_AOS->OTS_TRG, OTS_COM_TRIG_EN_MSK, u32ComTrigEn);
+    DDL_ASSERT(IS_OTS_COM_TRIGGER(u32ComTrig));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
+
+    if (enNewState == Enable)
+    {
+        SET_REG32_BIT(M4_AOS->OTS_TRG, u32ComTrig);
+    }
+    else
+    {
+        CLEAR_REG32_BIT(M4_AOS->OTS_TRG, u32ComTrig);
+    }
 }
 
 /**
@@ -286,45 +314,66 @@ void OTS_ComTrigCmd(uint32_t u32ComTrigEn)
  * @param  [out] pu16Dr2:               Pointer to an address to store the value of data register 2.
  * @param  [out] pu16Ecr:               Pointer to an address to store the value of register ECR.
  * @param  [out] pf32A:                 Pointer to an address to store the parameter A.
- * @retval None
+ * @param  [in]  u32Timeout:            Timeout value.
+ * @retval An en_result_t enumeration value.
+ *   @arg  Ok:                          No errors occurred.
+ *   @arg  ErrorTimeout:                Works timeout.
+ *   @arg  ErrorInvalidParameter:      -pu16Dr1 == NULL.
+ *                                     -pu16Dr2 == NULL.
+ *                                     -pu16Ecr == NULL.
+ *                                     -pf32A == NULL.
  */
-void OTS_ScalingExperiment(uint16_t *pu16Dr1, uint16_t *pu16Dr2, \
-                           uint16_t *pu16Ecr, float32_t *pf32A)
+en_result_t OTS_ScalingExperiment(uint16_t *pu16Dr1, uint16_t *pu16Dr2, \
+                                  uint16_t *pu16Ecr, float32_t *pf32A,  \
+                                  uint32_t u32Timeout)
 {
     float32_t f32Dr1;
     float32_t f32Dr2;
     float32_t f32Ecr;
+    en_result_t enRet = ErrorInvalidParameter;
 
-    if ((NULL != pu16Dr1) && (NULL != pu16Dr2) && (NULL != pu16Ecr) && (NULL != pf32A))
+    if ((NULL != pu16Dr1) && (NULL != pu16Dr2) && \
+        (NULL != pu16Ecr) && (NULL != pf32A))
     {
+        enRet = ErrorTimeout;
         OTS_Start();
-
-        while (bM4_OTS->CTL_b.OTSST != 0U)
+        do
         {
-            ;
-        }
+            if (READ_REG32(bM4_OTS->CTL_b.OTSST) == 0UL)
+            {
+                enRet = Ok;
+                break;
+            }
+        } while (u32Timeout-- != 0UL);
+        OTS_Stop();
 
-        *pu16Dr1 = M4_OTS->DR1;
-        *pu16Dr2 = M4_OTS->DR2;
-        *pu16Ecr = M4_OTS->ECR;
-
-        f32Dr1 = (float32_t)(*pu16Dr1);
-        f32Dr2 = (float32_t)(*pu16Dr2);
-
-        if (m_u16OtsClkSel == OTS_CLK_HRC)
+        if (enRet == Ok)
         {
-            f32Ecr = (float32_t)(*pu16Ecr);
-        }
-        else
-        {
-            f32Ecr = 1.0f;
-        }
+            *pu16Dr1 = READ_REG16(M4_OTS->DR1);
+            *pu16Dr2 = READ_REG16(M4_OTS->DR2);
 
-        if ((*pu16Dr1 != 0U) && (*pu16Dr2 != 0U) && (*pu16Ecr != 0U))
-        {
-            *pf32A = (((1.0f / f32Dr1) - (1.0f / f32Dr2)) * f32Ecr);
+            f32Dr1 = (float32_t)(*pu16Dr1);
+            f32Dr2 = (float32_t)(*pu16Dr2);
+
+            if (READ_REG8_BIT(M4_OTS->CTL, OTS_CTL_OTSCK) == OTS_CLK_HRC)
+            {
+                *pu16Ecr = READ_REG16(M4_OTS->ECR);
+                f32Ecr   = (float32_t)(*pu16Ecr);
+            }
+            else
+            {
+                *pu16Ecr = 1U;
+                f32Ecr   = 1.0f;
+            }
+
+            if ((*pu16Dr1 != 0U) && (*pu16Dr2 != 0U) && (*pu16Ecr != 0U))
+            {
+                *pf32A = ((1.7f / f32Dr1) - (1.0f / f32Dr2)) * f32Ecr;
+            }
         }
     }
+
+    return enRet;
 }
 
 /**
@@ -335,24 +384,78 @@ void OTS_ScalingExperiment(uint16_t *pu16Dr1, uint16_t *pu16Dr2, \
 float OTS_CalculateTemp(void)
 {
     float32_t f32Ret = 0.0f;
-    uint16_t u16Dr1  = M4_OTS->DR1;
-    uint16_t u16Dr2  = M4_OTS->DR2;
-    uint16_t u16Ecr  = M4_OTS->ECR;
+    uint16_t u16Dr1  = READ_REG16(M4_OTS->DR1);
+    uint16_t u16Dr2  = READ_REG16(M4_OTS->DR2);
+    uint16_t u16Ecr  = READ_REG16(M4_OTS->ECR);
     float32_t f32Dr1 = (float32_t)u16Dr1;
     float32_t f32Dr2 = (float32_t)u16Dr2;
     float32_t f32Ecr = (float32_t)u16Ecr;
 
-    if (m_u16OtsClkSel == OTS_CLK_XTAL)
+    if (READ_REG8_BIT(M4_OTS->CTL, OTS_CTL_OTSCK) == OTS_CLK_XTAL)
     {
         f32Ecr = 1.0f;
     }
 
     if ((u16Dr1 != 0U) && (u16Dr2 != 0U) && (u16Ecr != 0U))
     {
-        f32Ret = m_f32ParaK * ((1.0f / f32Dr1) - (1.0f / f32Dr2)) * f32Ecr + m_f32ParaM;
+        f32Ret = m_f32SlopeK * ((1.7f / f32Dr1) - (1.0f / f32Dr2)) * f32Ecr + m_f32OffsetM;
     }
 
     return f32Ret;
+}
+
+/**
+ * @}
+ */
+
+/**
+ * @addtogroup OTS_Local_Functions OTS Local Functions
+ * @{
+ */
+
+/**
+ * @brief  Get built-in slope K and offset M.
+ * @param  [in]  pstcInit               Pointer to a stc_ots_init_t structure value that
+ *                                      contains the configuration information for OTS.
+ * @retval None
+ */
+static void OTS_GetDfltPara(const stc_ots_init_t *pstcInit)
+{
+#define OTS_SCAL_T1         (ai16Temp[pstcInit->stcParaCond.u8T1])
+#define OTS_SCAL_T2         (ai16Temp[pstcInit->stcParaCond.u8T2])
+#define OTS_SCAL_A1         (af32A[0U])
+#define OTS_SCAL_A2         (af32A[1U])
+
+    uint8_t i;
+    int16_t ai16Temp[] = {-40, 25, 125};
+    uint32_t au32PDRAddr[] = {OTS_PDR3_ADDR, OTS_PDR1_ADDR, OTS_PDR2_ADDR};
+    uint32_t au32PDR[2U];
+    uint32_t u16D1;
+    uint32_t u16D2;
+    float32_t f32D1;
+    float32_t f32D2;
+    float32_t af32A[2U];
+    float32_t f32Ehrc = 1.0f;
+    float32_t f32ClkFactor = (float32_t)pstcInit->stcParaCond.u16ClkFreq / 8.0f;
+
+    au32PDR[0U] = RW_MEM32(au32PDRAddr[pstcInit->stcParaCond.u8T1]);
+    au32PDR[1U] = RW_MEM32(au32PDRAddr[pstcInit->stcParaCond.u8T2]);
+
+    if (pstcInit->u16ClkSrc == OTS_CLK_HRC)
+    {
+        f32Ehrc = (float32_t)pstcInit->stcParaCond.u16ClkFreq / 0.032768f;
+    }
+
+    for (i=0U; i<2U; i++)
+    {
+        u16D1 = (uint16_t)au32PDR[i];
+        u16D2 = (uint16_t)(au32PDR[i] >> 16U);
+        f32D1 = ((float32_t)u16D1) * f32ClkFactor;
+        f32D2 = ((float32_t)u16D2) * f32ClkFactor;
+        af32A[i] = ((1.7f / f32D1) - (1.0f / f32D2)) * f32Ehrc;
+    }
+    m_f32SlopeK  = ((float32_t)OTS_SCAL_T2 - (float32_t)OTS_SCAL_T1) / (OTS_SCAL_A2 - OTS_SCAL_A1);
+    m_f32OffsetM = (float32_t)OTS_SCAL_T2 - (m_f32SlopeK * OTS_SCAL_A2);
 }
 
 /**

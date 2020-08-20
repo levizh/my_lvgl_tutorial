@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
  * @file  hc32f4a0_fmac.c
- * @brief This file provides firmware functions to manage the Filter Math 
- *        Accelerote (FMAC).
+ * @brief This file provides firmware functions to manage the Filter Math
+ *        Accelerate (FMAC).
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-19       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -145,7 +145,7 @@ en_result_t FMAC_StructInit(stc_fmac_init_t* pstcInitStruct)
         pstcInitStruct->u32FiltStage  = FMAC_FILTER_STAGE_0;
         pstcInitStruct->u32FiltShift  = FMAC_FILTER_SHIFT_0BIT;
         pstcInitStruct->i16FiltFactor = 0;
-        pstcInitStruct->u32IntCmd     = Disable;
+        pstcInitStruct->u32IntCmd     = FMAC_INT_DISABLE;
         enRet = Ok;
     }
     return enRet;
@@ -163,7 +163,6 @@ en_result_t FMAC_StructInit(stc_fmac_init_t* pstcInitStruct)
  */
 void FMAC_DeInit(M4_FMAC_TypeDef* FMACx)
 {
-
     DDL_ASSERT(IS_VALID_UNIT(FMACx));
 
     WRITE_REG32(FMACx->CTR, 0UL);
@@ -191,7 +190,7 @@ en_result_t FMAC_Init(M4_FMAC_TypeDef* FMACx, const stc_fmac_init_t *pstcFmacIni
 {
     en_result_t enRet = ErrorInvalidParameter;
     __IO uint32_t *FMAC_CORx;
-    uint32_t u32temp = 0UL; 
+    uint32_t u32temp;
     if(pstcFmacInit != NULL)
     {
         DDL_ASSERT(IS_VALID_UNIT(FMACx));
@@ -205,9 +204,9 @@ en_result_t FMAC_Init(M4_FMAC_TypeDef* FMACx, const stc_fmac_init_t *pstcFmacIni
         /* Configure interrupt command */
         WRITE_REG32(FMACx->IER, pstcFmacInit->u32IntCmd);
         do{
-            FMAC_CORx = (uint32_t *)((uint32_t)(&FMACx->COR0) + (u32temp << 2UL));
-            *FMAC_CORx = (uint32_t)pstcFmacInit->i16FiltFactor;
-        }while(u32temp--);
+            FMAC_CORx = (__IO uint32_t *)((uint32_t)(&FMACx->COR0) + (u32temp << 2UL));
+            WRITE_REG32(*FMAC_CORx, pstcFmacInit->i16FiltFactor);
+        }while((u32temp--) > 0UL);
         enRet = Ok;
     }
     return enRet;
@@ -268,7 +267,7 @@ void FMAC_SetResultShift(M4_FMAC_TypeDef* FMACx, uint32_t u32ShiftNum)
  */
 void FMAC_SetStageFactor(M4_FMAC_TypeDef* FMACx, uint32_t u32FilterStage, int16_t i16Factor)
 {
-    uint32_t *FMAC_CORx;
+    __IO uint32_t *FMAC_CORx;
     DDL_ASSERT(IS_VALID_UNIT(FMACx));
     DDL_ASSERT(IS_FMAC_FILTER_STAGE(u32FilterStage));
     /* FMAC Software reset */
@@ -278,9 +277,9 @@ void FMAC_SetStageFactor(M4_FMAC_TypeDef* FMACx, uint32_t u32FilterStage, int16_
     MODIFY_REG32(FMACx->CTR, FMAC_CTR_STAGE_NUM, u32FilterStage);
     do
     {
-        FMAC_CORx = (uint32_t*)((uint32_t)(&FMACx->COR0) + (u32FilterStage << 2UL));
-        *FMAC_CORx = (uint32_t)i16Factor;
-    }while(u32FilterStage--);
+        FMAC_CORx = (__IO uint32_t*)((uint32_t)(&FMACx->COR0) + (u32FilterStage << 2UL));
+        WRITE_REG32(*FMAC_CORx, i16Factor);
+    }while((u32FilterStage--) > 0UL);
 }
 
 /**
@@ -344,16 +343,24 @@ en_flag_status_t FMAC_GetStatus(const M4_FMAC_TypeDef* FMACx)
  *   @arg  M4_FMAC2:            FMAC unit 2 instance register base
  *   @arg  M4_FMAC3:            FMAC unit 3 instance register base
  *   @arg  M4_FMAC4:            FMAC unit 4 instance register base
- * @retval An stc_fmac_result_t structure value:
- *         u32ResultHigh        The high value of the result
- *         u32ResultLow         The low value of the result
+ * @param  [out] stcResult      Get result.
+ *         u32ResultHigh:       The high value of the result
+ *         u32ResultLow:        The low value of the result
+ * @retval Ok: Success
+ *         ErrorInvalidParameter: stcResult == NULL
  */
- stc_fmac_result_t FMAC_GetResult(const M4_FMAC_TypeDef* FMACx)
+en_result_t FMAC_GetResult(const M4_FMAC_TypeDef* FMACx, stc_fmac_result_t *stcResult)
 {
-    stc_fmac_result_t stcResult;
-    stcResult.u32ResultHigh = READ_REG32(FMACx->RTR0);
-    stcResult.u32ResultLow  = READ_REG32(FMACx->RTR1);
-    return stcResult;
+    en_result_t enRet = ErrorInvalidParameter;
+    DDL_ASSERT(IS_VALID_UNIT(FMACx));
+
+    if (stcResult != NULL)
+    {
+        stcResult->u32ResultHigh = READ_REG32(FMACx->RTR0);
+        stcResult->u32ResultLow  = READ_REG32(FMACx->RTR1);
+        enRet = Ok;
+    }
+    return enRet;
 }
 
 /**

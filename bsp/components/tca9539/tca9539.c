@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -65,7 +65,7 @@
  * @{
  */
 
-/** @defgroup TCA9539
+/** @defgroup TCA9539 IO Expand IC TCA9539
   * @{
   */
 
@@ -100,8 +100,8 @@
  */
 /**
  * @brief  Initialize IO expand IC TCA9539.
- * @param  none
- * @retval none
+ * @param  None
+ * @retval None
  */
 void TCA9539_Init(void)
 {
@@ -110,8 +110,8 @@ void TCA9539_Init(void)
 
 /**
  * @brief  Reset IO expand IC TCA9539.
- * @param  none
- * @retval none
+ * @param  None
+ * @retval None
  */
 void TCA9539_Reset(void)
 {
@@ -120,8 +120,8 @@ void TCA9539_Reset(void)
 
 /**
  * @brief  Initialize IO expand IC TCA9539 interrupt.
- * @param  none
- * @retval none
+ * @param  None
+ * @retval None
  */
 void TCA9539_IntInit(void)
 {
@@ -130,7 +130,7 @@ void TCA9539_IntInit(void)
 
 /**
  * @brief  Reset IO expand IC TCA9539.
- * @param  [in] u8Reg, TCA9539 register.
+ * @param  [in] u8Reg TCA9539 register.
  *   @arg  TCA9539_REG_INPUT_0
  *   @arg  TCA9539_REG_INPUT_1
  *   @arg  TCA9539_REG_OUTPUT_0
@@ -139,7 +139,7 @@ void TCA9539_IntInit(void)
  *   @arg  TCA9539_REG_INVERT_1
  *   @arg  TCA9539_REG_CONFIG_0
  *   @arg  TCA9539_REG_CONFIG_1
- * @param  [in] u8Val, The value to written.
+ * @param  [in] u8Val The value to written.
  * @retval en_result_t
  */
 en_result_t TCA9539_WriteReg(uint8_t u8Reg, uint8_t u8Val)
@@ -149,7 +149,7 @@ en_result_t TCA9539_WriteReg(uint8_t u8Reg, uint8_t u8Val)
 
 /**
  * @brief  Reset IO expand IC TCA9539.
- * @param  [in] u8Reg, TCA9539 register.
+ * @param  [in] u8Reg TCA9539 register.
  *   @arg  TCA9539_REG_INPUT_0
  *   @arg  TCA9539_REG_INPUT_1
  *   @arg  TCA9539_REG_OUTPUT_0
@@ -158,7 +158,7 @@ en_result_t TCA9539_WriteReg(uint8_t u8Reg, uint8_t u8Val)
  *   @arg  TCA9539_REG_INVERT_1
  *   @arg  TCA9539_REG_CONFIG_0
  *   @arg  TCA9539_REG_CONFIG_1
- * @param  [out] *u8Val, TCA9539 register value to read.
+ * @param  [out] *u8Val TCA9539 register value to read.
  * @retval en_result_t
  */
 en_result_t TCA9539_ReadReg(uint8_t u8Reg, uint8_t *u8Val)

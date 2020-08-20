@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_hid_cdc\source\usbd_cdc_vcp.c
+ * @file  usb/usbd_hid_cdc/source/usbd_cdc_vcp.c
  * @brief Generic media access Layer.
- *   
+ *
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -85,23 +85,24 @@ LINE_CODING linecoding =
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
+#define CDC_COMM                        (M4_USART6)
 /* UART RX/TX Port/Pin definition */
-#define USART_RX_PORT                   (GPIO_PORT_H)   /* PH13: USART1_RX */
-#define USART_RX_PIN                    (GPIO_PIN_13)
-#define USART_RX_GPIO_FUNC              (GPIO_FUNC_33_USART1_RX)
+#define USART_RX_PORT                   (GPIO_PORT_H)   /* PH6: USART6_RX */
+#define USART_RX_PIN                    (GPIO_PIN_06)
+#define USART_RX_GPIO_FUNC              (GPIO_FUNC_37_USART6_RX)
 
-#define USART_TX_PORT                   (GPIO_PORT_H)   /* PH15: USART1_TX */
-#define USART_TX_PIN                    (GPIO_PIN_15)
-#define USART_TX_GPIO_FUNC              (GPIO_FUNC_32_USART1_TX)
+#define USART_TX_PORT                   (GPIO_PORT_E)   /* PE6: USART6_TX */
+#define USART_TX_PIN                    (GPIO_PIN_06)
+#define USART_TX_GPIO_FUNC              (GPIO_FUNC_36_USART6_TX)
 
 /* UART unit definition */
-#define USART_FUNCTION_CLK_GATE         (PWC_FCG3_USART1)
+#define USART_FUNCTION_CLK_GATE         (PWC_FCG3_USART6)
 
 /* UART unit interrupt definition */
-#define USART_UNIT_ERR_INT              (INT_USART1_EI)
+#define USART_UNIT_ERR_INT              (INT_USART6_EI)
 #define USART_UNIT_ERR_IRQn             (Int000_IRQn)
 
-#define USART_UNIT_RX_INT               (INT_USART1_RI)
+#define USART_UNIT_RX_INT               (INT_USART6_RI)
 #define USART_UNIT_RX_IRQn              (Int001_IRQn)
 
 /*******************************************************************************
@@ -161,11 +162,11 @@ static uint16_t VCP_Init(void)
     const stc_usart_uart_init_t stcUartInit = {
         .u32Baudrate = 500000UL,
         .u32BitDirection = USART_LSB,
-        .u32StopBit = USART_STOP_BITS_1,
+        .u32StopBit = USART_STOPBIT_1BIT,
         .u32Parity = USART_PARITY_NONE,
-        .u32DataWidth = USART_DATA_WIDTH_BITS_8,
-        .u32ClkMode = USART_INTCLK_NONE_OUTPUT,
-        .u32OversamplingBits = USART_OVERSAMPLING_BITS_8,
+        .u32DataWidth = USART_DATA_LENGTH_8BIT,
+        .u32ClkMode = USART_INTERNCLK_NONE_OUTPUT,
+        .u32OversamplingBits = USART_OVERSAMPLING_8BIT,
         .u32NoiseFilterState = USART_NOISE_FILTER_DISABLE,
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
@@ -249,21 +250,21 @@ static uint16_t VCP_Ctrl (uint32_t Cmd, uint8_t* Buf, uint32_t Len)
         break;
 
         case SET_LINE_CODING:
-            linecoding.bitrate = ((uint32_t)Buf[0] | ((uint32_t)Buf[1] << 8u) | ((uint32_t)Buf[2] << 16u) | ((uint32_t)Buf[3] << 24u));
+            linecoding.bitrate = ((uint32_t)Buf[0U] | ((uint32_t)Buf[1U] << 8U) | ((uint32_t)Buf[2U] << 16U) | ((uint32_t)Buf[3U] << 24U));
             linecoding.format = Buf[4];
-            linecoding.paritytype = Buf[5];
-            linecoding.datatype = Buf[6];
+            linecoding.paritytype = Buf[5U];
+            linecoding.datatype = Buf[6U];
             /* Set the new configuration */
             VCP_COMConfig();  /* MISRAC 2004*/
         break;
         case GET_LINE_CODING:
-            Buf[0] = (uint8_t)(linecoding.bitrate);
-            Buf[1] = (uint8_t)(linecoding.bitrate >> 8u);
-            Buf[2] = (uint8_t)(linecoding.bitrate >> 16u);
-            Buf[3] = (uint8_t)(linecoding.bitrate >> 24u);
-            Buf[4] = linecoding.format;
-            Buf[5] = linecoding.paritytype;
-            Buf[6] = linecoding.datatype;
+            Buf[0U] = (uint8_t)(linecoding.bitrate);
+            Buf[1U] = (uint8_t)(linecoding.bitrate >> 8U);
+            Buf[2U] = (uint8_t)(linecoding.bitrate >> 16U);
+            Buf[3U] = (uint8_t)(linecoding.bitrate >> 24U);
+            Buf[4U] = linecoding.format;
+            Buf[5U] = linecoding.paritytype;
+            Buf[6U] = linecoding.datatype;
         break;
         case SET_CONTROL_LINE_STATE:
         /* Not  needed for this driver */
@@ -286,11 +287,11 @@ static uint16_t VCP_Ctrl (uint32_t Cmd, uint8_t* Buf, uint32_t Len)
   */
 static uint16_t VCP_DataTx (uint32_t Len)
 {
-    if (linecoding.datatype == 7u)
+    if (linecoding.datatype == 7U)
     {
-        APP_Rx_Buffer[APP_Rx_ptr_in] = (uint8_t)USART_RecData(CDC_COMM) & 0x7Fu;
+        APP_Rx_Buffer[APP_Rx_ptr_in] = (uint8_t)USART_RecData(CDC_COMM) & 0x7FU;
     }
-    else if (linecoding.datatype == 8u)
+    else if (linecoding.datatype == 8U)
     {
         APP_Rx_Buffer[APP_Rx_ptr_in] = (uint8_t)USART_RecData(CDC_COMM);
     }
@@ -304,7 +305,7 @@ static uint16_t VCP_DataTx (uint32_t Len)
     /* To avoid buffer overflow */
     if(APP_Rx_ptr_in == APP_RX_DATA_SIZE)
     {
-        APP_Rx_ptr_in = 0u;
+        APP_Rx_ptr_in = 0U;
     }
 
     return USBD_OK;
@@ -329,9 +330,9 @@ static uint16_t VCP_DataRx (uint8_t* Buf, uint32_t Len)
 {
     uint32_t i;
 
-    for (i = 0ul; i < Len; i++)
+    for (i = 0UL; i < Len; i++)
     {
-        while(Set != USART_GetFlag(CDC_COMM, USART_FLAG_TXE))
+        while(Set != USART_GetStatus(CDC_COMM, USART_FLAG_TXE))
         {
             ;
         }
@@ -350,10 +351,10 @@ uint16_t VCP_COMConfigDefault(void)
     const stc_usart_uart_init_t stcUartInit = {
         .u32Baudrate = 500000UL,
         .u32BitDirection = USART_LSB,
-        .u32StopBit = USART_STOP_BITS_1,
+        .u32StopBit = USART_STOPBIT_1BIT,
         .u32Parity = USART_PARITY_NONE,
-        .u32DataWidth = USART_DATA_WIDTH_BITS_8,
-        .u32ClkMode = USART_INTCLK_NONE_OUTPUT,
+        .u32DataWidth = USART_DATA_LENGTH_8BIT,
+        .u32ClkMode = USART_INTERNCLK_NONE_OUTPUT,
         .u32OversamplingBits = USART_OVERSAMPLING_BITS_8,
         .u32NoiseFilterState = USART_NOISE_FILTER_DISABLE,
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
@@ -365,7 +366,7 @@ uint16_t VCP_COMConfigDefault(void)
 
     }
 #endif
-    for (u8Cnt=0u; u8Cnt < 4u; u8Cnt++)
+    for (u8Cnt=0U; u8Cnt < 4U; u8Cnt++)
     {
         if(Ok == USART_SetBaudrate(CDC_COMM, 500000UL, &fErr))
         {
@@ -375,10 +376,10 @@ uint16_t VCP_COMConfigDefault(void)
         }
         else
         {
-            USART_SetClkPrescaler(CDC_COMM, u8Cnt);
+            USART_SetPclkDiv(CDC_COMM, u8Cnt);
         }
     }
-    if (u8Cnt == 4u)
+    if (u8Cnt == 4U)
     {
         u16Res = USBD_FAIL;
     }
@@ -396,17 +397,17 @@ static uint16_t VCP_COMConfig(void)
 
     uint8_t u8Cnt;
     uint16_t u16Res = USBD_OK;
-    uint8_t u8ReturnFlag = 0u;
+    uint8_t u8ReturnFlag = 0U;
     float fErr;
 
     stc_usart_uart_init_t stcUartInit = {
         .u32Baudrate = 500000UL,
         .u32BitDirection = USART_LSB,
-        .u32StopBit = USART_STOP_BITS_1,
+        .u32StopBit = USART_STOPBIT_1BIT,
         .u32Parity = USART_PARITY_NONE,
-        .u32DataWidth = USART_DATA_WIDTH_BITS_8,
-        .u32ClkMode = USART_INTCLK_NONE_OUTPUT,
-        .u32OversamplingBits = USART_OVERSAMPLING_BITS_8,
+        .u32DataWidth = USART_DATA_LENGTH_8BIT,
+        .u32ClkMode = USART_INTERNCLK_NONE_OUTPUT,
+        .u32OversamplingBits = USART_OVERSAMPLING_8BIT,
         .u32NoiseFilterState = USART_NOISE_FILTER_DISABLE,
         .u32SbDetectPolarity = USART_SB_DETECT_FALLING,
     };
@@ -414,76 +415,76 @@ static uint16_t VCP_COMConfig(void)
     /* set the Stop bit*/
     switch (linecoding.format)
     {
-        case 0u:
-            stcUartInit.u32StopBit = USART_STOP_BITS_1;
+        case 0U:
+            stcUartInit.u32StopBit = USART_STOPBIT_1BIT;
             break;
-        case 1u:
-            stcUartInit.u32StopBit = USART_STOP_BITS_1;
+        case 1U:
+            stcUartInit.u32StopBit = USART_STOPBIT_1BIT;
             break;
-        case 2u:
-            stcUartInit.u32StopBit = USART_STOP_BITS_2;
+        case 2U:
+            stcUartInit.u32StopBit = USART_STOPBIT_2BIT;
             break;
         default :
             VCP_COMConfigDefault();
             u16Res = USBD_FAIL;
-            u8ReturnFlag = 1u;
+            u8ReturnFlag = 1U;
             break;
     }
 
-    if(1u != u8ReturnFlag)
+    if(1U != u8ReturnFlag)
     {
         /* set the parity bit*/
         switch (linecoding.paritytype)
         {
-            case 0u:
+            case 0U:
                 stcUartInit.u32Parity = USART_PARITY_NONE;
                 break;
-            case 1u:
+            case 1U:
                 stcUartInit.u32Parity = USART_PARITY_EVEN;
                 break;
-            case 2u:
+            case 2U:
                 stcUartInit.u32Parity = USART_PARITY_ODD;
                 break;
             default :
                 VCP_COMConfigDefault();
                 u16Res = USBD_FAIL;
-                u8ReturnFlag = 1u;
+                u8ReturnFlag = 1U;
                 break;
         }
 
-        if(1u != u8ReturnFlag)
+        if(1U != u8ReturnFlag)
         {
             /*set the data type : only 8bits and 9bits is supported */
             switch (linecoding.datatype)
             {
-                case 0x07u:
+                case 0x07U:
                     /* With this configuration a parity (Even or Odd) should be set */
-                    stcUartInit.u32DataWidth = USART_DATA_WIDTH_BITS_8;
+                    stcUartInit.u32DataWidth = USART_DATA_LENGTH_8BIT;
                     break;
-                case 0x08u:
+                case 0x08U:
                     if (stcUartInit.u32Parity == USART_PARITY_NONE)
                     {
-                        stcUartInit.u32DataWidth = USART_DATA_WIDTH_BITS_8;
+                        stcUartInit.u32DataWidth = USART_DATA_LENGTH_8BIT;
                     }
                     else
                     {
-                        stcUartInit.u32DataWidth = USART_DATA_WIDTH_BITS_9;
+                        stcUartInit.u32DataWidth = USART_DATA_LENGTH_9BIT;
                     }
                     break;
                 default :
                     VCP_COMConfigDefault();
                     u16Res = USBD_FAIL;
-                    u8ReturnFlag = 1u;
+                    u8ReturnFlag = 1U;
                     break;
             }
 
-            if(1u != u8ReturnFlag)
+            if(1U != u8ReturnFlag)
             {
                 stcUartInit.u32Baudrate = linecoding.bitrate;
                 /* Configure and enable the USART */
                 USART_UartInit(CDC_COMM, &stcUartInit);
 
-                for (u8Cnt=0u; u8Cnt < 4u; u8Cnt++)
+                for (u8Cnt=0U; u8Cnt < 4U; u8Cnt++)
                 {
                     if(Ok == USART_SetBaudrate(CDC_COMM, stcUartInit.u32Baudrate, &fErr))
                     {
@@ -493,10 +494,10 @@ static uint16_t VCP_COMConfig(void)
                     }
                     else
                     {
-                        USART_SetClkPrescaler(CDC_COMM, u8Cnt);
+                        USART_SetPclkDiv(CDC_COMM, u8Cnt);
                     }
                 }
-                if (u8Cnt == 4u)
+                if (u8Cnt == 4U)
                 {
                     u16Res = USBD_FAIL;
                 }
@@ -513,10 +514,10 @@ static uint16_t VCP_COMConfig(void)
  */
 static void UsartRxIrqCallback(void)
 {
-    if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_RXNE))
+    if (Set == USART_GetStatus(CDC_COMM, USART_FLAG_RXNE))
     {
         /* Send the received data to the PC Host*/
-        VCP_DataTx (0u);
+        VCP_DataTx (0U);
     }
 }
 
@@ -527,25 +528,25 @@ static void UsartRxIrqCallback(void)
  */
 static void UsartErrIrqCallback(void)
 {
-    if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_FE))
+    if (Set == USART_GetStatus(CDC_COMM, USART_FLAG_FE))
     {
-        USART_ClearFlag(CDC_COMM, USART_CLEAR_FLAG_FE);
+        USART_ClearStatus(CDC_COMM, USART_CLEAR_FLAG_FE);
     }
     else
     {
     }
 
-    if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_PE))
+    if (Set == USART_GetStatus(CDC_COMM, USART_FLAG_PE))
     {
-        USART_ClearFlag(CDC_COMM, USART_CLEAR_FLAG_PE);
+        USART_ClearStatus(CDC_COMM, USART_CLEAR_FLAG_PE);
     }
     else
     {
     }
 
-    if (Set == USART_GetFlag(CDC_COMM, USART_FLAG_ORE))
+    if (Set == USART_GetStatus(CDC_COMM, USART_FLAG_ORE))
     {
-        USART_ClearFlag(CDC_COMM, USART_CLEAR_FLAG_ORE);
+        USART_ClearStatus(CDC_COMM, USART_CLEAR_FLAG_ORE);
     }
     else
     {
@@ -555,7 +556,7 @@ static void UsartErrIrqCallback(void)
 /**
  * @brief  Instal IRQ handler.
  * @param  [in] pstcConfig      Pointer to struct @ref stc_irq_signin_config_t
- * @param  [in] Priority        Interrupt priority
+ * @param  [in] u32Priority     Interrupt priority
  * @retval None
  */
 static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,

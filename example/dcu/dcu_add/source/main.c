@@ -5,7 +5,9 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-11       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-23       Hongjh          1. Modify DCU DATA read/write API;
+                                    2. Modify paramters after refine DCU_IntCmd.
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -87,16 +89,70 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 static void DCU_IrqCallback(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static uint32_t m_u32AddOverflowCnt = 0UL;
+static __IO uint32_t m_u32AddOverflowCnt = 0UL;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  DCU irq callback function.
@@ -105,10 +161,10 @@ static uint32_t m_u32AddOverflowCnt = 0UL;
  */
 static void DCU_IrqCallback(void)
 {
-    if (Set == DCU_GetFlag(DCU_UNIT, DCU_FLAG_OPERATION))
+    if (Set == DCU_GetStatus(DCU_UNIT, DCU_FLAG_OPERATION))
     {
         m_u32AddOverflowCnt++;
-        DCU_ClearFlag(DCU_UNIT, DCU_FLAG_OPERATION);
+        DCU_ClearStatus(DCU_UNIT, DCU_FLAG_OPERATION);
     }
 }
 
@@ -119,6 +175,7 @@ static void DCU_IrqCallback(void)
  */
 int32_t main(void)
 {
+    uint32_t i;
     stc_dcu_init_t stcDcuInit;
     en_result_t enTestResult = Ok;
     stc_irq_signin_config_t stcIrqSigninCfg;
@@ -127,6 +184,9 @@ int32_t main(void)
     uint16_t au16Data0Val[4];
     uint16_t au16Data2Val[4];
     uint16_t au16Data1Val[4] = {0x0000, 0x2222, 0x4444, 0x8888};
+
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
 
     /* Initialize system clock. */
     BSP_CLK_Init();
@@ -140,13 +200,16 @@ int32_t main(void)
     /* Enable peripheral clock */
     PWC_Fcg0PeriphClockCmd(DCU_FUNCTION_CLK_GATE, Enable);
 
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
+
     /* Initialize DCU */
     DCU_StructInit(&stcDcuInit);
     stcDcuInit.u32IntEn = DCU_INT_ENABLE;
     stcDcuInit.u32Mode = DCU_ADD;
-    stcDcuInit.u32DataSize = DCU_DATA_BITS_16;
+    stcDcuInit.u32DataSize = DCU_DATA_SIZE_16BIT;
     DCU_Init(DCU_UNIT, &stcDcuInit);
-    DCU_IntCmd(DCU_UNIT, DCU_INT_OPERATION, Enable);
+    DCU_IntCmd(DCU_UNIT, DCU_INT_OP, DCU_INT_OP_UDF_OVF, Enable);
 
     /* Set DCU IRQ */
     stcIrqSigninCfg.enIRQn = DCU_UNIT_INT_IRQn;
@@ -157,13 +220,13 @@ int32_t main(void)
     NVIC_ClearPendingIRQ(stcIrqSigninCfg.enIRQn);
     NVIC_EnableIRQ(stcIrqSigninCfg.enIRQn);
 
-    for (uint32_t i = 0UL; i < ARRAY_SZ(au16Data1Val); i++)
+    for (i = 0UL; i < ARRAY_SZ(au16Data1Val); i++)
     {
         u32SumData1 += (uint32_t)au16Data1Val[i];
-        DCU_WriteReg16Data1(DCU_UNIT, au16Data1Val[i]);
+        DCU_WriteData16(DCU_UNIT, DCU_DATA1_IDX, au16Data1Val[i]);
 
-        au16Data0Val[i] = DCU_ReadReg16Data0(DCU_UNIT);
-        au16Data2Val[i] = DCU_ReadReg16Data2(DCU_UNIT);
+        au16Data0Val[i] = DCU_ReadData16(DCU_UNIT, DCU_DATA0_IDX);
+        au16Data2Val[i] = DCU_ReadData16(DCU_UNIT, DCU_DATA2_IDX);
 
         /* Compare DCU regisger DATA0 && DATA2 value: DATA0 value == 2 * DATA2 value */
         if (au16Data0Val[i] != (2U * au16Data2Val[i]))
@@ -173,10 +236,10 @@ int32_t main(void)
         }
     }
 
-    DCU_WriteReg16Data1(DCU_UNIT, 0x2222U);
+    DCU_WriteData16(DCU_UNIT, DCU_DATA1_IDX, 0x2222U);
     u32SumData1 += 0x2222UL;
 
-    u32SumData0 = (uint32_t)DCU_ReadReg16Data0(DCU_UNIT) + (m_u32AddOverflowCnt * 0x10000UL);
+    u32SumData0 += (uint32_t)DCU_ReadData16(DCU_UNIT, DCU_DATA0_IDX) + (m_u32AddOverflowCnt * 0x10000UL);
 
     /* Compare : DATA0 value + 0x10000 == DATA1 sum value */
     if (u32SumData0 != u32SumData1)
@@ -186,11 +249,11 @@ int32_t main(void)
 
     if (Ok == enTestResult)
     {
-        BSP_LED_On(LED_BLUE);  /* Test pass && meet the expected */
+        BSP_LED_On(LED_BLUE);   /* Test pass && meet the expected */
     }
     else
     {
-        BSP_LED_On(LED_RED);  /* Test fail && don't meet the expected */
+        BSP_LED_On(LED_RED);    /* Test fail && don't meet the expected */
     }
 
     while (1)

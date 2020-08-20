@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-6-3         zhangxl         First version for USB CDC VCP demo.
+   2020-06-12       zhangxl         First version for USB CDC VCP demo.
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -426,12 +426,12 @@ __USB_ALIGN_BEGIN uint8_t usbd_cdc_OtherCfgDesc[USB_CDC_CONFIG_DESC_SIZ]  __USB_
 
 /**
  * @brief  usbd_cdc_Init
- *         Initilaize the CDC interface
+ *         Initialize the CDC interface
  * @param  pdev: device instance
  * @param  cfgidx: Configuration index
  * @retval status
  */
-uint8_t  usbd_cdc_Init (void  *pdev, uint8_t cfgidx)
+uint8_t usbd_cdc_Init (void  *pdev, uint8_t cfgidx)
 {
     uint8_t *pbuf;
 
@@ -568,7 +568,7 @@ uint8_t  usbd_cdc_Setup (void  *pdev,
                 case USB_REQ_GET_INTERFACE :
                     USBD_CtlSendData (pdev,
                                   (uint8_t *)&usbd_cdc_AltSet,
-                                  1u);
+                                  1U);
                     break;
 
                 case USB_REQ_SET_INTERFACE :
@@ -601,7 +601,7 @@ uint8_t  usbd_cdc_Setup (void  *pdev,
  * @param  pdev: device device instance
  * @retval status
  */
-uint8_t  usbd_cdc_EP0_RxReady (void  *pdev)
+uint8_t usbd_cdc_EP0_RxReady (void *pdev)
 {
     if (cdcCmd != NO_CMD)
     {
@@ -621,7 +621,7 @@ uint8_t  usbd_cdc_EP0_RxReady (void  *pdev)
  * @param  epnum: endpoint number
  * @retval status
  */
-uint8_t  usbd_cdc_DataIn (void *pdev, uint8_t epnum)
+uint8_t usbd_cdc_DataIn (void *pdev, uint8_t epnum)
 {
     uint16_t USB_Tx_ptr;
     uint16_t USB_Tx_length;

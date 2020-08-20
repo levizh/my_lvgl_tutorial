@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -346,7 +346,7 @@ static uint8_t  *USBD_MSC_HID_GetCfgDesc (uint8_t speed, uint16_t *length)
   */
 static uint8_t  USBD_MSC_HID_DataIn (void  *pdev, uint8_t epnum)
 {
-    uint8_t u8Ret = 0u;
+    uint8_t u8Ret = 0U;
     /*DataIN can be for MSC or HID */
     if (epnum == (uint8_t)(MSC_IN_EP&((uint8_t)~0x80U)))
     {
@@ -368,7 +368,7 @@ static uint8_t  USBD_MSC_HID_DataIn (void  *pdev, uint8_t epnum)
   */
 static uint8_t  USBD_MSC_HID_DataOut(void *pdev , uint8_t epnum)
 {
-    uint8_t u8Ret = 0u;
+    uint8_t u8Ret = 0U;
     /*DataOut can be for MSC*/
     if (epnum == (uint8_t)(MSC_OUT_EP&((uint8_t)~0x80U)))
     {

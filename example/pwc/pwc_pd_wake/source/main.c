@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-13       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup PWC_Stop_wake
+ * @addtogroup PWC_PowerDown_wake
  * @{
  */
 
@@ -87,7 +87,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -97,16 +98,68 @@
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
  * @brief  Wakeup timer IRQ handler
  * @param  None
  * @retval None
  */
 void PWC_WakeupTimer_IrqHandler(void)
 {
-    if (Set == PWC_WKT_GetFlag())
+    if (Set == PWC_WKT_GetStatus())
     {
         printf("Wake-up timer ovweflow.\n");
-        PWC_WKT_ClearFlag();
+        PWC_WKT_ClearStatus();
     }
 }
 
@@ -142,7 +195,6 @@ void PowerDownModeConfig(void)
     NVIC_ClearPendingIRQ(WKTM_IRQn);
     NVIC_SetPriority(WKTM_IRQn,DDL_IRQ_PRIORITY_DEFAULT);
     NVIC_EnableIRQ(WKTM_IRQn);
-
 }
 
 /**
@@ -152,15 +204,11 @@ void PowerDownModeConfig(void)
  */
 void ResetCausePrint(void)
 {
-    stc_rmu_rstcause_t stcRst;
-
-    RMU_GetStatus(&stcRst);
-
-    if (Set == stcRst.enRstPinRst)
+    if (Set == RMU_GetStatus(RMU_RST_RESET_PIN))
     {
         printf("Pin reset occurs.\n");
     }
-    if (Set == stcRst.enPowerDownRst)
+    if (Set == RMU_GetStatus(RMU_RST_POWER_DOWN))
     {
         printf("Power down mode reset occurs.\n");
     }
@@ -168,7 +216,7 @@ void ResetCausePrint(void)
 }
 
 /**
- * @brief  Main function of CLK project
+ * @brief  Main function of PWC power down wakeup project
  * @param  None
  * @retval int32_t return value, if needed
  */
@@ -176,20 +224,24 @@ int32_t main(void)
 {
     uint8_t u8Cnt = 0U;
 
-    /* unlock GPIO register in advance */
-    GPIO_Unlock();
-
+    /* Register write enable for some required peripherals. */
+    Peripheral_WE();
+    /* System clock init */
     BSP_CLK_Init();
+    /* Expand IO init */
     BSP_IO_Init();
+    /* LED init */
     BSP_LED_Init();
 
     DDL_PrintfInit();
 
     PowerDownModeConfig();
+    /* Register write protected for some required peripherals. */
+    Peripheral_WP();
 
     ResetCausePrint();
 
-    /* KEY10 */
+    /* KEY10(SW10) */
     while(Pin_Reset != GPIO_ReadInputPins(KEY10_PORT, KEY10_PIN))
     {
         ;
@@ -201,10 +253,10 @@ int32_t main(void)
         do
         {
             BSP_LED_Toggle(LED_BLUE);
-            DDL_Delay1ms(DLY_MS);
+            DDL_DelayMS(DLY_MS);
         } while(--u8Cnt);
         printf("MCU will entry power down mode...\n");
-        DDL_Delay1ms(DLY_MS);
+        DDL_DelayMS(DLY_MS);
 
         PWC_WKT_Cmd(Enable);
         PWC_EnterPowerDownMode();

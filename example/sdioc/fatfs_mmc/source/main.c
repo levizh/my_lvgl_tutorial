@@ -5,7 +5,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-20       Yangjp          First version
+   2020-06-12       Yangjp          First version
+   2020-07-15       Zhangxl         Use XTAL 8MHz as PLL source
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -96,6 +97,58 @@ static uint8_t u8WorkBuffer[FF_MAX_SS];
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    // GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    // PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
  * @brief  SYS clock initialize.
  * @param  None
  * @retval None
@@ -110,25 +163,28 @@ void SYS_CLK_Init(void)
                               CLK_HCLK_DIV1));
 
     CLK_PLLHStrucInit(&stcPLLHInit);
-    /* VCO = 16/2*100 = 800MHz*/
+    /* VCO = (8/1)*100 = 800MHz*/
     stcPLLHInit.u8PLLState = CLK_PLLH_ON;
     stcPLLHInit.PLLCFGR = 0UL;
-    stcPLLHInit.PLLCFGR_f.PLLM = 2UL - 1UL;
+    stcPLLHInit.PLLCFGR_f.PLLM = 1UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLN = 100UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLP = 4UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLQ = 4UL - 1UL;
     stcPLLHInit.PLLCFGR_f.PLLR = 4UL - 1UL;
-    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_HRC;
+    stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL;
     CLK_PLLHInit(&stcPLLHInit);
 
     /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
 
     /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
-    EFM_Unlock();
-    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   /* 0-wait @ 40MHz */
-    EFM_Lock();
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+
+    /* 0-wait @ 40MHz */
+    EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);   
+
+    /* 4 cycles for 200 ~ 250MHz */
+    GPIO_SetReadWaitCycle(GPIO_READ_WAIT_4);
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
@@ -147,6 +203,8 @@ int32_t main(void)
     en_result_t enTestRet = Error;
     MKFS_PARM opt;
 
+    /* Peripheral registers write unprotected */
+    Peripheral_WE();
     /* Configure clock */
     SYS_CLK_Init();
     /* Configure BSP */
@@ -240,6 +298,8 @@ int32_t main(void)
         BSP_LED_On(LED_BLUE);
         BSP_LED_Off(LED_RED);
     }
+    /* Peripheral registers write protected */
+    Peripheral_WP();
 
     while (1)
     {

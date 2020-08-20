@@ -10,7 +10,7 @@
     <Static>
       <Debug-Log>
         <ColumnWidth0>20</ColumnWidth0>
-        <ColumnWidth1>1862</ColumnWidth1>
+        <ColumnWidth1>1308</ColumnWidth1>
       </Debug-Log>
       <Workspace>
         <ColumnWidths>
@@ -22,22 +22,23 @@
       </Workspace>
       <Build>
         <ColumnWidth0>20</ColumnWidth0>
-        <ColumnWidth1>1396</ColumnWidth1>
-        <ColumnWidth2>372</ColumnWidth2>
-        <ColumnWidth3>93</ColumnWidth3>
+        <ColumnWidth1>981</ColumnWidth1>
+        <ColumnWidth2>261</ColumnWidth2>
+        <ColumnWidth3>65</ColumnWidth3>
       </Build>
-      <TerminalIO/>
     </Static>
     <Windows>
       <Wnd0>
         <Tabs>
           <Tab>
-            <Identity>TabID-27225-10257</Identity>
+            <Identity>TabID-2321-12481</Identity>
             <TabName>Workspace</TabName>
             <Factory>Workspace</Factory>
             <Session>
               <NodeDict>
                 <ExpandedNode>clk_xtalstd_int</ExpandedNode>
+                <ExpandedNode>clk_xtalstd_int/Output</ExpandedNode>
+                <ExpandedNode>clk_xtalstd_int/source</ExpandedNode>
               </NodeDict>
             </Session>
           </Tab>
@@ -47,13 +48,13 @@
       <Wnd1>
         <Tabs>
           <Tab>
-            <Identity>TabID-5205-10261</Identity>
+            <Identity>TabID-13069-12485</Identity>
             <TabName>Debug Log</TabName>
             <Factory>Debug-Log</Factory>
             <Session/>
           </Tab>
           <Tab>
-            <Identity>TabID-3114-10300</Identity>
+            <Identity>TabID-11501-12514</Identity>
             <TabName>Build</TabName>
             <Factory>Build</Factory>
             <Session/>
@@ -72,11 +73,23 @@
           <SelStart>0</SelStart>
           <SelEnd>0</SelEnd>
           <XPos2>0</XPos2>
-          <YPos2>158</YPos2>
-          <SelStart2>6527</SelStart2>
-          <SelEnd2>6527</SelEnd2>
+          <YPos2>78</YPos2>
+          <SelStart2>444</SelStart2>
+          <SelEnd2>444</SelEnd2>
         </Tab>
-        <ActiveTab>0</ActiveTab>
+        <Tab>
+          <Factory>TextEditor</Factory>
+          <Filename>$WS_DIR$\output\debug\List\clk_xtalstd_int.map</Filename>
+          <XPos>0</XPos>
+          <YPos>0</YPos>
+          <SelStart>0</SelStart>
+          <SelEnd>0</SelEnd>
+          <XPos2>0</XPos2>
+          <YPos2>215</YPos2>
+          <SelStart2>0</SelStart2>
+          <SelEnd2>0</SelEnd2>
+        </Tab>
+        <ActiveTab>1</ActiveTab>
       </Pane>
       <ActivePane>0</ActivePane>
       <Sizes>
@@ -91,14 +104,11 @@
       <Top>
         <Row0>
           <Sizes>
-            <Toolbar-008330A8>
+            <Toolbar-01148140>
               <key>iaridepm.enu1</key>
-            </Toolbar-008330A8>
+            </Toolbar-01148140>
           </Sizes>
         </Row0>
-        <Row1>
-          <Sizes/>
-        </Row1>
       </Top>
       <Left>
         <Row0>
@@ -107,16 +117,16 @@
               <Rect>
                 <Top>-2</Top>
                 <Left>-2</Left>
-                <Bottom>798</Bottom>
+                <Bottom>459</Bottom>
                 <Right>198</Right>
                 <x>-2</x>
                 <y>-2</y>
                 <xscreen>200</xscreen>
                 <yscreen>200</yscreen>
-                <sizeHorzCX>104167</sizeHorzCX>
-                <sizeHorzCY>192123</sizeHorzCY>
-                <sizeVertCX>104167</sizeVertCX>
-                <sizeVertCY>768492</sizeVertCY>
+                <sizeHorzCX>146413</sizeHorzCX>
+                <sizeHorzCY>284900</sizeHorzCY>
+                <sizeVertCX>146413</sizeVertCX>
+                <sizeVertCY>656695</sizeVertCY>
               </Rect>
             </Wnd0>
           </Sizes>
@@ -135,15 +145,15 @@
                 <Top>-2</Top>
                 <Left>-2</Left>
                 <Bottom>198</Bottom>
-                <Right>1922</Right>
+                <Right>1368</Right>
                 <x>-2</x>
                 <y>-2</y>
-                <xscreen>1924</xscreen>
+                <xscreen>1370</xscreen>
                 <yscreen>200</yscreen>
-                <sizeHorzCX>1002083</sizeHorzCX>
-                <sizeHorzCY>192123</sizeHorzCY>
-                <sizeVertCX>104167</sizeVertCX>
-                <sizeVertCY>192123</sizeVertCY>
+                <sizeHorzCX>1002928</sizeHorzCX>
+                <sizeHorzCY>284900</sizeHorzCY>
+                <sizeVertCX>146413</sizeVertCX>
+                <sizeVertCY>284900</sizeVertCY>
               </Rect>
             </Wnd1>
           </Sizes>

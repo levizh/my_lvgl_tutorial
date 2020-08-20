@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbh_mouse_kb\source\usbh_usr_print.h
+ * @file  usb/usbh_mouse_kb/source/usbh_usr_print.h
  * @brief Headfile for usbh_usr_print.c.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.

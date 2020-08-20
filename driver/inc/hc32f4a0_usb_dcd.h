@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -141,7 +141,7 @@ uint32_t    DCD_EP_Open(USB_OTG_CORE_HANDLE *pdev ,
                         uint8_t ep_addr,
                         uint16_t ep_mps,
                         uint8_t ep_type);
-uint32_t    DCD_EP_Close  (USB_OTG_CORE_HANDLE *pdev, uint8_t  ep_addr);
+uint32_t    DCD_EP_Close  (USB_OTG_CORE_HANDLE *pdev, uint8_t ep_addr);
 uint32_t    DCD_EP_PrepareRx ( USB_OTG_CORE_HANDLE *pdev,
                                 uint8_t   ep_addr,
                                 uint8_t *pbuf,
@@ -150,7 +150,7 @@ uint32_t    DCD_EP_Tx (USB_OTG_CORE_HANDLE *pdev,
                                uint8_t  ep_addr,
                                uint8_t  *pbuf,
                                uint32_t   buf_len);
-uint32_t    DCD_EP_Stall (USB_OTG_CORE_HANDLE *pdev, uint8_t   epnum);
+uint32_t    DCD_EP_Stall (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum);
 uint32_t    DCD_EP_ClrStall (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum);
 uint32_t    DCD_EP_Flush (USB_OTG_CORE_HANDLE *pdev, uint8_t epnum);
 uint32_t    DCD_Handle_ISR(USB_OTG_CORE_HANDLE *pdev);

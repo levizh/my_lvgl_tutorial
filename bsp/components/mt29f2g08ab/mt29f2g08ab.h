@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-09       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -76,7 +76,7 @@ extern "C"
  */
 
 /**
- * @defgroup MT29F2G08AB
+ * @addtogroup MT29F2G08AB
  * @{
  */
 
@@ -90,7 +90,12 @@ extern "C"
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup MT29F2G08AB_Global_Macros  MT29F2G08AB Global Macros
+ * @defgroup MT29F2G08AB_Global_Macros MT29F2G08AB Global Macros
+ * @{
+ */
+
+/**
+ * @defgroup MT29F2G08AB_Device_Size MT29F2G08AB Device Size
  * @{
  */
 #define MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE (2048UL)
@@ -107,15 +112,26 @@ extern "C"
 
 #define MT29F2G08AB_PAGE_1BIT_ECC_VALUE_SIZE                                   \
 ((MT29F2G08AB_PAGE_SIZE_WITHOUT_SPARE / EXMC_NFC_ECC_CALCULATE_BLOCK_BYTES) * EXMC_NFC_1BIT_ECC_VALUE_BYTES)
+/**
+ * @}
+ */
+
+/**
+ * @defgroup MT29F2G08AB_ID_Information MT29F2G08AB ID Information
+ * @{
+ */
+#define MT29F2G08ABAEA_MANUFACTURER_ID      (0x2CU)
+#define MT29F2G08ABAEA_DEVICE_ID1           (0xDAU)
+#define MT29F2G08ABAEA_DEVICE_ID2           (0x90U)
+#define MT29F2G08ABAEA_DEVICE_ID3           (0x95U)
+/**
+ * @}
+ */
 
 /**
  * @}
  */
 
-#define MT29F2G08ABAEA_MANUFACTURER_ID      (0x2CU)
-#define MT29F2G08ABAEA_DEVICE_ID1           (0xDAU)
-#define MT29F2G08ABAEA_DEVICE_ID2           (0x90U)
-#define MT29F2G08ABAEA_DEVICE_ID3           (0x95U)
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -125,13 +141,13 @@ extern "C"
   Global function prototypes (definition in C source)
  ******************************************************************************/
 /**
- * @addtogroup MT29F2G08AB_Global_Functions MT29F2G08AB Global Functions
+ * @addtogroup MT29F2G08AB_Global_Functions
  * @{
  */
 en_result_t MT29F2G08AB_Init(void);
 en_result_t MT29F2G08AB_ReadId(uint32_t u32IdAddr,
                                     uint8_t au8DevId[],
-                                    uint8_t u8NumBytes);
+                                    uint32_t u32NumBytes);
 en_result_t MT29F2G08AB_GetStatus(uint32_t u32Timeout);
 en_result_t MT29F2G08AB_EraseBlock(uint32_t u32BlockRowAddress);
 en_result_t MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
@@ -157,11 +173,11 @@ en_result_t MT29F2G08AB_ReadPageHwEcc4Bits(uint32_t u32Page,
 en_result_t BSP_NFC_MT29F2G08AB_Init(void);
 en_result_t BSP_NFC_MT29F2G08AB_ReadId(uint32_t u32IdAddr,
                                         uint8_t au8DevId[],
-                                        uint8_t u8NumBytes);
+                                        uint32_t u32NumBytes);
 uint32_t BSP_NFC_MT29F2G08AB_ReadStatus(void);
 en_result_t BSP_NFC_MT29F2G08AB_EraseBlock(uint32_t u32BlockRowAddress);
 en_result_t BSP_NFC_MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
-                                    uint8_t *pu8Datas,
+                                    uint8_t *pu8Data,
                                     uint32_t u32NumBytes);
 en_result_t BSP_NFC_MT29F2G08AB_WritePageMeta(uint32_t u32Page,
                                     const uint8_t *pu8Data,

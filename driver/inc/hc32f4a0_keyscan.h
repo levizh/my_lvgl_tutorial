@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-23       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -195,23 +195,23 @@ typedef struct
  * @defgroup KEYSCAN_Keyin_Sel KEYSCAN keyin pins selection
  * @{
  */
-#define KEYSCAN_IN_0            (0x0001UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 0 is selected */
-#define KEYSCAN_IN_1            (0x0002UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 1 is selected */
-#define KEYSCAN_IN_2            (0x0004UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 2 is selected */
-#define KEYSCAN_IN_3            (0x0008UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 3 is selected */
-#define KEYSCAN_IN_4            (0x0010UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 4 is selected */
-#define KEYSCAN_IN_5            (0x0020UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 5 is selected */
-#define KEYSCAN_IN_6            (0x0040UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 6 is selected */
-#define KEYSCAN_IN_7            (0x0080UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 7 is selected */
-#define KEYSCAN_IN_8            (0x0100UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 8  is selected */
-#define KEYSCAN_IN_9            (0x0200UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 9  is selected */
-#define KEYSCAN_IN_10           (0x0400UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 10 is selected */
-#define KEYSCAN_IN_11           (0x0800UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 11 is selected */
-#define KEYSCAN_IN_12           (0x1000UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 12 is selected */
-#define KEYSCAN_IN_13           (0x2000UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 13 is selected */
-#define KEYSCAN_IN_14           (0x4000UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 14 is selected */
-#define KEYSCAN_IN_15           (0x8000UL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) 15 is selected */
-#define KEYSCAN_IN_MASK         (0xFFFFUL << KEYSCAN_SCR_KEYINSEL_POS)  /*!< KEYIN(EIRQ) mask */
+#define KEYSCAN_IN_0            (KEYSCAN_SCR_KEYINSEL_0)    /*!< KEYIN(EIRQ) 0 is selected */
+#define KEYSCAN_IN_1            (KEYSCAN_SCR_KEYINSEL_1)    /*!< KEYIN(EIRQ) 1 is selected */
+#define KEYSCAN_IN_2            (KEYSCAN_SCR_KEYINSEL_2)    /*!< KEYIN(EIRQ) 2 is selected */
+#define KEYSCAN_IN_3            (KEYSCAN_SCR_KEYINSEL_3)    /*!< KEYIN(EIRQ) 3 is selected */
+#define KEYSCAN_IN_4            (KEYSCAN_SCR_KEYINSEL_4)    /*!< KEYIN(EIRQ) 4 is selected */
+#define KEYSCAN_IN_5            (KEYSCAN_SCR_KEYINSEL_5)    /*!< KEYIN(EIRQ) 5 is selected */
+#define KEYSCAN_IN_6            (KEYSCAN_SCR_KEYINSEL_6)    /*!< KEYIN(EIRQ) 6 is selected */
+#define KEYSCAN_IN_7            (KEYSCAN_SCR_KEYINSEL_7)    /*!< KEYIN(EIRQ) 7 is selected */
+#define KEYSCAN_IN_8            (KEYSCAN_SCR_KEYINSEL_8)    /*!< KEYIN(EIRQ) 8  is selected */
+#define KEYSCAN_IN_9            (KEYSCAN_SCR_KEYINSEL_9)    /*!< KEYIN(EIRQ) 9  is selected */
+#define KEYSCAN_IN_10           (KEYSCAN_SCR_KEYINSEL_10)   /*!< KEYIN(EIRQ) 10 is selected */
+#define KEYSCAN_IN_11           (KEYSCAN_SCR_KEYINSEL_11)   /*!< KEYIN(EIRQ) 11 is selected */
+#define KEYSCAN_IN_12           (KEYSCAN_SCR_KEYINSEL_12)   /*!< KEYIN(EIRQ) 12 is selected */
+#define KEYSCAN_IN_13           (KEYSCAN_SCR_KEYINSEL_13)   /*!< KEYIN(EIRQ) 13 is selected */
+#define KEYSCAN_IN_14           (KEYSCAN_SCR_KEYINSEL_14)   /*!< KEYIN(EIRQ) 14 is selected */
+#define KEYSCAN_IN_15           (KEYSCAN_SCR_KEYINSEL_15)   /*!< KEYIN(EIRQ) 15 is selected */
+#define KEYSCAN_IN_MASK         (KEYSCAN_SCR_KEYINSEL)      /*!< KEYIN(EIRQ) mask */
 
 /**
  * @}

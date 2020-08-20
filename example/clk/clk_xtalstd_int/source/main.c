@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-10       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -69,7 +69,6 @@
  * Local type definitions ('typedef')
  ******************************************************************************/
 
-
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
@@ -84,7 +83,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -93,6 +93,58 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+//    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
 /**
  * @brief  XTAL stop detect IRQ callback function
  * @param  None
@@ -105,10 +157,10 @@ void XTAL_STOP_IrqCallback(void)
     do
     {
         BSP_LED_Toggle(LED_RED);
-        DDL_Delay1ms(DLY_MS);
+        DDL_DelayMS(DLY_MS);
     } while (--u8Cnt);
 
-    CLK_ClearXtalStdFlag();
+    CLK_ClearXtalStdStatus();
 }
 
 /**
@@ -164,7 +216,7 @@ void XtalStopIntInit(void)
 
     INTC_IrqSignIn(&stcIrqSignConfig);
 
-    CLK_ClearXtalStdFlag();
+    CLK_ClearXtalStdStatus();
 
     /* NVIC setting */
     NVIC_ClearPendingIRQ(XTALSTOP_IRQn);
@@ -179,17 +231,27 @@ void XtalStopIntInit(void)
  */
 int32_t main(void)
 {
+    /* Register write enable for some required peripherals. */
+    Peripheral_WE();
+    /* System Clock init */
+    BSP_CLK_Init();
+    /* Expand IO init */
     BSP_IO_Init();
-    BSP_KEY_Init();
+    /* LED init */
     BSP_LED_Init();
 
     XtalInit();
-    XtalStopDetctInit();
-    XtalStopIntInit();
 
+    XtalStopDetctInit();
+
+    XtalStopIntInit();
+    /* Register write protected for some required peripherals. */
+    Peripheral_WP();
     BSP_LED_Off(LED_RED);
     while(1)
     {
+        BSP_LED_Toggle(LED_BLUE);
+        DDL_DelayMS(DLY_MS);
     }
 }
 

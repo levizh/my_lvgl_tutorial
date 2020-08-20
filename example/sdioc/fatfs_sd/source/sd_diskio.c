@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-28       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -56,16 +56,6 @@
 #include "sd.h"
 #include "gen_drv.h"
 #include "sd_diskio.h"
-
-/**
- * @addtogroup HC32F4A0_DDL_Examples
- * @{
- */
-
-/**
- * @addtogroup FatFS_SD_Card
- * @{
- */
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -135,11 +125,6 @@ const stc_diskio_drv_t gSDDriver =
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @defgroup SD_DISKIO_Global_Functions SD DISKIO Global Functions
- * @{
- */
-
 /**
  * @brief  Initializes the SD GPIO.
  * @param  None
@@ -399,18 +384,6 @@ DRESULT SD_Ioctl(BYTE lun, BYTE cmd, void *buff)
 
     return res;
 }
-
-/**
- * @}
- */
-
-/**
- * @}
- */
-
-/**
-* @}
-*/
 
 /******************************************************************************
  * EOF (not truncated)

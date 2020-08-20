@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-28       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -57,16 +57,6 @@
 #include "gen_drv.h"
 #include "mmc_diskio.h"
 
-/**
- * @addtogroup HC32F4A0_DDL_Examples
- * @{
- */
-
-/**
- * @addtogroup FatFS_Mmc_Card
- * @{
- */
-
 /*******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
@@ -74,17 +64,8 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define SDIOC_DMA_UNIT                          (M4_DMA1)
-#define SDIOC_DMA_CLK                           (PWC_FCG0_DMA1)
-#define SDIOC_DMA_TX_CH                         (DMA_CH0)
-#define SDIOC_DMA_RX_CH                         (DMA_CH1)
-#define SDIOC_DMA_TX_TRIG_SRC                   (EVT_SDIOC1_DMAW)
-#define SDIOC_DMA_RX_TRIG_SRC                   (EVT_SDIOC1_DMAR)
-
 #define SDIOC_MMC_UINT                          (M4_SDIOC1)
 #define SDIOC_MMC_CLK                           (PWC_FCG1_SDIOC1)
-#define SIDOC_MMC_INT_SRC                       (INT_SDIOC1_SD)
-#define SIDOC_MMC_IRQ                           (Int104_IRQn)
 
 /* CK = PC12 */
 #define SDIOC_CK_PORT                           (GPIO_PORT_C)
@@ -144,11 +125,6 @@ const stc_diskio_drv_t gMMCDriver =
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-/**
- * @defgroup MMC_DISKIO_Global_Functions MMC DISKIO Global Functions
- * @{
- */
-
 /**
  * @brief  Initializes the MMC GPIO.
  * @param  None
@@ -408,18 +384,6 @@ DRESULT MMC_Ioctl(BYTE lun, BYTE cmd, void *buff)
 
     return res;
 }
-
-/**
- * @}
- */
-
-/**
- * @}
- */
-
-/**
-* @}
-*/
 
 /******************************************************************************
  * EOF (not truncated)

@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -65,11 +65,11 @@
  * @{
  */
 
-/** @defgroup EV_HC32F4A0_LQFP176_TCA9539 HC32F4A0 EVB TCA9539
+/** @defgroup EV_HC32F4A0_LQFP176_TCA9539 HC32F4A0 EVB LQFP176 TCA9539
   * @{
   */
 
-#if (BSP_TCA9539_ENABLE == BSP_ON)
+#if ((BSP_TCA9539_ENABLE == BSP_ON) && (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0))
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -100,9 +100,9 @@
  */
 
 /**
- * @brief  Expand IO initilize.
- * @param  none
- * @retval none
+ * @brief  Expand IO initialize.
+ * @param  None
+ * @retval None
  */
 void BSP_IO_Init(void)
 {
@@ -114,9 +114,9 @@ void BSP_IO_Init(void)
 }
 
 /**
- * @brief  Expand IO interrupt initilize.
- * @param  none
- * @retval none
+ * @brief  Expand IO interrupt initialize.
+ * @param  None
+ * @retval None
  */
 void BSP_IO_IntInit(void)
 {
@@ -125,10 +125,10 @@ void BSP_IO_IntInit(void)
 
 /**
   * @brief  Set EIO port pin output value
-  * @param  [in] u8Port, Port
+  * @param  [in] u8Port Port
   *   @arg  EIO_PORT0
   *   @arg  EIO_PORT1
-  * @param  [in] u8Pin, Pin
+  * @param  [in] u8Pin Pin
   *   @arg  EIO_PIN0
   *   @arg  EIO_PIN1
   *   @arg  EIO_PIN2
@@ -138,13 +138,13 @@ void BSP_IO_IntInit(void)
   *   @arg  EIO_PIN6
   *   @arg  EIO_PIN7
   *   @arg  EIO_PIN_ALL
-  * @param  [in] u8PinState, Pin state to be written
+  * @param  [in] u8PinState Pin state to be written
   * @retval None
   */
 void BSP_IO_WritePortPin(uint8_t u8Port, uint8_t u8Pin, uint8_t u8PinState)
 {
-    uint8_t u8PortVal = 0U;
-    uint8_t u8POReg = u8Port + TCA9539_REG_OUTPUT_0;
+    uint8_t u8PortVal;
+    const uint8_t u8POReg = u8Port + TCA9539_REG_OUTPUT_0;
 
     TCA9539_ReadReg(u8POReg, &u8PortVal);
 
@@ -156,16 +156,16 @@ void BSP_IO_WritePortPin(uint8_t u8Port, uint8_t u8Pin, uint8_t u8PinState)
     {
         u8PortVal |= u8Pin;
     }
-    TCA9539_WriteReg(u8POReg, u8PortVal);
 
+    TCA9539_WriteReg(u8POReg, u8PortVal);
 }
 
 /**
   * @brief  Get EIO port pin input value
-  * @param  [in] u8Port, Port
+  * @param  [in] u8Port Port
   *   @arg  EIO_PORT0
   *   @arg  EIO_PORT1
-  * @param  [in] u8Pin, Pin
+  * @param  [in] u8Pin Pin
   *   @arg  EIO_PIN0
   *   @arg  EIO_PIN1
   *   @arg  EIO_PIN2
@@ -178,13 +178,13 @@ void BSP_IO_WritePortPin(uint8_t u8Port, uint8_t u8Pin, uint8_t u8PinState)
   */
 uint8_t BSP_IO_ReadPortPin(uint8_t u8Port, uint8_t u8Pin)
 {
-    uint8_t u8PortVal = 0U;
-    uint8_t u8PinVal = 0U;
-    uint8_t u8PIReg = u8Port + TCA9539_REG_INPUT_0;
+    uint8_t u8PortVal;
+    uint8_t u8PinVal;
+    const uint8_t u8PIReg = u8Port + TCA9539_REG_INPUT_0;
 
     TCA9539_ReadReg(u8PIReg, &u8PortVal);
 
-    if (u8Pin & u8PortVal)
+    if (0U != (u8Pin & u8PortVal))
     {
         u8PinVal = 1U;
     }
@@ -197,10 +197,10 @@ uint8_t BSP_IO_ReadPortPin(uint8_t u8Port, uint8_t u8Pin)
 
 /**
   * @brief  Toggle EIO port pin
-  * @param  [in] u8Port, Port
+  * @param  [in] u8Port Port
   *   @arg  EIO_PORT0
   *   @arg  EIO_PORT1
-  * @param  [in] u8Pin, Pin
+  * @param  [in] u8Pin Pin
   *   @arg  EIO_PIN0
   *   @arg  EIO_PIN1
   *   @arg  EIO_PIN2
@@ -214,8 +214,8 @@ uint8_t BSP_IO_ReadPortPin(uint8_t u8Port, uint8_t u8Pin)
   */
 void BSP_IO_TogglePortPin(uint8_t u8Port, uint8_t u8Pin)
 {
-    uint8_t u8PortVal = 0U;
-    uint8_t u8POReg = u8Port + TCA9539_REG_OUTPUT_0;
+    uint8_t u8PortVal;
+    const uint8_t u8POReg = u8Port + TCA9539_REG_OUTPUT_0;
 
     TCA9539_ReadReg(u8POReg, &u8PortVal);
 
@@ -226,10 +226,10 @@ void BSP_IO_TogglePortPin(uint8_t u8Port, uint8_t u8Pin)
 
 /**
   * @brief  Config EIO port pin direction
-  * @param  [in] u8Port, Port
+  * @param  [in] u8Port Port
   *   @arg  EIO_PORT0
   *   @arg  EIO_PORT1
-  * @param  [in] u8Pin, Pin
+  * @param  [in] u8Pin Pin
   *   @arg  EIO_PIN0
   *   @arg  EIO_PIN1
   *   @arg  EIO_PIN2
@@ -239,15 +239,15 @@ void BSP_IO_TogglePortPin(uint8_t u8Port, uint8_t u8Pin)
   *   @arg  EIO_PIN6
   *   @arg  EIO_PIN7
   *   @arg  EIO_PIN_ALL
-  * @param  [in] u8Dir, Direction
+  * @param  [in] u8Dir Direction
   *   @arg  EIO_DIR_IN
   *   @arg  EIO_DIR_OUT
   * @retval None
   */
 void BSP_IO_ConfigPortPin(uint8_t u8Port, uint8_t u8Pin, uint8_t u8Dir)
 {
-    uint8_t u8ConfigVal = 0U;
-    uint8_t u8ConfigReg = u8Port + TCA9539_REG_CONFIG_0;
+    uint8_t u8ConfigVal;
+    const uint8_t u8ConfigReg = u8Port + TCA9539_REG_CONFIG_0;
 
     TCA9539_ReadReg(u8ConfigReg, &u8ConfigVal);
 
@@ -267,7 +267,7 @@ void BSP_IO_ConfigPortPin(uint8_t u8Port, uint8_t u8Pin, uint8_t u8Dir)
  * @}
  */
 
-#endif /* BSP_TCA9539_ENABLE */
+#endif /* BSP_EV_HC32F4A0_LQFP176_TCA9539_ENABLE */
 
 /**
  * @}

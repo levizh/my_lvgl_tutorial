@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-26       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -64,7 +64,7 @@
 
 /**
  * @defgroup DDL_WDT WDT
- * @brief Special Watch Dog Timer
+ * @brief General Watch Dog Timer
  * @{
  */
 
@@ -110,7 +110,7 @@
     ((x) == WDT_CLOCK_DIV256)                   ||                             \
     ((x) == WDT_CLOCK_DIV512)                   ||                             \
     ((x) == WDT_CLOCK_DIV1024)                  ||                             \
-    ((x) == WDT_CLOCK_DIV2028)                  ||                             \
+    ((x) == WDT_CLOCK_DIV2048)                  ||                             \
     ((x) == WDT_CLOCK_DIV8192))
 
 #define IS_WDT_ALLOW_REFRESH_RANGE(x)                                          \
@@ -130,9 +130,9 @@
     ((x) == WDT_RANGE_0TO25PCT_50TO100PCT)      ||                             \
     ((x) == WDT_RANGE_25TO100PCT))
 
-#define IS_WDT_LPW_MODE_COUNT(x)                                               \
-(   ((x) == WDT_LPW_MODE_COUNT_CONTINUE)        ||                             \
-    ((x) == WDT_LPW_MODE_COUNT_STOP))
+#define IS_WDT_LPM_COUNT(x)                                                    \
+(   ((x) == WDT_LPM_COUNT_CONTINUE)             ||                             \
+    ((x) == WDT_LPM_COUNT_STOP))
 
 #define IS_WDT_REQUEST_TYPE(x)                                                 \
 (   ((x) == WDT_TRIG_EVENT_INT)                 ||                             \
@@ -191,7 +191,7 @@ en_result_t WDT_Init(const stc_wdt_init_t *pstcWdtInit)
         DDL_ASSERT(IS_WDT_COUNTER_CYCLE(pstcWdtInit->u32CountCycle));
         DDL_ASSERT(IS_WDT_CLOCK_DIVISION(pstcWdtInit->u32ClockDivision));
         DDL_ASSERT(IS_WDT_ALLOW_REFRESH_RANGE(pstcWdtInit->u32RefreshRange));
-        DDL_ASSERT(IS_WDT_LPW_MODE_COUNT(pstcWdtInit->u32LPModeCountEn));
+        DDL_ASSERT(IS_WDT_LPM_COUNT(pstcWdtInit->u32LPModeCountEn));
         DDL_ASSERT(IS_WDT_REQUEST_TYPE(pstcWdtInit->u32TrigType));
 
         /* WDT CR Configuration(Software Start Mode) */
@@ -205,12 +205,12 @@ en_result_t WDT_Init(const stc_wdt_init_t *pstcWdtInit)
 }
 
 /**
- * @brief  WDT reload counter
+ * @brief  WDT feed dog.
  * @note   In software startup mode, Start counter when refreshing for the first time.
  * @param  None
  * @retval None
  */
-void WDT_ReloadCounter(void)
+void WDT_Feed(void)
 {
     WRITE_REG32(M4_WDT->RR, WDT_REFRESH_KEY_START);
     WRITE_REG32(M4_WDT->RR, WDT_REFRESH_KEY_END);
@@ -233,7 +233,7 @@ en_flag_status_t WDT_GetStatus(uint32_t u32Flag)
     /* Check parameters */
     DDL_ASSERT(IS_WDT_FLAG(u32Flag));
 
-    if (Reset != (READ_REG32_BIT(M4_WDT->SR, u32Flag)))
+    if (0UL != (READ_REG32_BIT(M4_WDT->SR, u32Flag)))
     {
         enFlagSta = Set;
     }
@@ -253,7 +253,7 @@ en_flag_status_t WDT_GetStatus(uint32_t u32Flag)
  */
 en_result_t WDT_ClearStatus(uint32_t u32Flag)
 {
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
     en_result_t enRet = Ok;
 
     /* Check parameters */
@@ -264,7 +264,7 @@ en_result_t WDT_ClearStatus(uint32_t u32Flag)
     u32Count = WDT_CLEAR_FLAG_TIMEOUT * (HCLK_VALUE / 20000UL);
     do
     {
-        if (--u32Count == 0UL)
+        if (u32Count-- == 0UL)
         {
             enRet = ErrorTimeout;
             break;

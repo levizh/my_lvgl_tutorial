@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  lin.c
+ * @file  usart/lin_master/source/lin.c
  * @brief This midware file provides firmware functions to manage the LIN.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-28       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @defgroup LIN_Slave LIN
+ * @addtogroup USART_LIN_Master
  * @{
  */
 
@@ -73,7 +73,7 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup LIN_Local_Macros LIN Local Macros
+ * @defgroup USART_LIN_Master_Local_Macros USART LIN Master Local Macros
  * @{
  */
 
@@ -141,7 +141,6 @@
  * @}
  */
 
-
 /**
  * @}
  */
@@ -153,6 +152,10 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+/**
+ * @addtogroup USART_LIN_Master_Local_Functions
+ * @{
+ */
 static void LIN_SendBreak(const stc_lin_hanlde_t *pstcLinHandle);
 static void LIN_SendChar(const stc_lin_hanlde_t *pstcLinHandle, uint8_t u8Char);
 static en_result_t LIN_MASTER_SendFrameHeader(stc_lin_hanlde_t *pstcLinHandle,
@@ -174,9 +177,18 @@ static void USART10_LinWakeupBreak_IrqCallback(void);
 static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
                                     uint32_t u32Priority);
 
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @addtogroup USART_LIN_Master_Local_Variables
+ * @{
+ */
+
 static stc_lin_hanlde_t *m_apstcLinHandle[2] = {NULL, NULL};
 
 static func_ptr_t m_apfnLinRxIrqCb[2] = {&USART5_Rx_IrqCallback,
@@ -186,11 +198,15 @@ static func_ptr_t m_apfnLinRxErrIrqCb[2] = {&USART5_RxErr_IrqCallback,
 static func_ptr_t m_apfnLinBreakWakeupIrqCb[2] = {&USART5_LinWakeupBreak_IrqCallback,
                                                   &USART10_LinWakeupBreak_IrqCallback};
 
+/**
+ * @}
+ */
+
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @defgroup LIN_Global_Functions LIN Global Functions
+ * @defgroup USART_LIN_Master_Global_Functions USART LIN Master Global Functions
  * @{
  */
 
@@ -226,10 +242,8 @@ en_result_t LIN_Init(stc_lin_hanlde_t *pstcLinHandle)
         m_apstcLinHandle[u32UsartLinIndex] = pstcLinHandle;
 
         /* Configure USART RX/TX pin. */
-        GPIO_Unlock();
         GPIO_SetFunc(pstcLinHandle->stcPinCfg.u8RxPort, pstcLinHandle->stcPinCfg.u16RxPin, pstcLinHandle->stcPinCfg.u8RxPinFunc, PIN_SUBFUNC_DISABLE);
         GPIO_SetFunc(pstcLinHandle->stcPinCfg.u8TxPort, pstcLinHandle->stcPinCfg.u16TxPin, pstcLinHandle->stcPinCfg.u8TxPinFunc, PIN_SUBFUNC_DISABLE);
-        GPIO_Lock();
 
         /* Enable peripheral clock */
         PWC_Fcg3PeriphClockCmd(u32FcgPeriph, Enable);
@@ -306,7 +320,7 @@ en_result_t LIN_MASTER_SendFrame(stc_lin_hanlde_t *pstcLinHandle,
             pstcFrame->u8Checksum = LIN_CalcChecksum(pstcFrame->u8PID, pstcFrame->au8Data, pstcFrame->u8Length);
 
             LIN_SendChar(pstcLinHandle, pstcFrame->u8Checksum);
-            while (!USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_TC))
+            while (Reset == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_TC))
             {
             }
 
@@ -351,7 +365,7 @@ en_result_t LIN_MASTER_RecFrame(stc_lin_hanlde_t *pstcLinHandle,
         enRet = LIN_MASTER_SendFrameHeader(pstcLinHandle, pstcFrame);
         if (Ok == enRet)
         {
-            u32Cycle = (i32Timeout < 0) ? 0UL : (uint32_t)i32Timeout * (SystemCoreClock / 10000UL);  /* i32Timeout * 1ms */
+            u32Cycle = (i32Timeout < 0) ? 0UL : (uint32_t)i32Timeout * (HCLK_VALUE / 10000UL);  /* i32Timeout * 1ms */
 
             /* Wait checksum */
             while (u32Cycle || (i32Timeout < 0))
@@ -376,7 +390,7 @@ en_result_t LIN_MASTER_RecFrame(stc_lin_hanlde_t *pstcLinHandle,
                     enRet = Error;
                 }
 
-                DDL_Delay1ms(LIN_INTER_FRAME_SPACE);
+                DDL_DelayMS(LIN_INTER_FRAME_SPACE);
             }
         }
     }
@@ -398,7 +412,7 @@ en_result_t LIN_SLAVE_RecFrameHeader(stc_lin_hanlde_t *pstcLinHandle,
                                             int32_t i32Timeout)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    __IO uint32_t u32Cyc = (i32Timeout < 0) ? 0UL : ((uint32_t)i32Timeout) * (SystemCoreClock / 10000UL);  /* i32Timeout * 1ms */
+    __IO uint32_t u32Cyc = (i32Timeout < 0) ? 0UL : ((uint32_t)i32Timeout) * (HCLK_VALUE / 10000UL);  /* i32Timeout * 1ms */
 
     if ((NULL != pstcFrame) && (NULL != pstcLinHandle))
     {
@@ -441,7 +455,6 @@ en_result_t LIN_SLAVE_RecFrameHeader(stc_lin_hanlde_t *pstcLinHandle,
 /**
  * @brief  LIN slave receive frame response data(blocking mode).
  * @param  [in] pstcLinHandle           Pointer to a @ref stc_lin_hanlde_t structure
- * @param  [in] pstcFrame               Pointer to a @ref stc_lin_frame_t structure
  * @param  [in] i32Timeout              Timeout duration (unit: ms)
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize success
@@ -454,7 +467,7 @@ en_result_t LIN_SLAVE_RecFrameResponse(const stc_lin_hanlde_t *pstcLinHandle,
     uint8_t u8Checksum = 0U;
     stc_lin_frame_t *pstcFrame;
     en_result_t enRet = ErrorInvalidParameter;
-    __IO uint32_t u32Cyc = (i32Timeout < 0) ? 0UL : ((uint32_t)i32Timeout) * (SystemCoreClock / 10000UL);  /* i32Timeout * 1ms */
+    __IO uint32_t u32Cyc = (i32Timeout < 0) ? 0UL : ((uint32_t)i32Timeout) * (HCLK_VALUE / 10000UL);  /* i32Timeout * 1ms */
 
     if (NULL != pstcLinHandle)
     {
@@ -499,7 +512,6 @@ en_result_t LIN_SLAVE_RecFrameResponse(const stc_lin_hanlde_t *pstcLinHandle,
 /**
  * @brief  LIN slave send frame response data.
  * @param  [in] pstcLinHandle           Pointer to a @ref stc_lin_hanlde_t structure
- * @param  [in] pstcFrame               Pointer to a @ref stc_lin_frame_t structure
  * @retval An en_result_t enumeration value:
  *           - Ok: Initialize success
  *           - ErrorInvalidParameter: pstcLinHandle == NULL or pstcFrame == NULL
@@ -519,7 +531,7 @@ en_result_t LIN_SLAVE_SendFrameResponse(stc_lin_hanlde_t *pstcLinHandle)
         DDL_ASSERT(LinFrameStatePID == pstcLinHandle->pstcFrame->enState);
 
         pstcFrame = pstcLinHandle->pstcFrame;
-        DDL_Delay1ms(LIN_FRAME_RESPONSE_SPACE);
+        DDL_DelayMS(LIN_FRAME_RESPONSE_SPACE);
 
         USART_FuncCmd(pstcLinHandle->USARTx, (USART_RX | USART_INT_RX), Disable);
 
@@ -534,7 +546,7 @@ en_result_t LIN_SLAVE_SendFrameResponse(stc_lin_hanlde_t *pstcLinHandle)
         u8Checksum = LIN_CalcChecksum(pstcFrame->u8ID, pstcFrame->au8Data, pstcFrame->u8Length);
 
         LIN_SendChar(pstcLinHandle, u8Checksum);
-        while (!USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_TC))
+        while (Reset == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_TC))
         {
         }
 
@@ -625,7 +637,7 @@ en_result_t LIN_SendWakeupSignal(const stc_lin_hanlde_t *pstcLinHandle)
         /* Check parameter */
         DDL_ASSERT(IS_VALID_USART_LIN(pstcLinHandle->USARTx));
 
-        while (!USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_TXE))
+        while (Reset == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_TXE))
         {
         }
 
@@ -636,6 +648,11 @@ en_result_t LIN_SendWakeupSignal(const stc_lin_hanlde_t *pstcLinHandle)
 
     return enRet;
 }
+
+/**
+ * @defgroup USART_LIN_Master_Local_Functions USART LIN Master Local Functions
+ * @{
+ */
 
 /**
  * @brief  Master send frame header field.
@@ -659,7 +676,7 @@ static en_result_t LIN_MASTER_SendFrameHeader(stc_lin_hanlde_t *pstcLinHandle,
         pstcLinHandle->pstcFrame = pstcFrame;
 
         /* Idle state */
-        if (USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_PE | USART_FLAG_FE | USART_FLAG_ORE))
+        if (Set == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_PE | USART_FLAG_FE | USART_FLAG_ORE))
         {
             enRet = Error;
         }
@@ -674,17 +691,17 @@ static en_result_t LIN_MASTER_SendFrameHeader(stc_lin_hanlde_t *pstcLinHandle,
             /* Send sync field */
             LIN_SendChar(pstcLinHandle, LIN_SYNC_DATA);
             pstcFrame->enState = LinFrameStateSync;
-            while (!USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_TC))
+            while (Reset == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_TC))
             {
             }
-            DDL_Delay1ms(LIN_FRAME_INTER_BYTE_SPACE);
+            DDL_DelayMS(LIN_FRAME_INTER_BYTE_SPACE);
 
             /* Calculate PID */
             pstcFrame->u8PID = LIN_CalcPIDParity(pstcFrame->u8ID);
 
             /* Send PID */
             LIN_SendChar(pstcLinHandle, pstcFrame->u8PID);
-            while (!USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_TC))
+            while (Reset == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_TC))
             {
             }
 
@@ -709,7 +726,7 @@ static void LIN_SendBreak(const stc_lin_hanlde_t *pstcLinHandle)
     /* Check parameter */
     DDL_ASSERT(IS_VALID_USART_LIN(pstcLinHandle->USARTx));
 
-    while (!USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_TXE))
+    while (Reset == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_TXE))
     {
     }
 
@@ -736,7 +753,7 @@ static void LIN_SendChar(const stc_lin_hanlde_t *pstcLinHandle, uint8_t u8Char)
     /* Check parameter */
     DDL_ASSERT(IS_VALID_USART_LIN(pstcLinHandle->USARTx));
 
-    while (!USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_TXE))
+    while (Reset == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_TXE))
     {
     }
 
@@ -782,7 +799,7 @@ static uint8_t LIN_CalcChecksum(uint8_t u8PID,
 
 /**
  * @brief  Calculate Protected ID parity.
- * @param  [in] u8PID                   ID number
+ * @param  [in] u8ID                    ID number
  * @retval Protected ID
  */
 static uint8_t LIN_CalcPIDParity(uint8_t u8ID)
@@ -801,7 +818,7 @@ static uint8_t LIN_CalcPIDParity(uint8_t u8ID)
 
 /**
  * @brief  Get LIN frame data length by frame ID.
- * @param  [in] u8PID                   Frame PID
+ * @param  [in] u8ID                    Frame PID
  * @retval Frame data length
  */
 static uint8_t LIN_GetFrameDataLenbyFrameID(uint8_t u8ID)
@@ -838,7 +855,7 @@ static uint8_t LIN_GetFrameDataLenbyFrameID(uint8_t u8ID)
 
 /**
  * @brief  USART RX IRQ callback
- * @param  None
+ * @param  [in] pstcLinHandle      Pointer to struct @ref stc_lin_hanlde_t
  * @retval None
  */
 static void USART_Rx_IrqCallback(stc_lin_hanlde_t *pstcLinHandle)
@@ -897,35 +914,31 @@ static void USART_Rx_IrqCallback(stc_lin_hanlde_t *pstcLinHandle)
 
 /**
  * @brief  USART error IRQ callback.
- * @param  None
+ * @param  [in] pstcLinHandle      Pointer to struct @ref stc_lin_hanlde_t
  * @retval None
  */
 static void USART_RxErr_IrqCallback(const stc_lin_hanlde_t *pstcLinHandle)
 {
-    __IO uint8_t u8Data;
-
     /* Check paramter */
     DDL_ASSERT(NULL != pstcLinHandle);
     DDL_ASSERT(NULL != pstcLinHandle->pstcFrame);
     DDL_ASSERT(IS_VALID_USART_LIN(pstcLinHandle->USARTx));
 
-    if (Set == USART_GetFlag(pstcLinHandle->USARTx, (USART_FLAG_PE | USART_FLAG_FE)))
+    if (Set == USART_GetStatus(pstcLinHandle->USARTx, (USART_FLAG_PE | USART_FLAG_FE)))
     {
-        u8Data = (uint8_t)USART_RecData(pstcLinHandle->USARTx);
+        (void)USART_RecData(pstcLinHandle->USARTx);
     }
 
-    USART_ClearFlag(pstcLinHandle->USARTx, (USART_CLEAR_FLAG_PE | USART_CLEAR_FLAG_FE | USART_CLEAR_FLAG_ORE));
+    USART_ClearStatus(pstcLinHandle->USARTx, (USART_CLEAR_FLAG_PE | USART_CLEAR_FLAG_FE | USART_CLEAR_FLAG_ORE));
 }
 
 /**
  * @brief  USART LIN break detection && wakeup IRQ callback.
- * @param  None
+ * @param  [in] pstcLinHandle      Pointer to struct @ref stc_lin_hanlde_t
  * @retval None
  */
 static void USART_LinWakeupBreak_IrqCallback(stc_lin_hanlde_t *pstcLinHandle)
 {
-    __IO uint8_t u8Data = 0U;
-
     /* Check paramter */
     DDL_ASSERT(NULL != pstcLinHandle);
     DDL_ASSERT(IS_VALID_USART_LIN(pstcLinHandle->USARTx));
@@ -934,7 +947,7 @@ static void USART_LinWakeupBreak_IrqCallback(stc_lin_hanlde_t *pstcLinHandle)
     {
         if (LinStateSleep == pstcLinHandle->enLinState)
         {
-            if (USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_WKUP))
+            if (Set == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_WKUP))
             {
                 USART_LinFuncCmd(pstcLinHandle->USARTx, USART_LIN_WKUP, Disable);
                 pstcLinHandle->enLinState = LinStateWakeup;
@@ -942,7 +955,7 @@ static void USART_LinWakeupBreak_IrqCallback(stc_lin_hanlde_t *pstcLinHandle)
         }
         else
         {
-            if (USART_GetFlag(pstcLinHandle->USARTx, USART_FLAG_LBD))
+            if (Set == USART_GetStatus(pstcLinHandle->USARTx, USART_FLAG_LBD))
             {
                 USART_FuncCmd(pstcLinHandle->USARTx, USART_INT_RX, Enable);
                 USART_LinFuncCmd(pstcLinHandle->USARTx, USART_LIN_INT_BREAK, Disable);
@@ -951,7 +964,7 @@ static void USART_LinWakeupBreak_IrqCallback(stc_lin_hanlde_t *pstcLinHandle)
         }
     }
 
-    USART_ClearFlag(pstcLinHandle->USARTx, (USART_CLEAR_FLAG_LBD | \
+    USART_ClearStatus(pstcLinHandle->USARTx, (USART_CLEAR_FLAG_LBD | \
                                             USART_CLEAR_FLAG_WKUP));
 }
 
@@ -1018,7 +1031,7 @@ static void USART10_LinWakeupBreak_IrqCallback(void)
 /**
  * @brief  Instal IRQ handler.
  * @param  [in] pstcConfig      Pointer to struct @ref stc_irq_signin_config_t
- * @param  [in] Priority        Interrupt priority
+ * @param  [in] u32Priority     Interrupt priority
  * @retval None
  */
 static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
@@ -1032,6 +1045,10 @@ static void InstalIrqHandler(const stc_irq_signin_config_t *pstcConfig,
         NVIC_EnableIRQ(pstcConfig->enIRQn);
     }
 }
+
+/**
+ * @}
+ */
 
 /**
  * @}

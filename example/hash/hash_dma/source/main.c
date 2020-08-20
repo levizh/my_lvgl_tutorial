@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-10       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -90,7 +90,8 @@
 static void FillData(void);
 static void DMA_Reconfig(void);
 #endif
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 static void DMA_Config(void);
 static void HASH_Config(void);
 /*******************************************************************************
@@ -130,6 +131,57 @@ static uint32_t SrcData[] = \
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  *********************************************** *******************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    //PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    //SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    //EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    //PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    //SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    //EFM_Lock();
+}
 
 /**
  * @brief  Main function of hash_base project
@@ -138,6 +190,8 @@ static uint32_t SrcData[] = \
  */
 int32_t main(void)
 {
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* Config HASH */
     HASH_Config();
     /* Congif DMA */
@@ -152,7 +206,7 @@ int32_t main(void)
 
     do{
         /* clear the DAM transfer completed flag */
-        DMA_ClearTransIntStatus(DMA_UNIT, DMA_BTC_INT0 | DMA_TC_INT0);
+        DMA_ClearTransIntStatus(DMA_UNIT, DMA_BTC_INT_CH0 | DMA_TC_INT_CH0);
         if(strlen((char *)SrcData) <= LAST_GROUP_MAX_LEN)
         {
             /* Set the last group. */
@@ -187,16 +241,16 @@ int32_t main(void)
 
 #endif
 
-    /* Wait for the message operation to complete  */
-    while(HASH_GetStatus(HASH_FLAG_CYC_END) == 0U)
+    /* Wait for the message operation to complete */
+    while(HASH_GetStatus(HASH_FLAG_CYC_END) == Reset)
     {
         ;
     }
     /* Get the digest result */
-    HASH_GetResult((uint32_t)&u8HashMsgDigest[0]);
+    HASH_GetResult(u8HashMsgDigest);
     /* Clear the flag */
     HASH_ClearStatus(HASH_FLAG_CYC_END);
-    if ((uint8_t)memcmp(u8HashMsgDigest, u8ExpectDigest,sizeof(u8HashMsgDigest)) == 0U)
+    if ((uint8_t)memcmp(u8HashMsgDigest, u8ExpectDigest, sizeof(u8HashMsgDigest)) == 0U)
     {
         printf("message digest:\n");
         for (uint8_t i = 0U; i < sizeof(u8HashMsgDigest); i++)
@@ -209,6 +263,8 @@ int32_t main(void)
     {
         printf("Computation Errors\n");
     }
+    /* Lock peripherals or registers */
+    Peripheral_WP();
     while (1)
     {
 
@@ -349,7 +405,7 @@ static void DMA_Config(void)
     }
 #if (HASH_DATA_TYPE == HASH_DATA_CHAR)
     /* Set DMA trigger source */
-    DMA_SetTrigSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
+    DMA_SetTriggerSrc(DMA_UNIT, DMA_CH, EVT_AOS_STRG);
 
 #elif (HASH_DATA_TYPE == HASH_DATA_ARRAY)
     /* Set DMA trigger source */

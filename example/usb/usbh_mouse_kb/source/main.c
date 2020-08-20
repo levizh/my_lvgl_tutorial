@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * @file  usb\usbh_mouse_kb\source\main.c
+ * @file  usb/usbh_mouse_kb/source/main.c
  * @brief Main program of USBH HID(Mouse+Key Board) example.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -133,7 +133,7 @@ int32_t main (void)
     {
         /* Host Task handler */
         USBH_Process(&USB_OTG_Core, &USB_Host);
-        if (i++ == 0x20000ul)
+        if (i++ == 0x20000UL)
         {
             i = 0UL;
             BSP_LED_Toggle(LED_BLUE);
@@ -141,7 +141,7 @@ int32_t main (void)
 
         if (suspend_test == 1UL){
             USB_OTG_PRTSUSP(&USB_OTG_Core);
-            suspend_test =0ul;
+            suspend_test =0UL;
         }
 
         if (resume_test == 1UL){

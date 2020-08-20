@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
  * @file  timer2/timer2_capture/source/main.c
- * @brief Main program TIMER2 capture for the Device Driver Library.
+ * @brief Main program Timer2 capture for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-16       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup Timer2_Capture
+ * @addtogroup TMR2_Capture
  * @{
  */
 
@@ -86,19 +86,16 @@
 #define APP_FUNC                            (APP_FUNC_CAPTURE_EVENT)
 
 /*
- * TIMER2 unit and channel definitions for this example.
+ * Timer2 unit and channel definitions for this example.
  * 'APP_TMR2_UNIT' can be defined as M4_TMR2_<t>(t=1 ~ 4).
  * 'APP_TMR2_CH' can de defined as TMR2_CH_x(x=A, B).
  *
- * NOTE!!! The following definitions are depend on the definitions of 'APP_TMR2_UNIT' and 'APP_TMR2_CH'.
- *
- *         APP_TMR2_CAPT_PORT
- *         APP_TMR2_CAPT_PIN
- *         APP_TMR2_CAPT_PIN_FUNC
- *         APP_TMR2_INT_SRC_CMP
- *         APP_TMR2_IRQ_CB_CMP
- *         APP_TMR2_INT_SRC_OVF
- *         APP_TMR2_IRQ_CB_OVF
+ * The following definitions are depend on the definitions of 'APP_TMR2_UNIT' and 'APP_TMR2_CH'.
+ *   APP_TMR2_CAPT_PORT
+ *   APP_TMR2_CAPT_PIN
+ *   APP_TMR2_CAPT_PIN_FUNC
+ *   APP_TMR2_INT_SRC_CMP
+ *   APP_TMR2_INT_SRC_OVF
  */
 #define APP_TMR2_UNIT                       (M4_TMR2_1)
 #define APP_TMR2_CH                         (TMR2_CH_A)
@@ -108,14 +105,14 @@
  * Define configuration values according to the function of this example just selected.
  * In this example:
  *     Set PLLHP(200MHz) as the system clock.
- *     Set PCLK1(100MHz) as the clock source of TIMER2.
- *     TIMER2 clock frequency is 100/2 = 50MHz, clock cycle is 1/50 = 0.02us.
+ *     Set PCLK1(100MHz) as the clock source of Timer2.
+ *     Timer2 clock frequency is 100/2 = 50MHz, clock cycle is 1/50 = 0.02us.
  *
  *    The maximum frequency input from pin TIM2_<t>_PWMx is PCLK1/3(typical value). \
  *        100Hz will be used in this example.
  */
 #define APP_TMR2_CLK_SRC                    (TMR2_CLK_SYNC_PCLK1)
-#define APP_TMR2_CLK_DIV                    (TMR2_CLK_DIV_1)
+#define APP_TMR2_CLK_DIV                    (TMR2_CLK_DIV1)
 #define APP_TMR2_CLK_FREQ                   (100000000UL)
 
 #if (APP_FUNC == APP_FUNC_CAPTURE_EVENT)
@@ -125,6 +122,14 @@
     #define APP_TMR2_CAPT_COND              (TMR2_CAPT_COND_EVENT)
     #define APP_TMR2_CAPT_PERIP_EVENT       (EVT_PORT_EIRQ0)
     #define APP_CAPT_COUNT                  (2U)
+
+    /* Key definitions. SW10 on the board. */
+    #define KEY_PORT                        (GPIO_PORT_A)
+    #define KEY_PIN                         (GPIO_PIN_00)
+    #define KEY_EXINT_CH                    (EXINT_CH00)
+    #define KEY_INT_SRC                     (INT_PORT_EIRQ0)
+    #define KEY_IRQn                        (Int025_IRQn)
+    #define KEY_INT_PRIO                    (DDL_IRQ_PRIORITY_04)
 
 #elif (APP_FUNC == APP_FUNC_MEASURE_PULSE_WIDTH)
     #define APP_TMR2_START_COND             (TMR2_START_COND_TRIGR)
@@ -150,22 +155,17 @@
 #endif
 
 /*
- * Definitions about TIMER2 interrupt for the example.
- * TIMER2 independent IRQn: [Int000_IRQn, Int031_IRQn], [Int050_IRQn, Int055_IRQn].
- * TIMER2 share IRQn: [Int131_IRQn].
+ * Definitions about Timer2 interrupt for the example.
+ * Timer2 independent IRQn: [Int000_IRQn, Int031_IRQn], [Int050_IRQn, Int055_IRQn].
  */
-#define TMR2_SHARE_IRQn                     (Int131_IRQn)
-
 #define APP_TMR2_INT_TYPE_CMP               (TMR2_INT_CMP)
 #define APP_TMR2_INT_PRIO_CMP               (DDL_IRQ_PRIORITY_05)
 #define APP_TMR2_INT_SRC_CMP                (INT_TMR2_1_CMPA)
-#define APP_TMR2_IRQ_CB_CMP                 TMR2_1_CmpA_IrqHandler
 #define APP_TMR2_IRQn_CMP                   (Int053_IRQn)
 
 #define APP_TMR2_INT_TYPE_OVF               (TMR2_INT_OVF)
 #define APP_TMR2_INT_PRIO_OVF               (DDL_IRQ_PRIORITY_04)
 #define APP_TMR2_INT_SRC_OVF                (INT_TMR2_1_OVFA)
-#define APP_TMR2_IRQ_CB_OVF                 TMR2_1_OvfA_IrqHandler
 #define APP_TMR2_IRQn_OVF                   (Int054_IRQn)
 
 /* Debug printing definition. */
@@ -182,12 +182,18 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
 
 static void Tmr2Config(void);
 static void Tmr2IrqConfig(void);
 static void Tmr2CaptCondConfig(void);
 static void Tmr2CaptCondStart(void);
+
+static void TMR2_Ovf_IrqCallback(void);
+static void TMR2_Cmp_IrqCallback(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -207,20 +213,24 @@ static uint32_t m_au32CaptTime[APP_CAPT_COUNT];
  */
 int32_t main(void)
 {
+    uint32_t i;
     uint32_t u32Temp;
     float32_t f32Temp;
 
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* System clock is configured as 200MHz. */
     SystemClockConfig();
-
 #if (DDL_PRINT_ENABLE == DDL_ON)
+    /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
-#endif
-
-    /* Configures TIMER2. */
+#endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
+    /* Configures Timer2. */
     Tmr2Config();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
-    /* Start the peripheral to generate the condition for TIMER2 capturing. */
+    /* Start the peripheral to generate the condition for Timer2 capturing. */
     Tmr2CaptCondStart();
 
     /***************** Configuration end, application start **************/
@@ -230,6 +240,7 @@ int32_t main(void)
         if (m_u32CaptCnt >= APP_CAPT_COUNT)
         {
 #if (APP_FUNC == APP_FUNC_CAPTURE_EVENT)
+            (void)i;
             TMR2_Stop(APP_TMR2_UNIT, APP_TMR2_CH);
 
             if (m_u32OvfCnt > 0U)
@@ -264,7 +275,7 @@ int32_t main(void)
 #elif (APP_FUNC == APP_FUNC_MEASURE_PULSE_WIDTH)
             u32Temp = 0U;
             /* The first capturing value is invalid. */
-            for (uint32_t i=1UL; i<APP_CAPT_COUNT; i++)
+            for (i=1UL; i<APP_CAPT_COUNT; i++)
             {
                 u32Temp += (m_au32CaptTime[i] + 2U);
             }
@@ -272,12 +283,12 @@ int32_t main(void)
             DBG("Calculate pulse width completed: %.2f timer2 cycles, %f microseconds.\n", \
                  f32Temp, f32Temp/((float)(APP_TMR2_CLK_FREQ/1000000U)));
             m_u32CaptCnt = 0U;
-            DDL_Delay1ms(500U);
+            DDL_DelayMS(500U);
 
 #elif (APP_FUNC == APP_FUNC_MEASURE_PERIOD)
             u32Temp = 0U;
             /* The first capturing value is invalid. */
-            for (uint32_t i=1UL; i<APP_CAPT_COUNT; i++)
+            for (i=1UL; i<APP_CAPT_COUNT; i++)
             {
                 u32Temp += (m_au32CaptTime[i] + 2U);
             }
@@ -285,7 +296,7 @@ int32_t main(void)
             DBG("Calculate period completed: %.2f timer2 cycles, %f microseconds.\n", \
                  f32Temp, f32Temp/((float)(APP_TMR2_CLK_FREQ/1000000U)));
             m_u32CaptCnt = 0U;
-            DDL_Delay1ms(500U);
+            DDL_DelayMS(500U);
 
 #endif
             TMR2_TrigCondCmd(APP_TMR2_UNIT, APP_TMR2_CH, \
@@ -293,6 +304,58 @@ int32_t main(void)
                              Enable);
         }
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -339,21 +402,18 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set SRAM wait cycles. */
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     /* Set EFM wait cycle. 4 wait cycles needed when system clock is 200MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_4);
-    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
 
 /**
- * @brief  TIMER2 configuration.
+ * @brief  Timer2 configuration.
  * @param  None
  * @retval None
  */
@@ -361,7 +421,7 @@ static void Tmr2Config(void)
 {
     stc_tmr2_init_t stcInit;
 
-    /* 1. Enable TIMER2 peripheral clock. */
+    /* 1. Enable Timer2 peripheral clock. */
     PWC_Fcg2PeriphClockCmd(APP_TMR2_PERIP_CLK, Enable);
 
     /* 2. Set a default initialization value for stcInit. */
@@ -381,7 +441,7 @@ static void Tmr2Config(void)
 }
 
 /**
- * @brief  TIMER2 interrupt configuration.
+ * @brief  Timer2 interrupt configuration.
  * @param  None
  * @retval None
  */
@@ -391,17 +451,9 @@ static void Tmr2IrqConfig(void)
 
     stcCfg.enIntSrc    = APP_TMR2_INT_SRC_CMP;
     stcCfg.enIRQn      = APP_TMR2_IRQn_CMP;
-    stcCfg.pfnCallback = &APP_TMR2_IRQ_CB_CMP;
-    if (stcCfg.enIRQn == TMR2_SHARE_IRQn)
-    {
-        /* Sharing interrupt. */
-        INTC_ShareIrqCmd(stcCfg.enIntSrc, Enable);
-    }
-    else
-    {
-        /* Independent interrupt. */
-        INTC_IrqSignIn(&stcCfg);
-    }
+    stcCfg.pfnCallback = &TMR2_Cmp_IrqCallback;
+    INTC_IrqSignIn(&stcCfg);
+
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
     NVIC_SetPriority(stcCfg.enIRQn, APP_TMR2_INT_PRIO_CMP);
     NVIC_EnableIRQ(stcCfg.enIRQn);
@@ -409,28 +461,20 @@ static void Tmr2IrqConfig(void)
     /* Overflow interrupt. */
     stcCfg.enIntSrc    = APP_TMR2_INT_SRC_OVF;
     stcCfg.enIRQn      = APP_TMR2_IRQn_OVF;
-    stcCfg.pfnCallback = &APP_TMR2_IRQ_CB_OVF;
-    if (stcCfg.enIRQn == TMR2_SHARE_IRQn)
-    {
-        /* Sharing interrupt. */
-        INTC_ShareIrqCmd(stcCfg.enIntSrc, Enable);
-    }
-    else
-    {
-        /* Independent interrupt. */
-        INTC_IrqSignIn(&stcCfg);
-    }
+    stcCfg.pfnCallback = &TMR2_Ovf_IrqCallback;
+    INTC_IrqSignIn(&stcCfg);
+
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
     NVIC_SetPriority(stcCfg.enIRQn, APP_TMR2_INT_PRIO_OVF);
     NVIC_EnableIRQ(stcCfg.enIRQn);
 
-    /* Enable the specified interrupts of TIMER2. */
+    /* Enable the specified interrupts of Timer2. */
     TMR2_IntCmd(APP_TMR2_UNIT, APP_TMR2_CH, APP_TMR2_INT_TYPE_CMP | APP_TMR2_INT_TYPE_OVF, Enable);
 }
 
 /**
  * @brief  Specifies the hardware trigger conditions for capturing and \
- *         configures the peripheral which will generate the condition that to be captured by TIMER2.
+ *         configures the peripheral which will generate the condition that to be captured by Timer2.
  * @param  None
  * @retval None
  */
@@ -439,55 +483,35 @@ static void Tmr2CaptCondConfig(void)
     stc_tmr2_trig_cond_t stcTrigCond;
 
 #if (APP_FUNC == APP_FUNC_CAPTURE_EVENT)
-    /* 1. Configure the peripheral. */
     stc_exint_init_t stcExintInit;
     stc_gpio_init_t stcGpioInit;
-    stc_keyscan_init_t stcKeyscanInit;
 
-    /* GPIO config */
+    /* 1. Configure the peripheral. */
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16ExInt = PIN_EXINT_ON;
     stcGpioInit.u16PullUp = PIN_PU_ON;
-    GPIO_Init(GPIO_PORT_A, GPIO_PIN_00, &stcGpioInit);
-
-    /* Exint config */
+    GPIO_Init(KEY_PORT, KEY_PIN, &stcGpioInit);
     EXINT_StructInit(&stcExintInit);
-    stcExintInit.u32ExIntCh    = EXINT_CH00;
-    stcExintInit.u32ExIntLvl   = EXINT_TRIGGER_FALLING;
+    stcExintInit.u32ExIntCh = KEY_EXINT_CH;
+    stcExintInit.u32ExIntLvl= EXINT_TRIGGER_FALLING;
     EXINT_Init(&stcExintInit);
-
-    GPIO_StructInit(&stcGpioInit);
-    KEYSCAN_StructInit(&stcKeyscanInit);
-    stcGpioInit.u16PullUp = PIN_PU_ON;
-    GPIO_Init(GPIO_PORT_A, GPIO_PIN_06, &stcGpioInit);
-    GPIO_SetFunc(GPIO_PORT_A, GPIO_PIN_06, GPIO_FUNC_8_KEYSCAN, Disable);
-
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_KEY, Enable);
-
-    stcKeyscanInit.u32HizCycle = KEYSCAN_HIZ_CLC_512;
-    stcKeyscanInit.u32LowCycle = KEYSCAN_LOW_CLC_512;
-    stcKeyscanInit.u32KeyClk   = KEYSCAN_CLK_HCLK;
-    stcKeyscanInit.u32Keyout   = KEYSCAN_OUT_0T2;
-    stcKeyscanInit.u32Keyin    = KEYSCAN_IN_0;
-    KEYSCAN_Init(&stcKeyscanInit);
-    KEYSCAN_Cmd(Enable);
 
     /* 2. Enable AOS function. */
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
-    /* 3. Set the event for TIMER2 capturing. */
-    TMR2_SetTrigEvent(APP_TMR2_CAPT_PERIP_EVENT);
+    /* 3. Set the event for Timer2 capturing. */
+    TMR2_SetTriggerSrc(APP_TMR2_CAPT_PERIP_EVENT);
 
 #elif ((APP_FUNC == APP_FUNC_MEASURE_PULSE_WIDTH) || (APP_FUNC == APP_FUNC_MEASURE_PERIOD))
-    /* Use TIMERA to output PWM with a frequency of 1MHz and a duty cycle of 50%. */
+    /* Use TimerA to output PWM with a frequency of 1MHz and a duty cycle of 50%. */
     stc_tmra_init_t stcTmrAInit;
     stc_tmra_pwm_cfg_t stcPwmCfg;
 
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMRA_1, Enable);
 
-    /* TIMERA unit 1: clock source PCLK0(200MHZ). Divider: 2. Final count clock frequency 100MHz. */
+    /* TimerA unit 1: clock source PCLK0(200MHZ). Divider: 2. Final count clock frequency 100MHz. */
     TMRA_StructInit(&stcTmrAInit);
     stcTmrAInit.u32ClkSrc    = TMRA_CLK_PCLK;
-    stcTmrAInit.u32PCLKDiv   = TMRA_PCLK_DIV_2;
+    stcTmrAInit.u32PCLKDiv   = TMRA_PCLK_DIV2;
     stcTmrAInit.u32PeriodVal = 100U - 1U;
     TMRA_Init(M4_TMRA_1, &stcTmrAInit);
 
@@ -515,11 +539,11 @@ static void Tmr2CaptCondConfig(void)
 }
 
 /**
- * @brief  TIMER2 counter comparison match interrupt callback function.
+ * @brief  Timer2 counter comparison match interrupt callback function.
  * @param  None
  * @retval None
  */
-void APP_TMR2_IRQ_CB_CMP(void)
+static void TMR2_Cmp_IrqCallback(void)
 {
     if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_CMP) == Set)
     {
@@ -540,11 +564,11 @@ void APP_TMR2_IRQ_CB_CMP(void)
 }
 
 /**
- * @brief  TIMER2 counter overflow interrupt callback function.
+ * @brief  Timer2 counter overflow interrupt callback function.
  * @param  None
  * @retval None
  */
-void APP_TMR2_IRQ_CB_OVF(void)
+static void TMR2_Ovf_IrqCallback(void)
 {
     if (TMR2_GetStatus(APP_TMR2_UNIT, APP_TMR2_CH, TMR2_FLAG_OVF) == Set)
     {
@@ -557,14 +581,14 @@ void APP_TMR2_IRQ_CB_OVF(void)
 }
 
 /**
- * @brief  Start the peripheral that was configured to generate the condition that to be captured by TIMER2.
+ * @brief  Start the peripheral that was configured to generate the condition that to be captured by Timer2.
  * @param  None
  * @retval None
  */
 static void Tmr2CaptCondStart(void)
 {
 #if (APP_FUNC == APP_FUNC_CAPTURE_EVENT)
-    /* For this example: press key SW8 to generate the event for TIEMR2 capturing. */
+    /* For this example: press key SW10 to generate the event for TIEMR2 capturing. */
 #else
     /* Make falling/rising edge on pin TIM2_<t>_PWMx. */
     TMRA_Start(M4_TMRA_1);

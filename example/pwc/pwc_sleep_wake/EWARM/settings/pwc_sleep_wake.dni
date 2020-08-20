@@ -1,5 +1,5 @@
 [PlDriver]
-MemConfigValue=$PROJ_DIR$\..\..\..\..\mcu\EWARM\hdsc_hc32f4a0.svd
+MemConfigValue=D:\02_HDSC\04_Project\81_M020_AP\trunk\Product\Firmware\00_ddl\hc32f4a0_ddl\example\pwc\pwc_sleep_wake\EWARM\..\..\..\..\mcu\EWARM\hdsc_hc32f4a0.svd
 [PlCacheRanges]
 CustomRanges0=0 0 2097152 1 2048
 CustomRangesText0=Flash
@@ -15,12 +15,14 @@ CustomRanges5=0 2281701376 1024 2 1024
 CustomRangesText5=SRAM_REG
 CustomRanges6=0 2281702400 1024 2 1024
 CustomRangesText6=SDRAM_REG
-CustomRanges7=0 2282749952 1048576 1 2048
+CustomRanges7=0 2282749952 1048576 2 2048
 CustomRangesText7=EXMC Nand Flash
-CustomRanges8=0 2550136832 134217728 1 2048
+CustomRanges8=0 2550136832 67108864 1 2048
 CustomRangesText8=QSPI
-CustomRanges9=0 3758096384 536870912 2 0
-CustomRangesText9=Private peripheral
+CustomRanges9=0 2617245696 67108864 2 67108864
+CustomRangesText9=QSPI_REG
+CustomRanges10=0 3758096384 536870912 2 0
+CustomRangesText10=Private peripheral
 [Stack]
 FillEnabled=0
 OverflowWarningsEnabled=1
@@ -31,6 +33,12 @@ UseTrigger=1
 TriggerName=main
 LimitSize=0
 ByteLimit=50
+[Jet]
+DisableInterrupts=0
+LeaveRunning=0
+MultiCoreRunAll=0
+[ArmDriver]
+EnableCache=1
 [Disassemble mode]
 mode=0
 [Breakpoints2]
@@ -38,9 +46,3 @@ Count=0
 [Aliases]
 Count=0
 SuppressDialog=0
-[Jet]
-DisableInterrupts=0
-LeaveRunning=0
-MultiCoreRunAll=0
-[ArmDriver]
-EnableCache=1

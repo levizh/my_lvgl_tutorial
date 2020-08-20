@@ -1,11 +1,15 @@
 /**
  *******************************************************************************
- * @file  template/source/main.c
- * @brief Main program template for the Device Driver Library.
+ * @file  dac/dac_base/source/main.c
+ * @brief Main program of DAC base for the Device Driver Library.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-28       Hexiao          First version
+   2020-06-12       Hexiao          First version
+   2020-07-15       Hexiao          1. Replace DAC_ChannelCmd by DAC_Start and DAC_Stop
+                                    2. Replace DAC_DualChannelCmd by DAC_DualChannelStart
+                                       and DAC_DualChannelStop
+                                    3. function rename
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,7 +66,7 @@
  */
 
 /**
- * @addtogroup Templates
+ * @addtogroup DAC_Base
  * @{
  */
 
@@ -76,16 +80,17 @@ typedef enum
     E_KEY2_PRESSED,
     E_KEY3_PRESSED,
     E_KEY4_PRESSED,
+    E_KEY5_PRESSED,
 }en_key_event;
 
-typedef enum 
+typedef enum
 {
     DAC_Unit1,
     DAC_Unit2,
     DAC_Unit_Max,
 }en_dac_unit;
 
-typedef enum 
+typedef enum
 {
     E_Dac_Single,
     E_Dac_Dual,
@@ -96,7 +101,7 @@ typedef struct
 {
     M4_DAC_TypeDef* pUnit;
     en_dac_cvt_t enCvtType;
-    en_dac_ch_t enCh;
+    uint16_t u16Ch;
 }st_dac_handle_t;
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
@@ -113,10 +118,11 @@ typedef struct
 #define DAC_DATA_ALIGN_12b_R                         (0U)
 #define DAC_DATA_ALIGN_12b_L                         (1U)
 
+/* Open AMP function on  BSP_EV_HC32F4A0_LQFP176 board */
 #define SUPPORT_AMP
 //#define SUPPORT_ADP
 #define SINGLE_WAVE_DAC_CHN                          (DAC_CHN1)
-#define DAC_DATA_ALIGN                               (DAC_DATA_ALIGN_12b_R)
+#define DAC_DATA_ALIGN                               (DAC_DATA_ALIGN_12b_L)
 
 #define SINE_DOT_NUMBER                              (4096U)
 #define SINE_NEGATIVE_TO_POSITVE                     (1.0F)
@@ -143,6 +149,59 @@ static st_dac_handle_t gstDACHandle[DAC_Unit_Max] = {0};
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
 /**
  * @brief    Get key pressed event
  * @param    None
@@ -167,6 +226,10 @@ static en_key_event Key_Event(void)
     else if(Set == BSP_KEY_GetStatus(BSP_KEY_4))
     {
         enEvent = E_KEY4_PRESSED;
+    }
+    else if(Set == BSP_KEY_GetStatus(BSP_KEY_5))
+    {
+        enEvent = E_KEY5_PRESSED;
     }
     else
     {
@@ -195,14 +258,14 @@ static void MAU_Init(void)
 static void SinTable_Init(uint32_t pSinTable[],uint32_t u32count)
 {
     uint32_t i = 0U;
-    uint32_t u32AngAvg = (uint32_t)(float32_t)((float32_t)((float32_t)MAU_SIN_ANG_TOTAL / (float32_t)u32count) + 0.5);
+    uint32_t u32AngAvg = (uint32_t)(float32_t)((float32_t)((float32_t)MAU_SIN_ANGIDX_TOTAL / (float32_t)u32count) + 0.5);
     float32_t fSin = 0.0F;
     for(i = 0U; i < u32count; i++)
     {
-        fSin = (((float32_t)MAU_Sin(M4_MAU, (uint16_t)(u32AngAvg * i)) 
+        fSin = (((float32_t)MAU_Sin(M4_MAU, (uint16_t)(u32AngAvg * i))
                  / (float32_t)MAU_SIN_Q15_SCALAR + SINE_NEGATIVE_TO_POSITVE) / VREFH) *
-            (float32_t)DAC_PARAM_MAX + 0.5F;
-        
+            (float32_t)DAC_DATAREG_VALUE_MAX + 0.5F;
+
         #if (DAC_DATA_ALIGN == DAC_DATA_ALIGN_12b_L)
         {
             pSinTable[i] = (uint32_t)fSin << 4;
@@ -217,13 +280,13 @@ static void SinTable_Init(uint32_t pSinTable[],uint32_t u32count)
 
 /**
  * @brief    Enable DAC peripheral clock
- * @param    [in] en_dac_unit  The selected DAC unit
+ * @param    [in] enUnit  The selected DAC unit
  * @retval   None
  */
-static void DAC_PClkEnable(en_dac_unit eUnit)
+static void DAC_PClkEnable(en_dac_unit enUnit)
 {
     uint32_t u32PClk = 0U;
-    switch(eUnit)
+    switch(enUnit)
     {
     case DAC_Unit1:
         u32PClk = PWC_FCG3_DAC1;
@@ -241,15 +304,15 @@ static void DAC_PClkEnable(en_dac_unit eUnit)
 
 /**
  * @brief    Init DAC single channel
- * @param    [in] en_dac_unit  The selected DAC unit
+ * @param    [in] enUnit  The selected DAC unit
  * @retval   A pointer of DAC handler
  */
-st_dac_handle_t* DAC_SingleChnInit(en_dac_unit enUnit)
+st_dac_handle_t* DAC_SingleConversionInit(en_dac_unit enUnit)
 {
     uint8_t u8Port;
     uint16_t u16Pin;
     st_dac_handle_t* pDac = NULL;
-    
+
     if(enUnit == DAC_Unit1)
     {
         pDac = &gstDACHandle[DAC_Unit1];
@@ -264,18 +327,22 @@ st_dac_handle_t* DAC_SingleChnInit(en_dac_unit enUnit)
 
     pDac->enCvtType = E_Dac_Single;
     #if (SINGLE_WAVE_DAC_CHN == DAC_CHN1)
-    pDac->enCh = DAC_Channel_1;
+    pDac->u16Ch = DAC_CH_1;
     #else
-    pDac->enCh = DAC_Channel_2;
+    pDac->u16Ch = DAC_CH_2;
     #endif
 
-    /* Set data pattern and data source */
+    /* Init DAC by default value: source from data register and output enabled*/
+    DAC_DeInit(pDac->pUnit);
+    stc_dac_init_t stInit;
+    DAC_StructInit(&stInit);
+    DAC_Init(pDac->pUnit, pDac->u16Ch, &stInit);
     #if (DAC_DATA_ALIGN == DAC_DATA_ALIGN_12b_L)
-    DAC_DataPatternConfig(pDac->pUnit,DAC_Align_12b_L);
+    DAC_DataRegAlignConfig(pDac->pUnit,DAC_DATA_ALIGN_L);
     #else
-    DAC_DataPatternConfig(pDac->pUnit,DAC_Align_12b_R);
+    DAC_DataRegAlignConfig(pDac->pUnit,DAC_DATA_ALIGN_R);
     #endif
-    DAC_SetDataSource(pDac->pUnit, pDac->enCh, DAC_Data_From_DataReg);
+
     /* Set DAC pin attribute to analog */
     if(enUnit == DAC_Unit1)
     {
@@ -294,7 +361,7 @@ st_dac_handle_t* DAC_SingleChnInit(en_dac_unit enUnit)
         #else
         u16Pin = DAC_UNIT2_CHN2_PIN;
         #endif
-    } 
+    }
     stc_gpio_init_t stcGpioInit;
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
@@ -310,7 +377,7 @@ st_dac_handle_t* DAC_SingleChnInit(en_dac_unit enUnit)
         {
             if(M4_ADC3->STR == 0U)
             {
-                DAC_ADCPrioConfig(pDac->pUnit, DAC_ADPCR_CONFIG_ALL);
+                DAC_ADCPrioConfig(pDac->pUnit, DAC_ADP_SELECT_ALL);
                 DAC_ADCPrioCmd(pDac->pUnit, Enable);
             }
         }
@@ -321,10 +388,10 @@ st_dac_handle_t* DAC_SingleChnInit(en_dac_unit enUnit)
 
 /**
  * @brief    Init DAC Dual channel
- * @param    [in] en_dac_unit  The selected DAC unit
+ * @param    [in] enUnit  The selected DAC unit
  * @retval   A pointer of DAC handler
  */
-st_dac_handle_t* DAC_DualChnInit(en_dac_unit enUnit)
+st_dac_handle_t* DAC_DualConversionInit(en_dac_unit enUnit)
 {
     uint8_t u8Port;
     st_dac_handle_t* pDac = NULL;
@@ -341,18 +408,24 @@ st_dac_handle_t* DAC_DualChnInit(en_dac_unit enUnit)
     }
     DAC_PClkEnable(enUnit);
     pDac->enCvtType = E_Dac_Dual;
-    /* Set data pattern and data source */
+
+    /* Init DAC by default value: source from data register and output enabled*/
+    DAC_DeInit(pDac->pUnit);
+    stc_dac_init_t stInit;
+    DAC_StructInit(&stInit);
+    DAC_Init(pDac->pUnit, DAC_CH_1, &stInit);
+    DAC_Init(pDac->pUnit, DAC_CH_2, &stInit);
     #if (DAC_DATA_ALIGN == DAC_DATA_ALIGN_12b_L)
-    DAC_DataPatternConfig(pDac->pUnit,DAC_Align_12b_L);
+    DAC_DataRegAlignConfig(pDac->pUnit,DAC_DATA_ALIGN_L);
     #else
-    DAC_DataPatternConfig(pDac->pUnit,DAC_Align_12b_R);
+    DAC_DataRegAlignConfig(pDac->pUnit,DAC_DATA_ALIGN_R);
     #endif
-    DAC_SetDataSource(pDac->pUnit, DAC_Channel_1, DAC_Data_From_DataReg);
-    DAC_SetDataSource(pDac->pUnit, DAC_Channel_2, DAC_Data_From_DataReg);
+
     /* Set DAC pin attribute to analog */
     stc_gpio_init_t stcGpioInit;
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16PinAttr = PIN_ATTR_ANALOG;
+
     if(enUnit == DAC_Unit1)
     {
         u8Port = DAC_UNIT1_PORT;
@@ -376,7 +449,7 @@ st_dac_handle_t* DAC_DualChnInit(en_dac_unit enUnit)
         {
             if(M4_ADC3->STR == 0U)
             {
-                DAC_ADCPrioConfig(pDac->pUnit, DAC_ADPCR_CONFIG_ALL);
+                DAC_ADCPrioConfig(pDac->pUnit, DAC_ADP_SELECT_ALL);
                 DAC_ADCPrioCmd(pDac->pUnit, Enable);
             }
         }
@@ -390,22 +463,20 @@ st_dac_handle_t* DAC_DualChnInit(en_dac_unit enUnit)
  * @param    [in] pDac       A pointer of DAC handler
  * @retval   None
  */
-static void DAC_DualChnStart(const st_dac_handle_t* pDac)
+static void DAC_StartDualConversion(const st_dac_handle_t* pDac)
 {
-    /* Set sin data and start convert */
-    DAC_OutputCmd(pDac->pUnit,DAC_Channel_1,Enable);
-    DAC_OutputCmd(pDac->pUnit,DAC_Channel_2,Enable);
     #ifdef SUPPORT_AMP
     /* Enalbe AMP */
-    DAC_SetChannelAllData(pDac->pUnit,0U,0U);
-    DAC_AMPCmd(pDac->pUnit,DAC_Channel_1,Enable);
-    DAC_AMPCmd(pDac->pUnit,DAC_Channel_2,Enable);
+    DAC_AMPCmd(pDac->pUnit,DAC_CH_1,Enable);
+    DAC_AMPCmd(pDac->pUnit,DAC_CH_2,Enable);
     #endif
-    /* Enalbe Dual Channel */
-    DAC_ChannelAllCmd(pDac->pUnit,Enable);
+
+    /* Start Dual Channel Conversion */
+    DAC_DualChannelStart(pDac->pUnit);
+
     #ifdef SUPPORT_AMP
-	/* delay 3us before setting data*/
-	DDL_Delay1ms(1U);
+    /* delay 3us before setting data*/
+    DDL_DelayMS(1U);
     #endif
 }
 
@@ -414,19 +485,19 @@ static void DAC_DualChnStart(const st_dac_handle_t* pDac)
  * @param    [in] pDac       A pointer of DAC handler
  * @retval   None
  */
-static void DAC_SingleChnStart(const st_dac_handle_t* pDac)
+static void DAC_StartSingleConversion(const st_dac_handle_t* pDac)
 {
-    DAC_OutputCmd(pDac->pUnit,pDac->enCh,Enable);
     /* Enalbe AMP */
     #ifdef SUPPORT_AMP
-    DAC_SetChannelAllData(pDac->pUnit,0U,0U);
-    DAC_AMPCmd(pDac->pUnit,pDac->enCh,Enable);
+    DAC_AMPCmd(pDac->pUnit,pDac->u16Ch,Enable);
     #endif
-    DAC_ChannelCmd(pDac->pUnit,pDac->enCh,Enable);
-	#ifdef SUPPORT_AMP
-	/* delay 3us before setting data*/
-	DDL_Delay1ms(1U);
-	#endif
+
+    DAC_Start(pDac->pUnit,pDac->u16Ch);
+
+    #ifdef SUPPORT_AMP
+    /* delay 3us before setting data*/
+    DDL_DelayMS(1U);
+    #endif
 }
 
 /**
@@ -436,7 +507,7 @@ static void DAC_SingleChnStart(const st_dac_handle_t* pDac)
  * @param    [in] u32count   Number of data table items
  * @retval   None
  */
-__STATIC_INLINE void DAC_SingleChnConvert(const st_dac_handle_t* pDac, uint32_t const pDataTable[],uint32_t u32count)
+__STATIC_INLINE void DAC_SetSingleConversionData(const st_dac_handle_t* pDac, uint32_t const pDataTable[],uint32_t u32count)
 {
     for(uint32_t i = 0U; i < u32count; i++)
     {
@@ -445,7 +516,7 @@ __STATIC_INLINE void DAC_SingleChnConvert(const st_dac_handle_t* pDac, uint32_t 
         while(u32TryCount != 0U)
         {
             u32TryCount--;
-            if(DAC_Convert_Ongoing != pfSingleWaveConvState(pDac->pUnit))
+            if(OperationInProgress != pfSingleWaveConvState(pDac->pUnit))
             {
                 break;
             }
@@ -462,7 +533,7 @@ __STATIC_INLINE void DAC_SingleChnConvert(const st_dac_handle_t* pDac, uint32_t 
  * @param    [in] u32count   Number of data table items
  * @retval   None
  */
-__STATIC_INLINE void DAC_DualChnConvert(const st_dac_handle_t* pDac, uint32_t const pDataTable[],uint32_t u32count)
+__STATIC_INLINE void DAC_SetDualConversionData(const st_dac_handle_t* pDac, uint32_t const pDataTable[],uint32_t u32count)
 {
     for(uint32_t i = 0U; i < u32count; i++)
     {
@@ -473,45 +544,62 @@ __STATIC_INLINE void DAC_DualChnConvert(const st_dac_handle_t* pDac, uint32_t co
         {
             enSt = DAC_GetChannel1ConvState(pDac->pUnit);
             u32TryCount--;
-            if(DAC_Convert_Ongoing != enSt)
+            if(OperationInProgress != enSt)
             {
                 enSt = DAC_GetChannel2ConvState(pDac->pUnit);
-                if(DAC_Convert_Ongoing != enSt)
+                if(OperationInProgress != enSt)
                 {
                     break;
                 }
             }
         }
         #endif
-        DAC_SetChannelAllData(pDac->pUnit,(uint16_t)pDataTable[i],(uint16_t)pDataTable[i]);
+        DAC_SetDualChannelData(pDac->pUnit,(uint16_t)pDataTable[i],(uint16_t)pDataTable[i]);
     }
 }
 
 /**
  * @brief    stop DAC conversion
- * @param    [in] A pointer of DAC handler 
+ * @param    [in] pDac A pointer of DAC handler
  * @retval   None
  */
-static void DAC_Stop(const st_dac_handle_t* pDac)
+static void DAC_StopConversion(const st_dac_handle_t* pDac)
 {
-    if(pDac->enCvtType != E_Dac_Dual)
+    if(NULL == pDac)
     {
-        DAC_ChannelCmd(pDac->pUnit,pDac->enCh,Disable);
+        DAC_DeInit(M4_DAC1);
+        DAC_DeInit(M4_DAC2);
     }
-    DAC_ChannelAllCmd(pDac->pUnit,Disable);
+    else if(pDac->enCvtType != E_Dac_Dual)
+    {
+        DAC_Stop(pDac->pUnit,pDac->u16Ch);
+    }
+    else
+    {
+        DAC_DualChannelStop(pDac->pUnit);
+    }
 }
 
 /**
- * @brief  Main function of template project
+ * @brief  Main function of DAC base project
  * @param  None
  * @retval int32_t return value, if needed
  */
 int32_t main(void)
 {
+    Peripheral_WE();
+
     BSP_CLK_Init();
     BSP_IO_Init();
     BSP_LED_Init();
     BSP_KEY_Init();
+
+    /*DAC_UNIT2_CHN1_PIN(PC04) and DAC_UNIT2_CHN2_PIN(PC05) are also used by
+    * Ethernet PHY module on BSP_EV_HC32F4A0_LQFP176 board. Pull down reset pin
+    * of Ethernet to eliminate the influence from Ethernet
+    */
+    BSP_IO_ConfigPortPin(EIO_PORT1, EIO_ETH_RST, EIO_DIR_OUT);
+    BSP_IO_WritePortPin(EIO_PORT1, EIO_ETH_RST, (uint8_t)Disable);
 
     /* Init MAU for generating sine data*/
     MAU_Init();
@@ -520,42 +608,51 @@ int32_t main(void)
     SinTable_Init(gu32SinTable, SINE_DOT_NUMBER);
 
     /* Init DAC */
-    st_dac_handle_t* pSingleDac = DAC_SingleChnInit(DAC_Unit1);
-    st_dac_handle_t* pDualDac = DAC_DualChnInit(DAC_Unit2);
+    st_dac_handle_t* pSingleDac = DAC_SingleConversionInit(DAC_Unit1);
+    st_dac_handle_t* pDualDac = DAC_DualConversionInit(DAC_Unit2);
     /**
-    * Output sine waves after system restart, 
-    * Press Key2 to stop the single sine wave ,and Press Key1 to restart
-    * Press Key4 to stop the dual sine waves ,and Press Key3 to restart
+    * Output sine waves after system restart,
+    * Press KEY2(SW2) to stop the single sine wave ,and Press KEY1(SW1) to restart
+    * Press KEY4(SW4) to stop the dual sine waves ,and Press KEY3(SW3) to restart
+    * Press KEY5(SW5) to stop all sine waves and end this sample
     */
     en_key_event enEvent = E_KEY_NOT_PRESSED;
     uint8_t u8EnableSingle = 1U,u8EnableDual = 1U;
-    DAC_SingleChnStart(pSingleDac);
+    DAC_StartSingleConversion(pSingleDac);
     BSP_LED_On(LED_BLUE);
-    DAC_DualChnStart(pDualDac);
+    DAC_StartDualConversion(pDualDac);
     BSP_LED_On(LED_RED);
-    while (1)
+
+    while (1U)
     {
         enEvent = Key_Event();
         switch(enEvent)
-        {         
+        {
             case E_KEY1_PRESSED:
                 u8EnableSingle = 1U;
                 BSP_LED_On(LED_BLUE);
-                DAC_SingleChnStart(pSingleDac);
+                DAC_StartSingleConversion(pSingleDac);
                 break;
             case E_KEY2_PRESSED:
                 u8EnableSingle = 0U;
-                DAC_Stop(pSingleDac);
+                DAC_StopConversion(pSingleDac);
                 BSP_LED_Off(LED_BLUE);
                 break;
             case E_KEY3_PRESSED:
                 u8EnableDual = 1U;
                 BSP_LED_On(LED_RED);
-                DAC_DualChnStart(pDualDac);
+                DAC_StartDualConversion(pDualDac);
                 break;
             case E_KEY4_PRESSED:
                 u8EnableDual = 0U;
-                DAC_Stop(pDualDac);
+                DAC_StopConversion(pDualDac);
+                BSP_LED_Off(LED_RED);
+                break;
+            case E_KEY5_PRESSED:
+                DAC_StopConversion(NULL);
+                u8EnableSingle = 0U;
+                u8EnableDual = 0U;
+                BSP_LED_Off(LED_BLUE);
                 BSP_LED_Off(LED_RED);
                 break;
             default:
@@ -563,11 +660,11 @@ int32_t main(void)
         }
         if(u8EnableSingle)
         {
-            DAC_SingleChnConvert(pSingleDac,gu32SinTable, SINE_DOT_NUMBER);
+            DAC_SetSingleConversionData(pSingleDac,gu32SinTable, SINE_DOT_NUMBER);
         }
         if(u8EnableDual)
         {
-            DAC_DualChnConvert(pDualDac,gu32SinTable, SINE_DOT_NUMBER);
+            DAC_SetDualConversionData(pDualDac,gu32SinTable, SINE_DOT_NUMBER);
         }
     }
 }

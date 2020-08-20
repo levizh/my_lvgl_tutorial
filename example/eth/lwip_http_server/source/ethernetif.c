@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-06       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -123,9 +123,6 @@ static void Ethernet_GpioInit(void)
         ETH_RMII_RXD1 ---------------> PC5
         ETH_RMII_RX_ER --------------> PI10
     */
-    BSP_IO_ConfigPortPin(EIO_PORT1, EIO_RMII_SEL, EIO_DIR_OUT);
-    BSP_IO_WritePortPin(EIO_PORT1, EIO_RMII_SEL, (uint8_t)Disable);
-
     /* Configure PA1, PA2 and PA7 */
     GPIO_SetFunc(GPIO_PORT_A, (GPIO_PIN_01 | GPIO_PIN_02 | GPIO_PIN_07), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
     /* Configure PC1, PC4 and PC5 */
@@ -155,9 +152,6 @@ static void Ethernet_GpioInit(void)
         ETH_MII_CRS -----------------> PH2
         ETH_MII_COL -----------------> PH3
     */
-    BSP_IO_ConfigPortPin(EIO_PORT1, EIO_RMII_SEL, EIO_DIR_OUT);
-    BSP_IO_WritePortPin(EIO_PORT1, EIO_RMII_SEL, (uint8_t)Enable);
-
     /* Configure PA1, PA2 and PA7 */
     GPIO_SetFunc(GPIO_PORT_A, (GPIO_PIN_01 | GPIO_PIN_02 | GPIO_PIN_07), GPIO_FUNC_11_ETH ,PIN_SUBFUNC_DISABLE);
     /* Configure PB0, PB1, PB6, PB8 and PB9 */
@@ -217,12 +211,12 @@ static void low_level_init(struct netif *netif)
     netif->hwaddr_len = ETHARP_HWADDR_LEN;
 
     /* set MAC hardware address */
-    netif->hwaddr[0] = (EthHandle.stcCommInit).u8MACAddr[0];
-    netif->hwaddr[1] = (EthHandle.stcCommInit).u8MACAddr[1];
-    netif->hwaddr[2] = (EthHandle.stcCommInit).u8MACAddr[2];
-    netif->hwaddr[3] = (EthHandle.stcCommInit).u8MACAddr[3];
-    netif->hwaddr[4] = (EthHandle.stcCommInit).u8MACAddr[4];
-    netif->hwaddr[5] = (EthHandle.stcCommInit).u8MACAddr[5];
+    netif->hwaddr[0] = (EthHandle.stcCommInit).au8MACAddr[0];
+    netif->hwaddr[1] = (EthHandle.stcCommInit).au8MACAddr[1];
+    netif->hwaddr[2] = (EthHandle.stcCommInit).au8MACAddr[2];
+    netif->hwaddr[3] = (EthHandle.stcCommInit).au8MACAddr[3];
+    netif->hwaddr[4] = (EthHandle.stcCommInit).au8MACAddr[4];
+    netif->hwaddr[5] = (EthHandle.stcCommInit).au8MACAddr[5];
 
     /* maximum transfer unit */
     netif->mtu = 1500U;

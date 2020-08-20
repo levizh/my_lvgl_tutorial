@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-10       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -76,7 +76,7 @@
  * Function control of ADC.
  * Defines the following macro as non-zero to enable the corresponding function.
  */
-#define APP_ADC_USE_INTERRUPT               (0U)
+#define APP_ADC_USE_INTERRUPT               (1U)
 
 /*
  * ADC unit instance for this example.
@@ -84,8 +84,8 @@
  * Definition of 'APP_ADC_PERIP_CLK' depends on 'APP_ADC_UNIT'.
  * 
  * NOTE!!! The following definitions are depend on the definitions of 'APP_ADC_UNIT'.
- *   APP_ADC_SA_IRQ_CB
- *   APP_ADC_SB_IRQ_CB
+ *   APP_ADC_SA_IRQ_HANDLER
+ *   APP_ADC_SB_IRQ_HANDLER
  *   APP_ADC_SA_IRQ_SRC
  *   APP_ADC_SB_IRQ_SRC
  *   APP_ADC_SB_TRIG_SRC_PORT
@@ -98,11 +98,13 @@
  * Definitions of interrupt.
  * All interrupts of ADC can use independent interrupt vectors Int000_IRQn ~ Int031_IRQn
  *     and Int122_IRQn ~ Int127_IRQn, sharing interrupt vector Int143_IRQn.
+ * 'APP_ADC_USE_SHARE_INTERRUPT': Defines as non-zero to use sharing interrupt.
  */
 #if (APP_ADC_USE_INTERRUPT > 0U)
+    #define APP_ADC_USE_SHARE_INTERRUPT     (0U)
     #define ADC_SHARE_IRQn                  (Int143_IRQn)
-    #define APP_ADC_SA_IRQ_CB               ADC_1_SeqA_IrqHandler
-    #define APP_ADC_SB_IRQ_CB               ADC_1_SeqB_IrqHandler
+    #define APP_ADC_SA_IRQ_HANDLER          ADC_1_SeqA_IrqHandler
+    #define APP_ADC_SB_IRQ_HANDLER          ADC_1_SeqB_IrqHandler
     #define APP_ADC_SA_IRQ_SRC              (INT_ADC1_EOCA)
     #define APP_ADC_SB_IRQ_SRC              (INT_ADC1_EOCB)
     #define APP_ADC_SA_IRQn                 (Int016_IRQn)
@@ -176,6 +178,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
 
 static void AdcConfig(void);
@@ -184,6 +189,8 @@ static void AdcInitConfig(void);
 static void AdcChannelConfig(void);
 #if (APP_ADC_USE_INTERRUPT > 0U)
     static void AdcIrqConfig(void);
+    static void ADC_SeqA_IrqCallback(void);
+    static void ADC_SeqB_IrqCallback(void);
 #endif
 static void AdcTrigSrcConfig(void);
 static void AdcStartTrigSrc(void);
@@ -212,33 +219,35 @@ static uint16_t m_au16AdcSbVal[APP_ADC_SB_CH_COUNT];
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the PLLHP(200MHz) as the system clock. */
     SystemClockConfig();
-
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures ADC. */
     AdcConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
     /* Start the trigger-source peripheral. */
     AdcStartTrigSrc();
 
     /***************** Configuration end, application start **************/
 
-    while (1u)
+    while (1U)
     {
         /*
-         * TIMER2 triggers sequence A one time every second.
+         * Timer2 triggers sequence A one time every second.
          * Make a falling edge on the specified pin ADTRGx and hold the low level \
          *   at least 1.5 cycles of PCLK4 to trigger sequence B.
          */
 #if (APP_ADC_USE_INTERRUPT > 0U)
         if ((m_u32AdcIrqFlag & ADC_SEQ_FLAG_EOCA) != 0U)
         {
-            DBG("ADC sequence A is triggered by TIMER2 every second.\n");
+            DBG("ADC sequence A is triggered by Timer2 every second.\n");
             m_u32AdcIrqFlag &= (uint32_t)(~ADC_SEQ_FLAG_EOCA);
         }
         if ((m_u32AdcIrqFlag & ADC_SEQ_FLAG_EOCB) != 0U)
@@ -251,7 +260,7 @@ int32_t main(void)
         {
             ADC_SeqClrStatus(APP_ADC_UNIT, ADC_SEQ_FLAG_EOCA);
             ADC_GetChannelData(APP_ADC_UNIT, APP_ADC_SA_CH, m_au16AdcSaVal, APP_ADC_SA_CH_COUNT);
-            DBG("ADC sequence A is triggered by TIMER2 every second.\n");
+            DBG("ADC sequence A is triggered by Timer2 every second.\n");
         }
 
         if (ADC_SeqGetStatus(APP_ADC_UNIT, ADC_SEQ_FLAG_EOCB) == Set)
@@ -262,6 +271,58 @@ int32_t main(void)
         }
 #endif
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -309,15 +370,12 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set SRAM wait cycles. */
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     /* Set EFM wait cycle. 4 wait cycles needed when system clock is 200MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_4);
-    EFM_Lock();
 
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
 }
@@ -424,11 +482,11 @@ static void AdcTrigSrcConfig(void)
     /*
      * Configures the trigger source of sequence A.
      * An event that generated by other peripheral is configured as the trigger source of sequence A.
-     * Sequence A is triggered by TIMER2 every second.
+     * Sequence A is triggered by Timer2 every second.
      */
     TMR2_StructInit(&stcInit);
     stcInit.u32ClkSrc = TMR2_CLK_SYNC_PCLK1;
-    stcInit.u32ClkDiv = TMR2_CLK_DIV_512;
+    stcInit.u32ClkDiv = TMR2_CLK_DIV512;
     stcInit.u32CmpVal = 48828UL;
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMR2_1, Enable);
     TMR2_Init(M4_TMR2_1, TMR2_CH_A, &stcInit);
@@ -480,7 +538,6 @@ static void AdcIrqConfig(void)
     /* Configures interrupt of sequence A. */
     stcCfg.enIntSrc    = APP_ADC_SA_IRQ_SRC;
     stcCfg.enIRQn      = APP_ADC_SA_IRQn;
-    stcCfg.pfnCallback = &APP_ADC_SA_IRQ_CB;
     if (stcCfg.enIRQn == ADC_SHARE_IRQn)
     {
         /* Sharing interrupt. */
@@ -488,6 +545,7 @@ static void AdcIrqConfig(void)
     }
     else
     {
+        stcCfg.pfnCallback = &ADC_SeqA_IrqCallback;
         /* Independent interrupt. */
         INTC_IrqSignIn(&stcCfg);
     }
@@ -498,7 +556,6 @@ static void AdcIrqConfig(void)
     /* Configures interrupt of sequence B. */
     stcCfg.enIntSrc    = APP_ADC_SB_IRQ_SRC;
     stcCfg.enIRQn      = APP_ADC_SB_IRQn;
-    stcCfg.pfnCallback = APP_ADC_SB_IRQ_CB;
     if (stcCfg.enIRQn == ADC_SHARE_IRQn)
     {
         /* Sharing interrupt. */
@@ -506,6 +563,7 @@ static void AdcIrqConfig(void)
     }
     else
     {
+        stcCfg.pfnCallback = &ADC_SeqB_IrqCallback;
         /* Independent interrupt. */
         INTC_IrqSignIn(&stcCfg);
     }
@@ -523,7 +581,11 @@ static void AdcIrqConfig(void)
  * @param  None
  * @retval None
  */
-void APP_ADC_SA_IRQ_CB(void)
+#if (APP_ADC_USE_SHARE_INTERRUPT > 0U)
+void APP_ADC_SA_IRQ_HANDLER(void)
+#else
+static void ADC_SeqA_IrqCallback(void)
+#endif
 {
     if (ADC_SeqGetStatus(APP_ADC_UNIT, ADC_SEQ_FLAG_EOCA) == Set)
     {
@@ -538,7 +600,11 @@ void APP_ADC_SA_IRQ_CB(void)
  * @param  None
  * @retval None
  */
-void APP_ADC_SB_IRQ_CB(void)
+#if (APP_ADC_USE_SHARE_INTERRUPT > 0U)
+void APP_ADC_SB_IRQ_HANDLER(void)
+#else
+static void ADC_SeqB_IrqCallback(void)
+#endif
 {
     if (ADC_SeqGetStatus(APP_ADC_UNIT, ADC_SEQ_FLAG_EOCB) == Set)
     {
@@ -563,15 +629,15 @@ static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32C
 {
     uint8_t u8PinNum;
 
-    u8PinNum = 0u;
-    while (u32Channel != 0u)
+    u8PinNum = 0U;
+    while (u32Channel != 0U)
     {
-        if (u32Channel & 0x1u)
+        if (u32Channel & 0x1U)
         {
             AdcSetPinAnalogMode(ADCx, u8PinNum);
         }
 
-        u32Channel >>= 1u;
+        u32Channel >>= 1U;
         u8PinNum++;
     }
 }

@@ -5,7 +5,9 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-11       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-23       Hongjh          1. Replace DCU_SetCmpIntMode by DCU_IntCmd;
+                                    2. Modify DCU DATA read/write API.
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -80,15 +82,6 @@
 #define DCU_UNIT_INT_SRC                (INT_DCU1)
 #define DCU_UNIT_INT_IRQn               (Int000_IRQn)
 
-/* DCU unit interrupt selection */
-#define DCU_INT_SELECTION                                                      \
-(   DCU_INT_DATA0_LS_DATA2              |                                      \
-    DCU_INT_DATA0_EQ_DATA2              |                                      \
-    DCU_INT_DATA0_GT_DATA2              |                                      \
-    DCU_INT_DATA0_LS_DATA1              |                                      \
-    DCU_INT_DATA0_EQ_DATA1              |                                      \
-    DCU_INT_DATA0_GT_DATA1)
-
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
@@ -96,23 +89,77 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 static void DCU_IrqCallback(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-static en_int_status_t m_enData0LsData1 = Reset;
-static en_int_status_t m_enData0LsData2 = Reset;
+static __IO en_int_status_t m_enData0LsData1 = Reset;
+static __IO en_int_status_t m_enData0LsData2 = Reset;
 
-static en_int_status_t m_enData0EqData1 = Reset;
-static en_int_status_t m_enData0EqData2 = Reset;
+static __IO en_int_status_t m_enData0EqData1 = Reset;
+static __IO en_int_status_t m_enData0EqData2 = Reset;
 
-static en_int_status_t m_enData0GtData1 = Reset;
-static en_int_status_t m_enData0GtData2 = Reset;
+static __IO en_int_status_t m_enData0GtData1 = Reset;
+static __IO en_int_status_t m_enData0GtData2 = Reset;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  DCU irq callback function.
@@ -121,37 +168,37 @@ static en_int_status_t m_enData0GtData2 = Reset;
  */
 static void DCU_IrqCallback(void)
 {
-    if (Set == DCU_GetFlag(DCU_UNIT, DCU_FLAG_DATA0_LS_DATA2))
+    if (Set == DCU_GetStatus(DCU_UNIT, DCU_FLAG_DATA0_LS_DATA2))
     {
         m_enData0LsData2 = Set;
     }
 
-    if (Set == DCU_GetFlag(DCU_UNIT, DCU_FLAG_DATA0_EQ_DATA2))
+    if (Set == DCU_GetStatus(DCU_UNIT, DCU_FLAG_DATA0_EQ_DATA2))
     {
         m_enData0EqData2 = Set;
     }
 
-    if (Set == DCU_GetFlag(DCU_UNIT, DCU_FLAG_DATA0_GT_DATA2))
+    if (Set == DCU_GetStatus(DCU_UNIT, DCU_FLAG_DATA0_GT_DATA2))
     {
         m_enData0GtData2 = Set;
     }
 
-    if (Set == DCU_GetFlag(DCU_UNIT, DCU_FLAG_DATA0_LS_DATA1))
+    if (Set == DCU_GetStatus(DCU_UNIT, DCU_FLAG_DATA0_LS_DATA1))
     {
         m_enData0LsData1 = Set;
     }
 
-    if (Set == DCU_GetFlag(DCU_UNIT, DCU_FLAG_DATA0_EQ_DATA1))
+    if (Set == DCU_GetStatus(DCU_UNIT, DCU_FLAG_DATA0_EQ_DATA1))
     {
         m_enData0EqData1 = Set;
     }
 
-    if (Set == DCU_GetFlag(DCU_UNIT, DCU_FLAG_DATA0_GT_DATA1))
+    if (Set == DCU_GetStatus(DCU_UNIT, DCU_FLAG_DATA0_GT_DATA1))
     {
         m_enData0GtData1 = Set;
     }
 
-    DCU_ClearFlag(DCU_UNIT, (DCU_FLAG_DATA0_LS_DATA2 | DCU_FLAG_DATA0_EQ_DATA2 | \
+    DCU_ClearStatus(DCU_UNIT, (DCU_FLAG_DATA0_LS_DATA2 | DCU_FLAG_DATA0_EQ_DATA2 | \
                              DCU_FLAG_DATA0_GT_DATA2 | DCU_FLAG_DATA0_LS_DATA1 | \
                              DCU_FLAG_DATA0_EQ_DATA1 | DCU_FLAG_DATA0_GT_DATA1));
 }
@@ -170,6 +217,9 @@ int32_t main(void)
     uint8_t au8Data1Val[5] = {0x00U, 0x11U, 0x55U, 0x77U, 0x77};
     uint8_t au8Data2Val[5] = {0x00U, 0x11U, 0x55U, 0x55U, 0x00};
 
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
+
     /* Initialize system clock. */
     BSP_CLK_Init();
 
@@ -182,12 +232,15 @@ int32_t main(void)
     /* Enable peripheral clock */
     PWC_Fcg0PeriphClockCmd(DCU_FUNCTION_CLK_GATE, Enable);
 
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
+
     /* Initialize DCU */
     DCU_StructInit(&stcDcuInit);
     stcDcuInit.u32Mode = DCU_CMP;
     stcDcuInit.u32IntEn = DCU_INT_ENABLE;
     DCU_Init(DCU_UNIT, &stcDcuInit);
-    DCU_IntCmd(DCU_UNIT, DCU_INT_SELECTION, Enable);
+    DCU_IntCmd(DCU_UNIT, DCU_INT_CMP_NON_WIN, DCU_INT_CMP_NON_WIN_ALL, Enable);
 
     /* Set DCU IRQ */
     stcIrqSigninCfg.enIRQn = DCU_UNIT_INT_IRQn;
@@ -199,41 +252,42 @@ int32_t main(void)
     NVIC_EnableIRQ(stcIrqSigninCfg.enIRQn);
 
     /* DATA0 = DATA1  &&  DATA0 = DATA2 */
-    DCU_WriteReg8Data1(DCU_UNIT, au8Data1Val[0]);
-    DCU_WriteReg8Data2(DCU_UNIT, au8Data2Val[0]);
-    DCU_WriteReg8Data0(DCU_UNIT, au8Data0Val[0]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA1_IDX, au8Data1Val[0]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA2_IDX, au8Data2Val[0]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA0_IDX, au8Data0Val[0]);
     if ((Set != m_enData0EqData1) || (Set != m_enData0EqData2))
     {
         enTestResult = Error;
     }
 
     /* DATA0 > DATA1  &&  DATA0 > DATA2 */
-    DCU_WriteReg8Data1(DCU_UNIT, au8Data1Val[1]);
-    DCU_WriteReg8Data2(DCU_UNIT, au8Data2Val[1]);
-    DCU_WriteReg8Data0(DCU_UNIT, au8Data0Val[1]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA1_IDX, au8Data1Val[1]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA2_IDX, au8Data2Val[1]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA0_IDX, au8Data0Val[1]);
     if ((Set != m_enData0GtData1) || (Set != m_enData0GtData2))
     {
         enTestResult = Error;
     }
 
     /* DATA0 < DATA1  &&  DATA0 < DATA2 */
-    DCU_WriteReg8Data1(DCU_UNIT, au8Data1Val[2]);
-    DCU_WriteReg8Data2(DCU_UNIT, au8Data2Val[2]);
-    DCU_WriteReg8Data0(DCU_UNIT, au8Data0Val[2]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA1_IDX, au8Data1Val[2]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA2_IDX, au8Data2Val[2]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA0_IDX, au8Data0Val[2]);
     if ((Set != m_enData0LsData1) || (Set != m_enData0LsData2))
     {
         enTestResult = Error;
     }
 
-    DCU_IntCmd(DCU_UNIT, DCU_INT_SELECTION, Disable);
+    DCU_IntCmd(DCU_UNIT, DCU_INT_CMP_NON_WIN, DCU_INT_CMP_NON_WIN_ALL, Disable);
 
     /* Inside window: DATA2 <= DATA0 <= DATA1 */
     m_enData0LsData1 = Reset;
     m_enData0GtData2 = Reset;
-    DCU_SetCmpIntMode(DCU_UNIT, DCU_CMP_WINDOW_INT_INSIDE);
-    DCU_WriteReg8Data1(DCU_UNIT, au8Data1Val[3]);
-    DCU_WriteReg8Data2(DCU_UNIT, au8Data2Val[3]);
-    DCU_WriteReg8Data0(DCU_UNIT, au8Data0Val[3]);
+    DCU_IntCmd(DCU_UNIT, DCU_INT_CMP_WIN, DCU_INT_CMP_WIN_INSIDE, Enable);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA1_IDX, au8Data1Val[3]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA2_IDX, au8Data2Val[3]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA0_IDX, au8Data0Val[3]);
+    DCU_IntCmd(DCU_UNIT, DCU_INT_CMP_WIN, DCU_INT_CMP_WIN_INSIDE, Disable);
     if (!((Set == m_enData0LsData1) && (Set == m_enData0GtData2)))
     {
         enTestResult = Error;
@@ -242,10 +296,10 @@ int32_t main(void)
     /* Outside window: DATA0 < DATA2 or DATA0 > DATA1 */
     m_enData0GtData1 = Reset;
     m_enData0LsData2 = Reset;
-    DCU_SetCmpIntMode(DCU_UNIT, DCU_CMP_WINDOW_INT_OUTSIDE);
-    DCU_WriteReg8Data1(DCU_UNIT, au8Data1Val[4]);
-    DCU_WriteReg8Data2(DCU_UNIT, au8Data2Val[4]);
-    DCU_WriteReg8Data0(DCU_UNIT, au8Data0Val[4]);
+    DCU_IntCmd(DCU_UNIT, DCU_INT_CMP_WIN, DCU_INT_CMP_WIN_OUTSIDE, Enable);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA1_IDX, au8Data1Val[4]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA2_IDX, au8Data2Val[4]);
+    DCU_WriteData8(DCU_UNIT, DCU_DATA0_IDX, au8Data0Val[4]);
     if (!((Set == m_enData0GtData1) || (Set == m_enData0LsData2)))
     {
         enTestResult = Error;

@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-06-09       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -98,7 +98,7 @@ typedef struct
                                      automatically cleared after the data is read.
                                      This parameter can be a value of @ref ADC_Data_Auto_Clear_Cmd */
     uint16_t u16DataAlign;      /*!< Specifies ADC data alignment to right or to left.
-                                     This parameter can be a value of @ref ADC_Data_Align */
+                                     This parameter can be a value of @ref ADC_Data_Alignment */
     uint16_t u16SAResumePos;    /*!< Specifies the resume channel position of sequence A.
                                      Sequence A can be interrupted by sequence B. After the
                                      the ending of sequence B, sequence A resumes from the
@@ -187,7 +187,7 @@ typedef struct
  */
 
 /**
- * @defgroup ADC_Data_Auto_Clear_Command ADC Data Auto Clear Command
+ * @defgroup ADC_Data_Auto_Clear_Cmd ADC Data Auto Clear Cmd
  * @{
  */
 #define ADC_AUTO_CLR_DISABLE            (0x0U)
@@ -350,6 +350,7 @@ typedef struct
 #define ADC1_CH_ALL                 (0xFFFFUL)
 #define ADC2_CH_ALL                 (0xFFFFUL)
 #define ADC3_CH_ALL                 (0xFFFFFUL)
+#define ADC_CH_REMAP_ALL            (0xFFFFUL)
 /**
  * @}
  */
@@ -395,9 +396,6 @@ typedef struct
 #define ADC_SEQ_FLAG_ALL            (ADC_SEQ_FLAG_EOCA | \
                                      ADC_SEQ_FLAG_EOCB | \
                                      ADC_SEQ_FLAG_NESTED)
-
-#define ADC_SEQ_FLAG_CLR_ALL        (ADC_SEQ_FLAG_EOCA | \
-                                     ADC_SEQ_FLAG_EOCB)
 /**
  * @}
  */
@@ -533,13 +531,11 @@ typedef struct
  */
 
 /**
- * @defgroup ADC_Common_Trigger_Event_Command ADC Common Trigger Event Command
+ * @defgroup ADC_Common_Trigger_Sel ADC Common Trigger Source Select
  * @{
  */
-#define ADC_COM1_TRIG_DISABLE       (0x00UL)
-#define ADC_COM2_TRIG_DISABLE       (0x00UL)
-#define ADC_COM1_TRIG_ENABLE        (0x01UL << 30U)
-#define ADC_COM2_TRIG_ENABLE        (0x01UL << 31U)
+#define ADC_COM_TRIG1               (AOS_ADC_1_ITRGSELR_COMTRG_EN_0)
+#define ADC_COM_TRIG2               (AOS_ADC_1_ITRGSELR_COMTRG_EN_1)
 /**
  * @}
  */
@@ -576,7 +572,8 @@ void ADC_SetExChannelSrc(M4_ADC_TypeDef *ADCx, uint8_t u8ExChSrc);
 en_result_t ADC_TrigSrcStructInit(stc_adc_trig_cfg_t *pstcCfg);
 en_result_t ADC_TrigSrcConfig(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, const stc_adc_trig_cfg_t *pstcCfg);
 void ADC_TrigSrcCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState);
-en_result_t ADC_ComTrigCmd(M4_ADC_TypeDef *ADCx, uint16_t u16TrigSrc, uint32_t u32ComTrigEn);
+en_result_t ADC_ComTriggerCmd(M4_ADC_TypeDef *ADCx, uint16_t u16TrigSrc, \
+                              uint32_t u32ComTrig, en_functional_state_t enNewState);
 
 void ADC_SeqIntCmd(M4_ADC_TypeDef *ADCx, uint8_t u8Seq, en_functional_state_t enNewState);
 en_flag_status_t ADC_SeqGetStatus(const M4_ADC_TypeDef *ADCx, uint8_t u8Flag);
@@ -598,7 +595,7 @@ void ADC_SYNC_Cmd(en_functional_state_t enNewState);
 void ADC_SH_Config(uint8_t u8SplTime);
 void ADC_SH_ChannelCmd(uint32_t u32AdcCh, en_functional_state_t enNewState);
 
-en_result_t ADC_ChannelRemap(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, uint8_t u8AdcPinNum);
+void ADC_ChannelRemap(M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh, uint8_t u8AdcPinNum);
 uint8_t ADC_GetChannelPinNum(const M4_ADC_TypeDef *ADCx, uint32_t u32AdcCh);
 
 en_result_t ADC_PollingSA(M4_ADC_TypeDef *ADCx, uint16_t pu16AdcVal[], uint8_t u8Length, uint32_t u32Timeout);

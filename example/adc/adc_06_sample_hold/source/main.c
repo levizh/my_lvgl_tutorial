@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-09       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup ADC_Base
+ * @addtogroup ADC_Sample_Hold
  * @{
  */
 
@@ -79,7 +79,7 @@
  */
 #define APP_ADC_UNIT                        (M4_ADC1)
 #define APP_ADC_PERIP_CLK                   (PWC_FCG3_ADC1)
-#define APP_SH_PERIP_CLK                    (1UL << 3U)
+#define APP_SH_PERIP_CLK                    (PWC_FCG3_CMBIAS)
 
 /* 
  * ADC channels definition for this example.
@@ -96,7 +96,7 @@
 #define APP_ADC_VREF                        (3.3018f)
 
 /* Timeout value definitions. */
-#define APP_TIMEOUT_MS                      (10u)
+#define APP_TIMEOUT_MS                      (10U)
 
 /* ADC accuracy(according to the resolution of ADC). */
 #define APP_ADC_ACCURACY                    (1UL << 12U)
@@ -115,6 +115,9 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void AdcConfig(void);
 static void AdcClockConfig(void);
 static void AdcInitConfig(void);
@@ -142,17 +145,20 @@ int32_t main(void)
 {
     /* The default system clock source is MRC(8MHz). */
 
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures ADC. */
     AdcConfig();
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
 
     /***************** Configuration end, application start **************/
 
-    while (1u)
+    while (1U)
     {
         ADC_PollingSA(APP_ADC_UNIT, m_au16AdcSaVal, APP_ADC_SA_CH_COUNT, APP_TIMEOUT_MS);
 #if (DDL_PRINT_ENABLE == DDL_ON)
@@ -163,6 +169,58 @@ int32_t main(void)
             m_au16AdcSaVal[1U]);
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    // PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    // SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    // EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    // PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    // SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    // EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -249,7 +307,7 @@ static void AdcSHConfig(void)
     PWC_Fcg3PeriphClockCmd(APP_SH_PERIP_CLK, Enable);
 
     /* 2. Delay 2us is needed by SH. */
-    DDL_Delay1ms(1U);
+    DDL_DelayUS(5U);
 
     /*
      * 3. Specify the sampling time of SH. The time should longer than 0.4us.
@@ -276,15 +334,15 @@ static void AdcSetChannelPinAnalogMode(const M4_ADC_TypeDef *ADCx, uint32_t u32C
 {
     uint8_t u8PinNum;
 
-    u8PinNum = 0u;
-    while (u32Channel != 0u)
+    u8PinNum = 0U;
+    while (u32Channel != 0U)
     {
-        if (u32Channel & 0x1u)
+        if (u32Channel & 0x1U)
         {
             AdcSetPinAnalogMode(ADCx, u8PinNum);
         }
 
-        u32Channel >>= 1u;
+        u32Channel >>= 1U;
         u8PinNum++;
     }
 }

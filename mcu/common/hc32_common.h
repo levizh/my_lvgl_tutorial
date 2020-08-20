@@ -5,9 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-06-28       Yangjp          First version
-   2020-02-17       Yangjp          Merge HC32F120, HC32F4A0, HC32M120, HC32M423
-                                    series chips.
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -231,9 +229,6 @@ typedef enum
     Using the 'Options for File' dialog you can simply change the 'Code / Const'
     area of a module to a memory space in physical RAM. */
     #define __RAM_FUNC
-  #ifndef __NO_INIT
-    #define __NO_INIT                   __attribute__((section("NoInit"), zero_init))
-  #endif /* __NO_INIT */
 #else
     #error  "unsupported compiler!!"
 #endif
@@ -258,9 +253,9 @@ typedef enum
  * @defgroup Address_Align Address Align
  * @{
  */
-#define IS_ADDRESS_ALIGN(addr, align)   (!((uint32_t)(addr) & ((uint32_t)(align) - 1UL)))
-#define IS_ADDRESS_ALIGN_HALFWORD(addr) (IS_ADDRESS_ALIGN((addr), 2UL))
-#define IS_ADDRESS_ALIGN_WORD(addr)     (IS_ADDRESS_ALIGN((addr), 4UL))
+#define IS_ADDRESS_ALIGN(addr, align)   (0UL == (((uint32_t)(addr)) & (((uint32_t)(align)) - 1UL)))
+#define IS_ADDRESS_ALIGN_HALFWORD(addr) (0UL == (((uint32_t)(addr)) & 0x1UL))
+#define IS_ADDRESS_ALIGN_WORD(addr)     (0UL == (((uint32_t)(addr)) & 0x3UL))
 /**
  * @}
  */

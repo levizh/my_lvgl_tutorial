@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-09       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -73,7 +73,7 @@
  */
 
 /**
- * @defgroup MT29F2G08AB
+ * @defgroup MT29F2G08AB Nand Flash MT29F2G08AB
  * @{
  */
 
@@ -149,7 +149,7 @@
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @defgroup MT29F2G08AB_Global_Functions NAND Flash MT29F2G08AB Global Functions
+ * @defgroup MT29F2G08AB_Global_Functions MT29F2G08AB Global Functions
  * @{
  */
 
@@ -167,21 +167,21 @@ en_result_t MT29F2G08AB_Init(void)
  * @brief  Read ID.
  * @param  [in] u32IdAddr               The address
  * @param  [in] au8DevId                The id buffer
- * @param  [in] u8NumBytes              The number of bytes to read
+ * @param  [in] u32NumBytes             The number of bytes to read
  * @retval An en_result_t enumeration value.
  *   @arg  Ok:                          No errors occurred.
  *   @arg  ErrorInvalidParameter:       au8DevId == NULL or u8NumBytes == 0
  */
 en_result_t MT29F2G08AB_ReadId(uint32_t u32IdAddr,
                                     uint8_t au8DevId[],
-                                    uint8_t u8NumBytes)
+                                    uint32_t u32NumBytes)
 {
-    return BSP_NFC_MT29F2G08AB_ReadId(u32IdAddr, au8DevId, u8NumBytes);
+    return BSP_NFC_MT29F2G08AB_ReadId(u32IdAddr, au8DevId, u32NumBytes);
 }
 
 /**
  * @brief  Get status.
- * @param  None
+ * @param  [in] u32Timeout              Timeout value
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          Command operate successfully.
  *   @arg  Error:                       Command operate unsuccessfully.
@@ -203,11 +203,11 @@ en_result_t MT29F2G08AB_GetStatus(uint32_t u32Timeout)
         }
 
         u32Status = BSP_NFC_MT29F2G08AB_ReadStatus();
-    } while (!(u32Status & MT29F2G08AB_SR_READY));
+    } while (0UL == (u32Status & MT29F2G08AB_SR_READY));
 
     if (ErrorTimeout != enRet)
     {
-        if (u32Status & MT29F2G08AB_SR_FAIL)
+        if (0UL != (u32Status & MT29F2G08AB_SR_FAIL))
         {
             enRet = Error;
         }
@@ -240,7 +240,6 @@ en_result_t MT29F2G08AB_EraseBlock(uint32_t u32BlockRowAddress)
 
 /**
  * @brief  Read page.
- * @param  [in] u32Bank                 The specified bank
  * @param  [in] u32Page                 The specified page
  * @param  [out] pu8Buf                 The buffer for reading
  * @param  [in] u32NumBytes             The buffer size for bytes
@@ -260,7 +259,7 @@ en_result_t MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
-        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
+        DDL_ASSERT((u32NumBytes > 0UL) && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
         enRet = BSP_NFC_MT29F2G08AB_ReadPageMeta(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
@@ -276,7 +275,7 @@ en_result_t MT29F2G08AB_ReadPageMeta(uint32_t u32Page,
  * @brief  Write page.
  * @param  [in] u32Page                 The specified page
  * @param  [in] pu8Buf                  The buffer for writing
- * @param  [in] u32EccValueSize         The ECC calculating result size
+ * @param  [in] u32NumBytes             The buffer size for bytes
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
  *   @arg  Error:                       Errors occurred.
@@ -293,7 +292,7 @@ en_result_t MT29F2G08AB_WritePageMeta(uint32_t u32Page,
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
-        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
+        DDL_ASSERT((u32NumBytes > 0UL) && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
         enRet = BSP_NFC_MT29F2G08AB_WritePageMeta(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
@@ -307,7 +306,6 @@ en_result_t MT29F2G08AB_WritePageMeta(uint32_t u32Page,
 
 /**
  * @brief  Read page with hardware ecc.
- * @param  [in] u32Bank                 The specified bank
  * @param  [in] u32Page                 The specified page
  * @param  [out] pu8Buf                 The buffer for reading
  * @param  [in] u32NumBytes             The buffer size for bytes
@@ -327,7 +325,7 @@ en_result_t MT29F2G08AB_ReadPageHwEcc1Bit(uint32_t u32Page,
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
-        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
+        DDL_ASSERT((u32NumBytes > 0UL) && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
         enRet = BSP_NFC_MT29F2G08AB_ReadPageHwEcc(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
@@ -360,7 +358,7 @@ en_result_t MT29F2G08AB_WritePageHwEcc1Bit(uint32_t u32Page,
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
-        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
+        DDL_ASSERT((u32NumBytes > 0UL) && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
         enRet = BSP_NFC_MT29F2G08AB_WritePageHwEcc(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
@@ -393,7 +391,7 @@ en_result_t MT29F2G08AB_WritePageHwEcc4Bits(uint32_t u32Page,
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
-        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
+        DDL_ASSERT((u32NumBytes > 0UL) && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
         enRet = BSP_NFC_MT29F2G08AB_WritePageHwEcc(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)
@@ -407,7 +405,6 @@ en_result_t MT29F2G08AB_WritePageHwEcc4Bits(uint32_t u32Page,
 
 /**
  * @brief  Read page with hardware ecc.
- * @param  [in] u32Bank                 The specified bank
  * @param  [in] u32Page                 The specified page
  * @param  [out] pu8Buf                 The buffer for reading
  * @param  [in] u32NumBytes             The buffer size for bytes
@@ -427,7 +424,7 @@ en_result_t MT29F2G08AB_ReadPageHwEcc4Bits(uint32_t u32Page,
     {
         /* Check parameters */
         DDL_ASSERT(u32Page < MT29F2G08AB_DEVICE_PAGES);
-        DDL_ASSERT(u32NumBytes && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
+        DDL_ASSERT((u32NumBytes > 0UL) && (u32NumBytes <= MT29F2G08AB_PAGE_SIZE_WITH_SPARE));
 
         enRet = BSP_NFC_MT29F2G08AB_ReadPageHwEcc(u32Page, pu8Buf, u32NumBytes);
         if (Ok == enRet)

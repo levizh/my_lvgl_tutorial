@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  ev_hc32f4a0_lqfp176_ma29f2g08ab.h
- * @brief This file contains all the functions prototypes for ma29f2g08ab of the 
- *        board EV-HC32F4A0-LQF176-050.
+ * @file  ev_hc32f4a0_lqfp176_mt29f2g08ab.h
+ * @brief This file contains all the functions prototypes for mt29f2g08ab of the 
+ *        board EV_F4A0_LQ176_V10.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-30       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -70,8 +70,12 @@ extern "C"
  */
 
 /** @addtogroup EV_HC32F4A0_LQFP176
-  * @{
-  */
+ * @{
+ */
+
+/** @addtogroup EV_HC32F4A0_LQFP176_MT29F2G08AB HC32F4A0 EVB LQFP176 MT29F2G08AB
+ * @{
+ */
 
 #if ((BSP_ON == BSP_MT29F2G08AB_ENABLE) && \
      (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0))
@@ -110,6 +114,10 @@ extern "C"
 
 
 #endif /* BSP_EV_HC32F4A0_LQFP176/BSP_MT29F2G08AB_ENABLE */
+
+/**
+ * @}
+ */
 
 /**
  * @}

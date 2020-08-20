@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-22       Wuze            First version
+   2020-06-12       Wuze            First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -86,7 +86,6 @@
 /*
  * Definitions according to 'APP_CAN'.
  * CAN independent IRQn: [Int000_IRQn, Int031_IRQn], [Int092_IRQn, Int097_IRQn].
- * CAN share IRQn: [Int138_IRQn].
  */
 #if (APP_CAN_SEL == APP_CAN_SEL_U1)
     #define APP_CAN_UNIT                    (M4_CAN1)
@@ -103,11 +102,9 @@
     #define APP_CAN_CLK_CH                  (CLK_CAN_CH1)
     #define APP_CAN_CLK_DIV                 (CLK_CAN1_CLK_MCLK_DIV3)
 
-    #define CAN_SHARE_IRQn                  (Int138_IRQn)
     #define APP_CAN_INT_TYPE                (CAN_INT_ALL)
     #define APP_CAN_INT_PRIO                (DDL_IRQ_PRIORITY_03)
     #define APP_CAN_INT_SRC                 (INT_CAN1_HOST)
-    #define APP_CAN_IRQ_CB                  CAN_1_IrqHandler
     #define APP_CAN_IRQn                    (Int092_IRQn)
 
 #elif (APP_CAN_SEL == APP_CAN_SEL_U2)
@@ -129,7 +126,6 @@
     #define APP_CAN_INT_TYPE                (CAN_INT_ALL)
     #define APP_CAN_INT_PRIO                (DDL_IRQ_PRIORITY_03)
     #define APP_CAN_INT_SRC                 (INT_CAN2_HOST)
-    #define APP_CAN_IRQ_CB                  CAN_2_IrqHandler
     #define APP_CAN_IRQn                    (Int092_IRQn)
 #else
     #error "The unit is NOT supported!!!"
@@ -166,15 +162,14 @@
 
 /*
  * External interrupt pin definition. See \example\exint\exint_key\source\main.c for details.
- * Press Key10 on the board to trigger a CAN transmission.
+ * Press SW10 on the board to trigger a CAN transmission.
  */
-#define KEY10_PORT                          (GPIO_PORT_A)
-#define KEY10_PIN                           (GPIO_PIN_00)
-#define KEY10_EXINT_CH                      (EXINT_CH00)
-#define KEY10_INT_SRC                       (INT_PORT_EIRQ0)
-#define KEY10_IRQn                          (Int025_IRQn)
-#define KEY10_INT_PRIO                      (DDL_IRQ_PRIORITY_04)
-#define EXINT_KEY10_IRQ_CB                  EXTINT_00_IrqHandler
+#define KEY_PORT                            (GPIO_PORT_A)
+#define KEY_PIN                             (GPIO_PIN_00)
+#define KEY_EXINT_CH                        (EXINT_CH00)
+#define KEY_INT_SRC                         (INT_PORT_EIRQ0)
+#define KEY_IRQn                            (Int025_IRQn)
+#define KEY_INT_PRIO                        (DDL_IRQ_PRIORITY_04)
 
 /* Debug printing definition. */
 #if (DDL_PRINT_ENABLE == DDL_ON)
@@ -190,19 +185,26 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
+
 static void SystemClockConfig(void);
+
+static void CanPhyEnable(void);
 
 static void CanConfig(void);
 static void CanIrqConfig(void);
-static void Tmr2Config(void);
-static void ExintConfig(void);
-
 static void CanTx(void);
 static void CanTxEntity(const stc_can_tx_t *pstcTx, uint8_t u8TxBufType);
-
 static void CanRx(void);
-
 static void CanHandleExceptions(void);
+static void CAN_IrqCallback(void);
+
+static void Tmr2Config(void);
+static void TMR2_CmpA_IrqCallback(void);
+
+static void ExintConfig(void);
+static void EXINT_IrqCallback(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -274,23 +276,24 @@ __IO static uint32_t m_u32StatusVal = 0U;
  */
 int32_t main(void)
 {
+    /* MCU Peripheral registers write unprotected. */
+    Peripheral_WE();
     /* Configures the system clock as 240MHz. */
     SystemClockConfig();
-
 #if (DDL_PRINT_ENABLE == DDL_ON)
     /* Initializes UART for debug printing. Baudrate is 115200. */
     DDL_PrintfInit();
 #endif /* #if (DDL_PRINT_ENABLE == DDL_ON) */
-
     /* Configures CAN. */
     CanConfig();
-
-    /* Configures and starts TIMER2 for 1 second timing. */
+    /* Set CAN PYH STB pin as low. */
+    CanPhyEnable();
+    /* Configures and starts Timer2 for 1 second timing. */
     Tmr2Config();
-
-    /* Press Key10 on the board to trigger a CAN transmission. */
+    /* Press SW10 on the board to trigger a CAN transmission. */
     ExintConfig();
-
+    /* MCU Peripheral registers write protected. */
+    Peripheral_WP();
     /***************** Configuration end, application start **************/
 
     while (1U)
@@ -301,6 +304,58 @@ int32_t main(void)
 
         CanHandleExceptions();
     }
+}
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
 }
 
 /**
@@ -343,18 +398,29 @@ static void SystemClockConfig(void)
     /* stcPLLHInit.PLLCFGR_f.PLLSRC = CLK_PLLSRC_XTAL; */
     CLK_PLLHInit(&stcPLLHInit);
 
-    /* Highspeed SRAM set to 1 Read/Write wait cycle */
-    SRAM_SetWaitCycle(SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
-    /* SRAM1_2_3_4_backup set to 2 Read/Write wait cycle */
-    SRAM_SetWaitCycle((SRAM123 | SRAM4 | SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
+    /* Set SRAM wait cycles. */
+    SRAM_SetWaitCycle(SRAM_SRAMH, SRAM_WAIT_CYCLE_1, SRAM_WAIT_CYCLE_1);
+    SRAM_SetWaitCycle((SRAM_SRAM123 | SRAM_SRAM4 | SRAM_SRAMB), SRAM_WAIT_CYCLE_2, SRAM_WAIT_CYCLE_2);
 
     /* Set EFM wait cycle. 5 wait cycles needed when system clock is 240MHz */
-    EFM_Unlock();
     EFM_SetWaitCycle(EFM_WAIT_CYCLE_5);
-    EFM_Lock();
 
     CLK_PLLHCmd(Enable);
     CLK_SetSysClkSrc(CLK_SYSCLKSOURCE_PLLH);
+}
+
+/**
+ * @brief  Set CAN PHY STB pin as low.
+ * @param  None
+ * @retval None
+ */
+static void CanPhyEnable(void)
+{
+    BSP_IO_Init();
+    BSP_CAN_STB_IO_Init();
+
+    /* Set PYH STB pin as low. */
+    BSP_CAN_STBCmd(EIO_PIN_RESET);
 }
 
 /**
@@ -419,17 +485,9 @@ static void CanIrqConfig(void)
 
     stcCfg.enIntSrc    = APP_CAN_INT_SRC;
     stcCfg.enIRQn      = APP_CAN_IRQn;
-    stcCfg.pfnCallback = &APP_CAN_IRQ_CB;
-    if (stcCfg.enIRQn == CAN_SHARE_IRQn)
-    {
-        /* Sharing interrupt. */
-        INTC_ShareIrqCmd(stcCfg.enIntSrc, Enable);
-    }
-    else
-    {
-        /* Independent interrupt. */
-        INTC_IrqSignIn(&stcCfg);
-    }
+    stcCfg.pfnCallback = &CAN_IrqCallback;
+    INTC_IrqSignIn(&stcCfg);
+
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
     NVIC_SetPriority(stcCfg.enIRQn, APP_CAN_INT_PRIO);
     NVIC_EnableIRQ(stcCfg.enIRQn);
@@ -439,7 +497,7 @@ static void CanIrqConfig(void)
 }
 
 /**
- * @brief  TIMER2 configuration.
+ * @brief  Timer2 configuration.
  * @param  None
  * @retval None
  */
@@ -453,13 +511,13 @@ static void Tmr2Config(void)
     TMR2_StructInit(&stcInit);
 
     stcInit.u32ClkSrc = TMR2_CLK_SYNC_PCLK1;
-    stcInit.u32ClkDiv = TMR2_CLK_DIV_256;
+    stcInit.u32ClkDiv = TMR2_CLK_DIV256;
     stcInit.u32CmpVal = 58593U;
     TMR2_Init(M4_TMR2_1, TMR2_CH_A, &stcInit);
 
     stcCfg.enIntSrc    = INT_TMR2_1_CMPA;
     stcCfg.enIRQn      = Int050_IRQn;
-    stcCfg.pfnCallback = &TMR2_1_CmpA_IrqHandler;
+    stcCfg.pfnCallback = &TMR2_CmpA_IrqCallback;
     INTC_IrqSignIn(&stcCfg);
     NVIC_ClearPendingIRQ(stcCfg.enIRQn);
     NVIC_SetPriority(stcCfg.enIRQn, DDL_IRQ_PRIORITY_05);
@@ -470,7 +528,7 @@ static void Tmr2Config(void)
 }
 
 /**
- * @brief
+ * @brief  SW10 external interrupt configuration.
  * @param  None
  * @retval None
  */
@@ -484,24 +542,24 @@ static void ExintConfig(void)
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16ExInt = PIN_EXINT_ON;
     stcGpioInit.u16PullUp = PIN_PU_ON;
-    GPIO_Init(KEY10_PORT, KEY10_PIN, &stcGpioInit);
+    GPIO_Init(KEY_PORT, KEY_PIN, &stcGpioInit);
 
     /* Exint config */
     EXINT_StructInit(&stcExintInit);
-    stcExintInit.u32ExIntCh = KEY10_EXINT_CH;
+    stcExintInit.u32ExIntCh = KEY_EXINT_CH;
     stcExintInit.u32ExIntLvl= EXINT_TRIGGER_FALLING;
     EXINT_Init(&stcExintInit);
 
     /* IRQ sign-in */
-    stcIrqSignConfig.enIntSrc = KEY10_INT_SRC;
-    stcIrqSignConfig.enIRQn   = KEY10_IRQn;
-    stcIrqSignConfig.pfnCallback = &EXINT_KEY10_IRQ_CB;
+    stcIrqSignConfig.enIntSrc = KEY_INT_SRC;
+    stcIrqSignConfig.enIRQn   = KEY_IRQn;
+    stcIrqSignConfig.pfnCallback = &EXINT_IrqCallback;
     INTC_IrqSignIn(&stcIrqSignConfig);
 
     /* NVIC config */
-    NVIC_ClearPendingIRQ(KEY10_IRQn);
-    NVIC_SetPriority(KEY10_IRQn, KEY10_INT_PRIO);
-    NVIC_EnableIRQ(KEY10_IRQn);
+    NVIC_ClearPendingIRQ(KEY_IRQn);
+    NVIC_SetPriority(KEY_IRQn, KEY_INT_PRIO);
+    NVIC_EnableIRQ(KEY_IRQn);
 }
 
 /**
@@ -511,6 +569,7 @@ static void ExintConfig(void)
  */
 static void CanTx(void)
 {
+    uint8_t i;
     stc_can_tx_t stcTx;
 
     if (m_u32StatusVal != 0U)
@@ -519,7 +578,7 @@ static void CanTx(void)
     }
     else
     {
-        for (uint8_t i=0U; i<APP_DATA_SIZE; i++)
+        for (i=0U; i<APP_DATA_SIZE; i++)
         {
             m_au8TxPayload[i] = i + 1U;
         }
@@ -564,7 +623,11 @@ static void CanTx(void)
 
 /**
  * @brief  CAN transmission entity.
- * @param  None
+ * @param  [in]  pstcTx                 Pointer to a frame which is going to be transmitted.
+ * @param  [in]  u8TxBufType            Transmit buffer type.
+ *                                      This parameter can be a value of @ref CAN_Transmit_Buffer_Type
+ *   @arg  CAN_BUF_PTB:                 Primary transmit buffer.
+ *   @arg  CAN_BUF_STB:                 Secondary transmit buffer.
  * @retval None
  */
 static void CanTxEntity(const stc_can_tx_t *pstcTx, uint8_t u8TxBufType)
@@ -728,7 +791,7 @@ static void CanHandleExceptions(void)
  * @param  None
  * @retval None
  */
-void APP_CAN_IRQ_CB(void)
+static void CAN_IrqCallback(void)
 {
     m_u32StatusVal = CAN_GetStatusVal(APP_CAN_UNIT);
     m_u8ErrType    = CAN_GetErrType(APP_CAN_UNIT);
@@ -737,11 +800,11 @@ void APP_CAN_IRQ_CB(void)
 }
 
 /**
- * @brief  TIMER2 interrupt callback.
+ * @brief  Timer2 interrupt callback.
  * @param  None
  * @retval None
  */
-void TMR2_1_CmpA_IrqHandler(void)
+static void TMR2_CmpA_IrqCallback(void)
 {
     if (TMR2_GetStatus(M4_TMR2_1, TMR2_CH_A, TMR2_FLAG_CMP) == Set)
     {
@@ -755,17 +818,17 @@ void TMR2_1_CmpA_IrqHandler(void)
  * @param  None
  * @retval None
  */
-void EXINT_KEY10_IRQ_CB(void)
+static void EXINT_IrqCallback(void)
 {
-    if (Set == EXINT_GetExIntSrc(KEY10_EXINT_CH))
+    if (Set == EXINT_GetExIntSrc(KEY_EXINT_CH))
     {
         /* Wait for key release. */
-        while (Pin_Reset == GPIO_ReadInputPortPin(KEY10_PORT, KEY10_PIN))
+        while (Pin_Reset == GPIO_ReadInputPins(KEY_PORT, KEY_PIN))
         {
             ;
         }
         m_u8ExintFlag = 1U;
-        EXINT_ClrExIntSrc(KEY10_EXINT_CH);
+        EXINT_ClrExIntSrc(KEY_EXINT_CH);
     }
 }
 

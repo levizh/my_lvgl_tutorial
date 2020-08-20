@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-03       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -97,6 +97,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -105,9 +107,61 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//   EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
 #if (GLOBAL_IRQ == 1U)
 /**
- * @brief  KEY10 External interrupt Ch.0 callback function
+ * @brief  KEY10(SW10) External interrupt Ch.0 callback function
  *         IRQ No.0 in Global IRQ entry No.0~31 is used for EXINT0
  * @param  None
  * @retval None
@@ -126,11 +180,11 @@ void EXINT_KEY10_IrqCallback(void)
 }
 
 /**
- * @brief  KEY10 initialize
+ * @brief  KEY10(SW10) initialize
  * @param  None
  * @retval None
  */
-void Key10_Init(void)
+void KEY10_Init(void)
 {
     stc_exint_init_t stcExintInit;
     stc_irq_signin_config_t stcIrqSignConfig;
@@ -162,7 +216,7 @@ void Key10_Init(void)
 
 #elif (GROUP_IRQ == 1U)
 /**
- * @brief  KEY10 External interrupt Ch.0 callback function
+ * @brief  KEY10(SW10) External interrupt Ch.0 callback function
  *         IRQ No.33 in Group IRQ entry No.32~37 is used for EXINT0
  * @param  None
  * @retval None
@@ -171,7 +225,7 @@ void EXINT_KEY10_IrqCallback(void)
 {
    if (Set == EXINT_GetExIntSrc(KEY10_EXINT_CH))
    {
-        BSP_LED_Toggle(LED_RED);
+        BSP_LED_Toggle(LED_YELLOW);
         while (Pin_Reset == GPIO_ReadInputPins(KEY10_PORT, KEY10_PIN))
         {
             ;
@@ -181,11 +235,11 @@ void EXINT_KEY10_IrqCallback(void)
 }
 
 /**
- * @brief  KEY10 initialize
+ * @brief  KEY10(SW10) initialize
  * @param  None
  * @retval None
  */
-void Key10_Init(void)
+void KEY10_Init(void)
 {
     stc_exint_init_t stcExintInit;
     stc_irq_signin_config_t stcIrqSignConfig;
@@ -217,7 +271,7 @@ void Key10_Init(void)
 
 #elif (SHARE_IRQ == 1U)
 /**
-  * @brief  KEY10 External interrupt Ch.0 ISR
+  * @brief  KEY10(SW10) External interrupt Ch.0 ISR
   *         Share IRQ entry No.128 is used for EXINT0
   * @param  None
   * @retval None
@@ -226,7 +280,7 @@ void Key10_Init(void)
  {
     if (Set == EXINT_GetExIntSrc(KEY10_EXINT_CH))
     {
-         BSP_LED_Toggle(LED_YELLOW);
+         BSP_LED_Toggle(LED_RED);
          while (Pin_Reset == GPIO_ReadInputPins(KEY10_PORT, KEY10_PIN))
          {
              ;
@@ -236,11 +290,11 @@ void Key10_Init(void)
  }
 
 /**
- * @brief  KEY10 initialize
+ * @brief  KEY10(SW10) initialize
  * @param  None
  * @retval None
  */
-void Key10_Init(void)
+void KEY10_Init(void)
 {
     stc_exint_init_t stcExintInit;
     stc_gpio_init_t stcGpioInit;
@@ -273,17 +327,22 @@ void Key10_Init(void)
  */
 int32_t main(void)
 {
-    /* unlock GPIO register in advance */
-    GPIO_Unlock();
-    
+    /* Register write enable for some required peripherals. */
+    Peripheral_WE();
+    /* System clock init */
+    BSP_CLK_Init();
+    /* Expand IO init */
     BSP_IO_Init();
+    /* LED init */
     BSP_LED_Init();
-
-    Key10_Init();
+    /* KEY10(SW10) init */
+    KEY10_Init();
+    /* Register write protected for some required peripherals. */
+    Peripheral_WP();
 
     while (1)
     {
-        ;// wait KEY10 key pressed
+        ;// wait KEY10(SW10) key pressed
     }
 }
 

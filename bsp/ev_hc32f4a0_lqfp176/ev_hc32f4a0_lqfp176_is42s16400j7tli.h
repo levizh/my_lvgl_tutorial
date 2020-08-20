@@ -2,11 +2,11 @@
  *******************************************************************************
  * @file  ev_hc32f4a0_lqfp176_is42s16400j7tli.h
  * @brief This file contains all the functions prototypes for is42s16400j7tli of
- *        the board EV-HC32F4A0-LQF176-050.
+ *        the board EV_F4A0_LQ176_V10.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-30       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -70,8 +70,12 @@ extern "C"
  */
 
 /** @addtogroup EV_HC32F4A0_LQFP176
-  * @{
-  */
+ * @{
+ */
+
+/** @defgroup EV_HC32F4A0_LQFP176_IS42S16400J7TLI HC32F4A0 EVB LQFP176 IS42S16400J7TLI
+ * @{
+ */
 
 #if ((BSP_ON == BSP_IS42S16400J7TLI_ENABLE) && \
      (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0))
@@ -111,6 +115,10 @@ extern "C"
 
 
 #endif /* BSP_EV_HC32F4A0_LQFP176/BSP_IS42S16400J7TLI_ENABLE */
+
+/**
+ * @}
+ */
 
 /**
  * @}

@@ -6,7 +6,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-10       Wuze            First version
+   2020-06-12       Wuze            First version
+   2020-07-15       Wuze            Corrected the definition of 'QSPI_4BIC_ENABLE'.
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -90,14 +91,14 @@ extern "C"
  */
 typedef struct
 {
-    uint32_t u32ClkDiv;                             /*!< Specifies the clock divider for QSCK.
-                                                         This parameter can be a value of @ref QSPI_Clock_Divider */
+    uint32_t u32ClkDiv;                             /*!< Specifies the clock divider for QSCK. QSCK = HCLK / u32ClkDiv.
+                                                         This parameter can be a value between 2U and 64U, inclusive. */
     uint32_t u32CSSetupTiming;                      /*!< Specifies the setup timing of CS.
                                                          This parameter can be a value of @ref QSPI_CS_Setup_Timing */
     uint32_t u32CSReleaseTiming;                    /*!< Specifies the hold timing of CS.
                                                          This parameter can be a value of @ref QSPI_CS_Release_Timing */
     uint32_t u32CSIdleTime;                         /*!< Specifies the minimum idle time for CS. CS needs idle(stay high) for several cycles between commands.
-                                                         This parameter can be a value of @ref QSPI_CS_Idle_Time */
+                                                         This parameter can be a value of between 1U and 16U, inclusive. */
     uint32_t u32CSExtendTime;                       /*!< Extend the time of chip-select signal after SPI bus access.
                                                          This parameter can be a value of @ref QSPI_CS_Extend_Time */
     uint32_t u32SPIMode;                            /*!< Specifies the SPI mode. The difference between SPI modes 0 and 3 is the standby level of the QSCK signal.
@@ -109,38 +110,23 @@ typedef struct
                                                          This parameter can be a value of @ref QSPI_Prefetch_Stop_Position */
     uint32_t u32WPLevel;                            /*!< Specifies the level of pin WP(IO2).
                                                          This parameter can be a value of @ref QSPI_WP_Level */
-    uint32_t u32ReadMode;                           /*!< Specifies the read mode.
-                                                         This parameter can be a value of @ref QSPI_Read_Mode */
     uint32_t u32CommMode;                           /*!< Specifies the communication mode.
                                                          This parameter can be a value of @ref QSPI_Communication_Mode */
     uint32_t u32AddrWidth;                          /*!< Specifies the address width.
                                                          This parameter can be a value of @ref QSPI_Addr_Width */
-    uint32_t u32RomAccessInstr;                     /*!< Instruction of ROM access mode.
-                                                         This parameter can be a value (8-bit) between 0x00 and 0xFF */
-    uint32_t u32DummyCycles;                        /*!< Specifies the number of dummy cycles for fast read. 
-                                                         This parameter can be a value of @ref QSPI_Dummy_Cycles. */
     uint32_t u32InstrMode;                          /*!< Specifies the instruction mode.
                                                          This parameter can be a value of @ref QSPI_Instruction_Mode */
     uint32_t u32AddrMode;                           /*!< Specifies the address mode.
                                                          This parameter can be a value of @ref QSPI_Addr_Mode */
     uint32_t u32DataMode;                           /*!< Specifies the data mode (used for dummy cycles and data phases)
                                                          This parameter can be a value of @ref QSPI_Data_Mode */
+    uint32_t u32ReadMode;                           /*!< Specifies the read mode.
+                                                         This parameter can be a value of @ref QSPI_Read_Mode */
+    uint8_t u8RomAccessInstr;                       /*!< Rom access instruction. This parameter only supports read instruction of QSPI flash now.
+                                                         Tis instruction must correspond to the read mode that specified by parameter 'u32ReadMode'. */
+    uint32_t u32DummyCycles;                        /*!< Specifies the number of dummy cycles for fast read.
+                                                         This parameter can be a value between 3U and 18U. */
 } stc_qspi_init_t;
-
-/**
- * @brief QSPI command structure.
- */
-typedef struct
-{
-
-    uint32_t u32Instr;                              /*!< Specifies the instruction to be sent.
-                                                         This parameter can be a value (8-bit) between 0x00 and 0xFF */
-    uint32_t u32Address;                            /*!< Specifies the address to be sent (width from 1 to 4 bytes according to u32AddrWidth)
-                                                         This parameter can be a value (32-bits) between 0x00 and 0xFFFFFFFFU */
-    uint32_t u32DummyBytes;                         /*!< Specifies the number of dummy bytes that follows behind instruction.
-                                                         See the descriptions about the instructions in the SPI flash datasheet for details.
-                                                         This parameter is only for direct communication mode. */
-} stc_qspi_cmd_t;
 
 /**
  * @}
@@ -229,9 +215,9 @@ typedef struct
  * @defgroup QSPI_Instruction_Mode QSPI Instruction Mode
  * @{
  */
-#define QSPI_INSTR_1_LINE                   (0x0U)                  /*!< Instruction on a single line. */
-#define QSPI_INSTR_2_LINE                   (QSPI_CR_IPRSL_0)       /*!< Instruction on 2 lines. */
-#define QSPI_INSTR_4_LINE                   (QSPI_CR_IPRSL_1)       /*!< Instruction on 4 lines. */
+#define QSPI_INSTR_1LINE                    (0x0U)                  /*!< Instruction on a single line. */
+#define QSPI_INSTR_2LINE                    (QSPI_CR_IPRSL_0)       /*!< Instruction on 2 lines. */
+#define QSPI_INSTR_4LINE                    (QSPI_CR_IPRSL_1)       /*!< Instruction on 4 lines. */
 /**
  * @}
  */
@@ -240,9 +226,9 @@ typedef struct
  * @defgroup QSPI_Addr_Mode QSPI Address Mode
  * @{
  */
-#define QSPI_ADDR_1_LINE                    (0x0U)                  /*!< Address on a single line. */
-#define QSPI_ADDR_2_LINE                    (QSPI_CR_APRSL_0)       /*!< Address on 2 lines. */
-#define QSPI_ADDR_4_LINE                    (QSPI_CR_APRSL_1)       /*!< Address on 4 lines. */
+#define QSPI_ADDR_1LINE                     (0x0U)                  /*!< Address on a single line. */
+#define QSPI_ADDR_2LINE                     (QSPI_CR_APRSL_0)       /*!< Address on 2 lines. */
+#define QSPI_ADDR_4LINE                     (QSPI_CR_APRSL_1)       /*!< Address on 4 lines. */
 /**
  * @}
  */
@@ -251,104 +237,9 @@ typedef struct
  * @defgroup QSPI_Data_Mode QSPI Data Mode
  * @{
  */
-#define QSPI_DATA_1_LINE                    (0x0U)                  /*!< Data on a single line. */
-#define QSPI_DATA_2_LINE                    (QSPI_CR_DPRSL_0)       /*!< Data on 2 lines. */
-#define QSPI_DATA_4_LINE                    (QSPI_CR_DPRSL_1)       /*!< Data on 4 lines. */
-/**
- * @}
- */
-
-/**
- * @defgroup QSPI_Clock_Divider QSPI Clock Divider
- * @{
- */
-#define QSPI_CLK_DIV_2                      (1UL << QSPI_CR_DIV_POS)    /*!< QSCK = HCLK / 2 */
-#define QSPI_CLK_DIV_3                      (2UL << QSPI_CR_DIV_POS)    /*!< QSCK = HCLK / 3 */
-#define QSPI_CLK_DIV_4                      (3UL << QSPI_CR_DIV_POS)    /*!< QSCK = HCLK / 4 */
-#define QSPI_CLK_DIV_5                      (4UL << QSPI_CR_DIV_POS)    /*!< QSCK = HCLK / 5 */
-#define QSPI_CLK_DIV_6                      (5UL << QSPI_CR_DIV_POS)    /*!< QSCK = HCLK / 6 */
-#define QSPI_CLK_DIV_7                      (6UL << QSPI_CR_DIV_POS)    /*!< QSCK = HCLK / 7 */
-#define QSPI_CLK_DIV_8                      (7UL << QSPI_CR_DIV_POS)    /*!< QSCK = HCLK / 8 */
-#define QSPI_CLK_DIV_9                      (8UL << QSPI_CR_DIV_POS)    /*!< QSCK = HCLK / 9 */
-#define QSPI_CLK_DIV_10                     (9UL << QSPI_CR_DIV_POS)    /*!< QSCK = HCLK / 10 */
-#define QSPI_CLK_DIV_11                     (10UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 11 */
-#define QSPI_CLK_DIV_12                     (11UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 12 */
-#define QSPI_CLK_DIV_13                     (12UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 13 */
-#define QSPI_CLK_DIV_14                     (13UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 14 */
-#define QSPI_CLK_DIV_15                     (14UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 15 */
-#define QSPI_CLK_DIV_16                     (15UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 16 */
-#define QSPI_CLK_DIV_17                     (16UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 17 */
-#define QSPI_CLK_DIV_18                     (17UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 18 */
-#define QSPI_CLK_DIV_19                     (18UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 19 */
-#define QSPI_CLK_DIV_20                     (19UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 20 */
-#define QSPI_CLK_DIV_21                     (20UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 21 */
-#define QSPI_CLK_DIV_22                     (21UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 22 */
-#define QSPI_CLK_DIV_23                     (22UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 23 */
-#define QSPI_CLK_DIV_24                     (23UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 24 */
-#define QSPI_CLK_DIV_25                     (24UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 25 */
-#define QSPI_CLK_DIV_26                     (25UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 26 */
-#define QSPI_CLK_DIV_27                     (26UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 27 */
-#define QSPI_CLK_DIV_28                     (27UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 28 */
-#define QSPI_CLK_DIV_29                     (28UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 29 */
-#define QSPI_CLK_DIV_30                     (29UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 30 */
-#define QSPI_CLK_DIV_31                     (30UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 31 */
-#define QSPI_CLK_DIV_32                     (31UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 32 */
-#define QSPI_CLK_DIV_33                     (32UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 33 */
-#define QSPI_CLK_DIV_34                     (33UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 34 */
-#define QSPI_CLK_DIV_35                     (34UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 35 */
-#define QSPI_CLK_DIV_36                     (35UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 36 */
-#define QSPI_CLK_DIV_37                     (36UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 37 */
-#define QSPI_CLK_DIV_38                     (37UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 38 */
-#define QSPI_CLK_DIV_39                     (38UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 39 */
-#define QSPI_CLK_DIV_40                     (39UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 40 */
-#define QSPI_CLK_DIV_41                     (40UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 41 */
-#define QSPI_CLK_DIV_42                     (41UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 42 */
-#define QSPI_CLK_DIV_43                     (42UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 43 */
-#define QSPI_CLK_DIV_44                     (43UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 44 */
-#define QSPI_CLK_DIV_45                     (44UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 45 */
-#define QSPI_CLK_DIV_46                     (45UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 46 */
-#define QSPI_CLK_DIV_47                     (46UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 47 */
-#define QSPI_CLK_DIV_48                     (47UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 48 */
-#define QSPI_CLK_DIV_49                     (48UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 49 */
-#define QSPI_CLK_DIV_50                     (49UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 50 */
-#define QSPI_CLK_DIV_51                     (50UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 51 */
-#define QSPI_CLK_DIV_52                     (51UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 52 */
-#define QSPI_CLK_DIV_53                     (52UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 53 */
-#define QSPI_CLK_DIV_54                     (53UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 54 */
-#define QSPI_CLK_DIV_55                     (54UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 55 */
-#define QSPI_CLK_DIV_56                     (55UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 56 */
-#define QSPI_CLK_DIV_57                     (56UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 57 */
-#define QSPI_CLK_DIV_58                     (57UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 58 */
-#define QSPI_CLK_DIV_59                     (58UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 59 */
-#define QSPI_CLK_DIV_60                     (59UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 60 */
-#define QSPI_CLK_DIV_61                     (60UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 61 */
-#define QSPI_CLK_DIV_62                     (61UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 62 */
-#define QSPI_CLK_DIV_63                     (62UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 63 */
-#define QSPI_CLK_DIV_64                     (63UL << QSPI_CR_DIV_POS)   /*!< QSCK = HCLK / 64 */
-/**
- * @}
- */
-
-/**
- * @defgroup QSPI_CS_Idle_Time QSPI Chip-select Minimum Idle Time
- * @{
- */
-#define QSPI_CS_IDLE_1_CYCLE                (0UL)                   /*!< CS stay high for at least 1 clock cycle between commands. */
-#define QSPI_CS_IDLE_2_CYCLE                (1UL)                   /*!< CS stay high for at least 2 clock cycle between commands. */
-#define QSPI_CS_IDLE_3_CYCLE                (2UL)                   /*!< CS stay high for at least 3 clock cycle between commands. */
-#define QSPI_CS_IDLE_4_CYCLE                (3UL)                   /*!< CS stay high for at least 4 clock cycle between commands. */
-#define QSPI_CS_IDLE_5_CYCLE                (4UL)                   /*!< CS stay high for at least 5 clock cycle between commands. */
-#define QSPI_CS_IDLE_6_CYCLE                (5UL)                   /*!< CS stay high for at least 6 clock cycle between commands. */
-#define QSPI_CS_IDLE_7_CYCLE                (6UL)                   /*!< CS stay high for at least 7 clock cycle between commands. */
-#define QSPI_CS_IDLE_8_CYCLE                (7UL)                   /*!< CS stay high for at least 8 clock cycle between commands. */
-#define QSPI_CS_IDLE_9_CYCLE                (8UL)                   /*!< CS stay high for at least 9 clock cycle between commands. */
-#define QSPI_CS_IDLE_10_CYCLE               (9UL)                   /*!< CS stay high for at least 10 clock cycle between commands. */
-#define QSPI_CS_IDLE_11_CYCLE               (10UL)                  /*!< CS stay high for at least 11 clock cycle between commands. */
-#define QSPI_CS_IDLE_12_CYCLE               (11UL)                  /*!< CS stay high for at least 12 clock cycle between commands. */
-#define QSPI_CS_IDLE_13_CYCLE               (12UL)                  /*!< CS stay high for at least 13 clock cycle between commands. */
-#define QSPI_CS_IDLE_14_CYCLE               (13UL)                  /*!< CS stay high for at least 14 clock cycle between commands. */
-#define QSPI_CS_IDLE_15_CYCLE               (14UL)                  /*!< CS stay high for at least 15 clock cycle between commands. */
-#define QSPI_CS_IDLE_16_CYCLE               (15UL)                  /*!< CS stay high for at least 16 clock cycle between commands. */
+#define QSPI_DATA_1LINE                     (0x0U)                  /*!< Data on a single line. */
+#define QSPI_DATA_2LINE                     (QSPI_CR_DPRSL_0)       /*!< Data on 2 lines. */
+#define QSPI_DATA_4LINE                     (QSPI_CR_DPRSL_1)       /*!< Data on 4 lines. */
 /**
  * @}
  */
@@ -357,9 +248,9 @@ typedef struct
  * @defgroup QSPI_CS_Extend_Time QSPI Chip-select Extend Time
  * @{
  */
-#define QSPI_CS_EXTEND_0_CYCLE              (0x0U)                  /*!< Do not extend chip-select signal time. */
-#define QSPI_CS_EXTEND_32_CYCLE             (QSPI_CSCR_SSNW_0)      /*!< Extend chip-select time by 32 QSCK cycles. */
-#define QSPI_CS_EXTEND_128_CYCLE            (QSPI_CSCR_SSNW_1)      /*!< Extend chip-select time by 128 QSCK cycles. */
+#define QSPI_CS_EXTEND_0CYCLE               (0x0U)                  /*!< Do not extend chip-select signal time. */
+#define QSPI_CS_EXTEND_32CYCLE              (QSPI_CSCR_SSNW_0)      /*!< Extend chip-select time by 32 QSCK cycles. */
+#define QSPI_CS_EXTEND_128CYCLE             (QSPI_CSCR_SSNW_1)      /*!< Extend chip-select time by 128 QSCK cycles. */
 #define QSPI_CS_EXTEND_INFINITE             (QSPI_CSCR_SSNW_1 | \
                                              QSPI_CSCR_SSNW_0)      /*!< Extend chip-select time infinitely. */
 /**
@@ -370,10 +261,10 @@ typedef struct
  * @defgroup QSPI_Addr_Width QSPI Address Width
  * @{
  */
-#define QSPI_ADDR_WIDTH_1_BYTE              (0x0U)                  /*!< QSPI address width is 1 byte. */
-#define QSPI_ADDR_WIDTH_2_BYTE              (QSPI_FCR_AWSL_0)       /*!< QSPI address width is 2 bytes. */
-#define QSPI_ADDR_WIDTH_3_BYTE              (QSPI_FCR_AWSL_1)       /*!< QSPI address width is 3 bytes. */
-#define QSPI_ADDR_WIDTH_4_BYTE              (QSPI_FCR_AWSL_1 | \
+#define QSPI_ADDR_WIDTH_1BYTE               (0x0U)                  /*!< QSPI address width is 1 byte. */
+#define QSPI_ADDR_WIDTH_2BYTE               (QSPI_FCR_AWSL_0)       /*!< QSPI address width is 2 bytes. */
+#define QSPI_ADDR_WIDTH_3BYTE               (QSPI_FCR_AWSL_1)       /*!< QSPI address width is 3 bytes. */
+#define QSPI_ADDR_WIDTH_4BYTE               (QSPI_FCR_AWSL_1 | \
                                              QSPI_FCR_AWSL_0)       /*!< QSPI address width is 4 bytes. */
 /**
  * @}
@@ -385,7 +276,7 @@ typedef struct
  * @{
  */
 #define QSPI_4BIC_DISABLE                   (0x0U)                  /*!< Do not use 4-byte address read instruction code. */
-#define QSPI_4BIC_ENABLE                    (QSPI_FCR_4BIC)         /*!< Use 4-byte address read instruction code. */
+#define QSPI_4BIC_ENABLE                    (QSPI_FCR_FOUR_BIC)     /*!< Use 4-byte address read instruction code. */
 /**
  * @}
  */
@@ -416,30 +307,6 @@ typedef struct
  */
 #define QSPI_WP_LOW                         (0x0U)                  /*!< WP(QIO2) output low. */
 #define QSPI_WP_HIGH                        (QSPI_FCR_WPOL)         /*!< WP(QIO2) output high. */
-/**
- * @}
- */
-
-/**
- * @defgroup QSPI_Dummy_Cycles QSPI Dummy Cycles For Fast Read
- * @{
- */
-#define QSPI_DUMMY_CYCLE_3                  (0UL << QSPI_FCR_DMCYCN_POS)    /*!< 3 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_4                  (1UL << QSPI_FCR_DMCYCN_POS)    /*!< 4 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_5                  (2UL << QSPI_FCR_DMCYCN_POS)    /*!< 5 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_6                  (3UL << QSPI_FCR_DMCYCN_POS)    /*!< 6 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_7                  (4UL << QSPI_FCR_DMCYCN_POS)    /*!< 7 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_8                  (5UL << QSPI_FCR_DMCYCN_POS)    /*!< 8 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_9                  (6UL << QSPI_FCR_DMCYCN_POS)    /*!< 9 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_10                 (7UL << QSPI_FCR_DMCYCN_POS)    /*!< 10 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_11                 (8UL << QSPI_FCR_DMCYCN_POS)    /*!< 11 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_12                 (9UL << QSPI_FCR_DMCYCN_POS)    /*!< 12 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_13                 (10UL << QSPI_FCR_DMCYCN_POS)   /*!< 13 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_14                 (11UL << QSPI_FCR_DMCYCN_POS)   /*!< 14 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_15                 (12UL << QSPI_FCR_DMCYCN_POS)   /*!< 15 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_16                 (13UL << QSPI_FCR_DMCYCN_POS)   /*!< 16 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_17                 (14UL << QSPI_FCR_DMCYCN_POS)   /*!< 17 dummy cycles. */
-#define QSPI_DUMMY_CYCLE_18                 (15UL << QSPI_FCR_DMCYCN_POS)   /*!< 18 dummy cycles. */
 /**
  * @}
  */
@@ -550,10 +417,10 @@ en_result_t QSPI_StructInit(stc_qspi_init_t *pstcInit);
 
 en_result_t QSPI_WriteData(uint32_t u32Instr, uint32_t u32Address, \
                            const uint8_t pu8Src[], uint32_t u32SrcSize);
-en_result_t QSPI_ReadData(uint32_t u32ReadMode, uint32_t u32Address, \
-                          uint8_t pu8Dest[], uint32_t u32DestSize);
+en_result_t QSPI_ReadData(uint32_t u32Address, uint8_t pu8Dest[], uint32_t u32DestSize);
 
-void QSPI_SetReadMode(uint32_t u32ReadMode);
+void QSPI_SetReadMode(uint32_t u32ReadMode, uint8_t u8ReadInstr, uint32_t u32DummyCycles);
+void QSPI_DutyCorrectCmd(en_functional_state_t enNewState);
 void QSPI_PrefetchCmd(en_functional_state_t enNewState);
 void QSPI_XIPModeCmd(en_functional_state_t enNewState);
 void QSPI_SetWPPinLevel(uint32_t u32Level);

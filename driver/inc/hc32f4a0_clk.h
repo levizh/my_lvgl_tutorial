@@ -6,7 +6,8 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-26       Zhangxl         First version
+   2020-06-12       Zhangxl         First version
+   2020-07-03       Zhangxl         _DIV64 definition for BUS clock division
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -212,7 +213,7 @@ typedef struct
     uint32_t pllap;                 /*!< pllap clock frequency. */
     uint32_t pllaq;                 /*!< pllaq clock frequency. */
     uint32_t pllar;                 /*!< pllar clock frequency. */
-}stc_pll_clk_freq_t;
+} stc_pll_clk_freq_t;
 
 /**
  * @}
@@ -656,6 +657,7 @@ typedef struct
 #define CLK_HCLK_DIV8               (0x03U << CMU_SCFGR_HCLKS_POS)
 #define CLK_HCLK_DIV16              (0x04U << CMU_SCFGR_HCLKS_POS)
 #define CLK_HCLK_DIV32              (0x05U << CMU_SCFGR_HCLKS_POS)
+#define CLK_HCLK_DIV64              (0x06U << CMU_SCFGR_HCLKS_POS)
 /**
  * @}
  */
@@ -670,6 +672,7 @@ typedef struct
 #define CLK_EXCLK_DIV8              (0x03U << CMU_SCFGR_EXCKS_POS)
 #define CLK_EXCLK_DIV16             (0x04U << CMU_SCFGR_EXCKS_POS)
 #define CLK_EXCLK_DIV32             (0x05U << CMU_SCFGR_EXCKS_POS)
+#define CLK_EXCLK_DIV64             (0x06U << CMU_SCFGR_EXCKS_POS)
 /**
  * @}
  */
@@ -684,6 +687,7 @@ typedef struct
 #define CLK_PCLK4_DIV8              (0x03U << CMU_SCFGR_PCLK4S_POS)
 #define CLK_PCLK4_DIV16             (0x04U << CMU_SCFGR_PCLK4S_POS)
 #define CLK_PCLK4_DIV32             (0x05U << CMU_SCFGR_PCLK4S_POS)
+#define CLK_PCLK4_DIV64             (0x06U << CMU_SCFGR_PCLK4S_POS)
 /**
  * @}
  */
@@ -698,6 +702,7 @@ typedef struct
 #define CLK_PCLK3_DIV8              (0x03U << CMU_SCFGR_PCLK3S_POS)
 #define CLK_PCLK3_DIV16             (0x04U << CMU_SCFGR_PCLK3S_POS)
 #define CLK_PCLK3_DIV32             (0x05U << CMU_SCFGR_PCLK3S_POS)
+#define CLK_PCLK3_DIV64             (0x06U << CMU_SCFGR_PCLK3S_POS)
 /**
  * @}
  */
@@ -712,6 +717,7 @@ typedef struct
 #define CLK_PCLK2_DIV8              (0x03U << CMU_SCFGR_PCLK2S_POS)
 #define CLK_PCLK2_DIV16             (0x04U << CMU_SCFGR_PCLK2S_POS)
 #define CLK_PCLK2_DIV32             (0x05U << CMU_SCFGR_PCLK2S_POS)
+#define CLK_PCLK2_DIV64             (0x06U << CMU_SCFGR_PCLK2S_POS)
 /**
  * @}
  */
@@ -726,6 +732,7 @@ typedef struct
 #define CLK_PCLK1_DIV8              (0x03U << CMU_SCFGR_PCLK1S_POS)
 #define CLK_PCLK1_DIV16             (0x04U << CMU_SCFGR_PCLK1S_POS)
 #define CLK_PCLK1_DIV32             (0x05U << CMU_SCFGR_PCLK1S_POS)
+#define CLK_PCLK1_DIV64             (0x06U << CMU_SCFGR_PCLK1S_POS)
 /**
  * @}
  */
@@ -740,6 +747,7 @@ typedef struct
 #define CLK_PCLK0_DIV8              (0x03U << CMU_SCFGR_PCLK0S_POS)
 #define CLK_PCLK0_DIV16             (0x04U << CMU_SCFGR_PCLK0S_POS)
 #define CLK_PCLK0_DIV32             (0x05U << CMU_SCFGR_PCLK0S_POS)
+#define CLK_PCLK0_DIV64             (0x06U << CMU_SCFGR_PCLK0S_POS)
 /**
  * @}
  */
@@ -921,14 +929,14 @@ typedef struct
  * @defgroup CLK_MCO_Clock_Prescaler CLK MCO Clock Prescaler
  * @{
  */
-#define CLK_MCODIV_1                (0x00U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_2                (0x01U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_4                (0x02U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_8                (0x03U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_16               (0x04U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_32               (0x05U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_64               (0x06U << CMU_MCO2CFGR_MCO2DIV_POS)
-#define CLK_MCODIV_128              (0x07U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCO_DIV1                (0x00U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCO_DIV2                (0x01U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCO_DIV4                (0x02U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCO_DIV8                (0x03U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCO_DIV16               (0x04U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCO_DIV32               (0x05U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCO_DIV64               (0x06U << CMU_MCO2CFGR_MCO2DIV_POS)
+#define CLK_MCO_DIV128              (0x07U << CMU_MCO2CFGR_MCO2DIV_POS)
 /**
  * @}
  */
@@ -949,10 +957,10 @@ typedef struct
  * @addtogroup CLK_Global_Functions
  * @{
  */
-en_result_t CLK_XtalStdStrucInit(stc_clk_xtalstd_init_t* pstcXtalStdConfig);
-en_result_t CLK_XtalStdInit(const stc_clk_xtalstd_init_t* pstcXtalStdConfig);
-void CLK_ClearXtalStdFlag(void);
-en_flag_status_t CLK_GetXtalStdFlag(void);
+en_result_t CLK_XtalStdStrucInit(stc_clk_xtalstd_init_t* pstcXtalStdInit);
+en_result_t CLK_XtalStdInit(const stc_clk_xtalstd_init_t* pstcXtalStdInit);
+void CLK_ClearXtalStdStatus(void);
+en_flag_status_t CLK_GetXtalStdStatus(void);
 
 void CLK_HrcTrim(int8_t i8TrimVal);
 void CLK_MrcTrim(int8_t i8TrimVal);
@@ -979,7 +987,7 @@ en_result_t CLK_XtalInit(const stc_clk_xtal_init_t *pstcXtalInit);
 en_result_t CLK_Xtal32StrucInit(stc_clk_xtal32_init_t* pstcXtal32Init);
 en_result_t CLK_Xtal32Init(const stc_clk_xtal32_init_t *pstcXtal32Init);
 
-en_flag_status_t CLK_GetStableFlag(uint8_t u8StableFlag);
+en_flag_status_t CLK_GetStableStatus(uint8_t u8StableFlag);
 
 void CLK_SetSysClkSrc(uint8_t u8Src);
 void CLK_ClkDiv(uint8_t u8ClkCate, uint32_t u32Div);

@@ -1,11 +1,12 @@
 /**
  *******************************************************************************
- * @file  timer6\timer6_hw_code_cnt\source\main.c
- * @brief Main program template for the Device Driver Library.
+ * @file  timer6/timer6_hw_code_cnt/source/main.c
+ * @brief This example demonstrates Timer6 count for AB phase position coding
+ *        function.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-09       Wangmin          First version
+   2020-06-12       Wangmin          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -96,22 +97,72 @@
  * Local variable definitions ('static')
  ******************************************************************************/
 uint32_t u32CaptureA;
+__UNUSED __IO uint32_t u32Timer6Cnt0 = 0U;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
 
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static __attribute__((unused)) void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 static void GenClkIn(void)
 {
     uint32_t i;
-    static volatile uint32_t u32Timer6Cnt0 = 0U;
 
-    uint8_t bAin[17] = {0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1};
-    uint8_t bBin[17] = {1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
+    uint8_t bAin[17U] = {0U, 1U, 1U, 0U, 0U, 1U, 1U, 0U, 0U, 0U, 0U, 1U, 1U, 0U, 0U, 1U, 1U};
+    uint8_t bBin[17U] = {1U, 1U, 0U, 0U, 1U, 1U, 0U, 0U, 1U, 1U, 0U, 0U, 1U, 1U, 0U, 0U, 1U};
 
 
-    for (i = 0ul; i < 17ul; i++)
+    for (i = 0UL; i < 17UL; i++)
     {
         u32Timer6Cnt0 = TMR6_GetCntReg(M4_TMR6_1);
 
@@ -133,7 +184,7 @@ static void GenClkIn(void)
             GPIO_SetPins(TEST_IO_B_PORT, TEST_IO_B_PIN);
         }
 
-        DDL_Delay1ms(500UL);
+        DDL_DelayMS(500UL);
     }
 
     u32Timer6Cnt0 = TMR6_GetCntReg(M4_TMR6_1);
@@ -151,10 +202,15 @@ int32_t main(void)
     stc_tmr6_port_input_cfg_t      stcTIM6PortInCfg;
     stc_gpio_init_t                stcGpioCfg;
 
-    TMR6_BaseCntStructInit(&stcTIM6BaseCntCfg);
-    TMR6_PortInputStructInit(&stcTIM6PortInCfg);
+    Peripheral_WE();
 
     BSP_CLK_Init();
+    BSP_IO_Init();
+    BSP_KEY_Init();
+    BSP_LED_Init();
+
+    TMR6_BaseCntStructInit(&stcTIM6BaseCntCfg);
+    TMR6_PortInputStructInit(&stcTIM6PortInCfg);
 
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMR6_1, Enable);
 
@@ -179,8 +235,8 @@ int32_t main(void)
 
     /* Capture input port configuration */
     stcTIM6PortInCfg.u32PortMode = TMR6_PORT_CAPTURE_INPUT;
-    stcTIM6PortInCfg.u32FilterStd = TMR6_PORT_INPUT_FITLER_OFF;
-    stcTIM6PortInCfg.u32FltClk = TMR6_INPUT_FILTER_PCLK0;
+    stcTIM6PortInCfg.u32FilterSta = TMR6_PORT_INPUT_FILTER_OFF;
+    stcTIM6PortInCfg.u32FltClk = TMR6_INPUT_FILTER_PCLK0_DIV1;
     TMR6_PortInputConfig(M4_TMR6_1,TMR6_IO_PWMA, &stcTIM6PortInCfg);
 
     TMR6_PortInputConfig(M4_TMR6_1,TMR6_IO_PWMB, &stcTIM6PortInCfg);
@@ -191,12 +247,12 @@ int32_t main(void)
         GPIO_ResetPins(TEST_IO_A_PORT, TEST_IO_A_PIN);
         GPIO_SetPins(TEST_IO_B_PORT, TEST_IO_B_PIN);
 
-        DDL_Delay1ms(1000UL);
-        TMR6_HwIncreaseFuncRegClr(M4_TMR6_1);
-        TMR6_HwDecreaseFuncRegClr(M4_TMR6_1);
+        DDL_DelayMS(1000UL);
+        TMR6_HwIncreaseCondClr(M4_TMR6_1);
+        TMR6_HwDecreaseCondClr(M4_TMR6_1);
 
-        TMR6_HwIncreaseFuncCfg(M4_TMR6_1, TMR6_HW_CNT_PWMBH_PWMARISING); /* PWMA Rising trigger when PWMB is high level */
-        TMR6_HwDecreaseFuncCfg(M4_TMR6_1, TMR6_HW_CNT_PWMBL_PWMARISING); /* PWMA Rising trigger when PWMB is low level */
+        TMR6_HwIncreaseCondCmd(M4_TMR6_1, TMR6_HW_CNT_PWMBH_PWMARISING, Enable); /* PWMA Rising trigger when PWMB is high level */
+        TMR6_HwDecreaseCondCmd(M4_TMR6_1, TMR6_HW_CNT_PWMBL_PWMARISING, Enable); /* PWMA Rising trigger when PWMB is low level */
 
         TMR6_CountCmd(M4_TMR6_1, Enable);
 
@@ -208,15 +264,15 @@ int32_t main(void)
         GPIO_ResetPins(TEST_IO_A_PORT, TEST_IO_A_PIN);
         GPIO_SetPins(TEST_IO_B_PORT, TEST_IO_B_PIN);
 
-        DDL_Delay1ms(1000UL);
+        DDL_DelayMS(1000UL);
 
-        TMR6_HwIncreaseFuncRegClr(M4_TMR6_1);
-        TMR6_HwDecreaseFuncRegClr(M4_TMR6_1);
+        TMR6_HwIncreaseCondClr(M4_TMR6_1);
+        TMR6_HwDecreaseCondClr(M4_TMR6_1);
 
         /* PWMA Rising trigger when PWMB is high level, PWMA falling trigger when PWMB is low level */
-        TMR6_HwIncreaseFuncCfg(M4_TMR6_1, TMR6_HW_CNT_PWMBH_PWMARISING | TMR6_HW_CNT_PWMBL_PWMAFAILLING);
+        TMR6_HwIncreaseCondCmd(M4_TMR6_1, TMR6_HW_CNT_PWMBH_PWMARISING | TMR6_HW_CNT_PWMBL_PWMAFAILLING, Enable);
         /* PWMB Rising trigger when PWMA is high level, PWMB falling trigger when PWMA is low level */
-        TMR6_HwDecreaseFuncCfg(M4_TMR6_1, TMR6_HW_CNT_PWMAH_PWMBRISING | TMR6_HW_CNT_PWMAL_PWMBFAILLING);
+        TMR6_HwDecreaseCondCmd(M4_TMR6_1, TMR6_HW_CNT_PWMAH_PWMBRISING | TMR6_HW_CNT_PWMAL_PWMBFAILLING, Enable);
 
         TMR6_CountCmd(M4_TMR6_1, Enable);
 

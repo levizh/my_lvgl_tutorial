@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-31       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -72,15 +72,12 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-/* SW1 Port/Pin definition */
-#define SW1_IN_PORT                             (GPIO_PORT_H)
-#define SW1_IN_PIN                              (GPIO_PIN_07)
-#define SW1_IN_EXINT_CH                         (EXINT_CH07)
-#define SW1_IN_INT_SRC                          (INT_PORT_EIRQ7)
-#define SW1_IN_IRQn                             (Int032_IRQn)
-
-#define SW1_OUT_PORT                            (GPIO_PORT_A)
-#define SW1_OUT_PIN                             (GPIO_PIN_06)
+/* KEY10(SW10) Port/Pin definition */
+#define KEY10_PORT                              (GPIO_PORT_A)
+#define KEY10_PIN                               (GPIO_PIN_00)
+#define KEY10_EXINT_CH                          (EXINT_CH00)
+#define KEY10_INT_SRC                           (INT_PORT_EIRQ0)
+#define KEY10_GroupIRQn                         (Int033_IRQn)
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -126,13 +123,14 @@ static void WDT_IrqCallback(void)
 }
 
 /**
- * @brief  SW1 interrupt callback function.
+ * @brief  KEY10(SW10) External interrupt Ch.0 callback function
+ *         IRQ No.33 in Group IRQ entry No.32~37 is used for EXINT0
  * @param  None
  * @retval None
  */
-void SW1_IrqCallback(void)
+void EXINT_KEY10_IrqCallback(void)
 {
-    if (Set == EXINT_GetExIntSrc(SW1_IN_EXINT_CH))
+    if (Set == EXINT_GetExIntSrc(KEY10_EXINT_CH))
     {
         u8ExIntCnt++;
         if (u8ExIntCnt >= 2U)
@@ -141,16 +139,68 @@ void SW1_IrqCallback(void)
         }
         BSP_LED_Off(LED_RED);
         BSP_LED_Off(LED_BLUE);
-        EXINT_ClrExIntSrc(SW1_IN_EXINT_CH);
+        EXINT_ClrExIntSrc(KEY10_EXINT_CH);
     }
 }
 
 /**
- * @brief  SW1 configuration.
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    // SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    // EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+    // EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    // GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    // PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1 | PWC_UNLOCK_CODE_2);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    // SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+    // EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    // EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
+/**
+ * @brief  KEY10(SW10) initialize
  * @param  None
  * @retval None
  */
-static void SW1_Config(void)
+static void KEY10_Init(void)
 {
     stc_exint_init_t stcExintInit;
     stc_irq_signin_config_t stcIrqSignConfig;
@@ -158,31 +208,26 @@ static void SW1_Config(void)
 
     /* GPIO config */
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDir   = PIN_DIR_OUT;
-    stcGpioInit.u16PinState = PIN_STATE_RESET;
-    GPIO_Init(SW1_OUT_PORT, SW1_OUT_PIN, &stcGpioInit);
-
-    stcGpioInit.u16PinDir = PIN_DIR_IN;
     stcGpioInit.u16ExInt  = PIN_EXINT_ON;
     stcGpioInit.u16PullUp = PIN_PU_ON;
-    GPIO_Init(SW1_IN_PORT, SW1_IN_PIN, &stcGpioInit);
+    GPIO_Init(KEY10_PORT, KEY10_PIN, &stcGpioInit);
 
     /* Exint config */
     EXINT_StructInit(&stcExintInit);
-    stcExintInit.u32ExIntCh  = SW1_IN_EXINT_CH;
+    stcExintInit.u32ExIntCh  = KEY10_EXINT_CH;
     stcExintInit.u32ExIntLvl = EXINT_TRIGGER_FALLING;
     EXINT_Init(&stcExintInit);
 
     /* IRQ sign-in */
-    stcIrqSignConfig.enIntSrc    = SW1_IN_INT_SRC;
-    stcIrqSignConfig.enIRQn      = SW1_IN_IRQn;
-    stcIrqSignConfig.pfnCallback = &SW1_IrqCallback;
+    stcIrqSignConfig.enIntSrc    = KEY10_INT_SRC;
+    stcIrqSignConfig.enIRQn      = KEY10_GroupIRQn;
+    stcIrqSignConfig.pfnCallback = &EXINT_KEY10_IrqCallback;
     INTC_IrqSignIn(&stcIrqSignConfig);
 
     /* NVIC config */
-    NVIC_ClearPendingIRQ(stcIrqSignConfig.enIRQn);
-    NVIC_SetPriority(stcIrqSignConfig.enIRQn, DDL_IRQ_PRIORITY_DEFAULT);
-    NVIC_EnableIRQ(stcIrqSignConfig.enIRQn);
+    NVIC_ClearPendingIRQ(KEY10_GroupIRQn);
+    NVIC_SetPriority(KEY10_GroupIRQn,DDL_IRQ_PRIORITY_DEFAULT);
+    NVIC_EnableIRQ(KEY10_GroupIRQn);
 }
 
 /**
@@ -236,6 +281,8 @@ int32_t main(void)
      @endverbatim
      ***************************************************************************
      */
+    /* Peripheral registers write unprotected */
+    Peripheral_WE();
     /* Configure clock */
     BSP_CLK_Init();
     /* Configure BSP */
@@ -245,8 +292,10 @@ int32_t main(void)
     DDL_PrintfInit();
     /* WDT configuration */
     WDT_Config();
-    /* SW1 configuration */
-    SW1_Config();
+    /* KEY10 configuration */
+    KEY10_Init();
+    /* Peripheral registers write protected */
+    Peripheral_WP();
 
     while (1)
     {

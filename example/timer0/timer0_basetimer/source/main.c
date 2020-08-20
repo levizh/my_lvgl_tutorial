@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-04-15       Heqb         First version
+   2020-06-12       Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -61,7 +61,7 @@
  */
 
 /**
- * @addtogroup TMR0 Basetimer
+ * @addtogroup TMR0_Basetimer
  * @{
  */
 
@@ -76,17 +76,18 @@
 #define TMR0_IRQn                      (Int014_IRQn)
 #define TMR0_SOURCE                    (INT_TMR0_1_CMPA)
 /* EIRQ0 Port and Pin define */
-#define KEY1_PORT                      (GPIO_PORT_A)
-#define KEY1_PIN                       (GPIO_PIN_00)
-#define KEY1_EXINT_CH                  (EXINT_CH00)
+#define KEY10_PORT                     (GPIO_PORT_A)
+#define KEY10_PIN                      (GPIO_PIN_00)
+#define KEY10_EXINT_CH                 (EXINT_CH00)
 
 #define TMR0x                          (M4_TMR0_1)
-#define TMR0_CH                        (TMR0_ChannelA)
+#define TMR0_CH_x                      (TMR0_CH_A)
 /* TMR0 Clock source define*/
+/* If select XTAL32 or LRC, Please make sure they are on  */
 #define TMR0_CLKSRC_PCLK               (0U)
 #define TMR0_CLKSRC_XTAL32             (1U)
 #define TMR0_CLKSRC_LRC                (2U)
-#define TMR0_CLKSRC                    (TMR0_CLKSRC_PCLK)
+#define TMR0_CLKSRC                    (TMR0_CLKSRC_XTAL32)
 
 /* Period = 1 / (Clock / div) * (Compare Value - 1) 
    Period = 500ms */
@@ -114,7 +115,8 @@
  ******************************************************************************/
 static void TMR0_Config(void);
 static void EXINT_IRQ_Config(void);
-static void LED_KEY_Config(void);
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -122,7 +124,57 @@ static void LED_KEY_Config(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    //SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    //SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    //EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    //EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
 
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    //SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    //SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    //EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    //EFM_Lock();
+}
 /**
  * @brief  TMR0_1 channelA compare IRQ callback
  * @param  None
@@ -131,9 +183,8 @@ static void LED_KEY_Config(void);
 static void TMR0_1_ChACmp_IrqCallback(void)
 {
     BSP_LED_Toggle(LED_BLUE);
-    GPIO_TogglePins(GPIO_PORT_A, GPIO_PIN_10);
     /* Clear the compare matching flag */
-    TMR0_ClearStatus(TMR0x, TMR0_CH);
+    TMR0_ClearStatus(TMR0x, TMR0_CH_x);
 }
 
 /**
@@ -143,22 +194,26 @@ static void TMR0_1_ChACmp_IrqCallback(void)
  */
 int32_t main(void)
 {
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
+    /* Expand IO init */
+    BSP_IO_Init();
+    /* LED init */
+    BSP_LED_Init();
     /* Enable AOS function */
     PWC_Fcg0PeriphClockCmd(PWC_FCG0_AOS, Enable);
-    /* Configure LED & Key */
-    LED_KEY_Config();
-    GPIO_OE(GPIO_PORT_A, GPIO_PIN_10, Enable);
     /*Configure EXINT and IRQ handler && NVIC*/
     EXINT_IRQ_Config();
     /*Configure TMR0*/
     TMR0_Config();
     /* Timer0 ch1 start counting */
-    TMR0_Cmd(TMR0x, TMR0_CH, Enable);
-
+    TMR0_Cmd(TMR0x, TMR0_CH_x, Enable);
+    /* Lock peripherals or registers */
+    Peripheral_WP();
     while(1)
     {
-
-    };
+        ;
+    }
 }
 
 /**
@@ -169,7 +224,6 @@ int32_t main(void)
 static void TMR0_Config(void)
 {
     stc_tmr0_init_t stcTmr0Init;
-
     /* Enable timer0 peripheral clock */
     PWC_Fcg2PeriphClockCmd(PWC_FCG2_TMR0_1, Enable);
 
@@ -180,13 +234,15 @@ static void TMR0_Config(void)
     stcTmr0Init.u32Tmr0Func = TMR0_FUNC_CMP;            /* Timer0 compare mode */
     stcTmr0Init.u32HwTrigFunc = TMR0_BT_HWTRG_FUNC_STOP;/* Config Hardware trigger function */
     stcTmr0Init.u16CmpValue = TMR0_CMP_VAL;             /* Set compara register data */
-    TMR0_Init(TMR0x, TMR0_CH, &stcTmr0Init);
-
+    TMR0_Init(TMR0x, TMR0_CH_x, &stcTmr0Init);
+    /* In asynchronous clock, If you want to write a TMR0 register, you need to wait for at 
+       least 3 asynchronous clock cycles after the last write operation! */
+    DDL_DelayMS(1U); /* Wait at least 3 asynchronous clock cycles.*/
     /* Timer0 interrupt function Enable */
-    TMR0_IntCmd(TMR0x, TMR0_CH, Enable);
+    TMR0_IntCmd(TMR0x, TMR0_CH_x, Enable);
+    DDL_DelayMS(1U); /* Wait at least 3 asynchronous clock cycles.*/
     /* Set internal hardware capture source */
     TMR0_SetTriggerSrc(EVT_PORT_EIRQ0);
-
 }
 
 /**
@@ -204,11 +260,11 @@ static void EXINT_IRQ_Config(void)
     GPIO_StructInit(&stcGpioInit);
     stcGpioInit.u16ExInt = PIN_EXINT_ON;
     stcGpioInit.u16PullUp = PIN_PU_ON;
-    GPIO_Init(KEY1_PORT, KEY1_PIN, &stcGpioInit);
+    GPIO_Init(KEY10_PORT, KEY10_PIN, &stcGpioInit);
 
     /* Exint config */
     EXINT_StructInit(&stcExintInit);
-    stcExintInit.u32ExIntCh = KEY1_EXINT_CH;
+    stcExintInit.u32ExIntCh = KEY10_EXINT_CH;
     stcExintInit.u32ExIntLvl= EXINT_TRIGGER_FALLING;
     EXINT_Init(&stcExintInit);
 
@@ -220,37 +276,6 @@ static void EXINT_IRQ_Config(void)
     NVIC_ClearPendingIRQ(stcIrqSignConfig.enIRQn);
     NVIC_SetPriority(stcIrqSignConfig.enIRQn, DDL_IRQ_PRIORITY_15);
     NVIC_EnableIRQ(stcIrqSignConfig.enIRQn);
-}
-
-/**
- * @brief  Configure LED and Key.
- * @param  None
- * @retval None
- */
-static void LED_KEY_Config(void)
-{
-    stc_gpio_init_t stcGpioInit;
-    stc_keyscan_init_t stcKeyscanInit;
-
-    BSP_IO_Init();
-    BSP_LED_Init();
-    GPIO_StructInit(&stcGpioInit);
-    KEYSCAN_StructInit(&stcKeyscanInit);
-
-    GPIO_Init(BSP_KEYOUT1_PORT, BSP_KEYOUT1_PIN, &stcGpioInit);
-    GPIO_SetFunc(BSP_KEYOUT0_PORT, BSP_KEYOUT0_PIN, GPIO_FUNC_8_KEYSCAN, Disable);
-
-    PWC_Fcg0PeriphClockCmd(PWC_FCG0_KEY, Enable);
-
-    stcKeyscanInit.u32HizCycle = KEYSCAN_HIZ_CLC_4;
-    stcKeyscanInit.u32LowCycle = KEYSCAN_LOW_CLC_128K;
-    stcKeyscanInit.u32KeyClk   = KEYSCAN_CLK_HCLK;
-    stcKeyscanInit.u32Keyout   = KEYSCAN_OUT_0T1;
-    stcKeyscanInit.u32Keyin    = KEYSCAN_IN_0;
-
-    KEYSCAN_Init(&stcKeyscanInit);
-
-    KEYSCAN_Cmd(Enable);
 }
 /**
  * @}

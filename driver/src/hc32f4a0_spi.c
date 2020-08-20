@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -102,58 +102,63 @@
                                   SPI_FLAG_PARITY_ERROR           |            \
                                   SPI_FLAG_UNDERLOAD )
 
+#define SPI_SS0_VALID_CFG        (0UL)
+#define SPI_SS1_VALID_CFG        (SPI_CFG2_SSA_0)
+#define SPI_SS2_VALID_CFG        (SPI_CFG2_SSA_1)
+#define SPI_SS3_VALID_CFG        (SPI_CFG2_SSA_0 | SPI_CFG2_SSA_1)
+
 /**
  * @defgroup SPI_Check_Parameters_Validity SPI check parameters validity
  * @{
  */
 
-/* Parameter valid check for SPI peripheral */
+/*! Parameter valid check for SPI peripheral */
 #define IS_VALID_SPI_UNIT(x)                                                   \
-(   (M4_SPI1 == (x))                            ||                             \
-    (M4_SPI2 == (x))                            ||                             \
-    (M4_SPI3 == (x))                            ||                             \
-    (M4_SPI4 == (x))                            ||                             \
-    (M4_SPI5 == (x))                            ||                             \
+(   (M4_SPI1 == (x))                        ||                                 \
+    (M4_SPI2 == (x))                        ||                                 \
+    (M4_SPI3 == (x))                        ||                                 \
+    (M4_SPI4 == (x))                        ||                                 \
+    (M4_SPI5 == (x))                        ||                                 \
     (M4_SPI6 == (x)))
 
-/* Parameter valid check for SPI wire mode */
+/*! Parameter valid check for SPI wire mode */
 #define IS_SPI_WIRE_MODE(x)                                                    \
 (   ((x) == SPI_WIRE_4)                     ||                                 \
     ((x) == SPI_WIRE_3))
 
-/* Parameter valid check for SPI transfer mode */
+/*! Parameter valid check for SPI transfer mode */
 #define IS_SPI_TRANS_MODE(x)                                                   \
 (   ((x) == SPI_FULL_DUPLEX)                ||                                 \
     ((x) == SPI_SEND_ONLY))
 
-/* Parameter valid check for SPI master slave mode */
+/*! Parameter valid check for SPI master slave mode */
 #define IS_SPI_MASTER_SLAVE(x)                                                 \
 (   ((x) == SPI_SLAVE)                      ||                                 \
     ((x) == SPI_MASTER))
 
-/* Parameter valid check for SPI loopback mode */
+/*! Parameter valid check for SPI loopback mode */
 #define IS_SPI_SPLPBK(x)                                                       \
 (   ((x) == SPI_SPLPBK_INVALID)             ||                                 \
     ((x) == SPI_SPLPBK_MOSI_INVERT)         ||                                 \
     ((x) == SPI_SPLPBK_MOSI))
 
-/* Parameter valid check for SPI communication suspend function status */
+/*! Parameter valid check for SPI communication suspend function status */
 #define IS_SPI_SUSP_MODE_STD(x)                                                \
 (   ((x) == SPI_COM_SUSP_FUNC_OFF)          ||                                 \
     ((x) == SPI_COM_SUSP_FUNC_ON))
 
-/* Parameter valid check for SPI fault dectet function status */
+/*! Parameter valid check for SPI fault dectet function status */
 #define IS_SPI_MODFE_CMD(x)                                                    \
 (   ((x) == SPI_MODFE_DISABLE)              ||                                 \
     ((x) == SPI_MODFE_ENABLE))
 
-/* Parameter valid check for SPI parity check mode */
+/*! Parameter valid check for SPI parity check mode */
 #define IS_SPI_PARITY_CHECK(x)                                                 \
 (   ((x) == SPI_PARITY_INVALID)             ||                                 \
     ((x) == SPI_PARITY_EVEN)                ||                                 \
     ((x) == SPI_PARITY_ODD))
 
-/* Parameter valid check for SPI interval time delay */
+/*! Parameter valid check for SPI interval time delay */
 #define IS_SPI_INTERVAL_DELAY(x)                                               \
 (   ((x) == SPI_INTERVAL_TIME_1SCK_2PCLK1)  ||                                 \
     ((x) == SPI_INTERVAL_TIME_2SCK_2PCLK1)  ||                                 \
@@ -164,7 +169,7 @@
     ((x) == SPI_INTERVAL_TIME_7SCK_2PCLK1)  ||                                 \
     ((x) == SPI_INTERVAL_TIME_8SCK_2PCLK1))
 
-/* Parameter valid check for SPI release time delay */
+/*! Parameter valid check for SPI release time delay */
 #define IS_SPI_RELEASE_DELAY(x)                                                \
 (   ((x) == SPI_RELEASE_TIME_1SCK)          ||                                 \
     ((x) == SPI_RELEASE_TIME_2SCK)          ||                                 \
@@ -175,7 +180,7 @@
     ((x) == SPI_RELEASE_TIME_7SCK)          ||                                 \
     ((x) == SPI_RELEASE_TIME_8SCK))
 
-/* Parameter valid check for SPI Setup time delay delay */
+/*! Parameter valid check for SPI Setup time delay delay */
 #define IS_SPI_SETUP_DELAY(x)                                                  \
 (   ((x) == SPI_SETUP_TIME_1SCK)            ||                                 \
     ((x) == SPI_SETUP_TIME_2SCK)            ||                                 \
@@ -186,42 +191,42 @@
     ((x) == SPI_SETUP_TIME_7SCK)            ||                                 \
     ((x) == SPI_SETUP_TIME_8SCK))
 
-/* Parameter valid check for SPI SS active level */
+/*! Parameter valid check for SPI SS active level */
 #define IS_SPI_SS_ACTIVE_LEVEL(x)                                              \
 (   ((x) == SPI_SS_ACTIVE_LOW)              ||                                 \
     ((x) == SPI_SS_ACTIVE_HIGH))
 
-/* Parameter valid check for SPI read data register target buffer */
+/*! Parameter valid check for SPI read data register target buffer */
 #define IS_SPI_RD_TARGET_BUFF(x)                                               \
 (   ((x) == SPI_RD_TARGET_RD_BUF)           ||                                 \
     ((x) == SPI_RD_TARGET_WR_BUF))
 
-/* Parameter valid check for SPI mode */
+/*! Parameter valid check for SPI mode */
 #define IS_SPI_SPI_MODE(x)                                                     \
 (   ((x) == SPI_MODE_0)                     ||                                 \
     ((x) == SPI_MODE_1)                     ||                                 \
     ((x) == SPI_MODE_2)                     ||                                 \
     ((x) == SPI_MODE_3))
 
-/* Parameter valid check for SPI SS signal */
-#define IS_SPI_SS_SIGNAL(x)                                                     \
-(   ((x) == SPI_SS0_VALID)                  ||                                 \
-    ((x) == SPI_SS1_VALID)                  ||                                 \
-    ((x) == SPI_SS2_VALID)                  ||                                 \
-    ((x) == SPI_SS3_VALID))
+/*! Parameter valid check for SPI SS signal */
+#define IS_SPI_SS_PIN(x)                                                       \
+(   ((x) == SPI_PIN_SS0)                    ||                                 \
+    ((x) == SPI_PIN_SS1)                    ||                                 \
+    ((x) == SPI_PIN_SS2)                    ||                                 \
+    ((x) == SPI_PIN_SS3))
 
-/* Parameter valid check for SPI baudrate prescaler */
+/*! Parameter valid check for SPI baudrate prescaler */
 #define IS_SPI_BIT_RATE_DIV(x)                                                 \
-(   ((x) == SPI_BR_DIV_2)                   ||                                 \
-    ((x) == SPI_BR_DIV_4)                   ||                                 \
-    ((x) == SPI_BR_DIV_8)                   ||                                 \
-    ((x) == SPI_BR_DIV_16)                  ||                                 \
-    ((x) == SPI_BR_DIV_32)                  ||                                 \
-    ((x) == SPI_BR_DIV_64)                  ||                                 \
-    ((x) == SPI_BR_DIV_128)                 ||                                 \
-    ((x) == SPI_BR_DIV_256))
+(   ((x) == SPI_BR_PCLK1_DIV2)              ||                                 \
+    ((x) == SPI_BR_PCLK1_DIV4)              ||                                 \
+    ((x) == SPI_BR_PCLK1_DIV8)              ||                                 \
+    ((x) == SPI_BR_PCLK1_DIV16)             ||                                 \
+    ((x) == SPI_BR_PCLK1_DIV32)             ||                                 \
+    ((x) == SPI_BR_PCLK1_DIV64)             ||                                 \
+    ((x) == SPI_BR_PCLK1_DIV128)            ||                                 \
+    ((x) == SPI_BR_PCLK1_DIV256))
 
-/* Parameter valid check for SPI data bits */
+/*! Parameter valid check for SPI data bits */
 #define IS_SPI_DATA_SIZE(x)                                                    \
 (   ((x) == SPI_DATA_SIZE_4BIT)             ||                                 \
     ((x) == SPI_DATA_SIZE_5BIT)             ||                                 \
@@ -240,29 +245,29 @@
     ((x) == SPI_DATA_SIZE_24BIT)            ||                                 \
     ((x) == SPI_DATA_SIZE_32BIT))
 
-/* Parameter valid check for SPI data frame level */
+/*! Parameter valid check for SPI data frame level */
 #define IS_SPI_DATA_FRAME(x)                                                   \
 (   ((x) == SPI_FRAME_1)                     ||                                \
     ((x) == SPI_FRAME_2)                     ||                                \
     ((x) == SPI_FRAME_3)                     ||                                \
     ((x) == SPI_FRAME_4))
 
-/* Parameter valid check for SPI LSB MSB mode */
+/*! Parameter valid check for SPI LSB MSB mode */
 #define IS_SPI_FIRST_BIT(x)                                                    \
 (   ((x) == SPI_FIRST_MSB)                  ||                                 \
     ((x) == SPI_FIRST_LSB))
 
-/* Parameter valid check for interrupt flag */
+/*! Parameter valid check for interrupt flag */
 #define IS_SPI_IRQ_FLAG(x)                                                     \
 (   ((x) != 0UL)                            &&                                 \
     (((x) | SPI_IRQ_MASK) == SPI_IRQ_MASK))
 
-/* Parameter valid check for SPI status flag */
+/*! Parameter valid check for SPI status flag */
 #define IS_SPI_STD_FLAG(x)                                                     \
 (   ((x) != 0UL)                            &&                                 \
     (((x) | SPI_GET_STD_MASK) == SPI_GET_STD_MASK))
 
-/* Parameter valid check for SPI status flag for clear */
+/*! Parameter valid check for SPI status flag for clear */
 #define IS_SPI_CLR_STD_FLAG(x)                                                 \
 (   ((x) != 0UL)                            &&                                 \
     (((x) | SPI_CLR_STD_MASK) == SPI_CLR_STD_MASK))
@@ -297,15 +302,7 @@ static en_result_t SPI_Tx(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, uint32_t u3
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-/**
- * @defgroup SPI_Local_Variables SPI Local Variables
- * @{
- */
-static uint32_t m_u32Timeout = 0UL;
 
-/**
- * @}
- */
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
@@ -319,6 +316,12 @@ static uint32_t m_u32Timeout = 0UL;
  * @brief  Initializes the SPI peripheral according to the specified parameters
  *         in the structure stc_spi_init.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  pstcInit           Pointer to a stc_spi_init_t structure that contains
  *                                  the configuration information for the SPI.
  * @retval An en_result_t enumeration value:
@@ -328,7 +331,6 @@ static uint32_t m_u32Timeout = 0UL;
 en_result_t SPI_Init(M4_SPI_TypeDef *SPIx, const stc_spi_init_t *pstcInit)
 {
     en_result_t enRet = ErrorInvalidParameter;
-    uint32_t u32Div;
 
     DDL_ASSERT(IS_VALID_SPI_UNIT(SPIx));
 
@@ -352,6 +354,7 @@ en_result_t SPI_Init(M4_SPI_TypeDef *SPIx, const stc_spi_init_t *pstcInit)
             /* pstcInit->u32Modfe can not be SPI_MODFE_ENABLE in master mode */
         }
         else if((SPI_WIRE_3 == pstcInit->u32WireMode)
+                && (SPI_SLAVE == pstcInit->u32MasterSlave)
                  &&((SPI_MODE_0 == pstcInit->u32SpiMode)||(SPI_MODE_2 == pstcInit->u32SpiMode)))
         {
             /* SPI_WIRE_3 can not support SPI_MODE_0 and SPI_MODE_2 */
@@ -372,9 +375,6 @@ en_result_t SPI_Init(M4_SPI_TypeDef *SPIx, const stc_spi_init_t *pstcInit)
                                     | pstcInit->u32DataBits
                                     | pstcInit->u32FirstBit);
 
-            /* Time out value configurate */
-            u32Div = pstcInit->u32BaudRatePrescaler >> SPI_CFG2_MBR_POS;
-            m_u32Timeout  = (2UL << u32Div) * (READ_REG32_BIT(M4_CMU->SCFGR, CMU_SCFGR_PCLK1S) >> CMU_SCFGR_PCLK1S_POS) * 64UL;
             enRet = Ok;
         }
     }
@@ -384,6 +384,12 @@ en_result_t SPI_Init(M4_SPI_TypeDef *SPIx, const stc_spi_init_t *pstcInit)
 /**
  * @brief  De-initializes the SPI peripheral.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @retval None
  */
 void SPI_DeInit(M4_SPI_TypeDef *SPIx)
@@ -419,7 +425,7 @@ en_result_t SPI_StructInit(stc_spi_init_t *pstcInit)
         pstcInit->u32Modfe             = SPI_MODFE_DISABLE;
         pstcInit->u32Parity            = SPI_PARITY_INVALID;
         pstcInit->u32SpiMode           = SPI_MODE_0;
-        pstcInit->u32BaudRatePrescaler = SPI_BR_DIV_8;
+        pstcInit->u32BaudRatePrescaler = SPI_BR_PCLK1_DIV8;
         pstcInit->u32DataBits          = SPI_DATA_SIZE_8BIT;
         pstcInit->u32FirstBit          = SPI_FIRST_MSB;
         pstcInit->u32FrameLevel        = SPI_FRAME_1;
@@ -432,6 +438,12 @@ en_result_t SPI_StructInit(stc_spi_init_t *pstcInit)
 /**
  * @brief  Enable or disable SPI interrupt.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  u32IntType         SPI interrupt type. Can be one or any
  *                                  combination of the parameter @ref SPI_Interrupt_Type_Define
  *   @arg  SPI_INT_ERROR
@@ -462,6 +474,12 @@ void SPI_IntCmd(M4_SPI_TypeDef *SPIx, uint32_t u32IntType, en_functional_state_t
 /**
  * @brief  SPI function enable or disable.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  enNewState         An en_functional_state_t enumeration value.
  *   @arg  Enable:                  Enable SPI function.
  *   @arg  Disable:                 Disable SPI function.
@@ -472,7 +490,7 @@ void SPI_FunctionCmd(M4_SPI_TypeDef *SPIx, en_functional_state_t enNewState)
     DDL_ASSERT(IS_VALID_SPI_UNIT(SPIx));
     DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    if(enNewState)
+    if(Enable == enNewState)
     {
         SET_REG32_BIT(SPIx->CR1, SPI_CR1_SPE);
     }
@@ -485,6 +503,12 @@ void SPI_FunctionCmd(M4_SPI_TypeDef *SPIx, en_functional_state_t enNewState)
 /**
  * @brief  Write SPI data register.
  * @param  [in]  SPIx           SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  u32Data        The data will be written to the data register.
  * @retval None.
  */
@@ -497,6 +521,12 @@ void SPI_WriteDataReg(M4_SPI_TypeDef *SPIx, uint32_t u32Data)
 /**
  * @brief  Read SPI data register.
  * @param  [in]  SPIx           SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @retval A 32-bit data of SPI data register.
  */
 uint32_t SPI_ReadDataReg(const M4_SPI_TypeDef *SPIx)
@@ -510,6 +540,12 @@ uint32_t SPI_ReadDataReg(const M4_SPI_TypeDef *SPIx)
 /**
  * @brief  SPI get status flag.
  * @param  [in]  SPIx           SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  u32Flag        SPI state flag. Can be one or any
  *                              combination of the parameter of @ref SPI_State_Flag_Define
  *   @arg  SPI_FLAG_OVERLOAD
@@ -540,6 +576,12 @@ en_flag_status_t SPI_GetStatus(const M4_SPI_TypeDef *SPIx, uint32_t u32Flag)
 /**
  * @brief  SPI clear state flag.
  * @param  [in]  SPIx           SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  u32Flag        SPI state flag.
  *                              Can be one or any combination of the parameter below
  *   @arg  SPI_FLAG_OVERLOAD
@@ -559,6 +601,12 @@ void SPI_ClearFlag(M4_SPI_TypeDef *SPIx, uint32_t u32Flag)
 /**
  * @brief  SPI loopback function configuration.
  * @param  [in]  SPIx           SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  u32Mode        Loopback mode.
  *                              Can be one parameter @ref SPI_Loopback_Selection_Define
  *   @arg  SPI_SPLPBK_INVALID
@@ -577,6 +625,12 @@ void SPI_LoopbackModeCfg(M4_SPI_TypeDef *SPIx, uint32_t u32Mode)
 /**
  * @brief  SPI parity check error self diagnosis function enable or disable.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  enNewState         An en_functional_state_t enumeration value.
  *   @arg  Enable:                  Enable function.
  *   @arg  Disable:                 Disable function.
@@ -600,6 +654,12 @@ void SPI_PateCmd(M4_SPI_TypeDef *SPIx, en_functional_state_t enNewState)
 /**
  * @brief  SPI signals delay time configuration
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  pstcDelayCfg       Pointer to a stc_spi_delay_t structure that contains
  *                                  the configuration information for the SPI delay time.
  * @retval An en_result_t enumeration value:
@@ -680,80 +740,87 @@ en_result_t SPI_DelayStructInit(stc_spi_delay_t *pstcDelayCfg)
     }
     return enRet;
 }
-/**
- * @brief  Set a default value for the SPI delay time configuration structure.
- * @param  [in]  pstcSSValidLevelCfg  Pointer to a stc_spi_ss_valid_level_t
- *                                    structure that contains configuration information.
- * @retval An en_result_t enumeration value.
- *   @arg  Ok:                      No errors occurred.
- *   @arg  ErrorInvalidParameter:   pstcInit == NULL.
- */
-en_result_t SPI_SSValidLevelStructInit(stc_spi_ss_valid_level_t *pstcSSValidLevelCfg)
-{
-    en_result_t enRet = ErrorInvalidParameter;
-
-    if (NULL != pstcSSValidLevelCfg)
-    {
-        pstcSSValidLevelCfg->u32ValidLevelSS0 = SPI_SS_ACTIVE_LOW;
-        pstcSSValidLevelCfg->u32ValidLevelSS1 = SPI_SS_ACTIVE_LOW;
-        pstcSSValidLevelCfg->u32ValidLevelSS2 = SPI_SS_ACTIVE_LOW;
-        pstcSSValidLevelCfg->u32ValidLevelSS3 = SPI_SS_ACTIVE_LOW;
-
-        enRet = Ok;
-    }
-    return enRet;
-}
 
 /**
  * @brief  SPI SS signal valid level configuration
- * @param  [in]  SPIx                  SPI unit
- * @param  [in]  pstcSSValidLevelCfg   Pointer to a stc_spi_ss_valid_level_t structure that contains
- *                                     the configuration information for the valid level for SS signals.
- * @retval An en_result_t enumeration value:
- *   @arg  Ok:                      No errors occurred
- *   @arg  ErrorInvalidParameter:   pstcSSValidLevelCfg == NULL
+ * @param  [in]  SPIx           SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
+ * @param  [in]  u32SSPin       Specify the SS pin @ref SPI_SS_Pin_Define
+ * @param  [in]  enNewState     An en_functional_state_t enumeration value.
+ *   @arg  Enable:              SS pin high level valid.
+ *   @arg  Disable:             SS pin low level valid.
+ * @retval None
  */
-en_result_t SPI_SSValidLevelCfg(M4_SPI_TypeDef *SPIx, const stc_spi_ss_valid_level_t *pstcSSValidLevelCfg)
+void SPI_SSValidLevelCfg(M4_SPI_TypeDef *SPIx, uint32_t u32SSPin, en_functional_state_t enNewState)
 {
-    en_result_t enRet = ErrorInvalidParameter;
-
     DDL_ASSERT(IS_VALID_SPI_UNIT(SPIx));
+    DDL_ASSERT(IS_SPI_SS_PIN(u32SSPin));
+    DDL_ASSERT(IS_FUNCTIONAL_STATE(enNewState));
 
-    if (NULL != pstcSSValidLevelCfg)
+    if(Enable == enNewState)
     {
-        DDL_ASSERT(IS_SPI_SS_ACTIVE_LEVEL(pstcSSValidLevelCfg->u32ValidLevelSS0));
-        DDL_ASSERT(IS_SPI_SS_ACTIVE_LEVEL(pstcSSValidLevelCfg->u32ValidLevelSS1));
-        DDL_ASSERT(IS_SPI_SS_ACTIVE_LEVEL(pstcSSValidLevelCfg->u32ValidLevelSS2));
-        DDL_ASSERT(IS_SPI_SS_ACTIVE_LEVEL(pstcSSValidLevelCfg->u32ValidLevelSS3));
-
-        MODIFY_REG32(SPIx->CFG1,
-                     SPI_CFG1_SS0PV | SPI_CFG1_SS1PV | SPI_CFG1_SS2PV | SPI_CFG1_SS3PV,
-                     pstcSSValidLevelCfg->u32ValidLevelSS0 << SPI_CFG1_SS0PV_POS
-                     | pstcSSValidLevelCfg->u32ValidLevelSS1 << SPI_CFG1_SS1PV_POS
-                     | pstcSSValidLevelCfg->u32ValidLevelSS2 << SPI_CFG1_SS2PV_POS
-                     | pstcSSValidLevelCfg->u32ValidLevelSS3 << SPI_CFG1_SS3PV_POS);
-        enRet = Ok;
+        SET_REG32_BIT(SPIx->CFG1, u32SSPin);
     }
-    return enRet;
+    else
+    {
+        CLEAR_REG32_BIT(SPIx->CFG1, u32SSPin);
+    }
 }
 
 /**
  * @brief  SPI valid SS signal configuration
  * @param  [in]  SPIx               SPI unit
- * @param  [in]  u32ValidSS         Valid SS signal
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
+ * @param  [in]  u32SSPin           Specify the SS pin @ref SPI_SS_Pin_Define
  * @retval None
  */
-void SPI_ValidSSCfg(M4_SPI_TypeDef *SPIx, uint32_t u32ValidSS)
+void SPI_SSPinSel(M4_SPI_TypeDef *SPIx, uint32_t u32SSPin)
 {
+    uint32_t    u32RegCfg;
     DDL_ASSERT(IS_VALID_SPI_UNIT(SPIx));
-    DDL_ASSERT(IS_SPI_SS_SIGNAL(u32ValidSS));
+    DDL_ASSERT(IS_SPI_SS_PIN(u32SSPin));
 
-    MODIFY_REG32(SPIx->CFG2, SPI_CFG2_SSA, u32ValidSS);
+    switch (u32SSPin)
+    {
+        case SPI_PIN_SS0:
+            u32RegCfg = SPI_SS0_VALID_CFG;
+            break;
+        case SPI_PIN_SS1:
+            u32RegCfg = SPI_SS1_VALID_CFG;
+            break;
+        case SPI_PIN_SS2:
+            u32RegCfg = SPI_SS2_VALID_CFG;
+            break;
+        case SPI_PIN_SS3:
+            u32RegCfg = SPI_SS3_VALID_CFG;
+            break;
+
+        default:
+            u32RegCfg = SPI_SS0_VALID_CFG;
+            break;
+    }
+    MODIFY_REG32(SPIx->CFG2, SPI_CFG2_SSA, u32RegCfg);
 }
 
 /**
  * @brief  SPI read buffer configuration
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  u32ReadBuf         Target buffer for read operation @ref SPI_Read_Target_Buffer_Define
  * @retval None
  */
@@ -768,13 +835,19 @@ void SPI_ReadBufCfg(M4_SPI_TypeDef *SPIx, uint32_t u32ReadBuf)
 /**
  * @brief  SPI transmit data.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  pvTxBuf            The pointer to the buffer which contains the data to be sent.
  * @param  [in]  u32TxLength        The length of the data to be sent.
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                      No errors occurred
  *   @arg  ErrorTimeout:            SPI transmit timeout.
  *   @arg  ErrorInvalidParameter:   pvTxBuf == NULL or u32TxLength == 0U
- * @note   -No NSS pin active and inactive operation in 3-wire mode. Add operations of NSS pin depending on your application.
+ * @note   -No SS pin active and inactive operation in 3-wire mode. Add operations of SS pin depending on your application.
  *         -This function supports full duplex mode and send only mode.
  */
 en_result_t SPI_Transmit(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, uint32_t u32TxLength)
@@ -802,13 +875,19 @@ en_result_t SPI_Transmit(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, uint32_t u32
 /**
  * @brief  SPI receive data.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  pvRxBuf            The pointer to the buffer which the received data to be stored.
  * @param  [in]  u32RxLength        The length of the data to be received.
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                      No errors occurred
  *   @arg  ErrorTimeout:            SPI receive timeout.
  *   @arg  ErrorInvalidParameter:   pvRxBuf == NULL or u32RxLength == 0U
- * @note   -No NSS pin active and inactive operation in 3-wire mode. Add operations of NSS pin depending on your application.
+ * @note   -No SS pin active and inactive operation in 3-wire mode. Add operations of SS pin depending on your application.
  *         -This function only works in full duplex master mode.
  */
 en_result_t SPI_Receive(M4_SPI_TypeDef *SPIx, void *pvRxBuf, uint32_t u32RxLength)
@@ -826,6 +905,12 @@ en_result_t SPI_Receive(M4_SPI_TypeDef *SPIx, void *pvRxBuf, uint32_t u32RxLengt
 /**
  * @brief  SPI transmit and receive data.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  pvTxBuf            The pointer to the buffer which contains the data to be sent.
  *                                  If this pointer is NULL and the pvRxBuf is NOT NULL, the MOSI output high
  *                                  and the the received data will be stored in the buffer pointed by pvRxBuf.
@@ -860,6 +945,12 @@ en_result_t SPI_TransmitReceive(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, void 
 /**
  * @brief  SPI transmit and receive data in full duplex mode.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  pvTxBuf            The pointer to the buffer which contains the data to be sent.
  * @param  [out] pvRxBuf            The pointer to the buffer which the received data will be stored.
  * @param  [in]  u32Length          The length of the data in byte or half word.
@@ -873,7 +964,7 @@ static en_result_t SPI_TxRx(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, void *pvR
     uint32_t u32Timecount;
     uint32_t u32Count = 0U;
     en_result_t enRet = Ok;
-    static __IO uint32_t u32Read;
+    __UNUSED __IO uint32_t u32Read;
 
     /* Get data bit size, SPI_DATA_SIZE_4BIT ~ SPI_DATA_SIZE_32BIT */
     u32BitSize = READ_REG32_BIT(SPIx->CFG2, SPI_CFG2_DSIZE);
@@ -903,15 +994,22 @@ static en_result_t SPI_TxRx(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, void *pvR
             WRITE_REG32(SPIx->DR, 0xFFFFFFFFUL);
         }
 
-        u32Timecount = m_u32Timeout;
+        /* Delay about 10ms */
+        u32Timecount = HCLK_VALUE/100UL;
         do
         {
-            if(READ_REG32_BIT(SPIx->SR, SPI_FLAG_RX_BUFFER_FULL))
+            if(0UL != READ_REG32_BIT(SPIx->SR, SPI_FLAG_RX_BUFFER_FULL))
             {
                 break;
             }
             u32Timecount--;
         } while (u32Timecount != 0U);
+
+        if (u32Timecount == 0U)
+        {
+            enRet = ErrorTimeout;
+            break;
+        }
 
         if (pvRxBuf != NULL)
         {
@@ -938,12 +1036,6 @@ static en_result_t SPI_TxRx(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, void *pvR
             u32Read = READ_REG32(SPIx->DR);
         }
 
-        if (u32Timecount == 0U)
-        {
-            enRet = ErrorTimeout;
-            break;
-        }
-
         u32Count++;
     }
     return enRet;
@@ -952,8 +1044,14 @@ static en_result_t SPI_TxRx(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, void *pvR
 /**
  * @brief  SPI send data only.
  * @param  [in]  SPIx               SPI unit
+ *         @arg M4_SPI1
+ *         @arg M4_SPI2
+ *         @arg M4_SPI3
+ *         @arg M4_SPI4
+ *         @arg M4_SPI5
+ *         @arg M4_SPI6
  * @param  [in]  pvTxBuf            The pointer to the buffer which contains the data to be sent.
- * @param  [in]  u32Length          The length of the data in byte or half word.
+ * @param  [in]  u32Length          The length of the data in byte or half word or word.
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                      No errors occurred.
  *   @arg  ErrorTimeout:            SPI transmit timeout.
@@ -986,10 +1084,11 @@ static en_result_t SPI_Tx(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, uint32_t u3
             WRITE_REG32(SPIx->DR, *(const uint32_t *)((uint32_t)pvTxBuf + u32Count*4UL));
         }
 
-        u32Timecount = m_u32Timeout;
+        /* Delay about 10ms */
+        u32Timecount = HCLK_VALUE/100UL;
         do
         {
-            if(READ_REG32_BIT(SPIx->SR, SPI_FLAG_TX_BUFFER_EMPTY))
+            if(0UL != READ_REG32_BIT(SPIx->SR, SPI_FLAG_TX_BUFFER_EMPTY))
             {
                 break;
             }

@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_hid_msc\source\usbd_storage_msd.h
+ * @file  usb/usbd_hid_msc/source/usbd_storage_msd.h
  * @brief Headfile for usbd_storage_msd.c.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.

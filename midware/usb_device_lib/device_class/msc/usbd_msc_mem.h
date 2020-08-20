@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2019-05-15       Zhangxl         First version
+   2020-06-12      Zhangxl         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -113,7 +113,7 @@ typedef struct
  * @defgroup USBD_MSC_MEM_Global_Macros
  * @{
  */
-#define USBD_STD_INQUIRY_LENGTH     (36u)
+#define USBD_STD_INQUIRY_LENGTH     (36U)
 /**
  * @}
  */

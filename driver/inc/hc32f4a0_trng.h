@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-02-21       Heqb         First version
+   2020-06-12       Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -71,7 +71,7 @@ extern "C"
  */
 
 /**
- * @addtogroup DDL_TNRG
+ * @addtogroup DDL_TRNG
  * @{
  */
 
@@ -80,10 +80,6 @@ extern "C"
 /*******************************************************************************
  * Global type definitions ('typedef')
  ******************************************************************************/
-/**
- * @defgroup TRNG_Global_Types TRNG Global Types
- * @{
- */
 
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
@@ -99,7 +95,7 @@ extern "C"
  * @{
  */
 #define TRNG_RELOAD_ENABLE          (TRNG_MR_LOAD)            /* Enable load new initial values. */
-#define TRNG_RELOAD_DISABLE         ((uint32_t)0x00000000UL)  /* Disable load new initial values. */
+#define TRNG_RELOAD_DISABLE         (0x00000000UL)            /* Disable load new initial values. */
 /**
  * @}
  */
@@ -108,10 +104,10 @@ extern "C"
  * @defgroup TRNG_Shift_Control TRNG Shift Control
  * @{
  */
-#define TRNG_SHIFT_COUNT_32         ((uint32_t)0x0000000CUL)  /* Shift 32 times when capturing random noise. */
-#define TRNG_SHIFT_COUNT_64         ((uint32_t)0x00000010UL)  /* Shift 64 times when capturing random noise. */
-#define TRNG_SHIFT_COUNT_128        ((uint32_t)0x00000014UL)  /* Shift 128 times when capturing random noise. */
-#define TRNG_SHIFT_COUNT_256        ((uint32_t)0x00000018UL)  /* Shift 256 times when capturing random noise. */
+#define TRNG_SHIFT_COUNT_32         (0x0000000CUL)            /* Shift 32 times when capturing random noise. */
+#define TRNG_SHIFT_COUNT_64         (0x00000010UL)            /* Shift 64 times when capturing random noise. */
+#define TRNG_SHIFT_COUNT_128        (0x00000014UL)            /* Shift 128 times when capturing random noise. */
+#define TRNG_SHIFT_COUNT_256        (0x00000018UL)            /* Shift 256 times when capturing random noise. */
 /**
  * @}
  */
@@ -132,9 +128,9 @@ extern "C"
  * @{
  */
 void TRNG_SetShiftCnt(uint32_t u32ShiftCount);
-void TRNG_LoadCmd(uint32_t u32LoadCmd);
+void TRNG_ReloadCmd(uint32_t u32ReloadCmd);
 
-en_result_t TRNG_Generate(uint32_t u32Random[]);
+en_result_t TRNG_Generate(uint32_t au32Random[]);
 /**
  * @}
  */

@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_hid_msc\source\usbd_desc.c
+ * @file  usb/usbd_hid_msc/source/usbd_desc.c
  * @brief This file provides the USBD descriptors and string formating method.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.

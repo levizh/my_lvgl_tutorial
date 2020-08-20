@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-24       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -75,7 +75,12 @@ extern "C"
   * @{
   */
 
-#if (BSP_W25QXX_ENABLE == BSP_ON)
+/** @addtogroup EV_HC32F4A0_LQFP176_W25QXX
+  * @{
+  */
+
+#if ((BSP_W25QXX_ENABLE == BSP_ON) && \
+     (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0))
 
 /*******************************************************************************
  * Global type definitions ('typedef')
@@ -84,6 +89,10 @@ extern "C"
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
+/**
+ * @defgroup EV_HC32F4A0_LQFP176_W25QXX_Global_Macros BSP W25QXX Global Macros
+ * @{
+ */
 /* SPI unit define */
 #define W25Q_SPI_UNIT                (M4_SPI1)
 #define W25Q_SPI_UNIT_CLOCK          (PWC_FCG1_SPI1)
@@ -108,7 +117,10 @@ extern "C"
 #define W25Q_CS_ACTIVE()             GPIO_ResetPins(W25Q_CS_PORT, W25Q_CS_PIN)
 #define W25Q_CS_INACTIVE()           GPIO_SetPins(W25Q_CS_PORT, W25Q_CS_PIN)
 
-#define W25QXX_DELAY_MS(x)           DDL_Delay1ms((x))
+#define W25QXX_DELAY_MS(x)           DDL_DelayMS((x))
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Global variable definitions ('extern')
@@ -130,7 +142,11 @@ en_result_t BSP_W25Q_SPI_Receive(void *pvRxBuf, uint32_t u32RxLength);
  * @}
  */
 
-#endif /* BSP_W25QXX_ENABLE */
+#endif /* BSP_W25QXX_ENABLE && (BSP_EV_HC32F4A0_LQFP176 == BSP_EV_HC32F4A0) */
+
+/**
+ * @}
+ */
 
 /**
  * @}

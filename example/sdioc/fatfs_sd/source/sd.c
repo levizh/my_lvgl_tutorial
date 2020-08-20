@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-13       Yangjp          First version
+   2020-06-12       Yangjp          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -190,7 +190,7 @@ en_result_t SD_Init(stc_sd_handle_t *handle)
         /* Initialize SDIOC with default configure */
         SDIOC_Init(handle->SDIOCx, &stcSdInit);
         /* Wait for the SDIOC to initialization */
-        DDL_Delay1ms(2U);
+        DDL_DelayMS(2U);
 
         /* Identify card operating voltage */
         enRet = SD_PowerCmd(handle, Enable);
@@ -552,7 +552,7 @@ void SD_IRQHandler(stc_sd_handle_t *handle)
         }
     }
     else if ((Disable != SDIOC_GetIntEnableState(handle->SDIOCx, SDIOC_NORMAL_INT_BWRSEN)) &&
-             (Reset != SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FALG_BWE)))
+             (Reset != SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FLAG_BWE)))
     {
         SDIOC_WriteBuffer(handle->SDIOCx, handle->pu8Buffer, 4UL);
         handle->pu8Buffer += 4U;
@@ -563,7 +563,7 @@ void SD_IRQHandler(stc_sd_handle_t *handle)
         }
     }
     else if ((Disable != SDIOC_GetIntEnableState(handle->SDIOCx, SDIOC_NORMAL_INT_BRRSEN)) &&
-             (Reset != SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FALG_BRE)))
+             (Reset != SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FLAG_BRE)))
     {
         SDIOC_ReadBuffer(handle->SDIOCx, handle->pu8Buffer, 4UL);
         handle->pu8Buffer += 4U;
@@ -1675,7 +1675,7 @@ static en_result_t SD_PowerCmd(stc_sd_handle_t *handle, en_functional_state_t en
         }
 
         /* Wait for reset to completed */
-        DDL_Delay1ms(1U);
+        DDL_DelayMS(1U);
         /* CMD8: SEND_IF_COND: Command available only on V2.0 cards */
         enCmdRet = SDMMC_CMD8_SendInterfaceCond(handle->SDIOCx, &handle->u32ErrorCode);
         if (Ok != enCmdRet)
@@ -1874,19 +1874,19 @@ static en_result_t SD_GetCurrSDStatus(stc_sd_handle_t *handle, uint32_t *pu32SDS
  */
 static en_result_t SD_ReadWriteFifo(stc_sd_handle_t *handle, const stc_sdioc_data_init_t *pstcDataCfg, uint8_t pu8Data[], uint32_t u32Timeout)
 {
-    __IO uint32_t u32Count = 0UL;
+    __IO uint32_t u32Count;
     en_result_t enCmdRet = Ok;
     uint32_t u32Index = 0UL;
 
     /* The u32Timeout is expressed in ms */
-    u32Count = u32Timeout * (SystemCoreClock / 20000UL);
+    u32Count = u32Timeout * (HCLK_VALUE / 20000UL);
     while (Reset == SDIOC_GetIntStatus(handle->SDIOCx, (SDIOC_ERROR_INT_FLAG_DEBE | SDIOC_ERROR_INT_FLAG_DCE |
                                                         SDIOC_ERROR_INT_FLAG_DTOE | SDIOC_NORMAL_INT_FLAG_TC)))
     {
         if (SDIOC_TRANSFER_DIR_TO_CARD != pstcDataCfg->u16TransferDir)
         {
             // Read buffer data
-            if (Set == SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FALG_BRE))
+            if (Set == SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FLAG_BRE))
             {
                 SDIOC_ReadBuffer(handle->SDIOCx, (uint8_t *)&pu8Data[u32Index], (uint32_t)(pstcDataCfg->u16BlockSize));
                 u32Index += pstcDataCfg->u16BlockSize;
@@ -1895,14 +1895,14 @@ static en_result_t SD_ReadWriteFifo(stc_sd_handle_t *handle, const stc_sdioc_dat
         else
         {
             // Write buffer data
-            if (Set == SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FALG_BWE))
+            if (Set == SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FLAG_BWE))
             {
                 SDIOC_WriteBuffer(handle->SDIOCx, (uint8_t *)&pu8Data[u32Index], (uint32_t)(pstcDataCfg->u16BlockSize));
                 u32Index += pstcDataCfg->u16BlockSize;
             }
         }
 
-        if (--u32Count == 0UL)
+        if (u32Count-- == 0UL)
         {
             SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
             return ErrorTimeout;
@@ -1948,12 +1948,12 @@ static en_result_t SD_ReadWriteFifo(stc_sd_handle_t *handle, const stc_sdioc_dat
         /* Empty FIFO if there is still any data */
         if (SDIOC_TRANSFER_DIR_TO_CARD != pstcDataCfg->u16TransferDir)
         {
-            u32Count = u32Timeout * (SystemCoreClock / 20000UL);
-            while (Set == SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FALG_BRE))
+            u32Count = u32Timeout * (HCLK_VALUE / 20000UL);
+            while (Set == SDIOC_GetHostStatus(handle->SDIOCx, SDIOC_HOST_FLAG_BRE))
             {
                 SDIOC_ReadBuffer(handle->SDIOCx, (uint8_t *)&pu8Data[u32Index], (uint32_t)(pstcDataCfg->u16BlockSize));
                 u32Index += pstcDataCfg->u16BlockSize;
-                if (--u32Count == 0UL)
+                if (u32Count-- == 0UL)
                 {
                     SDIOC_ClearIntStatus(handle->SDIOCx, SDIOC_ERROR_INT_STATIC_FLAGS);
                     return ErrorTimeout;

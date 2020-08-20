@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-09       Hongjh          First version
+   2020-06-12       Hongjh          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -62,7 +62,7 @@
  */
 
 /**
- * @addtogroup EXMC_SMC_SRAM
+ * @addtogroup EXMC_SMC_NOR_S29GL064N90TFI03
  * @{
  */
 
@@ -83,6 +83,8 @@
 /*******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 
 /*******************************************************************************
  * Local variable definitions ('static')
@@ -96,11 +98,63 @@ static uint16_t m_au16ReadData[DATA_BUFFER_LEN];
 static uint16_t m_au16WriteData[DATA_BUFFER_LEN];
 
 static uint16_t m_au16Id[4];
-static uint8_t m_u8TestError __UNUSED = 1U;
+static __IO uint8_t m_u8TestError __UNUSED = 1U;
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+//    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+//    EFM_FWMC_Unlock();
+    /* Unlock EFM OTP write protect registers */
+//    EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK, PVD registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+//    SRAM_CKCR_Lock();
+    /* Lock EFM OTP write protect registers */
+//    EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+//    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
 
 /**
  * @brief  Main function of EXMC SMC NOR Flash project
@@ -110,6 +164,9 @@ static uint8_t m_u8TestError __UNUSED = 1U;
 int32_t main(void)
 {
     uint32_t i;
+
+    /* MCU Peripheral registers write unprotected */
+    Peripheral_WE();
 
     /* Initialize system clock: */
     BSP_CLK_Init();
@@ -123,7 +180,7 @@ int32_t main(void)
                               CLK_PCLK4_DIV2 | CLK_EXCLK_DIV4 | CLK_HCLK_DIV1));
 
     /* Initialize test data. */
-    for (i = 0U; i < DATA_BUFFER_LEN; i++)
+    for (i = 0UL; i < DATA_BUFFER_LEN; i++)
     {
         m_au16ReadData[i] = 0U;
         m_au16WriteData[i] = 0x1234U;
@@ -135,6 +192,9 @@ int32_t main(void)
                         &m_u32MemSectors,
                         &m_u32MemBytePerSector,
                         &m_u32BytesPerBufProgram);
+
+    /* MCU Peripheral registers write protected */
+    Peripheral_WP();
 
     /* Read NOR Flash device ID */
     S29GL064_ReadId(m_au16Id, 4UL);

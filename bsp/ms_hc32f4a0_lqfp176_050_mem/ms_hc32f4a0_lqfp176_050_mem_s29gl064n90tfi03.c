@@ -2,11 +2,12 @@
  *******************************************************************************
  * @file  ms_hc32f4a0_lqfp176_050_mem_s29gl064n90tfi03.c
  * @brief This file provides configure functions for s29gl064n90tfi03 of the 
- *        board MS-HC32F4A0-LQF176-050-MEM.
+ *        board MS_HC32F4A0_LQF176_050_MEM.
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-30       Hongjh          First version
+   2020-06-12       Hongjh          First version
+   2020-07-03       Hongjh          Adjust EXMC pin drive capacity to high drive
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -81,7 +82,7 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 /**
- * @defgroup EV_HC32F4A0_LQFP176_S29GL064N90TFI03_Local_Macros S29GL064N90TFI03 Local Macros
+ * @defgroup MS_HC32F4A0_LQFP176_050_MEM_S29GL064N90TFI03_Local_Macros HC32F4A0 MS LQFP176 S29GL064N90TFI03 Local Macros
  * @{
  */
 
@@ -116,7 +117,7 @@
  * @}
  */
 
-#define S29GL064N90TFI03_MEM_WIDTH              (EXMC_SMC_MEM_WIDTH_16)
+#define S29GL064N90TFI03_MEM_WIDTH              (EXMC_SMC_MEMORY_WIDTH_16BIT)
 
 /**
  * @defgroup SMC_Interface_Pin EXMC SMC Interface Pin
@@ -297,14 +298,23 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
+/**
+ * @addtogroup MS_HC32F4A0_LQFP176_050_MEM_S29GL064N90TFI03_Local_Functions
+ * @{
+ */
+
 static void EV_EXMC_SMC_PortInit(void);
 static en_result_t BSP_SMC_S29GL064_WaitReadySignal(uint32_t u32Timeout);
+
+/**
+ * @}
+ */
 
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 /**
- * @defgroup EV_HC32F4A0_LQFP176_MT29G08AB_Global_Functions HC32F4A0 LQFP176 EVB MT29G08AB Global Functions
+ * @defgroup MS_HC32F4A0_LQFP176_050_MEM_S29GL064N90TFI03_Global_Functions HC32F4A0 MS LQFP176 S29GL064N90TFI03 Global Functions
  * @{
  */
 
@@ -326,7 +336,7 @@ en_result_t BSP_SMC_S29GL064_Init(void)
     PWC_Fcg3PeriphClockCmd(PWC_FCG3_SMC, Enable);
 
     /* Enable SMC. */
-    EXMC_SMC_Enable();
+    EXMC_SMC_Cmd(Enable);
 
     EXMC_SMC_ExitLowPower();
     while (EXMC_SMC_READY != EXMC_SMC_GetStatus())
@@ -633,27 +643,27 @@ uint16_t BSP_SMC_S29GL064_Read(uint32_t u32DevicBaseAddress,
  * @param  [in] u32DevicBaseAddress     S29GL064 base address
  * @param  [in] u32ProgramAddress       Memory address to write
  * @param  [in] au16Data                Data buffer to write
- * @param  [in] u32NumHalfWords         Number half-word to write
+ * @param  [in] u32NumHalfwords         Number half-word to write
  * @retval An en_result_t enumeration value:
  *   @arg  Ok:                          No errors occurred.
- *   @arg  ErrorInvalidParameter:       The pointer au16Buf value is NULL.
+ *   @arg  ErrorInvalidParameter:       The pointer au16Data value is NULL.
  */
 en_result_t BSP_SMC_S29GL064_ProgramBuffer(uint32_t u32DevicBaseAddress,
                                                   uint32_t u32ProgramAddress,
                                                   const uint16_t au16Data[],
-                                                  uint32_t u32NumHalfWords)
+                                                  uint32_t u32NumHalfwords)
 {
     uint32_t i = 0UL;
-    uint32_t u32CurAddr = 0UL;
-    uint32_t u32EndAddr = 0UL;
+    uint32_t u32CurAddr;
+    uint32_t u32EndAddr;
+    en_result_t enRet = ErrorInvalidParameter;
 
-    if ((NULL != au16Data) && (u32NumHalfWords <= S29GL064N90TFI03_BYTES_PER_BUFFER_PROGRAM))
+    if (NULL != au16Data)
     {
-        DDL_ASSERT(IS_ADDRESS_ALIGN(u32ProgramAddress, 16));
+        DDL_ASSERT(IS_ADDRESS_ALIGN(u32ProgramAddress, 16UL));
 
         /* Initialize variables */
-        u32CurAddr = u32ProgramAddress;
-        u32EndAddr = u32CurAddr + (u32NumHalfWords << 1UL) - 1UL;
+        u32EndAddr = u32ProgramAddress + (u32NumHalfwords << 1UL) - 1UL;
 
         /* Issue unlock command sequence */
         RW_MEM16(SMC_ADDR_SHIFT(u32DevicBaseAddress, S29GL064N90TFI03_MEM_WIDTH, NOR_CMD_ADDRESS_FIRST)) = NOR_CMD_DATA_FIRST;
@@ -661,18 +671,19 @@ en_result_t BSP_SMC_S29GL064_ProgramBuffer(uint32_t u32DevicBaseAddress,
 
         /* Write Buffer Load Command */
         RW_MEM16(u32ProgramAddress) =  NOR_CMD_DATA_WRITE_TO_BUFFER_PROGRAM;
-        RW_MEM16(u32ProgramAddress) = (uint16_t)(u32NumHalfWords - 1UL);
+        RW_MEM16(u32ProgramAddress) = (uint16_t)(u32NumHalfwords - 1UL);
 
         /* Load Data into NOR Buffer */
-        for (; u32CurAddr <= u32EndAddr; u32CurAddr += 2UL)
+        for (u32CurAddr = u32ProgramAddress; u32CurAddr <= u32EndAddr; u32CurAddr += 2UL)
         {
             RW_MEM16(u32CurAddr) = au16Data[i++];
         }
 
         RW_MEM16(u32ProgramAddress) = NOR_CMD_DATA_WRITE_TO_BUFFER_PROGRAM_CONFIRM;
+        enRet = Ok;
     }
 
-    return Ok;
+    return enRet;
 }
 
 /**
@@ -681,22 +692,26 @@ en_result_t BSP_SMC_S29GL064_ProgramBuffer(uint32_t u32DevicBaseAddress,
  * @param  [in] u32ReadAddress          Memory address to read
  * @param  [in] au16Data                Data buffer for reading
  * @param  [in] u32NumHalfWords         Number half-word to write
- * @retval Data of the specified address
+ * @retval An en_result_t enumeration value:
+ *   @arg  Ok:                          No errors occurred.
+ *   @arg  ErrorInvalidParameter:       The pointer au16Data value is NULL.
  */
 en_result_t BSP_SMC_S29GL064_ReadBuffer(uint32_t u32DevicBaseAddress,
                                             uint32_t u32ReadAddress,
                                             uint16_t au16Data[],
                                             uint32_t u32NumHalfWords)
 {
+    uint32_t i;
     en_result_t enRet = ErrorInvalidParameter;
 
     if (au16Data != NULL)
     {
-        for (uint32_t i = 0UL; i < u32NumHalfWords; i++)
+        for (i = 0UL; i < u32NumHalfWords; i++)
         {
             au16Data[i] = RW_MEM16(u32ReadAddress);
-            u32ReadAddress += 2U;
+            u32ReadAddress += 2UL;
         }
+        enRet = Ok;
     }
 
     return enRet;
@@ -707,7 +722,7 @@ en_result_t BSP_SMC_S29GL064_ReadBuffer(uint32_t u32DevicBaseAddress,
  */
 
 /**
- * @defgroup EV_HC32F4A0_LQFP176_S29GL064N90TFI03_Local_Functions HC32F4A0 LQFP176 EVB S29GL064N90TFI03 Local Functions
+ * @defgroup MS_HC32F4A0_LQFP176_050_MEM_S29GL064N90TFI03_Local_Functions HC32F4A0 MS LQFP176 S29GL064N90TFI03 Local Functions
  * @{
  */
 
@@ -720,11 +735,9 @@ static void EV_EXMC_SMC_PortInit(void)
 {
     stc_gpio_init_t stcGpioInit;
 
-    GPIO_Unlock();
-
     /************************* Set pin drive capacity *************************/
     GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PinDrv = PIN_DRV_MID;
+    stcGpioInit.u16PinDrv = PIN_DRV_HIGH;
     stcGpioInit.u16PinDir = PIN_DIR_OUT;
     GPIO_Init(SMC_IO3_PORT, SMC_IO3_PIN, &stcGpioInit);
 
@@ -858,11 +871,9 @@ static void EV_EXMC_SMC_PortInit(void)
     /* Reset */
     GPIO_ResetPins(SMC_RST0_PORT, SMC_RST0_PIN);
     GPIO_ResetPins(SMC_RST1_PORT, SMC_RST1_PIN);
-    DDL_Delay1ms(10UL);
+    DDL_DelayMS(10UL);
     GPIO_SetPins(SMC_RST0_PORT, SMC_RST0_PIN);
     GPIO_SetPins(SMC_RST1_PORT, SMC_RST1_PIN);
-
-    GPIO_Lock();
 }
 
 /**
@@ -910,10 +921,6 @@ static en_result_t BSP_SMC_S29GL064_WaitReadySignal(uint32_t u32Timeout)
 /**
  * @}
  */
-
-/**
-* @}
-*/
 
 /**
 * @}

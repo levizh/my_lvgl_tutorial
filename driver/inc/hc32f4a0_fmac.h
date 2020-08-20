@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-01-19       Heqb         First version
+   2020-06-12       Heqb         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -220,7 +220,7 @@ void FMAC_SetStageFactor(M4_FMAC_TypeDef* FMACx, uint32_t u32FilterStage, int16_
 void FMAC_IntCmd(M4_FMAC_TypeDef* FMACx, en_functional_state_t enNewState);
 void FMAC_FIRInput(M4_FMAC_TypeDef* FMACx, int16_t i16Factor);
 en_flag_status_t FMAC_GetStatus(const M4_FMAC_TypeDef* FMACx);
-stc_fmac_result_t FMAC_GetResult(const M4_FMAC_TypeDef* FMACx);
+en_result_t FMAC_GetResult(const M4_FMAC_TypeDef* FMACx, stc_fmac_result_t *stcResult);
 /**
  * @}
  */

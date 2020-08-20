@@ -5,7 +5,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-31       Heqb          First version
+   2020-06-12       Heqb          First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -83,7 +83,8 @@
  * Local function prototypes ('static')
  ******************************************************************************/
 static void IRQ_Config(void);
-
+static void Peripheral_WE(void);
+static void Peripheral_WP(void);
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
@@ -91,6 +92,58 @@ static void IRQ_Config(void);
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+/**
+ * @brief  MCU Peripheral registers write unprotected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WE(void)
+{
+    /* Unlock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Unlock();
+    /* Unlock PWC register: FCG0 */
+    PWC_FCG0_Unlock();
+    /* Unlock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Unlock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Unlock SRAM register: WTCR */
+    SRAM_WTCR_Unlock();
+    /* Unlock SRAM register: CKCR */
+    SRAM_CKCR_Unlock();
+    /* Unlock all EFM registers */
+    EFM_Unlock();
+    /* Unlock EFM register: FWMC */
+    EFM_FWMC_Unlock();
+    /* Unlock EFM OPT write protect registers */
+    //EFM_OTP_WP_Unlock();
+}
+
+/**
+ * @brief  MCU Peripheral registers write protected.
+ * @param  None
+ * @retval None
+ * @note Comment/uncomment each API depending on APP requires.
+ */
+static void Peripheral_WP(void)
+{
+    /* Lock GPIO register: PSPCR, PCCR, PINAER, PCRxy, PFSRxy */
+    GPIO_Lock();
+    /* Lock PWC register: FCG0 */
+    PWC_FCG0_Lock();
+    /* Lock PWC, CLK registers, @ref PWC_REG_Write_Unlock_Code for details */
+    PWC_Lock(PWC_UNLOCK_CODE_0 | PWC_UNLOCK_CODE_1);
+    /* Lock SRAM register: WTCR */
+    SRAM_WTCR_Lock();
+    /* Lock SRAM register: CKCR */
+    SRAM_CKCR_Lock();
+    /* Lock EFM OPT write protect registers */
+    //EFM_OTP_WP_Lock();
+    /* Lock EFM register: FWMC */
+    EFM_FWMC_Lock();
+    /* Lock all EFM registers */
+    EFM_Lock();
+}
+
 /**
  * @brief  EFM Program/Erase Error IRQ callback
  * @param  None
@@ -101,10 +154,8 @@ static void EFM_PgmErr_IrqCallback(void)
     BSP_LED_Off(LED_BLUE);
     BSP_LED_On(LED_RED);
 
-    EFM_Unlock();
     /* Clear Flag */
     EFM_ClearFlag(EFM_FLAG_CLR_PRTWERR1);
-    EFM_Lock();
 }
 
 /**
@@ -116,9 +167,11 @@ int32_t main(void)
 {
     stc_efm_cfg_t stcEfmCfg;
     uint32_t flag1, flag2;
-    uint32_t u32TestData = 0x5A5A5A5AU;
+    uint32_t u32TestData = 0x5A5A5A5AUL;
     uint32_t u32Addr;
 
+    /* Unlock peripherals or registers */
+    Peripheral_WE();
     /* LED & KEY Init */
     BSP_IO_Init();
     BSP_LED_Init();
@@ -127,13 +180,12 @@ int32_t main(void)
     /* Configure system clock. HClK = 240MHZ */
     BSP_CLK_Init();
     /* Configure GPIO read wait cycle */
-    GPIO_PortReadWait(GPIO_READ_WAIT_5);
+    GPIO_SetReadWaitCycle(GPIO_READ_WAIT_5);
     /*Configure IRQ handler && NVIC*/
     IRQ_Config();
-    /* Unlock EFM. */
-    EFM_Unlock();
+
     /* EFM default config. */
-    EFM_StrucInit(&stcEfmCfg);
+    EFM_StructInit(&stcEfmCfg);
     /*
      * Clock <= 40MHZ             EFM_WAIT_CYCLE_0
      * 40MHZ < Clock <= 80MHZ     EFM_WAIT_CYCLE_1
@@ -142,7 +194,7 @@ int32_t main(void)
      * 160MHZ < Clock <= 200MHZ   EFM_WAIT_CYCLE_4
      * 200MHZ < Clock <= 240MHZ   EFM_WAIT_CYCLE_5
      */
-    stcEfmCfg.u32WaitCycle = EFM_WAIT_CYCLE_4;
+    stcEfmCfg.u32WaitCycle = EFM_WAIT_CYCLE_5;
     /* EFM config */
     EFM_Init(&stcEfmCfg);
     /* Enable Interrupt function */
@@ -151,19 +203,18 @@ int32_t main(void)
     do{
         flag1 = EFM_GetFlagStatus(EFM_FLAG_RDY0);
         flag2 = EFM_GetFlagStatus(EFM_FLAG_RDY1);
-    }while((Set != flag1) || (Set != flag2));
+    }while(((uint32_t)Set != flag1) || ((uint32_t)Set != flag2));
 
-    /* Sector 130 disables write protection */
-    EFM_SectorUnlock(EFM_SECTOR130_ADDR, sizeof(u32TestData), Enable);
-
+    /* Sector 130~140 disable write protection */
+    EFM_SectorCmd_Sequential(EFM_ADDR_SECTOR130, 10U, Enable);
     /* Erase sector 130. */
-    EFM_SectorErase(EFM_SECTOR130_ADDR);
+    EFM_SectorErase(EFM_ADDR_SECTOR130);
 
-    u32Addr = EFM_SECTOR130_ADDR;
+    u32Addr = EFM_ADDR_SECTOR130;
     /* Program within the allowed address. Program in sector 130*/
     EFM_SingleProgram(u32Addr, u32TestData);
 
-    /*SW1 */
+    /* Press KEY_1(SW1) */
     while(Reset == BSP_KEY_GetStatus(BSP_KEY_1))
     {
         ;
@@ -171,9 +222,10 @@ int32_t main(void)
 
     /* Program outside the allowed address. Program in sector 129*/
     EFM_SingleProgram((u32Addr - 32U), u32TestData);
-
-    /* Lock EFM. */
-    EFM_Lock();
+    /* Sector 130~140 enable write protection */
+    EFM_SectorCmd_Sequential(EFM_ADDR_SECTOR130, 10U, Disable);
+    /* Lock peripherals or registers */
+    Peripheral_WP();
 
     while(1)
     {

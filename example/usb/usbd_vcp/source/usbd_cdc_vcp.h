@@ -1,12 +1,12 @@
 /**
  *******************************************************************************
- * @file  usb\usbd_vcp\source\usbd_cdc_vcp.h
+ * @file  usb/usbd_vcp/source/usbd_cdc_vcp.h
  * @brief Header for usbd_cdc_vcp.c file.
  *   
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-05-28       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -97,9 +97,8 @@ typedef struct
 /*******************************************************************************
  * Global pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define CDC_COMM                        (M4_USART1)
-#define DEFAULT_CONFIG                  0u
-#define OTHER_CONFIG                    1u
+#define DEFAULT_CONFIG                  0U
+#define OTHER_CONFIG                    1U
 
 /*******************************************************************************
  * Global variable definitions ('extern')

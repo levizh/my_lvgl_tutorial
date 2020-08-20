@@ -6,7 +6,7 @@
  @verbatim
    Change Logs:
    Date             Author          Notes
-   2020-03-11       Wangmin         First version
+   2020-06-12       Wangmin         First version
  @endverbatim
  *******************************************************************************
  * Copyright (C) 2016, Huada Semiconductor Co., Ltd. All rights reserved.
@@ -126,17 +126,6 @@ typedef struct
     uint32_t u32SetupDelay;         /*!< SPI Setup time delay (SCK valid delay time) define
                                          This parameter can be a value of @ref SPI_Setup_Delay_Time_define */
 } stc_spi_delay_t;
-
-/**
- * @brief Structure definition of valid level for SS0/SS1/SS2/SS3 signal.
- */
-typedef struct
-{
-    uint32_t u32ValidLevelSS0;      /*!< Valid level for SS0 signal @ref SPI_SS_Active_Level_Define */
-    uint32_t u32ValidLevelSS1;      /*!< Valid level for SS1 signal @ref SPI_SS_Active_Level_Define */
-    uint32_t u32ValidLevelSS2;      /*!< Valid level for SS2 signal @ref SPI_SS_Active_Level_Define */
-    uint32_t u32ValidLevelSS3;      /*!< Valid level for SS3 signal @ref SPI_SS_Active_Level_Define */
-} stc_spi_ss_valid_level_t;
 
 /**
  * @}
@@ -294,6 +283,18 @@ typedef struct
  */
 
 /**
+ * @defgroup SPI_SS_Pin_Define SPI SSx define
+ * @{
+ */
+#define SPI_PIN_SS0                 (SPI_CFG1_SS0PV)
+#define SPI_PIN_SS1                 (SPI_CFG1_SS1PV)
+#define SPI_PIN_SS2                 (SPI_CFG1_SS2PV)
+#define SPI_PIN_SS3                 (SPI_CFG1_SS3PV)
+/**
+ * @}
+ */
+
+/**
  * @defgroup SPI_SS_Active_Level_Define SPI SSx Active Level define
  * @{
  */
@@ -307,8 +308,8 @@ typedef struct
  * @defgroup SPI_Read_Target_Buffer_Define SPI read data register target buffer define
  * @{
  */
-#define SPI_RD_TARGET_RD_BUF        (0UL)               /*!< Read read buffer. */
-#define SPI_RD_TARGET_WR_BUF        (SPI_CFG1_SPRDTD)   /*!< Read write buffer. */
+#define SPI_RD_TARGET_RD_BUF        (0UL)               /*!< Read RX buffer. */
+#define SPI_RD_TARGET_WR_BUF        (SPI_CFG1_SPRDTD)   /*!< Read TX buffer. */
 /**
  * @}
  */
@@ -344,29 +345,17 @@ typedef struct
  */
 
 /**
- * @defgroup SPI_SS_Singal_Valid_Define SPI SS signal valid define
- * @{
- */
-#define SPI_SS0_VALID               (0UL)
-#define SPI_SS1_VALID               (SPI_CFG2_SSA_0)
-#define SPI_SS2_VALID               (SPI_CFG2_SSA_1)
-#define SPI_SS3_VALID               (SPI_CFG2_SSA_0 | SPI_CFG2_SSA_1)
-/**
- * @}
- */
-
-/**
  * @defgroup SPI_Baud_Rate_Prescaler_Define SPI baudrate prescaler define
  * @{
  */
-#define SPI_BR_DIV_2                (0UL)                               /*!< SPI baud rate is the pclk1 divided by 2. */
-#define SPI_BR_DIV_4                (SPI_CFG2_MBR_0)                    /*!< SPI baud rate is the pclk1 clock divided by 4. */
-#define SPI_BR_DIV_8                (SPI_CFG2_MBR_1)                    /*!< SPI baud rate is the pclk1 clock divided by 8. */
-#define SPI_BR_DIV_16               (SPI_CFG2_MBR_1 | SPI_CFG2_MBR_0)   /*!< SPI baud rate is the pclk1 clock divided by 16. */
-#define SPI_BR_DIV_32               (SPI_CFG2_MBR_2)                    /*!< SPI baud rate is the pclk1 clock divided by 32. */
-#define SPI_BR_DIV_64               (SPI_CFG2_MBR_2 | SPI_CFG2_MBR_0)   /*!< SPI baud rate is the pclk1 clock divided by 64. */
-#define SPI_BR_DIV_128              (SPI_CFG2_MBR_2 | SPI_CFG2_MBR_1)   /*!< SPI baud rate is the pclk1 clock divided by 128. */
-#define SPI_BR_DIV_256              (SPI_CFG2_MBR_2 | SPI_CFG2_MBR_1 | SPI_CFG2_MBR_0)  /*!< SPI baud rate is the pclk1 divided by 256. */
+#define SPI_BR_PCLK1_DIV2            (0UL)                               /*!< SPI baud rate is the pclk1 divided by 2. */
+#define SPI_BR_PCLK1_DIV4            (SPI_CFG2_MBR_0)                    /*!< SPI baud rate is the pclk1 clock divided by 4. */
+#define SPI_BR_PCLK1_DIV8            (SPI_CFG2_MBR_1)                    /*!< SPI baud rate is the pclk1 clock divided by 8. */
+#define SPI_BR_PCLK1_DIV16           (SPI_CFG2_MBR_1 | SPI_CFG2_MBR_0)   /*!< SPI baud rate is the pclk1 clock divided by 16. */
+#define SPI_BR_PCLK1_DIV32           (SPI_CFG2_MBR_2)                    /*!< SPI baud rate is the pclk1 clock divided by 32. */
+#define SPI_BR_PCLK1_DIV64           (SPI_CFG2_MBR_2 | SPI_CFG2_MBR_0)   /*!< SPI baud rate is the pclk1 clock divided by 64. */
+#define SPI_BR_PCLK1_DIV128          (SPI_CFG2_MBR_2 | SPI_CFG2_MBR_1)   /*!< SPI baud rate is the pclk1 clock divided by 128. */
+#define SPI_BR_PCLK1_DIV256          (SPI_CFG2_MBR_2 | SPI_CFG2_MBR_1 | SPI_CFG2_MBR_0)  /*!< SPI baud rate is the pclk1 divided by 256. */
 /**
  * @}
  */
@@ -440,7 +429,6 @@ typedef struct
  */
 en_result_t SPI_StructInit(stc_spi_init_t *pstcInit);
 en_result_t SPI_DelayStructInit(stc_spi_delay_t *pstcDelayCfg);
-en_result_t SPI_SSValidLevelStructInit(stc_spi_ss_valid_level_t *pstcSSValidLevelCfg);
 
 en_result_t SPI_Init(M4_SPI_TypeDef *SPIx, const stc_spi_init_t *pstcInit);
 void SPI_DeInit(M4_SPI_TypeDef *SPIx);
@@ -454,11 +442,11 @@ uint32_t SPI_ReadDataReg(const M4_SPI_TypeDef *SPIx);
 en_flag_status_t SPI_GetStatus(const M4_SPI_TypeDef *SPIx, uint32_t u32Flag);
 void SPI_ClearFlag(M4_SPI_TypeDef *SPIx, uint32_t u32Flag);
 
-void SPI_ValidSSCfg(M4_SPI_TypeDef *SPIx, uint32_t u32ValidSS);
 void SPI_LoopbackModeCfg(M4_SPI_TypeDef *SPIx, uint32_t u32Mode);
 void SPI_PateCmd(M4_SPI_TypeDef *SPIx, en_functional_state_t enNewState);
 en_result_t SPI_DelayTimeCfg(M4_SPI_TypeDef *SPIx, const stc_spi_delay_t *pstcDelayCfg);
-en_result_t SPI_SSValidLevelCfg(M4_SPI_TypeDef *SPIx, const stc_spi_ss_valid_level_t *pstcSSValidLevelCfg);
+void SPI_SSValidLevelCfg(M4_SPI_TypeDef *SPIx, uint32_t u32SSPin, en_functional_state_t enNewState);
+void SPI_SSPinSel(M4_SPI_TypeDef *SPIx, uint32_t u32SSPin);
 void SPI_ReadBufCfg(M4_SPI_TypeDef *SPIx, uint32_t u32ReadBuf);
 
 en_result_t SPI_Transmit(M4_SPI_TypeDef *SPIx, const void *pvTxBuf, uint32_t u32TxLength);
